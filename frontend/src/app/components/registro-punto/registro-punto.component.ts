@@ -1,3 +1,4 @@
+import { environment } from '../../../environments/environment';
 import { Component, OnInit, ChangeDetectorRef, Output, EventEmitter, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -62,7 +63,7 @@ export class RegistroPuntoComponent implements OnInit {
   }
 
   loadEmpresas() {
-    this.http.get<any>('http://localhost:3000/api/empresas').subscribe({
+    this.http.get<any>(environment.apiUrl + '/api/empresas').subscribe({
       next: (res) => {
         if (res.success) {
           this.empresas = res.empresas;
@@ -123,7 +124,7 @@ export class RegistroPuntoComponent implements OnInit {
   resolveMapsUrl() {
     if (!this.puntoMapsUrl) return;
     this.loading = true;
-    this.http.post<any>('http://localhost:3000/api/resolve-maps-link', { url: this.puntoMapsUrl }).subscribe({
+    this.http.post<any>(environment.apiUrl + '/api/resolve-maps-link', { url: this.puntoMapsUrl }).subscribe({
       next: (res) => {
         this.loading = false;
         if (res.success) {
@@ -211,7 +212,7 @@ export class RegistroPuntoComponent implements OnInit {
         formData.append('imagen_referencia', this.puntoImagen);
       }
 
-      const res = await this.http.post<any>('http://localhost:3000/api/agencias', formData).toPromise();
+      const res = await this.http.post<any>(environment.apiUrl + '/api/agencias', formData).toPromise();
       if (res.success) {
         this.toastService.showSuccess('El punto ha sido registrado exitosamente.', 'Registro Completado');
         this.close.emit();

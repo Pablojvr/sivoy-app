@@ -1,3 +1,4 @@
+import { environment } from '../../../environments/environment';
 import { Component, Input, Output, EventEmitter, OnInit, ChangeDetectorRef, AfterViewInit, HostListener, ElementRef, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -12,9 +13,11 @@ import { ToastService } from '../../core/services/toast.service';
   encapsulation: ViewEncapsulation.None
 })
 export class HomeComponent implements OnInit {
+  apiUrl = environment.apiUrl;
   @Input() locations: any[] = [];
   @Input() userLocation: any = null;
   @Input() selectedPin: any = null;
+  @Output() viewOnMapEvent = new EventEmitter<any>();
   @Input() isPickingLocation: boolean = false;
   @Input() highlightedRoute: any = null;
   
@@ -360,7 +363,7 @@ export class HomeComponent implements OnInit {
 
   previewImage(url: string | null) {
     if (!url) return;
-    this.previewImageEvent.emit('http://localhost:3000' + url);
+    this.previewImageEvent.emit(environment.apiUrl + url);
   }
 
   shareLocation(loc: any) {

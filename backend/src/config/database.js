@@ -9,7 +9,8 @@ async function getDB() {
         return dbInstance;
     }
     
-    const dbPath = path.join(__dirname, '..', '..', '..', 'data', 'sivoyapp.sqlite');
+    const defaultDbPath = path.join(__dirname, '..', '..', '..', 'data', 'sivoyapp.sqlite');
+    const dbPath = process.env.DB_PATH || defaultDbPath;
     dbInstance = await open({
         filename: dbPath,
         driver: sqlite3.Database

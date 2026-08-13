@@ -231,7 +231,7 @@
   <div class="pin-details-card card-style slide-up" *ngIf="selectedPin" style="padding:0; overflow:hidden;">
     
     <!-- HERO HEADER -->
-    <div class="modal-hero" style="position: relative;" [style.backgroundImage]="selectedPin.imagen_referencia ? 'url(http://localhost:3000' + selectedPin.imagen_referencia + ')' : 'linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%)'">
+    <div class="modal-hero" style="position: relative;" [style.backgroundImage]="selectedPin.imagen_referencia ? 'url(' + apiUrl + selectedPin.imagen_referencia + ')' : 'linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%)'">
       <div style="position: absolute; top: 15px; right: 15px; display: flex; gap: 10px; z-index: 10;">
         <button (click)="shareLocation(selectedPin); $event.stopPropagation()" style="background: rgba(255,255,255,0.2); border: none; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; backdrop-filter: blur(4px);">
           <i class="pi pi-share-alt"></i>

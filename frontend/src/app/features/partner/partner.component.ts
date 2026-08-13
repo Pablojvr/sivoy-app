@@ -1,3 +1,4 @@
+import { environment } from '../../../environments/environment';
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -39,7 +40,7 @@ export class PartnerComponent implements OnInit {
   
   fetchLocations() {
     this.loading = true;
-    this.http.get('http://localhost:3000/api/locations').subscribe({
+    this.http.get(environment.apiUrl + '/api/locations').subscribe({
       next: (data: any) => {
         this.allLocations = data || [];
         // Extraer lista de empresas únicas
@@ -145,7 +146,7 @@ export class PartnerComponent implements OnInit {
   }
   
   descargarPlantilla() {
-    window.open('http://localhost:3000/api/empresas/excel-template', '_blank');
+    window.open(environment.apiUrl + '/api/empresas/excel-template', '_blank');
   }
   
   initConnectionsMap(focusLoc?: any) {

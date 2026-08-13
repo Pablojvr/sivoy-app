@@ -1,3 +1,4 @@
+import { environment } from '../environments/environment';
 import { Component, OnInit, ChangeDetectorRef, AfterViewInit, HostListener, ElementRef, ViewEncapsulation, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -160,7 +161,7 @@ export class MobileAppComponent implements OnInit, AfterViewInit {
       this.dropoffTime = '';
     }
 
-    this.http.get<any[]>('http://localhost:3000/api/locations').subscribe(data => {
+    this.http.get<any[]>(environment.apiUrl + '/api/locations').subscribe(data => {
       this.locations = data;
       this.filteredLocations = [...this.locations];
       
@@ -1562,7 +1563,7 @@ export class MobileAppComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    this.http.post('http://localhost:3000/api/get-upcoming-routes', {
+    this.http.post(environment.apiUrl + '/api/get-upcoming-routes', {
       origen: payloadOrigen,
       destino: payloadDestino,
       dropoff_date: this.dropoffDate || null,
@@ -1745,7 +1746,7 @@ export class MobileAppComponent implements OnInit, AfterViewInit {
 
   async loadAdminEmpresas() {
     try {
-      const res = await this.http.get<any>('http://localhost:3000/api/empresas').toPromise();
+      const res = await this.http.get<any>(environment.apiUrl + '/api/empresas').toPromise();
       if (res.success) {
         this.adminEmpresasList = res.empresas;
         this.adminCompanies = res.empresas.map((e: any) => e.nombre);
@@ -1844,9 +1845,9 @@ export class MobileAppComponent implements OnInit, AfterViewInit {
     try {
       let res;
       if (this.editingEmpresaData.id) {
-        res = await this.http.put<any>(`http://localhost:3000/api/empresas/${this.editingEmpresaData.id}`, formData).toPromise();
+        res = await this.http.put<any>(`${environment.apiUrl}/api/empresas/${this.editingEmpresaData.id}`, formData).toPromise();
       } else {
-        res = await this.http.post<any>('http://localhost:3000/api/empresas', formData).toPromise();
+        res = await this.http.post<any>(environment.apiUrl + '/api/empresas', formData).toPromise();
       }
       
       if (res.success) {
@@ -1885,7 +1886,7 @@ export class MobileAppComponent implements OnInit, AfterViewInit {
     this.editFormData = JSON.parse(JSON.stringify(loc)); // Deep copy
     this.editLocationTab = 'datos';
     this.editImageFile = null;
-    this.editImageUrl = loc.imagen_referencia ? `http://localhost:3000${loc.imagen_referencia}` : null;
+    this.editImageUrl = loc.imagen_referencia ? `${environment.apiUrl}${loc.imagen_referencia}` : null;
     
     // Initialize horarios grid based on backend data
     const dias = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
@@ -2100,7 +2101,7 @@ export class MobileAppComponent implements OnInit, AfterViewInit {
       formData.append('imagen_referencia', this.editImageFile);
     }
 
-    this.http.put(`http://localhost:3000/api/locations/${this.editingLocation.id}`, formData).subscribe({
+    this.http.put(`${environment.apiUrl}/api/locations/${this.editingLocation.id}`, formData).subscribe({
       next: (res: any) => {
         // Fetch fresh list from server to get image and horarios updated properly, 
         // or just update what we know. For simplicity, we can do a full reload of locations

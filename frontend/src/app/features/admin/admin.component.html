@@ -127,24 +127,24 @@
         <div class="info-card" style="background: white; padding: 0; border-radius: 12px; margin-bottom: 24px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
           
           <!-- Dirección -->
-          <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px;">
-            <div style="display: flex; align-items: flex-start; gap: 12px;">
-              <div style="background: #fff1f2; color: var(--primary); padding: 8px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-              </div>
-              <div style="flex: 1;">
-                <h5 style="margin: 0 0 4px 0; font-size: 14px; color: var(--text-main); font-weight: 600;">Dirección</h5>
-                <p style="margin: 0; font-size: 14px; color: var(--text-muted); line-height: 1.4;">{{ viewingLocation.ubicacion?.municipio || 'N/A' }}, {{ viewingLocation.ubicacion?.departamento || 'N/A' }}</p>
-                <p *ngIf="viewingLocation.ubicacion?.direccion_referencia" style="margin: 6px 0 0 0; font-size: 13px; color: #64748b; line-height: 1.4; display: flex; gap: 6px; align-items: flex-start;">
-                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" style="margin-top: 2px; flex-shrink: 0;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-                  <span>{{ viewingLocation.ubicacion.direccion_referencia }}</span>
-                </p>
-              </div>
+          <div style="display: flex; gap: 12px; padding: 16px;">
+            <div style="background: #fff1f2; color: var(--primary); padding: 8px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; height: 36px;">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
             </div>
-            <a *ngIf="viewingLocation.ubicacion?.lat" [href]="viewingLocation.maps_url || 'https://www.google.com/maps/search/?api=1&query=' + viewingLocation.ubicacion.lat + ',' + viewingLocation.ubicacion.lng" target="_blank" style="display: inline-flex; align-items: center; justify-content: center; background: #eef2ff; color: #4f46e5; padding: 8px 12px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 13px; gap: 6px; border: 1px solid #c7d2fe; transition: all 0.2s ease; flex-shrink: 0; box-shadow: 0 2px 4px rgba(79,70,229,0.1);" title="Abrir en Google Maps">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-              Maps
-            </a>
+            <div style="flex: 1; min-width: 0;">
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px;">
+                <h5 style="margin: 0; font-size: 14px; color: var(--text-main); font-weight: 600;">Dirección</h5>
+                <a *ngIf="viewingLocation.ubicacion?.lat" [href]="viewingLocation.maps_url || 'https://www.google.com/maps/search/?api=1&query=' + viewingLocation.ubicacion.lat + ',' + viewingLocation.ubicacion.lng" target="_blank" style="display: inline-flex; align-items: center; justify-content: center; background: #eef2ff; color: #4f46e5; padding: 4px 8px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 12px; gap: 4px; border: 1px solid #c7d2fe; transition: all 0.2s ease; flex-shrink: 0; box-shadow: 0 1px 2px rgba(79,70,229,0.1);" title="Abrir en Google Maps">
+                  <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                  Maps
+                </a>
+              </div>
+              <p style="margin: 0; font-size: 14px; color: var(--text-muted); line-height: 1.4;">{{ viewingLocation.ubicacion?.municipio || 'N/A' }}, {{ viewingLocation.ubicacion?.departamento || 'N/A' }}</p>
+              <p *ngIf="viewingLocation.ubicacion?.direccion_referencia" style="margin: 6px 0 0 0; font-size: 13px; color: #64748b; line-height: 1.4; display: flex; gap: 6px; align-items: flex-start;">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" style="margin-top: 2px; flex-shrink: 0;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                <span>{{ viewingLocation.ubicacion.direccion_referencia }}</span>
+              </p>
+            </div>
           </div>
         </div>
 

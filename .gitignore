@@ -5,3 +5,9 @@ dist/
 *.sqlite3  
 public/uploads/*  
 .env 
+
+/data/
+/database/
+/backend/scripts/
+*.metadata.json
+*.py

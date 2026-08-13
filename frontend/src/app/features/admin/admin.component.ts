@@ -47,6 +47,15 @@ export class AdminComponent implements OnInit {
   isPickingLocation: boolean = false;
   isMinimized: boolean = false;
 
+  checkB2BPassword() {
+    const pwd = window.prompt('Introduce la contraseña para acceso B2B:');
+    if (pwd === 'admin123') {
+      window.location.hash = '/partner';
+    } else if (pwd !== null) {
+      this.toastService.showError('Contraseña incorrecta');
+    }
+  }
+
   async shareLocation(loc: any) {
     const textToShare = `📍 ${loc.nombre_destino}\n🏢 Empresa: ${loc.empresa || 'Agencia'}\n🗺️ Ubicación: ${loc.ubicacion?.municipio || 'N/A'}, ${loc.ubicacion?.departamento || 'N/A'}${loc.ubicacion?.direccion_referencia ? '\n📝 Referencia: ' + loc.ubicacion.direccion_referencia : ''}${loc.maps_url ? '\n🌍 Google Maps: ' + loc.maps_url : ''}`;
     

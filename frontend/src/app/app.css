@@ -2570,7 +2570,7 @@ input:checked + .slider:before { transform: translateX(20px); }
 /* FAB BUTTON */
 .fab-btn {
   position: fixed !important;
-  bottom: 90px;
+  bottom: 110px;
   right: 20px;
   width: 56px;
   height: 56px;

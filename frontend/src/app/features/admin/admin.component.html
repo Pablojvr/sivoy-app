@@ -1,8 +1,10 @@
 <!-- MAIN ADMIN PANEL (Hidden when minimized) -->
 <div *ngIf="!isMinimized">
-    <div class="admin-header" style="position: relative;">
-      <h2>Panel de Administración</h2>
-      <a href="#/partner" style="position: absolute; right: 24px; top: 24px; text-decoration: none; font-size: 13px; font-weight: 600; color: white; background: var(--primary); padding: 8px 16px; border-radius: 20px;">Acceso Empresas B2B →</a>
+    <div class="admin-header">
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 12px;">
+        <h2 style="margin: 0;">Panel de Administración</h2>
+        <button (click)="checkB2BPassword()" style="border: none; cursor: pointer; text-decoration: none; font-size: 13px; font-weight: 600; color: white; background: var(--primary); padding: 8px 16px; border-radius: 20px; white-space: nowrap;">Acceso Empresas B2B →</button>
+      </div>
       
       <!-- Tabs -->
       <div class="dashboard-tabs filter-chips">

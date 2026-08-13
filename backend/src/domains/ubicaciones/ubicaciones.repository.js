@@ -2,24 +2,24 @@ const { getDB } = require('../../config/database');
 
 async function getAllLocations() {
     const db = await getDB();
-    const agencias = await db.all('SELECT * FROM agencias ORDER BY nombre_destino');
-    const horarios = await db.all('SELECT * FROM horarios_operativos');
-    const reglas = await db.all('SELECT * FROM reglas_entrega');
+    const agencias = await db.query('SELECT * FROM agencias ORDER BY nombre_destino');
+    const horarios = await db.query('SELECT * FROM horarios_operativos');
+    const reglas = await db.query('SELECT * FROM reglas_entrega');
 
     // Grouping
     const horariosMap = {};
-    for (const h of horarios) {
+    for (const h of horarios.rows) {
         if (!horariosMap[h.agencia_id]) horariosMap[h.agencia_id] = [];
         horariosMap[h.agencia_id].push({ dia_semana: h.dia_semana, hora_apertura: h.hora_apertura, hora_cierre: h.hora_cierre });
     }
 
     const reglasMap = {};
-    for (const r of reglas) {
+    for (const r of reglas.rows) {
         if (!reglasMap[r.agencia_id]) reglasMap[r.agencia_id] = [];
         reglasMap[r.agencia_id].push({ dia_entrega: r.dia_entrega, dia_corte_maximo: r.dia_corte_maximo });
     }
 
-    return agencias.map(a => ({
+    return agencias.rows.map(a => ({
         id_destino: a.id_destino,
         nombre_destino: a.nombre_destino,
         tipo: a.tipo,
@@ -45,11 +45,12 @@ async function getLocationByName(nombre) {
     }
 
     const db = await getDB();
-    const a = await db.get(`SELECT * FROM agencias WHERE LOWER(nombre_destino) = ? OR LOWER(id_destino) = ?`, [nombre.toLowerCase(), nombre.toLowerCase()]);
-    if (!a) return null;
+    const result = await db.query(`SELECT * FROM agencias WHERE LOWER(nombre_destino) = $1 OR LOWER(id_destino) = $2`, [nombre.toLowerCase(), nombre.toLowerCase()]);
+    if (result.rows.length === 0) return null;
+    const a = result.rows[0];
 
-    const horarios = await db.all('SELECT dia_semana, hora_apertura, hora_cierre FROM horarios_operativos WHERE agencia_id = ?', [a.id_destino]);
-    const reglas = await db.all('SELECT dia_entrega, dia_corte_maximo FROM reglas_entrega WHERE agencia_id = ?', [a.id_destino]);
+    const horarios = await db.query('SELECT dia_semana, hora_apertura, hora_cierre FROM horarios_operativos WHERE agencia_id = $1', [a.id_destino]);
+    const reglas = await db.query('SELECT dia_entrega, dia_corte_maximo FROM reglas_entrega WHERE agencia_id = $1', [a.id_destino]);
 
     return {
         id_destino: a.id_destino,
@@ -65,8 +66,8 @@ async function getLocationByName(nombre) {
             lng: a.lng
         },
         imagen_referencia: a.imagen_referencia || null,
-        horarios_operativos: horarios,
-        reglas_entrega: reglas
+        horarios_operativos: horarios.rows,
+        reglas_entrega: reglas.rows
     };
 }
 
@@ -74,18 +75,22 @@ async function updateLocation(locId, updateFields, params, horarios) {
     const db = await getDB();
     
     if (updateFields.length > 0) {
+        // Rewrite updateFields parameters from ? to $1, $2, etc.
+        // Assuming updateFields is like ['nombre_destino = ?', 'tipo = ?']
+        let newUpdateFields = [];
+        for (let i = 0; i < updateFields.length; i++) {
+            newUpdateFields.push(updateFields[i].replace('?', '$' + (i + 1)));
+        }
         params.push(locId);
-        const query = `UPDATE agencias SET ${updateFields.join(', ')} WHERE id_destino = ?`;
-        await db.run(query, params);
+        const query = `UPDATE agencias SET ${newUpdateFields.join(', ')} WHERE id_destino = $${params.length}`;
+        await db.query(query, params);
     }
     
     if (horarios) {
-        await db.run(`DELETE FROM horarios_operativos WHERE agencia_id = ?`, [locId]);
-        const stmtHorarios = await db.prepare(`INSERT INTO horarios_operativos (agencia_id, dia_semana, hora_apertura, hora_cierre) VALUES (?, ?, ?, ?)`);
+        await db.query(`DELETE FROM horarios_operativos WHERE agencia_id = $1`, [locId]);
         for (const h of horarios) {
-            await stmtHorarios.run(locId, h.dia_semana, h.hora_apertura, h.hora_cierre);
+            await db.query(`INSERT INTO horarios_operativos (agencia_id, dia_semana, hora_apertura, hora_cierre) VALUES ($1, $2, $3, $4)`, [locId, h.dia_semana, h.hora_apertura, h.hora_cierre]);
         }
-        await stmtHorarios.finalize();
     }
     
     return await getLocationByName(locId);
@@ -93,27 +98,25 @@ async function updateLocation(locId, updateFields, params, horarios) {
 
 async function getEmpresaNameById(empresa_id) {
     const db = await getDB();
-    const empresaRow = await db.get(`SELECT nombre FROM empresas WHERE id = ?`, [empresa_id]);
-    return empresaRow ? empresaRow.nombre : null;
+    const result = await db.query(`SELECT nombre FROM empresas WHERE id = $1`, [empresa_id]);
+    return result.rows.length > 0 ? result.rows[0].nombre : null;
 }
 
 async function createAgencia(id_destino, payload) {
     const db = await getDB();
     const { nombre_destino, tipo, empresa_id, empresaNombre, departamento, municipio, direccion_referencia, maps_url, lat, lng, imagen_referencia, horariosArr } = payload;
     
-    await db.run(
+    await db.query(
         `INSERT INTO agencias (id_destino, nombre_destino, tipo, empresa_id, empresa, departamento, municipio, direccion_referencia, maps_url, lat, lng, imagen_referencia) 
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
         [id_destino, nombre_destino, tipo, empresa_id, empresaNombre, departamento, municipio, direccion_referencia, maps_url || null, lat || null, lng || null, imagen_referencia]
     );
 
     if (horariosArr && horariosArr.length > 0) {
-        const stmtHorarios = await db.prepare(`INSERT INTO horarios_operativos (agencia_id, dia_semana, hora_apertura, hora_cierre, tipo_accion) VALUES (?, ?, ?, ?, ?)`);
         for (const h of horariosArr) {
             const t_accion = h.tipo_accion || 'ambos';
-            await stmtHorarios.run(id_destino, h.dia_semana, h.hora_apertura, h.hora_cierre, t_accion);
+            await db.query(`INSERT INTO horarios_operativos (agencia_id, dia_semana, hora_apertura, hora_cierre, tipo_accion) VALUES ($1, $2, $3, $4, $5)`, [id_destino, h.dia_semana, h.hora_apertura, h.hora_cierre, t_accion]);
         }
-        await stmtHorarios.finalize();
     }
 }
 

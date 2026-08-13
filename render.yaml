@@ -3,7 +3,7 @@ services:
     name: sivoy-backend
     env: node
     plan: free
-    buildCommand: "cd frontend && npm install --include=dev && npm run build -- --configuration production && cd ../backend && npm install"
+    buildCommand: "cd frontend && NODE_ENV=development npm install && npm run build -- --configuration production && cd ../backend && npm install"
     startCommand: "cd backend && npm start"
     envVars:
       - key: PORT

@@ -1,0 +1,3605 @@
+[
+  {
+    "id_destino": "ME_IZALCO_01",
+    "nombre_destino": "IZALCO",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "Sonsonate",
+      "municipio": "Izalco",
+      "direccion_referencia": "Parque central a un costado de la alcaldia",
+      "lat": 13.8139316,
+      "lng": -89.632503
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Lunes",
+        "hora_apertura": "08:30",
+        "hora_cierre": "09:00"
+      },
+      {
+        "dia_semana": "Jueves",
+        "hora_apertura": "08:30",
+        "hora_cierre": "09:00"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Lunes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Jueves",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_SONZACATE_01",
+    "nombre_destino": "SONZACATE",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "Sonsonate",
+      "municipio": "Sonzacate",
+      "direccion_referencia": "Frente Parque central",
+      "lat": 13.7370332,
+      "lng": -89.7151101
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Lunes",
+        "hora_apertura": "09:30",
+        "hora_cierre": "10:00"
+      },
+      {
+        "dia_semana": "Jueves",
+        "hora_apertura": "09:30",
+        "hora_cierre": "10:00"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Lunes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Jueves",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_TERMINAL_SONSONATE_01",
+    "nombre_destino": "TERMINAL DE SONSONATE",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "Sonsonate",
+      "municipio": "Sonsonate",
+      "direccion_referencia": "Adentro de la terminal nueva viendo hacia comercial Deras",
+      "lat": 13.7054627,
+      "lng": -89.7233033
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Lunes",
+        "hora_apertura": "10:30",
+        "hora_cierre": "11:00"
+      },
+      {
+        "dia_semana": "Jueves",
+        "hora_apertura": "10:30",
+        "hora_cierre": "11:00"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Lunes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Jueves",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_METROCENTRO_SONSONATE_01",
+    "nombre_destino": "METROCENTRO SONSONATE",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "Sonsonate",
+      "municipio": "Sonsonate",
+      "direccion_referencia": "Frente a Galvanissa, a un costado de Farmacia Brasil",
+      "lat": 13.7120514,
+      "lng": -89.7256385
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Lunes",
+        "hora_apertura": "11:30",
+        "hora_cierre": "12:15"
+      },
+      {
+        "dia_semana": "Jueves",
+        "hora_apertura": "11:30",
+        "hora_cierre": "12:15"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Lunes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Jueves",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_ACAJUTLA_01",
+    "nombre_destino": "ACAJUTLA",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "Sonsonate",
+      "municipio": "Acajutla",
+      "direccion_referencia": "Frente a Don Pollo y la nevería, en el mercado",
+      "lat": 13.5897967,
+      "lng": -89.8297601
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Lunes",
+        "hora_apertura": "13:00",
+        "hora_cierre": "13:30"
+      },
+      {
+        "dia_semana": "Jueves",
+        "hora_apertura": "13:00",
+        "hora_cierre": "13:30"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Lunes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Jueves",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_METALIO_01",
+    "nombre_destino": "METALIO",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "Sonsonate",
+      "municipio": "Acajutla",
+      "direccion_referencia": "Plaza metalio",
+      "lat": 13.6449593,
+      "lng": -89.8813117
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Lunes",
+        "hora_apertura": "14:15",
+        "hora_cierre": "14:30"
+      },
+      {
+        "dia_semana": "Jueves",
+        "hora_apertura": "14:15",
+        "hora_cierre": "14:30"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Lunes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Jueves",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_CARA_SUCIA_01",
+    "nombre_destino": "CARA SUCIA",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "Ahuachapán",
+      "municipio": "San Francisco Menéndez",
+      "direccion_referencia": "Parqueo que esta a la par de pollo campero",
+      "lat": 13.7772945,
+      "lng": -90.0324137
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Lunes",
+        "hora_apertura": "15:00",
+        "hora_cierre": "15:30"
+      },
+      {
+        "dia_semana": "Jueves",
+        "hora_apertura": "15:00",
+        "hora_cierre": "15:30"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Lunes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Jueves",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_NAHUIZALCO_01",
+    "nombre_destino": "NAHUIZALCO",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "Sonsonate",
+      "municipio": "Nahuizalco",
+      "direccion_referencia": "Afuera de Farmacia santísimas trinidad",
+      "lat": 13.7804067,
+      "lng": -89.7414641
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Lunes",
+        "hora_apertura": "08:30",
+        "hora_cierre": "09:00"
+      },
+      {
+        "dia_semana": "Jueves",
+        "hora_apertura": "08:30",
+        "hora_cierre": "09:00"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Lunes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Jueves",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_JUAYUA_01",
+    "nombre_destino": "JUAYUA",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "Sonsonate",
+      "municipio": "Juayúa",
+      "direccion_referencia": "Parque central frente a la iglesia católica",
+      "lat": 13.8588388,
+      "lng": -89.7383492
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Lunes",
+        "hora_apertura": "09:45",
+        "hora_cierre": "10:15"
+      },
+      {
+        "dia_semana": "Jueves",
+        "hora_apertura": "09:45",
+        "hora_cierre": "10:15"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Lunes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Jueves",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_AHUACHAPAN_01",
+    "nombre_destino": "AHUACHAPAN",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "Ahuachapán",
+      "municipio": "Ahuachapán",
+      "direccion_referencia": "Parque la concordia, a la vuelta de la neveria, en calle hacia tacuba",
+      "lat": 13.9234192,
+      "lng": -89.8462907
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Lunes",
+        "hora_apertura": "11:30",
+        "hora_cierre": "12:30"
+      },
+      {
+        "dia_semana": "Jueves",
+        "hora_apertura": "11:30",
+        "hora_cierre": "12:30"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Lunes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Jueves",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_ATIQUIZAYA_01",
+    "nombre_destino": "ATIQUIZAYA",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "Ahuachapán",
+      "municipio": "Atiquizaya",
+      "direccion_referencia": "Frente a la alcaldia",
+      "lat": 13.9657085,
+      "lng": -89.7564901
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Lunes",
+        "hora_apertura": "13:30",
+        "hora_cierre": "14:00"
+      },
+      {
+        "dia_semana": "Jueves",
+        "hora_apertura": "13:30",
+        "hora_cierre": "14:00"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Lunes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Jueves",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_CHALCHUAPA_01",
+    "nombre_destino": "CHALCHUAPA",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "Santa Ana",
+      "municipio": "Chalchuapa",
+      "direccion_referencia": "Afuera del Cementerio General de Chalchuapa",
+      "lat": 14.0332552,
+      "lng": -89.7284455
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Lunes",
+        "hora_apertura": "14:30",
+        "hora_cierre": "15:30"
+      },
+      {
+        "dia_semana": "Jueves",
+        "hora_apertura": "14:30",
+        "hora_cierre": "15:30"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Lunes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Jueves",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_CIUDAD_REAL_01",
+    "nombre_destino": "CIUDAD REAL",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "Santa Ana",
+      "municipio": "San Sebastián Salitrillo",
+      "direccion_referencia": "Gasolinera 1 ciudad real",
+      "lat": 13.9929039,
+      "lng": -89.6415255
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Lunes",
+        "hora_apertura": "15:45",
+        "hora_cierre": "16:15"
+      },
+      {
+        "dia_semana": "Jueves",
+        "hora_apertura": "15:45",
+        "hora_cierre": "16:15"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Lunes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Jueves",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_QUEZALTEPEQUE_01",
+    "nombre_destino": "QUEZALTEPEQUE",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "La Libertad",
+      "municipio": "Quezaltepeque",
+      "direccion_referencia": "Parque central frente a Lee cafe",
+      "lat": 13.8267376,
+      "lng": -89.2725102
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Miércoles",
+        "hora_apertura": "13:00",
+        "hora_cierre": "13:45"
+      },
+      {
+        "dia_semana": "Sábado",
+        "hora_apertura": "13:00",
+        "hora_cierre": "13:45"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Miércoles",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Sábado",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_VERSALLES_01",
+    "nombre_destino": "VERSALLES",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "La Libertad",
+      "municipio": "San Juan Opico",
+      "direccion_referencia": "Gasolinera 1 de Ciudad Versalles",
+      "lat": 13.7937814,
+      "lng": -89.359639
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Miércoles",
+        "hora_apertura": "14:15",
+        "hora_cierre": "14:45"
+      },
+      {
+        "dia_semana": "Sábado",
+        "hora_apertura": "14:15",
+        "hora_cierre": "14:45"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Miércoles",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Sábado",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_DESVIO_DE_OPICO_01",
+    "nombre_destino": "DESVIO DE OPICO",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "La Libertad",
+      "municipio": "San Juan Opico",
+      "direccion_referencia": "Gasolinera UNO Desvió de Opico",
+      "lat": 13.8764033,
+      "lng": -89.3584546
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Miércoles",
+        "hora_apertura": "15:00",
+        "hora_cierre": "15:30"
+      },
+      {
+        "dia_semana": "Sábado",
+        "hora_apertura": "15:00",
+        "hora_cierre": "15:30"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Miércoles",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Sábado",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_SAN_JUAN_OPICO_01",
+    "nombre_destino": "SAN JUAN OPICO",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "La Libertad",
+      "municipio": "San Juan Opico",
+      "direccion_referencia": "Afuera de agencia Claro de San Juan Opico",
+      "lat": 13.7872991,
+      "lng": -89.3617948
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Miércoles",
+        "hora_apertura": "16:00",
+        "hora_cierre": "16:30"
+      },
+      {
+        "dia_semana": "Sábado",
+        "hora_apertura": "16:00",
+        "hora_cierre": "16:30"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Miércoles",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Sábado",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_MARSELLA_01",
+    "nombre_destino": "MARSELLA",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "La Libertad",
+      "municipio": "San Juan Opico",
+      "direccion_referencia": "Afuera del Centro Comercial",
+      "lat": 13.7859332,
+      "lng": -89.3431756
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Miércoles",
+        "hora_apertura": "17:15",
+        "hora_cierre": "17:40"
+      },
+      {
+        "dia_semana": "Sábado",
+        "hora_apertura": "17:15",
+        "hora_cierre": "17:40"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Miércoles",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Sábado",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_ZARAGOZA_01",
+    "nombre_destino": "ZARAGOZA",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "La Libertad",
+      "municipio": "Zaragoza",
+      "direccion_referencia": "Parque de la casa de la cultura",
+      "lat": 42.1259631,
+      "lng": -1.1436177
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Miércoles",
+        "hora_apertura": "13:00",
+        "hora_cierre": "13:30"
+      },
+      {
+        "dia_semana": "Sábado",
+        "hora_apertura": "13:00",
+        "hora_cierre": "13:30"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Miércoles",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Sábado",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_PUERTO_LIBERTAD_01",
+    "nombre_destino": "PUERTO DE LA LIBERTAD",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "La Libertad",
+      "municipio": "La Libertad",
+      "direccion_referencia": "Adentro del Centro Comercial El Faro",
+      "lat": 13.4888353,
+      "lng": -89.3191395
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Miércoles",
+        "hora_apertura": "14:00",
+        "hora_cierre": "15:00"
+      },
+      {
+        "dia_semana": "Sábado",
+        "hora_apertura": "14:00",
+        "hora_cierre": "15:00"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Miércoles",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Sábado",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_SAN_JOSE_VILLANUEVA_01",
+    "nombre_destino": "SAN JOSE VILLANUEVA",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "La Libertad",
+      "municipio": "San José Villanueva",
+      "direccion_referencia": "Frente a la Alcaldía",
+      "lat": 13.5776057,
+      "lng": -89.2654213
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Miércoles",
+        "hora_apertura": "15:45",
+        "hora_cierre": "16:15"
+      },
+      {
+        "dia_semana": "Sábado",
+        "hora_apertura": "15:45",
+        "hora_cierre": "16:15"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Miércoles",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Sábado",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_CIUDAD_ARCE_01",
+    "nombre_destino": "CIUDAD ARCE",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "La Libertad",
+      "municipio": "Ciudad Arce",
+      "direccion_referencia": "Polideportivo que esta enfrente de La Gasolinera Texaco y Almacén Prado",
+      "lat": 13.840799,
+      "lng": -89.4407895
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Lunes",
+        "hora_apertura": "08:00",
+        "hora_cierre": "08:30"
+      },
+      {
+        "dia_semana": "Jueves",
+        "hora_apertura": "08:00",
+        "hora_cierre": "08:30"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Lunes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Jueves",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_AGENCIA_SANTA_ANA_01",
+    "nombre_destino": "AGENCIA SANTA ANA",
+    "empresa": "Melo Express",
+    "tipo": "Agencia",
+    "ubicacion": {
+      "departamento": "Santa Ana",
+      "municipio": "Santa Ana",
+      "direccion_referencia": "Centro Comercial Cuatro Plaza local 2, Santa Ana",
+      "lat": 13.9721087,
+      "lng": -89.5605303
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Lunes",
+        "hora_apertura": "08:00",
+        "hora_cierre": "16:30"
+      },
+      {
+        "dia_semana": "Jueves",
+        "hora_apertura": "08:00",
+        "hora_cierre": "16:30"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Lunes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Jueves",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_EL_CONGO_01",
+    "nombre_destino": "EL CONGO",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "Santa Ana",
+      "municipio": "El Congo",
+      "direccion_referencia": "40 metros abajo de despensa familiar, calle de los juzgados, a un costado de Funeraria Huerto del Eden",
+      "lat": 13.8840762,
+      "lng": -89.4951763
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Lunes",
+        "hora_apertura": "09:00",
+        "hora_cierre": "09:20"
+      },
+      {
+        "dia_semana": "Jueves",
+        "hora_apertura": "09:00",
+        "hora_cierre": "09:20"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Lunes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Jueves",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_METAPAN_01",
+    "nombre_destino": "METAPAN",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "Santa Ana",
+      "municipio": "Metapán",
+      "direccion_referencia": "Frente a Funeraria Chacon, 100 metros abajo de Little Caessars",
+      "lat": 14.332178,
+      "lng": -89.4481035
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Lunes",
+        "hora_apertura": "11:00",
+        "hora_cierre": "12:00"
+      },
+      {
+        "dia_semana": "Jueves",
+        "hora_apertura": "11:00",
+        "hora_cierre": "12:00"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Lunes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Jueves",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_TEXISTEPEQUE_01",
+    "nombre_destino": "TEXISTEPEQUE",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "Santa Ana",
+      "municipio": "Texistepeque",
+      "direccion_referencia": "Parque Central, Frente a la Iglesia Católica",
+      "lat": 14.1192168,
+      "lng": -89.4883373
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Lunes",
+        "hora_apertura": "13:15",
+        "hora_cierre": "13:45"
+      },
+      {
+        "dia_semana": "Jueves",
+        "hora_apertura": "13:15",
+        "hora_cierre": "13:45"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Lunes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Jueves",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_CANDELARIA_FRONTERA_01",
+    "nombre_destino": "CANDELARIA DE LA FRONTERA",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "Santa Ana",
+      "municipio": "Candelaria de la Frontera",
+      "direccion_referencia": "Frente a la Alcaldía Municipal",
+      "lat": 14.1179519,
+      "lng": -89.6530459
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Lunes",
+        "hora_apertura": "15:15",
+        "hora_cierre": "15:45"
+      },
+      {
+        "dia_semana": "Jueves",
+        "hora_apertura": "15:15",
+        "hora_cierre": "15:45"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Lunes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Jueves",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_GUAZAPA_01",
+    "nombre_destino": "GUAZAPA",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "San Salvador",
+      "municipio": "Guazapa",
+      "direccion_referencia": "parque central frente a la iglesia catolica",
+      "lat": 13.8751239,
+      "lng": -89.1748326
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Lunes",
+        "hora_apertura": "08:00",
+        "hora_cierre": "08:30"
+      },
+      {
+        "dia_semana": "Jueves",
+        "hora_apertura": "08:00",
+        "hora_cierre": "08:30"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Lunes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Jueves",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_AGUILARES_01",
+    "nombre_destino": "AGUILARES",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "San Salvador",
+      "municipio": "Aguilares",
+      "direccion_referencia": "Afuera del Biggest",
+      "lat": 13.9583602,
+      "lng": -89.1871076
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Lunes",
+        "hora_apertura": "09:00",
+        "hora_cierre": "09:30"
+      },
+      {
+        "dia_semana": "Jueves",
+        "hora_apertura": "09:00",
+        "hora_cierre": "09:30"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Lunes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Jueves",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_PLAZA_DON_YON_01",
+    "nombre_destino": "PLAZA DON YON",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "San Salvador",
+      "municipio": "Aguilares",
+      "direccion_referencia": "Entrada de la plaza",
+      "lat": 13.9583602,
+      "lng": -89.1871076
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Lunes",
+        "hora_apertura": "10:00",
+        "hora_cierre": "10:30"
+      },
+      {
+        "dia_semana": "Jueves",
+        "hora_apertura": "10:00",
+        "hora_cierre": "10:30"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Lunes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Jueves",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_EL_PARAISO_CHALATENANGO_01",
+    "nombre_destino": "EL PARAISO CHALATENANGO",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "Chalatenango",
+      "municipio": "El Paraíso",
+      "direccion_referencia": "Parque Central frente a la iglesia catolica",
+      "lat": 14.0912445,
+      "lng": -89.0832993
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Lunes",
+        "hora_apertura": "11:15",
+        "hora_cierre": "11:45"
+      },
+      {
+        "dia_semana": "Jueves",
+        "hora_apertura": "11:15",
+        "hora_cierre": "11:45"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Lunes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Jueves",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_DULCE_NOMBRE_DE_MARIA_01",
+    "nombre_destino": "DULCE NOMBRE DE MARIA",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "Chalatenango",
+      "municipio": "Dulce Nombre de María",
+      "direccion_referencia": "A la par de la iglesia católica",
+      "lat": 14.1537737,
+      "lng": -89.008955
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Lunes",
+        "hora_apertura": "13:00",
+        "hora_cierre": "13:30"
+      },
+      {
+        "dia_semana": "Jueves",
+        "hora_apertura": "13:00",
+        "hora_cierre": "13:30"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Lunes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Jueves",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_CHALATENANGO_01",
+    "nombre_destino": "CHALATENANGO",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "Chalatenango",
+      "municipio": "Chalatenango",
+      "direccion_referencia": "Nuevo Parqueo Municipal",
+      "lat": 14.0413868,
+      "lng": -88.9394082
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Lunes",
+        "hora_apertura": "14:30",
+        "hora_cierre": "15:30"
+      },
+      {
+        "dia_semana": "Jueves",
+        "hora_apertura": "14:30",
+        "hora_cierre": "15:30"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Lunes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Jueves",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_APOPA_01",
+    "nombre_destino": "APOPA",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "San Salvador",
+      "municipio": "Apopa",
+      "direccion_referencia": "Gasolinera Puma Por pericentro",
+      "lat": 13.7834506,
+      "lng": -89.1945328
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Lunes",
+        "hora_apertura": "17:15",
+        "hora_cierre": "17:45"
+      },
+      {
+        "dia_semana": "Jueves",
+        "hora_apertura": "17:15",
+        "hora_cierre": "17:45"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Lunes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Jueves",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_LA_REINA_01",
+    "nombre_destino": "LA REINA",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "Chalatenango",
+      "municipio": "La Reina",
+      "direccion_referencia": "Parque Central se subirá foto en el lugar",
+      "lat": 34.0764869,
+      "lng": -118.2964402
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Lunes",
+        "hora_apertura": "09:00",
+        "hora_cierre": "09:30"
+      },
+      {
+        "dia_semana": "Jueves",
+        "hora_apertura": "09:00",
+        "hora_cierre": "09:30"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Lunes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Jueves",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_TEJUTLA_01",
+    "nombre_destino": "TEJUTLA",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "Chalatenango",
+      "municipio": "Tejutla",
+      "direccion_referencia": "En el parque frente a la iglesia",
+      "lat": 14.1695415,
+      "lng": -89.105288
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Lunes",
+        "hora_apertura": "10:00",
+        "hora_cierre": "10:30"
+      },
+      {
+        "dia_semana": "Jueves",
+        "hora_apertura": "10:00",
+        "hora_cierre": "10:30"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Lunes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Jueves",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_LA_PALMA_01",
+    "nombre_destino": "LA PALMA",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "Chalatenango",
+      "municipio": "La Palma",
+      "direccion_referencia": "Parqueo municipal de la Palma",
+      "lat": 14.3169398,
+      "lng": -89.1781246
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Lunes",
+        "hora_apertura": "11:30",
+        "hora_cierre": "12:00"
+      },
+      {
+        "dia_semana": "Jueves",
+        "hora_apertura": "11:30",
+        "hora_cierre": "12:00"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Lunes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Jueves",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_SAN_IGNACIO_01",
+    "nombre_destino": "SAN IGNACIO",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "Chalatenango",
+      "municipio": "San Ignacio",
+      "direccion_referencia": "Parque Central, frente a la Caja de Crédito de San Ignacio",
+      "lat": 14.3403976,
+      "lng": -89.1692883
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Lunes",
+        "hora_apertura": "13:00",
+        "hora_cierre": "13:30"
+      },
+      {
+        "dia_semana": "Jueves",
+        "hora_apertura": "13:00",
+        "hora_cierre": "13:30"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Lunes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Jueves",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_NUEVA_CONCEPCION_01",
+    "nombre_destino": "NUEVA CONCEPCION",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "Chalatenango",
+      "municipio": "Nueva Concepción",
+      "direccion_referencia": "Parque Central Frente a Correos El Salvador",
+      "lat": 14.1257802,
+      "lng": -89.2932004
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Lunes",
+        "hora_apertura": "15:00",
+        "hora_cierre": "15:45"
+      },
+      {
+        "dia_semana": "Jueves",
+        "hora_apertura": "15:00",
+        "hora_cierre": "15:45"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Lunes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Jueves",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_DESVIO_DE_AMAYO_01",
+    "nombre_destino": "DESVIO DE AMAYO",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "Chalatenango",
+      "municipio": "Tejutla",
+      "direccion_referencia": "Gasolinera Texaco Aldeitas",
+      "lat": 14.1052708,
+      "lng": -89.1520797
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Lunes",
+        "hora_apertura": "16:15",
+        "hora_cierre": "16:45"
+      },
+      {
+        "dia_semana": "Jueves",
+        "hora_apertura": "16:15",
+        "hora_cierre": "16:45"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Lunes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Jueves",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_METROCENTRO_SAN_MIGUEL_01",
+    "nombre_destino": "METROCENTRO SAN MIGUEL",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "San Miguel",
+      "municipio": "San Miguel",
+      "direccion_referencia": "Plaza el encuentro Roosevelt San Miguel, frente a Metrocentro",
+      "lat": 13.4617215,
+      "lng": -88.1656994
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Martes",
+        "hora_apertura": "09:00",
+        "hora_cierre": "10:00"
+      },
+      {
+        "dia_semana": "Viernes",
+        "hora_apertura": "09:00",
+        "hora_cierre": "10:00"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Martes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Viernes",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_AGENCIA_SAN_MIGUEL_01",
+    "nombre_destino": "AGENCIA MELO EXPRESS SAN MIGUEL",
+    "empresa": "Melo Express",
+    "tipo": "Agencia",
+    "ubicacion": {
+      "departamento": "San Miguel",
+      "municipio": "San Miguel",
+      "direccion_referencia": "100 mts abajo del centro de tela, a la par de foto estudio Nelson",
+      "lat": 13.4803899,
+      "lng": -88.17722
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Martes",
+        "hora_apertura": "08:00",
+        "hora_cierre": "16:00"
+      },
+      {
+        "dia_semana": "Viernes",
+        "hora_apertura": "08:00",
+        "hora_cierre": "16:00"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Martes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Viernes",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_JOCORO_01",
+    "nombre_destino": "JOCORO",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "Morazán",
+      "municipio": "Jocoro",
+      "direccion_referencia": "Parque Central frente a la Iglesia Católica",
+      "lat": 13.6134306,
+      "lng": -88.0241149
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Martes",
+        "hora_apertura": "12:00",
+        "hora_cierre": "12:30"
+      },
+      {
+        "dia_semana": "Viernes",
+        "hora_apertura": "12:00",
+        "hora_cierre": "12:30"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Martes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Viernes",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_SANTA_ROSA_LIMA_01",
+    "nombre_destino": "SANTA ROSA DE LIMA",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "La Unión",
+      "municipio": "Santa Rosa de Lima",
+      "direccion_referencia": "Parqueo la Ceiba que esta frente a Cafeteria Elizabeth y Presto",
+      "lat": -24.2427201,
+      "lng": -64.8752421
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Martes",
+        "hora_apertura": "13:00",
+        "hora_cierre": "14:00"
+      },
+      {
+        "dia_semana": "Viernes",
+        "hora_apertura": "13:00",
+        "hora_cierre": "14:00"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Martes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Viernes",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_LA_UNION_01",
+    "nombre_destino": "LA UNION",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "La Unión",
+      "municipio": "La Unión",
+      "direccion_referencia": "Parqueo que esta frente Banco Agrícola",
+      "lat": 13.2185491,
+      "lng": -87.9603646
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Martes",
+        "hora_apertura": "15:00",
+        "hora_cierre": "16:00"
+      },
+      {
+        "dia_semana": "Viernes",
+        "hora_apertura": "15:00",
+        "hora_cierre": "16:00"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Martes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Viernes",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_SANTIAGO_NONUALCO_01",
+    "nombre_destino": "SANTIAGO NONUALCO",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "La Paz",
+      "municipio": "Santiago Nonualco",
+      "direccion_referencia": "Frente a la Iglesia Catolica a 10 metros de Farmacia Marsheilly",
+      "lat": 13.5135462,
+      "lng": -88.9400086
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Martes",
+        "hora_apertura": "08:00",
+        "hora_cierre": "08:30"
+      },
+      {
+        "dia_semana": "Viernes",
+        "hora_apertura": "08:00",
+        "hora_cierre": "08:30"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Martes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Viernes",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_SAN_RAFAEL_OBRAJUELO_01",
+    "nombre_destino": "SAN RAFAEL OBRAJUELO",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "La Paz",
+      "municipio": "San Rafael Obrajuelo",
+      "direccion_referencia": "Frente a la Iglesia Católica",
+      "lat": 13.5039169,
+      "lng": -88.9242674
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Martes",
+        "hora_apertura": "08:40",
+        "hora_cierre": "09:00"
+      },
+      {
+        "dia_semana": "Viernes",
+        "hora_apertura": "08:40",
+        "hora_cierre": "09:00"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Martes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Viernes",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_SAN_JUAN_NONUALCO_01",
+    "nombre_destino": "SAN JUAN NONUALCO",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "La Paz",
+      "municipio": "San Juan Nonualco",
+      "direccion_referencia": "Parque Central",
+      "lat": 13.5029813,
+      "lng": -88.9039977
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Martes",
+        "hora_apertura": "09:10",
+        "hora_cierre": "09:30"
+      },
+      {
+        "dia_semana": "Viernes",
+        "hora_apertura": "09:10",
+        "hora_cierre": "09:30"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Martes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Viernes",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_ZACATECOLUCA_01",
+    "nombre_destino": "ZACATECOLUCA",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "La Paz",
+      "municipio": "Zacatecoluca",
+      "direccion_referencia": "Abajo del parque Calle Señorial 50 mts abajo de Credicampo, esquina opuesta a la casona",
+      "lat": 13.5108407,
+      "lng": -88.8372181
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Martes",
+        "hora_apertura": "09:50",
+        "hora_cierre": "10:30"
+      },
+      {
+        "dia_semana": "Viernes",
+        "hora_apertura": "09:50",
+        "hora_cierre": "10:30"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Martes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Viernes",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_JIQUILISCO_01",
+    "nombre_destino": "JIQUILISCO",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "Usulután",
+      "municipio": "Jiquilisco",
+      "direccion_referencia": "Parque Central frente a las Letras",
+      "lat": 13.3266647,
+      "lng": -88.5702092
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Martes",
+        "hora_apertura": "11:30",
+        "hora_cierre": "12:00"
+      },
+      {
+        "dia_semana": "Viernes",
+        "hora_apertura": "11:30",
+        "hora_cierre": "12:00"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Martes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Viernes",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_PUERTO_EL_TRIUNFO_01",
+    "nombre_destino": "PUERTO EL TRIUNFO",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "Usulután",
+      "municipio": "Puerto El Triunfo",
+      "direccion_referencia": "Frente a la Alcaldia",
+      "lat": 13.2703127,
+      "lng": -88.5543176
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Martes",
+        "hora_apertura": "12:50",
+        "hora_cierre": "13:15"
+      },
+      {
+        "dia_semana": "Viernes",
+        "hora_apertura": "12:50",
+        "hora_cierre": "13:15"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Martes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Viernes",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_USULUTAN_01",
+    "nombre_destino": "USULUTAN",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "Usulután",
+      "municipio": "Usulután",
+      "direccion_referencia": "Parque central, frente a Banco Hipotecario",
+      "lat": 13.3438204,
+      "lng": -88.4382264
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Martes",
+        "hora_apertura": "14:15",
+        "hora_cierre": "15:15"
+      },
+      {
+        "dia_semana": "Viernes",
+        "hora_apertura": "14:15",
+        "hora_cierre": "15:15"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Martes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Viernes",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_EL_TRANSITO_01",
+    "nombre_destino": "EL TRANSITO",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "San Miguel",
+      "municipio": "El Tránsito",
+      "direccion_referencia": "Frente a Comercial Lecy y Lacteos La Fe, 1 cuadra adelante de la Despensa Familiar",
+      "lat": 13.3891551,
+      "lng": -88.3494431
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Martes",
+        "hora_apertura": "15:45",
+        "hora_cierre": "16:15"
+      },
+      {
+        "dia_semana": "Viernes",
+        "hora_apertura": "15:45",
+        "hora_cierre": "16:15"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Martes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Viernes",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_MONTELIMAR_01",
+    "nombre_destino": "MONTELIMAR",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "La Paz",
+      "municipio": "Olocuilta",
+      "direccion_referencia": "Debajo de la pasarela",
+      "lat": 13.5957464,
+      "lng": -89.1238014
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Martes",
+        "hora_apertura": "07:30",
+        "hora_cierre": "08:00"
+      },
+      {
+        "dia_semana": "Viernes",
+        "hora_apertura": "07:30",
+        "hora_cierre": "08:00"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Martes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Viernes",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_OLOCUILTA_01",
+    "nombre_destino": "OLOCUILTA",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "La Paz",
+      "municipio": "Olocuilta",
+      "direccion_referencia": "En el mercado de artesanías",
+      "lat": 13.5688088,
+      "lng": -89.1121366
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Martes",
+        "hora_apertura": "08:15",
+        "hora_cierre": "08:45"
+      },
+      {
+        "dia_semana": "Viernes",
+        "hora_apertura": "08:15",
+        "hora_cierre": "08:45"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Martes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Viernes",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_COMALAPA_01",
+    "nombre_destino": "COMALAPA",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "La Paz",
+      "municipio": "San Luis Talpa",
+      "direccion_referencia": "Parqueo que esta adentro de gasolinera puma calle vieja",
+      "lat": 13.4514442,
+      "lng": -89.0522684
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Martes",
+        "hora_apertura": "09:15",
+        "hora_cierre": "09:45"
+      },
+      {
+        "dia_semana": "Viernes",
+        "hora_apertura": "09:15",
+        "hora_cierre": "09:45"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Martes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Viernes",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_SAN_JUAN_TALPA_01",
+    "nombre_destino": "SAN JUAN TALPA",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "La Paz",
+      "municipio": "San Juan Talpa",
+      "direccion_referencia": "Parque central",
+      "lat": 13.500153,
+      "lng": -89.0829101
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Martes",
+        "hora_apertura": "10:00",
+        "hora_cierre": "10:20"
+      },
+      {
+        "dia_semana": "Viernes",
+        "hora_apertura": "10:00",
+        "hora_cierre": "10:20"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Martes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Viernes",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_SAN_LUIS_TALPA_01",
+    "nombre_destino": "SAN LUIS TALPA",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "La Paz",
+      "municipio": "San Luis Talpa",
+      "direccion_referencia": "Frente a viva pizza",
+      "lat": 13.4514442,
+      "lng": -89.0522684
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Martes",
+        "hora_apertura": "10:35",
+        "hora_cierre": "11:15"
+      },
+      {
+        "dia_semana": "Viernes",
+        "hora_apertura": "10:35",
+        "hora_cierre": "11:15"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Martes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Viernes",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_SAN_LUIS_LA_HERRADURA_01",
+    "nombre_destino": "SAN LUIS LA HERRADURA",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "La Paz",
+      "municipio": "San Luis La Herradura",
+      "direccion_referencia": "En el parqueo de la Alcaldía de San Luis la Herradura",
+      "lat": 13.3473121,
+      "lng": -88.9514278
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Martes",
+        "hora_apertura": "12:00",
+        "hora_cierre": "12:30"
+      },
+      {
+        "dia_semana": "Viernes",
+        "hora_apertura": "12:00",
+        "hora_cierre": "12:30"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Martes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Viernes",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_COSTA_DEL_SOL_01",
+    "nombre_destino": "COSTA DEL SOL",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "La Paz",
+      "municipio": "San Luis La Herradura",
+      "direccion_referencia": "Frente al turicentro",
+      "lat": 13.3387771,
+      "lng": -88.9951781
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Martes",
+        "hora_apertura": "13:30",
+        "hora_cierre": "14:00"
+      },
+      {
+        "dia_semana": "Viernes",
+        "hora_apertura": "13:30",
+        "hora_cierre": "14:00"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Martes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Viernes",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_SANTO_TOMAS_01",
+    "nombre_destino": "SANTO TOMAS",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "San Salvador",
+      "municipio": "Santo Tomás",
+      "direccion_referencia": "Afuera del centro comercial frente a la Curacao",
+      "lat": 13.6367987,
+      "lng": -89.1272551
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Martes",
+        "hora_apertura": "15:30",
+        "hora_cierre": "16:00"
+      },
+      {
+        "dia_semana": "Viernes",
+        "hora_apertura": "15:30",
+        "hora_cierre": "16:00"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Martes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Viernes",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_EL_ENCUENTRO_SAN_MARCOS_01",
+    "nombre_destino": "EL ENCUENTRO SAN MARCOS",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "San Salvador",
+      "municipio": "San Marcos",
+      "direccion_referencia": "Afuera del encuentro San Marcos",
+      "lat": 13.6626265,
+      "lng": -89.184421
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Martes",
+        "hora_apertura": "16:30",
+        "hora_cierre": "17:00"
+      },
+      {
+        "dia_semana": "Viernes",
+        "hora_apertura": "16:30",
+        "hora_cierre": "17:00"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Martes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Viernes",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_MONCAGUA_01",
+    "nombre_destino": "MONCAGUA",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "San Miguel",
+      "municipio": "Moncagua",
+      "direccion_referencia": "Parque central frente a la Iglesia",
+      "lat": 13.513353,
+      "lng": -88.2545204
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Martes",
+        "hora_apertura": "09:30",
+        "hora_cierre": "10:00"
+      },
+      {
+        "dia_semana": "Viernes",
+        "hora_apertura": "09:30",
+        "hora_cierre": "10:00"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Martes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Viernes",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_CHAPELTIQUE_01",
+    "nombre_destino": "CHAPELTIQUE",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "San Miguel",
+      "municipio": "Chapeltique",
+      "direccion_referencia": "Parque central",
+      "lat": 13.6470841,
+      "lng": -88.2589349
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Martes",
+        "hora_apertura": "10:30",
+        "hora_cierre": "11:00"
+      },
+      {
+        "dia_semana": "Viernes",
+        "hora_apertura": "10:30",
+        "hora_cierre": "11:00"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Martes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Viernes",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_CIUDAD_BARRIOS_01",
+    "nombre_destino": "CIUDAD BARRIOS",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "San Miguel",
+      "municipio": "Ciudad Barrios",
+      "direccion_referencia": "Atrás de la Caja de Crédito de Ciudad Barrios, calle que va hacia el Kinder",
+      "lat": 13.765932,
+      "lng": -88.2712924
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Martes",
+        "hora_apertura": "12:00",
+        "hora_cierre": "12:45"
+      },
+      {
+        "dia_semana": "Viernes",
+        "hora_apertura": "12:00",
+        "hora_cierre": "12:45"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Martes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Viernes",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_OSICALA_01",
+    "nombre_destino": "OSICALA",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "Morazán",
+      "municipio": "Osicala",
+      "direccion_referencia": "Parque central frente a la cancha",
+      "lat": 13.8174724,
+      "lng": -88.1467454
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Martes",
+        "hora_apertura": "13:45",
+        "hora_cierre": "14:15"
+      },
+      {
+        "dia_semana": "Viernes",
+        "hora_apertura": "13:45",
+        "hora_cierre": "14:15"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Martes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Viernes",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_SAN_FRANCISCO_GOTERA_01",
+    "nombre_destino": "SAN FRANCISCO GOTERA",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "Morazán",
+      "municipio": "San Francisco Gotera",
+      "direccion_referencia": "Parqueo Municipal",
+      "lat": 13.6952148,
+      "lng": -88.1060728
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Martes",
+        "hora_apertura": "15:15",
+        "hora_cierre": "16:15"
+      },
+      {
+        "dia_semana": "Viernes",
+        "hora_apertura": "15:15",
+        "hora_cierre": "16:15"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Martes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Viernes",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_METROCENTRO_LOURDES_01",
+    "nombre_destino": "METROCENTRO LOURDES",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "La Libertad",
+      "municipio": "Colón",
+      "direccion_referencia": "Afuera de papa jhons, por parada de ruta 3",
+      "lat": 13.7281156,
+      "lng": -89.3599518
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Miércoles",
+        "hora_apertura": "13:30",
+        "hora_cierre": "14:30"
+      },
+      {
+        "dia_semana": "Sábado",
+        "hora_apertura": "13:30",
+        "hora_cierre": "14:30"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Miércoles",
+        "dia_corte_maximo": "Mismo día",
+        "hora_corte_maxima": "11:00"
+      },
+      {
+        "dia_entrega": "Sábado",
+        "dia_corte_maximo": "Mismo día",
+        "hora_corte_maxima": "11:00"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_NUEVO_LOURDES_01",
+    "nombre_destino": "NUEVO LOURDES",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "La Libertad",
+      "municipio": "Colón",
+      "direccion_referencia": "A un costado de la alcaldía",
+      "lat": 13.7249663,
+      "lng": -89.3824851
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Miércoles",
+        "hora_apertura": "14:45",
+        "hora_cierre": "15:15"
+      },
+      {
+        "dia_semana": "Sábado",
+        "hora_apertura": "14:45",
+        "hora_cierre": "15:15"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Miércoles",
+        "dia_corte_maximo": "Mismo día",
+        "hora_corte_maxima": "11:00"
+      },
+      {
+        "dia_entrega": "Sábado",
+        "dia_corte_maximo": "Mismo día",
+        "hora_corte_maxima": "11:00"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_ATEOS_01",
+    "nombre_destino": "ATEOS",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "La Libertad",
+      "municipio": "Sacacoyo",
+      "direccion_referencia": "Gasolinera puma ateos",
+      "lat": 13.7405628,
+      "lng": -89.4287754
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Miércoles",
+        "hora_apertura": "15:30",
+        "hora_cierre": "15:50"
+      },
+      {
+        "dia_semana": "Sábado",
+        "hora_apertura": "15:30",
+        "hora_cierre": "15:50"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Miércoles",
+        "dia_corte_maximo": "Mismo día",
+        "hora_corte_maxima": "11:00"
+      },
+      {
+        "dia_entrega": "Sábado",
+        "dia_corte_maximo": "Mismo día",
+        "hora_corte_maxima": "11:00"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_ARMENIA_01",
+    "nombre_destino": "ARMENIA",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "Sonsonate",
+      "municipio": "Armenia",
+      "direccion_referencia": "Parque central Frente a la alcaldia",
+      "lat": 13.7463112,
+      "lng": -89.5060519
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Miércoles",
+        "hora_apertura": "16:20",
+        "hora_cierre": "16:50"
+      },
+      {
+        "dia_semana": "Sábado",
+        "hora_apertura": "16:20",
+        "hora_cierre": "16:50"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Miércoles",
+        "dia_corte_maximo": "Mismo día",
+        "hora_corte_maxima": "11:00"
+      },
+      {
+        "dia_entrega": "Sábado",
+        "dia_corte_maximo": "Mismo día",
+        "hora_corte_maxima": "11:00"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_QUEZALTEPEQUE_01",
+    "nombre_destino": "QUEZALTEPEQUE",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "La Libertad",
+      "municipio": "Quezaltepeque",
+      "direccion_referencia": "Parque central frente a Lee cafe",
+      "lat": 13.8267376,
+      "lng": -89.2725102
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Miércoles",
+        "hora_apertura": "13:00",
+        "hora_cierre": "13:45"
+      },
+      {
+        "dia_semana": "Sábado",
+        "hora_apertura": "13:00",
+        "hora_cierre": "13:45"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Miércoles",
+        "dia_corte_maximo": "Mismo día",
+        "hora_corte_maxima": "11:00"
+      },
+      {
+        "dia_entrega": "Sábado",
+        "dia_corte_maximo": "Mismo día",
+        "hora_corte_maxima": "11:00"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_VERSALLES_01",
+    "nombre_destino": "VERSALLES",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "La Libertad",
+      "municipio": "San Juan Opico",
+      "direccion_referencia": "Gasolinera 1 de Ciudad Versalles",
+      "lat": 13.7937814,
+      "lng": -89.359639
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Miércoles",
+        "hora_apertura": "14:15",
+        "hora_cierre": "14:45"
+      },
+      {
+        "dia_semana": "Sábado",
+        "hora_apertura": "14:15",
+        "hora_cierre": "14:45"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Miércoles",
+        "dia_corte_maximo": "Mismo día",
+        "hora_corte_maxima": "11:00"
+      },
+      {
+        "dia_entrega": "Sábado",
+        "dia_corte_maximo": "Mismo día",
+        "hora_corte_maxima": "11:00"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_DESVIO_DE_OPICO_01",
+    "nombre_destino": "DESVIO DE OPICO",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "La Libertad",
+      "municipio": "San Juan Opico",
+      "direccion_referencia": "Gasolinera UNO Desvió de Opico",
+      "lat": 13.8764033,
+      "lng": -89.3584546
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Miércoles",
+        "hora_apertura": "15:00",
+        "hora_cierre": "15:30"
+      },
+      {
+        "dia_semana": "Sábado",
+        "hora_apertura": "15:00",
+        "hora_cierre": "15:30"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Miércoles",
+        "dia_corte_maximo": "Mismo día",
+        "hora_corte_maxima": "11:00"
+      },
+      {
+        "dia_entrega": "Sábado",
+        "dia_corte_maximo": "Mismo día",
+        "hora_corte_maxima": "11:00"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_SAN_JUAN_OPICO_01",
+    "nombre_destino": "SAN JUAN OPICO",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "La Libertad",
+      "municipio": "San Juan Opico",
+      "direccion_referencia": "Afuera de agencia Claro de San Juan Opico",
+      "lat": 13.7872991,
+      "lng": -89.3617948
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Miércoles",
+        "hora_apertura": "16:00",
+        "hora_cierre": "16:30"
+      },
+      {
+        "dia_semana": "Sábado",
+        "hora_apertura": "16:00",
+        "hora_cierre": "16:30"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Miércoles",
+        "dia_corte_maximo": "Mismo día",
+        "hora_corte_maxima": "11:00"
+      },
+      {
+        "dia_entrega": "Sábado",
+        "dia_corte_maximo": "Mismo día",
+        "hora_corte_maxima": "11:00"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_MARSELLA_01",
+    "nombre_destino": "MARSELLA",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "La Libertad",
+      "municipio": "San Juan Opico",
+      "direccion_referencia": "Afuera del Centro Comercial",
+      "lat": 13.7859332,
+      "lng": -89.3431756
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Miércoles",
+        "hora_apertura": "17:15",
+        "hora_cierre": "17:40"
+      },
+      {
+        "dia_semana": "Sábado",
+        "hora_apertura": "17:15",
+        "hora_cierre": "17:40"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Miércoles",
+        "dia_corte_maximo": "Mismo día",
+        "hora_corte_maxima": "11:00"
+      },
+      {
+        "dia_entrega": "Sábado",
+        "dia_corte_maximo": "Mismo día",
+        "hora_corte_maxima": "11:00"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_ZARAGOZA_01",
+    "nombre_destino": "ZARAGOZA",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "La Libertad",
+      "municipio": "Zaragoza",
+      "direccion_referencia": "Parque de la casa de la cultura",
+      "lat": 42.1259631,
+      "lng": -1.1436177
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Miércoles",
+        "hora_apertura": "13:00",
+        "hora_cierre": "13:30"
+      },
+      {
+        "dia_semana": "Sábado",
+        "hora_apertura": "13:00",
+        "hora_cierre": "13:30"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Miércoles",
+        "dia_corte_maximo": "Mismo día",
+        "hora_corte_maxima": "11:00"
+      },
+      {
+        "dia_entrega": "Sábado",
+        "dia_corte_maximo": "Mismo día",
+        "hora_corte_maxima": "11:00"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_PUERTO_LA_LIBERTAD_01",
+    "nombre_destino": "PUERTO DE LA LIBERTAD",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "La Libertad",
+      "municipio": "Puerto de La Libertad",
+      "direccion_referencia": "Adentro del Centro Comercial El Faro",
+      "lat": 13.4858688,
+      "lng": -89.31917
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Miércoles",
+        "hora_apertura": "14:00",
+        "hora_cierre": "15:00"
+      },
+      {
+        "dia_semana": "Sábado",
+        "hora_apertura": "14:00",
+        "hora_cierre": "15:00"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Miércoles",
+        "dia_corte_maximo": "Mismo día",
+        "hora_corte_maxima": "11:00"
+      },
+      {
+        "dia_entrega": "Sábado",
+        "dia_corte_maximo": "Mismo día",
+        "hora_corte_maxima": "11:00"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_SAN_JOSE_VILLANUEVA_01",
+    "nombre_destino": "SAN JOSE VILLANUEVA",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "La Libertad",
+      "municipio": "San José Villanueva",
+      "direccion_referencia": "Frente a la Alcaldía",
+      "lat": 13.5776057,
+      "lng": -89.2654213
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Miércoles",
+        "hora_apertura": "15:45",
+        "hora_cierre": "16:15"
+      },
+      {
+        "dia_semana": "Sábado",
+        "hora_apertura": "15:45",
+        "hora_cierre": "16:15"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Miércoles",
+        "dia_corte_maximo": "Mismo día",
+        "hora_corte_maxima": "11:00"
+      },
+      {
+        "dia_entrega": "Sábado",
+        "dia_corte_maximo": "Mismo día",
+        "hora_corte_maxima": "11:00"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_COJUTEPEQUE_01",
+    "nombre_destino": "COJUTEPEQUE",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "Cuscatlán",
+      "municipio": "Cojutepeque",
+      "direccion_referencia": "En el parque Alamedas de San Juan frente a la alcaldia",
+      "lat": 13.7166407,
+      "lng": -88.9296389
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Martes",
+        "hora_apertura": "08:00",
+        "hora_cierre": "09:00"
+      },
+      {
+        "dia_semana": "Viernes",
+        "hora_apertura": "08:00",
+        "hora_cierre": "09:00"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Martes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Viernes",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_SAN_VICENTE_01",
+    "nombre_destino": "SAN VICENTE",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "San Vicente",
+      "municipio": "San Vicente",
+      "direccion_referencia": "Esquina opuesta a Banco Agrícola, frente a Tropigas en el Parque Central",
+      "lat": 13.6433169,
+      "lng": -88.7836392
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Martes",
+        "hora_apertura": "10:00",
+        "hora_cierre": "11:00"
+      },
+      {
+        "dia_semana": "Viernes",
+        "hora_apertura": "10:00",
+        "hora_cierre": "11:00"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Martes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Viernes",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_SAN_RAFAEL_CEDROS_01",
+    "nombre_destino": "SAN RAFAEL CEDROS",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "Cuscatlán",
+      "municipio": "San Rafael Cedros",
+      "direccion_referencia": "Gasolinera Texaco",
+      "lat": 13.8154847,
+      "lng": -88.8616976
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Martes",
+        "hora_apertura": "11:45",
+        "hora_cierre": "12:15"
+      },
+      {
+        "dia_semana": "Viernes",
+        "hora_apertura": "11:45",
+        "hora_cierre": "12:15"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Martes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Viernes",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_ILOBASCO_01",
+    "nombre_destino": "ILOBASCO",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "Cabañas",
+      "municipio": "Ilobasco",
+      "direccion_referencia": "Parque central frente a Ellys Cakes",
+      "lat": 13.8489186,
+      "lng": -88.8539187
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Martes",
+        "hora_apertura": "13:00",
+        "hora_cierre": "13:45"
+      },
+      {
+        "dia_semana": "Viernes",
+        "hora_apertura": "13:00",
+        "hora_cierre": "13:45"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Martes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Viernes",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_SENSUNTEPEQUE_01",
+    "nombre_destino": "SENSUNTEPEQUE",
+    "empresa": "Melo Express",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "Cabañas",
+      "municipio": "Sensuntepeque",
+      "direccion_referencia": "Parque Central, frente a Bancovi",
+      "lat": 13.8761841,
+      "lng": -88.6284918
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Martes",
+        "hora_apertura": "15:30",
+        "hora_cierre": "16:30"
+      },
+      {
+        "dia_semana": "Viernes",
+        "hora_apertura": "15:30",
+        "hora_cierre": "16:30"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Martes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Viernes",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_AGENCIA_COJUTEPEQUE_01",
+    "nombre_destino": "Centro de Envíos COJUTEPEQUE",
+    "empresa": "Melo Express",
+    "tipo": "Agencia",
+    "ubicacion": {
+      "departamento": "Cuscatlán",
+      "municipio": "Cojutepeque",
+      "direccion_referencia": "Plaza Punta Diamante Segundo Nivel, Local 14, Frente a Super Andrómeda y a la plaza La Madre Cojutepecana.",
+      "lat": 13.7217396,
+      "lng": -88.9345406
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Lunes",
+        "hora_apertura": "08:00",
+        "hora_cierre": "16:30"
+      },
+      {
+        "dia_semana": "Martes",
+        "hora_apertura": "08:00",
+        "hora_cierre": "16:30"
+      },
+      {
+        "dia_semana": "Miércoles",
+        "hora_apertura": "08:00",
+        "hora_cierre": "16:30"
+      },
+      {
+        "dia_semana": "Jueves",
+        "hora_apertura": "08:00",
+        "hora_cierre": "16:30"
+      },
+      {
+        "dia_semana": "Viernes",
+        "hora_apertura": "08:00",
+        "hora_cierre": "16:30"
+      },
+      {
+        "dia_semana": "Sábado",
+        "hora_apertura": "08:00",
+        "hora_cierre": "16:30"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Lunes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Martes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Miércoles",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Jueves",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Viernes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Sábado",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_AGENCIA_CIUDAD_ARCE_01",
+    "nombre_destino": "Centro de Envíos CIUDAD ARCE",
+    "empresa": "Melo Express",
+    "tipo": "Agencia",
+    "ubicacion": {
+      "departamento": "La Libertad",
+      "municipio": "Ciudad Arce",
+      "direccion_referencia": "TEXACO SANTA EDUVIGE segundo nivel local 4, Ciudad Arce",
+      "lat": 13.8402875,
+      "lng": -89.4437598
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Lunes",
+        "hora_apertura": "08:00",
+        "hora_cierre": "16:30"
+      },
+      {
+        "dia_semana": "Martes",
+        "hora_apertura": "08:00",
+        "hora_cierre": "16:30"
+      },
+      {
+        "dia_semana": "Miércoles",
+        "hora_apertura": "08:00",
+        "hora_cierre": "16:30"
+      },
+      {
+        "dia_semana": "Jueves",
+        "hora_apertura": "08:00",
+        "hora_cierre": "16:30"
+      },
+      {
+        "dia_semana": "Viernes",
+        "hora_apertura": "08:00",
+        "hora_cierre": "16:30"
+      },
+      {
+        "dia_semana": "Sábado",
+        "hora_apertura": "08:00",
+        "hora_cierre": "16:30"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Lunes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Martes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Miércoles",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Jueves",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Viernes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Sábado",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_AGENCIA_SENSUNTEPEQUE_01",
+    "nombre_destino": "Centro de Envíos SENSUNTEPEQUE",
+    "empresa": "Melo Express",
+    "tipo": "Agencia",
+    "ubicacion": {
+      "departamento": "Cabañas",
+      "municipio": "Sensuntepeque",
+      "direccion_referencia": "PLAZA ARTURO CALLE, FRENTE A SUPER SELECTOS, LOCAL 5, Sensuntepeque",
+      "lat": 13.8761841,
+      "lng": -88.6284918
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Lunes",
+        "hora_apertura": "08:00",
+        "hora_cierre": "16:30"
+      },
+      {
+        "dia_semana": "Martes",
+        "hora_apertura": "08:00",
+        "hora_cierre": "16:30"
+      },
+      {
+        "dia_semana": "Miércoles",
+        "hora_apertura": "08:00",
+        "hora_cierre": "16:30"
+      },
+      {
+        "dia_semana": "Jueves",
+        "hora_apertura": "08:00",
+        "hora_cierre": "16:30"
+      },
+      {
+        "dia_semana": "Viernes",
+        "hora_apertura": "08:00",
+        "hora_cierre": "16:30"
+      },
+      {
+        "dia_semana": "Sábado",
+        "hora_apertura": "08:00",
+        "hora_cierre": "16:30"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Lunes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Martes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Miércoles",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Jueves",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Viernes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Sábado",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_AGENCIA_CANDELARIA_FRONTERA_01",
+    "nombre_destino": "Centro de Envíos CANDELARIA DE LA FRONTERA",
+    "empresa": "Melo Express",
+    "tipo": "Agencia",
+    "ubicacion": {
+      "departamento": "Santa Ana",
+      "municipio": "Candelaria de la Frontera",
+      "direccion_referencia": "CALLE JOSE DOMINGO PEÑATE, CANDELARIA DE LA FRONTERA, FRENTE A PNC, LOCAL 2, SEGUNDO NIVEL",
+      "lat": 14.11495,
+      "lng": -89.6502864
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Lunes",
+        "hora_apertura": "08:00",
+        "hora_cierre": "16:30"
+      },
+      {
+        "dia_semana": "Martes",
+        "hora_apertura": "08:00",
+        "hora_cierre": "16:30"
+      },
+      {
+        "dia_semana": "Miércoles",
+        "hora_apertura": "08:00",
+        "hora_cierre": "16:30"
+      },
+      {
+        "dia_semana": "Jueves",
+        "hora_apertura": "08:00",
+        "hora_cierre": "16:30"
+      },
+      {
+        "dia_semana": "Viernes",
+        "hora_apertura": "08:00",
+        "hora_cierre": "16:30"
+      },
+      {
+        "dia_semana": "Sábado",
+        "hora_apertura": "08:00",
+        "hora_cierre": "16:30"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Lunes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Martes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Miércoles",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Jueves",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Viernes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Sábado",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_AGENCIA_SAN_RAFAEL_CEDROS_01",
+    "nombre_destino": "Centro de Envíos SAN RAFAEL CEDROS",
+    "empresa": "Melo Express",
+    "tipo": "Agencia",
+    "ubicacion": {
+      "departamento": "Cuscatlán",
+      "municipio": "San Rafael Cedros",
+      "direccion_referencia": "PLAZA EL PUNTO LOCAL #6 BARRIO CONCEPCIÓN, Sobre Calle Antigua Panamericana, a una cuadra de Texaco San Rafael Cedros",
+      "lat": 13.7310749,
+      "lng": -88.8873846
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Lunes",
+        "hora_apertura": "08:00",
+        "hora_cierre": "16:30"
+      },
+      {
+        "dia_semana": "Martes",
+        "hora_apertura": "08:00",
+        "hora_cierre": "16:30"
+      },
+      {
+        "dia_semana": "Miércoles",
+        "hora_apertura": "08:00",
+        "hora_cierre": "16:30"
+      },
+      {
+        "dia_semana": "Jueves",
+        "hora_apertura": "08:00",
+        "hora_cierre": "16:30"
+      },
+      {
+        "dia_semana": "Viernes",
+        "hora_apertura": "08:00",
+        "hora_cierre": "16:30"
+      },
+      {
+        "dia_semana": "Sábado",
+        "hora_apertura": "08:00",
+        "hora_cierre": "16:30"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Lunes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Martes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Miércoles",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Jueves",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Viernes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Sábado",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_AGENCIA_CHALCHUAPA_01",
+    "nombre_destino": "Centro de Envíos CHALCHUAPA",
+    "empresa": "Melo Express",
+    "tipo": "Agencia",
+    "ubicacion": {
+      "departamento": "Santa Ana",
+      "municipio": "Chalchuapa",
+      "direccion_referencia": "7 av Norte, frente Pizza La Siciliana Chalchuapa, 60 metros abajo de Pollo Campero Chalchuapa",
+      "lat": 13.9853216,
+      "lng": -89.6802434
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Lunes",
+        "hora_apertura": "08:00",
+        "hora_cierre": "16:30"
+      },
+      {
+        "dia_semana": "Martes",
+        "hora_apertura": "08:00",
+        "hora_cierre": "16:30"
+      },
+      {
+        "dia_semana": "Miércoles",
+        "hora_apertura": "08:00",
+        "hora_cierre": "16:30"
+      },
+      {
+        "dia_semana": "Jueves",
+        "hora_apertura": "08:00",
+        "hora_cierre": "16:30"
+      },
+      {
+        "dia_semana": "Viernes",
+        "hora_apertura": "08:00",
+        "hora_cierre": "16:30"
+      },
+      {
+        "dia_semana": "Sábado",
+        "hora_apertura": "08:00",
+        "hora_cierre": "16:30"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Lunes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Martes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Miércoles",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Jueves",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Viernes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Sábado",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_AGENCIA_SAN_VICENTE_01",
+    "nombre_destino": "Centro de Envíos SAN VICENTE",
+    "empresa": "Melo Express",
+    "tipo": "Agencia",
+    "ubicacion": {
+      "departamento": "San Vicente",
+      "municipio": "San Vicente",
+      "direccion_referencia": "1 Av Norte #13 Barrio El Calvario. A la par de Hotel The American, a una cuadra de el Parque Central de San Vicente, 50 mtrs adelante de Universidad Panamericana De San Vicente.",
+      "lat": 13.6433169,
+      "lng": -88.7836392
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Lunes",
+        "hora_apertura": "08:00",
+        "hora_cierre": "16:30"
+      },
+      {
+        "dia_semana": "Martes",
+        "hora_apertura": "08:00",
+        "hora_cierre": "16:30"
+      },
+      {
+        "dia_semana": "Miércoles",
+        "hora_apertura": "08:00",
+        "hora_cierre": "16:30"
+      },
+      {
+        "dia_semana": "Jueves",
+        "hora_apertura": "08:00",
+        "hora_cierre": "16:30"
+      },
+      {
+        "dia_semana": "Viernes",
+        "hora_apertura": "08:00",
+        "hora_cierre": "16:30"
+      },
+      {
+        "dia_semana": "Sábado",
+        "hora_apertura": "08:00",
+        "hora_cierre": "16:30"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Lunes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Martes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Miércoles",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Jueves",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Viernes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Sábado",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_AGENCIA_AHUACHAPAN_01",
+    "nombre_destino": "Centro de Envíos AHUACHAPÁN",
+    "empresa": "Melo Express",
+    "tipo": "Agencia",
+    "ubicacion": {
+      "departamento": "Ahuachapán",
+      "municipio": "Ahuachapán",
+      "direccion_referencia": "FUSIÓN PLAZA, 2° NIVEL LOCAL 4, Ahuachapán",
+      "lat": 13.9234192,
+      "lng": -89.8462907
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Lunes",
+        "hora_apertura": "08:00",
+        "hora_cierre": "16:30"
+      },
+      {
+        "dia_semana": "Martes",
+        "hora_apertura": "08:00",
+        "hora_cierre": "16:30"
+      },
+      {
+        "dia_semana": "Miércoles",
+        "hora_apertura": "08:00",
+        "hora_cierre": "16:30"
+      },
+      {
+        "dia_semana": "Jueves",
+        "hora_apertura": "08:00",
+        "hora_cierre": "16:30"
+      },
+      {
+        "dia_semana": "Viernes",
+        "hora_apertura": "08:00",
+        "hora_cierre": "16:30"
+      },
+      {
+        "dia_semana": "Sábado",
+        "hora_apertura": "08:00",
+        "hora_cierre": "16:30"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Lunes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Martes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Miércoles",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Jueves",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Viernes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Sábado",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  },
+  {
+    "id_destino": "ME_AGENCIA_ILOBASCO_01",
+    "nombre_destino": "Centro de Envíos ILOBASCO",
+    "empresa": "Melo Express",
+    "tipo": "Agencia",
+    "ubicacion": {
+      "departamento": "Cabañas",
+      "municipio": "Ilobasco",
+      "direccion_referencia": "Sexta Av. Norte y Quinta Calle Oriente, Barrio San Miguel Edificio Emuná Local #5",
+      "lat": 13.8430116,
+      "lng": -88.8489166
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Lunes",
+        "hora_apertura": "08:00",
+        "hora_cierre": "16:30"
+      },
+      {
+        "dia_semana": "Martes",
+        "hora_apertura": "08:00",
+        "hora_cierre": "16:30"
+      },
+      {
+        "dia_semana": "Miércoles",
+        "hora_apertura": "08:00",
+        "hora_cierre": "16:30"
+      },
+      {
+        "dia_semana": "Jueves",
+        "hora_apertura": "08:00",
+        "hora_cierre": "16:30"
+      },
+      {
+        "dia_semana": "Viernes",
+        "hora_apertura": "08:00",
+        "hora_cierre": "16:30"
+      },
+      {
+        "dia_semana": "Sábado",
+        "hora_apertura": "08:00",
+        "hora_cierre": "16:30"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Lunes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Martes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Miércoles",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Jueves",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Viernes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Sábado",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ]
+  }
+]

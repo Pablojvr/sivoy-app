@@ -1,0 +1,412 @@
+<!-- MAIN ADMIN PANEL (Hidden when minimized) -->
+<div *ngIf="!isMinimized">
+    <div class="admin-header" style="position: relative;">
+      <h2>Panel de Administración</h2>
+      <a href="#/partner" style="position: absolute; right: 24px; top: 24px; text-decoration: none; font-size: 13px; font-weight: 600; color: white; background: var(--primary); padding: 8px 16px; border-radius: 20px;">Acceso Empresas B2B →</a>
+      
+      <!-- Tabs -->
+      <div class="dashboard-tabs filter-chips">
+        <button class="chip" [class.active]="adminSubTab === 'empresas'" (click)="adminSubTab = 'empresas'">
+          Empresas ({{ adminEmpresasList.length }})
+        </button>
+        <button class="chip" [class.active]="adminSubTab === 'puntos'" (click)="adminSubTab = 'puntos'">
+          Puntos ({{ locations.length }})
+        </button>
+      </div>
+    </div>
+    
+    <!-- SUBTAB: EMPRESAS -->
+    <div class="admin-subtab fade-in" *ngIf="adminSubTab === 'empresas'">
+      <div class="admin-list grid-list">
+        <div class="admin-card empresa-card-dashboard" *ngFor="let emp of adminEmpresasList" style="position: relative; cursor: pointer;" (click)="toggleEmpresaMenu(emp.id, $event)">
+          
+          <!-- Botón de Menú 3 Puntos -->
+          <button class="empresa-menu-btn" (click)="toggleEmpresaMenu(emp.id, $event)">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+              <circle cx="12" cy="5" r="2"></circle>
+              <circle cx="12" cy="12" r="2"></circle>
+              <circle cx="12" cy="19" r="2"></circle>
+            </svg>
+          </button>
+          
+          <!-- Dropdown Menu -->
+          <div class="empresa-dropdown-menu" *ngIf="activeEmpresaMenuId === emp.id" (click)="$event.stopPropagation()">
+            <div class="dropdown-item" (click)="viewEmpresaPuntos(emp); $event.stopPropagation()">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+              Ver Puntos
+            </div>
+            <div class="dropdown-item" (click)="openEditEmpresaModal(emp); $event.stopPropagation()">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+              Editar Empresa
+            </div>
+            <div class="dropdown-item" (click)="addPuntoToEmpresa(emp); $event.stopPropagation()">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+              Agregar Punto
+            </div>
+          </div>
+
+          <img class="emp-logo-dashboard" *ngIf="emp.logo_url" [src]="'http://localhost:3000' + emp.logo_url" alt="Logo">
+          <div class="emp-logo-dashboard placeholder" *ngIf="!emp.logo_url">{{ emp.nombre.charAt(0) }}</div>
+          
+          <div class="admin-card-info" style="text-align: center; margin-top: 10px;">
+            <h4>{{ emp.nombre }}</h4>
+            <p class="admin-loc">{{ emp.puntos_count || 0 }} Puntos</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SUBTAB: PUNTOS -->
+    <div class="admin-subtab fade-in" *ngIf="adminSubTab === 'puntos'">
+      <div class="admin-filters">
+        <div class="admin-search-wrapper">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" class="admin-search-icon"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <input type="text" [(ngModel)]="adminSearchTerm" (input)="applyAdminFilter()" placeholder="Buscar por nombre, municipio..." class="admin-input admin-search-input">
+        </div>
+
+        <div class="admin-filter-row">
+          <select [(ngModel)]="adminCompanyFilter" (change)="applyAdminFilter()" class="admin-select">
+            <option value="">Todas las empresas</option>
+            <option *ngFor="let emp of adminCompanies" [value]="emp">{{ emp }}</option>
+          </select>
+          <div class="admin-count">Mostrando {{ adminFilteredLocations.length }} puntos</div>
+        </div>
+      </div>
+      
+      <div class="admin-list">
+        <div class="admin-card clickable-card" *ngFor="let loc of adminFilteredLocations" (click)="viewLocation(loc)">
+          <div class="admin-card-info">
+            <h4>{{ loc.nombre_destino }}</h4>
+            <p class="admin-empresa">{{ loc.empresa || 'Agencia' }}</p>
+            <p class="admin-loc">{{ loc.ubicacion?.municipio || 'N/A' }}, {{ loc.ubicacion?.departamento || 'N/A' }}</p>
+          </div>
+          <div class="admin-card-chevron">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          </div>
+        </div>
+        <div class="empty-state" *ngIf="adminFilteredLocations.length === 0">
+          No se encontraron puntos.
+        </div>
+      </div>
+    </div>
+    
+    <!-- Botones Flotantes Globales de la Pestaña -->
+    <button class="fab-btn" *ngIf="adminSubTab === 'empresas'" (click)="openNewEmpresaModal()">+</button>
+    <button class="fab-btn" *ngIf="adminSubTab === 'puntos'" (click)="openRegistroLibre()">+</button>
+</div>
+
+  <!-- ADMIN VIEW LOCATION MODAL -->
+  <div class="admin-modal-overlay" *ngIf="viewingLocation && !editingLocation">
+    <div class="admin-modal fade-in view-details-modal" style="padding: 0; max-width: 400px; display: flex; flex-direction: column; max-height: 90vh; overflow: hidden;">
+      
+      <!-- HERO HEADER -->
+    <div class="modal-hero" style="position: relative; min-height: 220px; background-size: cover; background-position: center;" [style.backgroundImage]="viewingLocation.imagen_referencia ? 'url(http://localhost:3000' + viewingLocation.imagen_referencia + ')' : 'linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%)'">
+      <div style="position: absolute; top: 15px; right: 15px; display: flex; gap: 10px; z-index: 10;">
+        <button (click)="shareLocation(viewingLocation); $event.stopPropagation()" style="background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.2); color: white; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; backdrop-filter: blur(8px); box-shadow: 0 4px 12px rgba(0,0,0,0.2); transition: background 0.2s;">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+        </button>
+        <button (click)="closeViewDetails(); $event.stopPropagation()" style="background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.2); color: white; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; backdrop-filter: blur(8px); box-shadow: 0 4px 12px rgba(0,0,0,0.2); font-size: 22px; line-height: 1; transition: background 0.2s;">
+          &times;
+        </button>
+      </div>
+      <div (click)="previewImage(viewingLocation.imagen_referencia)" style="position: absolute; inset: 0; z-index: 5; cursor: pointer;" title="Ver imagen completa"></div>
+      
+      <div class="hero-overlay" style="z-index: 6; pointer-events: none;">
+        <span class="hero-badge">{{ viewingLocation.empresa || 'Agencia' }}</span>
+        <h2 class="hero-title">{{ viewingLocation.nombre_destino }}</h2>
+      </div>
+    </div>
+      
+      <!-- MODAL BODY -->
+      <div class="modal-body" style="padding: 24px; overflow-y: auto;">
+        
+        <!-- SECCIÓN: UBICACIÓN -->
+        <h4 class="section-title" style="margin: 0 0 12px 0; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted);">Ubicación</h4>
+        <div class="info-card" style="background: white; padding: 0; border-radius: 12px; margin-bottom: 24px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+          
+          <!-- Dirección -->
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px;">
+            <div style="display: flex; align-items: flex-start; gap: 12px;">
+              <div style="background: #fff1f2; color: var(--primary); padding: 8px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+              </div>
+              <div style="flex: 1;">
+                <h5 style="margin: 0 0 4px 0; font-size: 14px; color: var(--text-main); font-weight: 600;">Dirección</h5>
+                <p style="margin: 0; font-size: 14px; color: var(--text-muted); line-height: 1.4;">{{ viewingLocation.ubicacion?.municipio || 'N/A' }}, {{ viewingLocation.ubicacion?.departamento || 'N/A' }}</p>
+                <p *ngIf="viewingLocation.ubicacion?.direccion_referencia" style="margin: 6px 0 0 0; font-size: 13px; color: #64748b; line-height: 1.4; display: flex; gap: 6px; align-items: flex-start;">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" style="margin-top: 2px; flex-shrink: 0;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                  <span>{{ viewingLocation.ubicacion.direccion_referencia }}</span>
+                </p>
+              </div>
+            </div>
+            <a *ngIf="viewingLocation.ubicacion?.lat" [href]="viewingLocation.maps_url || 'https://www.google.com/maps/search/?api=1&query=' + viewingLocation.ubicacion.lat + ',' + viewingLocation.ubicacion.lng" target="_blank" style="display: inline-flex; align-items: center; justify-content: center; background: #eef2ff; color: #4f46e5; padding: 8px 12px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 13px; gap: 6px; border: 1px solid #c7d2fe; transition: all 0.2s ease; flex-shrink: 0; box-shadow: 0 2px 4px rgba(79,70,229,0.1);" title="Abrir en Google Maps">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+              Maps
+            </a>
+          </div>
+        </div>
+
+        <!-- SECCIÓN: HORARIOS -->
+        <h4 class="section-title" style="margin: 0 0 12px 0; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted);">Horarios de Atención</h4>
+        <div class="info-card" style="background: white; border-radius: 12px; margin-bottom: 24px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+          
+          <div *ngIf="viewingLocation.horarios_operativos?.length > 0; else noHorarios">
+            <div *ngFor="let g of getGroupedSchedules(viewingLocation.horarios_operativos); let last = last" [style.border-bottom]="last ? 'none' : '1px solid #f1f5f9'" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px;">
+              <span style="font-size: 14px; font-weight: 600; color: var(--text-main);">{{ g.dias }}</span>
+              <div style="display: flex; gap: 8px; align-items: center;">
+                <span style="font-size: 13px; color: var(--text-muted); background: #f8fafc; padding: 4px 8px; border-radius: 6px; border: 1px solid #e2e8f0; font-weight: 500;">{{ formatTime(g.apertura) }}</span>
+                <span style="font-size: 13px; color: #94a3b8; font-weight: 600;">a</span>
+                <span style="font-size: 13px; color: var(--text-muted); background: #f8fafc; padding: 4px 8px; border-radius: 6px; border: 1px solid #e2e8f0; font-weight: 500;">{{ formatTime(g.cierre) }}</span>
+              </div>
+            </div>
+          </div>
+          <ng-template #noHorarios>
+            <div style="padding: 24px 16px; text-align: center; color: var(--text-muted);">
+              <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom: 8px; opacity: 0.5;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+              <p style="margin: 0; font-size: 14px;">No hay horarios registrados</p>
+            </div>
+          </ng-template>
+        </div>
+
+        <!-- SECCIÓN: ACCIONES -->
+        <h4 class="section-title" style="margin: 0 0 12px 0; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted);">Acciones</h4>
+        <div class="action-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px;">
+           <button class="secondary-btn w-100" (click)="viewOnMap(viewingLocation); viewingLocation = null" style="justify-content: center; display: flex; align-items: center; gap: 8px; flex-direction: column; padding: 16px 8px;">
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" style="margin-bottom: 4px; color: var(--primary);"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg>
+              Ver en Mapa
+           </button>
+           <button class="secondary-btn w-100" (click)="shareLocation(viewingLocation)" style="justify-content: center; display: flex; align-items: center; gap: 8px; flex-direction: column; padding: 16px 8px;">
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" style="margin-bottom: 4px; color: var(--primary);"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+              Compartir
+           </button>
+        </div>
+        
+        <!-- MAIN ACTION -->
+        <button class="primary-btn w-100" style="padding: 14px; font-size: 15px; display: flex; justify-content: center; align-items: center; gap: 8px;" (click)="openEditFromView()">
+           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+           Editar Información
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADMIN EDIT EMPRESA MODAL -->
+  <div class="admin-modal-overlay" *ngIf="isEditingEmpresa">
+    <div class="admin-modal fade-in" style="padding: 0; max-width: 400px; display: flex; flex-direction: column; max-height: 90vh; overflow: hidden;">
+      <div style="padding: 24px 24px 0 24px; flex-shrink: 0;">
+        <h3>{{ editingEmpresaData.id ? 'Editar Empresa' : 'Nueva Empresa' }}</h3>
+      </div>
+      
+      <div class="modal-body" style="padding: 24px; overflow-y: auto; flex: 1;">
+      
+      <div class="form-group">
+        <label>Nombre de la Empresa</label>
+        <input type="text" [(ngModel)]="editingEmpresaData.nombre" class="admin-input" maxlength="100" [disabled]="isSavingEmpresa">
+      </div>
+
+      <div class="form-group">
+        <label>Logo</label>
+        <div style="margin-bottom: 10px;" *ngIf="editingEmpresaData.logoUrl">
+          <img [src]="'http://localhost:3000' + editingEmpresaData.logoUrl" style="max-width: 80px; border-radius: 8px;">
+        </div>
+        <input type="file" (change)="onEmpresaLogoSelected($event)" accept="image/*" class="admin-input" [disabled]="isSavingEmpresa">
+      </div>
+      
+      </div>
+      
+      <div style="padding: 16px 24px 24px 24px; flex-shrink: 0; background: var(--surface-solid); border-top: 1px solid #e2e8f0;">
+        <div class="admin-modal-actions" style="margin-top: 0;">
+          <button class="secondary-btn" (click)="isEditingEmpresa = false" [disabled]="isSavingEmpresa">Cancelar</button>
+          <button class="primary-btn" (click)="saveEmpresa()" [disabled]="isSavingEmpresa">
+            <span *ngIf="!isSavingEmpresa">Guardar</span>
+            <span *ngIf="isSavingEmpresa" style="display:flex; align-items:center; gap:6px;">
+              <svg class="spin-icon" viewBox="0 0 24 24" width="14" height="14"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" fill="none" stroke-dasharray="60" stroke-dashoffset="15"/></svg>
+              Guardando...
+            </span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADMIN EDIT MODAL -->
+  <div class="admin-modal-overlay" *ngIf="editingLocation && !isPickingLocation" [class.overlay-minimized]="isMinimized">
+    <div class="admin-modal fade-in" [class.modal-minimized]="isMinimized" style="padding: 0; display: flex; flex-direction: column; overflow: hidden; transition: all 0.3s ease; max-width: 400px; max-height: 90vh;">
+      
+      <!-- Minimized View -->
+      <div *ngIf="isMinimized" style="padding: 16px; display: flex; justify-content: space-between; align-items: center; background: white; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border: 2px solid var(--primary);">
+        <div>
+          <h4 style="margin: 0; font-size: 14px;">{{ editFormData.nombre_destino || 'Nuevo Punto' }}</h4>
+          <span style="font-size: 11px; color: var(--text-muted);">Verifica la ubicación</span>
+        </div>
+        <button class="primary-btn small" style="padding: 6px 12px; font-size: 12px;" (click)="restoreModal()">Volver a la edición</button>
+      </div>
+
+      <!-- Full View Header -->
+      <div *ngIf="!isMinimized" style="padding: 24px 24px 0 24px; flex-shrink: 0;">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+          <button class="btn-text" (click)="cancelEdit()" [disabled]="isSavingLocation || googleLinkLoading" style="padding: 6px; border-radius: 50%; color: var(--text-muted); background: #f1f5f9; display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; transition: background 0.2s;" title="Volver a los detalles">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+          </button>
+          <h3 style="margin: 0;">Editar Punto</h3>
+        </div>
+        
+        <div class="modal-tabs">
+          <button class="tab-btn" [class.active]="editLocationTab === 'datos'" (click)="editLocationTab = 'datos'">Datos Generales</button>
+          <button class="tab-btn" [class.active]="editLocationTab === 'horarios'" (click)="editLocationTab = 'horarios'">Horarios</button>
+        </div>
+      </div>
+      
+      <!-- Scrollable Body -->
+      <div class="modal-body" *ngIf="!isMinimized" style="padding: 24px; overflow-y: auto; flex: 1;">
+      
+      <!-- TAB: DATOS GENERALES -->
+      <div class="tab-content" *ngIf="editLocationTab === 'datos'">
+        
+        <div class="image-upload-area" style="margin-bottom: 20px;">
+          <div class="upload-placeholder" *ngIf="!editImageUrl && !isProcessingImage">
+            <p>Sube una imagen de referencia del lugar</p>
+            <input type="file" id="edit-img" class="file-hidden" (change)="onEditImageSelected($event)" accept="image/*">
+            <label for="edit-img" class="btn-secondary small" style="display: inline-block; cursor: pointer; padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border-color);">Seleccionar Archivo</label>
+          </div>
+          
+          <div class="upload-placeholder" *ngIf="isProcessingImage" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px;">
+            <svg class="spin-icon" viewBox="0 0 24 24" width="24" height="24" style="color: var(--primary); margin-bottom: 10px;"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" fill="none" stroke-dasharray="60" stroke-dashoffset="15"/></svg>
+            <span style="color: var(--primary); font-weight: 600; font-size: 13px;">Procesando imagen...</span>
+          </div>
+
+          <div class="image-preview" *ngIf="editImageUrl && !isProcessingImage" style="position: relative;">
+            <img [src]="editImageUrl" alt="Vista previa" style="max-height: 150px; border-radius: 8px; object-fit: cover;">
+            
+            <div *ngIf="isSavingLocation" style="position: absolute; inset: 0; background: rgba(255,255,255,0.7); display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 8px; z-index: 10;">
+              <svg class="spin-icon" viewBox="0 0 24 24" width="24" height="24" style="color: var(--primary); margin-bottom: 8px;"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" fill="none" stroke-dasharray="60" stroke-dashoffset="15"/></svg>
+              <span style="color: var(--primary); font-weight: 600; font-size: 13px;">Subiendo...</span>
+            </div>
+
+            <div style="margin-top: 10px;">
+              <input type="file" id="edit-img-change" class="file-hidden" (change)="onEditImageSelected($event)" accept="image/*">
+              <label for="edit-img-change" class="btn-text" style="cursor: pointer; color: var(--primary);">Cambiar imagen</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Enlace de Google Maps</label>
+          <div class="link-input-wrapper">
+            <input type="text" 
+              placeholder="Ej: https://maps.app.goo.gl/..." 
+              class="admin-input link-input" 
+              [(ngModel)]="editFormData.maps_url"
+              (paste)="onGoogleLinkPaste($event)" 
+              maxlength="500"
+              [disabled]="googleLinkLoading || isSavingLocation">
+            <span class="link-loading" *ngIf="googleLinkLoading">
+              <svg class="spin-icon" viewBox="0 0 24 24" width="16" height="16"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" fill="none" stroke-dasharray="60" stroke-dashoffset="15"/></svg>
+            </span>
+            <span class="link-ok" *ngIf="!googleLinkLoading && editFormData?.maps_url && !googleLinkError">✓</span>
+          </div>
+          <small class="hint-text" *ngIf="!googleLinkError && !editFormData.maps_url">Pega un link de Google Maps (corto o largo) para autocompletar lat/lng</small>
+          <small class="hint-text saved-url-text" *ngIf="!googleLinkLoading && editFormData.maps_url && !googleLinkError">
+            📍 URL guardada &mdash; <a [href]="editFormData.maps_url" target="_blank">Abrir en Maps</a>
+          </small>
+          <small class="hint-text error-text" *ngIf="googleLinkError">{{ googleLinkError }}</small>
+          
+          <div style="margin-top: 12px; margin-bottom: 20px;">
+            <div *ngIf="editFormData.ubicacion?.lat && editFormData.ubicacion?.lng" style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 8px;">
+               <div style="display: flex; align-items: center; gap: 8px;">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#10b981" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                  <span style="color: #065f46; font-size: 13px; font-weight: 600;">Coordenadas listas</span>
+               </div>
+               <button class="btn-text" style="color: #047857; font-size: 12px; font-weight: 700; padding: 4px 8px; background: #d1fae5; border-radius: 6px; cursor: pointer; border: none; display: flex; align-items: center; gap: 4px;" (click)="minimizeModal()">
+                 <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                 Ver en Mapa
+               </button>
+            </div>
+            <div *ngIf="!(editFormData.ubicacion?.lat && editFormData.ubicacion?.lng)" style="display: flex; align-items: center; padding: 12px; background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; gap: 8px;">
+               <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#d97706" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+               <span style="color: #92400e; font-size: 13px; font-weight: 600;">Falta extraer ubicación</span>
+            </div>
+            
+            <button *ngIf="!(editFormData.ubicacion?.lat && editFormData.ubicacion?.lng)" class="secondary-btn" style="width: 100%; padding: 8px; font-size: 13px; border-color: var(--primary); color: var(--primary); margin-top: 8px;" (click)="startPickingLocation()" [disabled]="isSavingLocation">
+              📍 Ubicar manualmente en mapa
+            </button>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label>Nombre del Destino <span style="color:#ef4444">*</span></label>
+          <input type="text" [(ngModel)]="editFormData.nombre_destino" class="admin-input" maxlength="100" [disabled]="isSavingLocation">
+        </div>
+        
+        <div class="form-group">
+          <label>Empresa <span style="color:#ef4444">*</span></label>
+          <select [(ngModel)]="editFormData.empresa" class="admin-input" [disabled]="isSavingLocation">
+            <option *ngFor="let emp of adminCompanies" [value]="emp">{{ emp }}</option>
+          </select>
+        </div>
+        
+
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label>Municipio <span style="color:#ef4444">*</span></label>
+            <input type="text" [(ngModel)]="editFormData.ubicacion.municipio" class="admin-input" maxlength="100" [disabled]="googleLinkLoading || isSavingLocation">
+          </div>
+          <div class="form-group">
+            <label>Departamento <span style="color:#ef4444">*</span></label>
+            <input type="text" [(ngModel)]="editFormData.ubicacion.departamento" class="admin-input" maxlength="100" [disabled]="googleLinkLoading || isSavingLocation">
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label>Dirección o Referencia</label>
+          <textarea [(ngModel)]="editFormData.ubicacion.direccion_referencia" class="admin-input" rows="3" placeholder="Ej: Frente al parque central, local 4B..." maxlength="300" [disabled]="isSavingLocation" style="resize: vertical; min-height: 80px; font-family: inherit;"></textarea>
+        </div>
+      </div>
+      
+      <!-- TAB: HORARIOS -->
+      <div class="tab-content" *ngIf="editLocationTab === 'horarios'">
+        <div class="horarios-grid">
+          <div class="dia-row" *ngFor="let h of editHorarios" [class.activo]="h.selected" style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 12px; padding: 12px 16px; border-radius: 12px; background: #f8fafc; border: 1px solid #e2e8f0; transition: all 0.2s ease; box-shadow: 0 1px 2px rgba(0,0,0,0.02);">
+            <!-- Toggle de día -->
+            <div class="dia-toggle" style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <label class="switch">
+                  <input type="checkbox" [(ngModel)]="h.selected">
+                  <span class="slider round"></span>
+                </label>
+                <span class="dia-label" style="font-weight: 600; color: var(--text-main); font-size: 15px;">{{ h.dia }}</span>
+              </div>
+              <span *ngIf="!h.selected" style="font-size: 13px; color: var(--text-muted); font-weight: 500;">Cerrado</span>
+            </div>
+
+            <!-- Horarios -->
+            <div class="horario-inputs fade-in" *ngIf="h.selected" style="display: grid; grid-template-columns: 1fr auto 1fr; gap: 12px; align-items: center; width: 100%; border-top: 1px solid #e2e8f0; padding-top: 12px; margin-top: 4px;">
+              <input type="time" [(ngModel)]="h.horaApertura" class="admin-input" [disabled]="isSavingLocation" style="padding: 10px; border-radius: 8px; width: 100%; text-align: center; font-size: 14px; background: white; border: 1px solid #cbd5e1;">
+              <span style="color: var(--text-muted); font-weight: 600; font-size: 13px; text-transform: uppercase;">a</span>
+              <input type="time" [(ngModel)]="h.horaCierre" class="admin-input" [disabled]="isSavingLocation" style="padding: 10px; border-radius: 8px; width: 100%; text-align: center; font-size: 14px; background: white; border: 1px solid #cbd5e1;">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      </div>
+      
+      <!-- Fixed Footer Actions -->
+      <div *ngIf="!isMinimized" style="padding: 16px 24px 24px 24px; flex-shrink: 0; background: var(--surface-solid); border-top: 1px solid #e2e8f0;">
+        <div class="admin-modal-actions" style="margin-top: 0;">
+          <button class="secondary-btn" (click)="cancelEdit()" [disabled]="googleLinkLoading || isSavingLocation || isSavedSuccess">Cancelar</button>
+          <button class="primary-btn" (click)="saveLocation()" [disabled]="googleLinkLoading || isSavingLocation || isSavedSuccess" [style.background]="isSavedSuccess ? '#10b981' : ''" [style.borderColor]="isSavedSuccess ? '#10b981' : ''">
+            <span *ngIf="!(googleLinkLoading || isSavingLocation || isSavedSuccess)">Guardar Cambios</span>
+            <span *ngIf="googleLinkLoading || isSavingLocation" style="display:flex; align-items:center; gap:6px;">
+              <svg class="spin-icon" viewBox="0 0 24 24" width="14" height="14"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" fill="none" stroke-dasharray="60" stroke-dashoffset="15"/></svg>
+              Guardando...
+            </span>
+            <span *ngIf="isSavedSuccess" style="display:flex; align-items:center; gap:6px;">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              ¡Guardado exitosamente!
+            </span>
+          </button>
+        </div>
+      </div>
+    </div>

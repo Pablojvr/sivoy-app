@@ -1,0 +1,481 @@
+[
+  {
+    "id_destino": "AG_DELICIAS_DE_CONCEPCION_01",
+    "nombre_destino": "DELICIAS DE CONCEPCIÓN",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "Morazán",
+      "municipio": "Delicias de Concepción",
+      "direccion_referencia": "FRENTE A IGLESIA",
+      "lat": 13.7884212,
+      "lng": -88.1380425
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Jueves",
+        "hora_apertura": "08:30",
+        "hora_cierre": "09:00"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Jueves",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ],
+    "empresa": "Pedidos Express"
+  },
+  {
+    "id_destino": "AG_DESVIO_DE_OPICO_01",
+    "nombre_destino": "DESVÍO DE OPICO",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "La Libertad",
+      "municipio": "San Juan Opico",
+      "direccion_referencia": "GAS UNO / PARADA DE BUS",
+      "lat": 13.8764033,
+      "lng": -89.3584546
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Lunes",
+        "hora_apertura": "12:15",
+        "hora_cierre": "13:00"
+      },
+      {
+        "dia_semana": "Jueves",
+        "hora_apertura": "12:15",
+        "hora_cierre": "13:00"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Lunes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Jueves",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ],
+    "empresa": "Pedidos Express"
+  },
+  {
+    "id_destino": "AG_DOLORES_01",
+    "nombre_destino": "DOLORES",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "Cabañas",
+      "municipio": "Dolores",
+      "direccion_referencia": "PARQUE CENTRAL",
+      "lat": 13.775462,
+      "lng": -88.5632353
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Lunes",
+        "hora_apertura": "13:20",
+        "hora_cierre": "13:45"
+      },
+      {
+        "dia_semana": "Jueves",
+        "hora_apertura": "13:20",
+        "hora_cierre": "13:45"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Lunes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Jueves",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ],
+    "empresa": "Pedidos Express"
+  },
+  {
+    "id_destino": "AG_FRONTERA_EL_AMATILLO_01",
+    "nombre_destino": "FRONTERA EL AMATILLO",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "La Unión",
+      "municipio": "Pasaquina",
+      "direccion_referencia": "CERCA DE DISTRIBUIDORA ROSITA",
+      "lat": 13.5841387,
+      "lng": -87.8377112
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Martes",
+        "hora_apertura": "13:00",
+        "hora_cierre": "13:30"
+      },
+      {
+        "dia_semana": "Viernes",
+        "hora_apertura": "13:00",
+        "hora_cierre": "13:30"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Martes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Viernes",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ],
+    "empresa": "Pedidos Express"
+  },
+  {
+    "id_destino": "AG_EL_CARMEN_01",
+    "nombre_destino": "EL CARMEN",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "La Unión",
+      "municipio": "El Carmen",
+      "direccion_referencia": "PARQUE EL CARMEN",
+      "lat": 13.72325,
+      "lng": -88.8993291
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Lunes",
+        "hora_apertura": "12:30",
+        "hora_cierre": "13:00"
+      },
+      {
+        "dia_semana": "Jueves",
+        "hora_apertura": "12:30",
+        "hora_cierre": "13:00"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Lunes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Jueves",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ],
+    "empresa": "Pedidos Express"
+  },
+  {
+    "id_destino": "AG_EL_CONGO_01",
+    "nombre_destino": "EL CONGO",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "Santa Ana",
+      "municipio": "El Congo",
+      "direccion_referencia": "AV. TENIENTE RICARDO MANCIA PLAZA SALOMÉ - LOCAL KIVA CHIC SEGUNDO NIVEL.",
+      "lat": 13.8840762,
+      "lng": -89.4951763
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Lunes",
+        "hora_apertura": "09:30",
+        "hora_cierre": "12:00"
+      },
+      {
+        "dia_semana": "Jueves",
+        "hora_apertura": "09:30",
+        "hora_cierre": "12:00"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Lunes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Jueves",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ],
+    "empresa": "Pedidos Express"
+  },
+  {
+    "id_destino": "AG_EL_DIVISADERO_01",
+    "nombre_destino": "EL DIVISADERO",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "Morazán",
+      "municipio": "El Divisadero",
+      "direccion_referencia": "PARQUE RECREATIVO EL DIVISADERO",
+      "lat": 13.6014274,
+      "lng": -88.0480049
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Martes",
+        "hora_apertura": "08:00",
+        "hora_cierre": "08:30"
+      },
+      {
+        "dia_semana": "Viernes",
+        "hora_apertura": "08:00",
+        "hora_cierre": "08:30"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Martes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Viernes",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ],
+    "empresa": "Pedidos Express"
+  },
+  {
+    "id_destino": "AG_EL_PARAISO_01",
+    "nombre_destino": "EL PARAÍSO",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "Chalatenango",
+      "municipio": "El Paraíso",
+      "direccion_referencia": "FRENTE A NEVERÍA Y FARMACIA LA SALUD",
+      "lat": 14.1060885,
+      "lng": -89.0688352
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Martes",
+        "hora_apertura": "10:20",
+        "hora_cierre": "10:40"
+      },
+      {
+        "dia_semana": "Viernes",
+        "hora_apertura": "10:20",
+        "hora_cierre": "10:40"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Martes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Viernes",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ],
+    "empresa": "Pedidos Express"
+  },
+  {
+    "id_destino": "AG_EL_REFUGIO_01",
+    "nombre_destino": "EL REFUGIO",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "Ahuachapán",
+      "municipio": "El Refugio",
+      "direccion_referencia": "PARQUE CENTRAL",
+      "lat": 13.9767949,
+      "lng": -89.6984112
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Martes",
+        "hora_apertura": "10:30",
+        "hora_cierre": "11:00"
+      },
+      {
+        "dia_semana": "Viernes",
+        "hora_apertura": "10:30",
+        "hora_cierre": "11:00"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Martes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Viernes",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ],
+    "empresa": "Pedidos Express"
+  },
+  {
+    "id_destino": "AG_EL_ROSARIO_LA_PAZ_01",
+    "nombre_destino": "EL ROSARIO, LA PAZ",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "La Paz",
+      "municipio": "El Rosario",
+      "direccion_referencia": "ENTRADA DEL PARQUE",
+      "lat": 13.4617526,
+      "lng": -89.0209212
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Martes",
+        "hora_apertura": "13:15",
+        "hora_cierre": "13:45"
+      },
+      {
+        "dia_semana": "Viernes",
+        "hora_apertura": "13:15",
+        "hora_cierre": "13:45"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Martes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Viernes",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ],
+    "empresa": "Pedidos Express"
+  },
+  {
+    "id_destino": "AG_EL_SAUCE_01",
+    "nombre_destino": "EL SAUCE",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "La Unión",
+      "municipio": "El Sauce",
+      "direccion_referencia": "FTE A IGLESIA",
+      "lat": 13.6411211,
+      "lng": -87.7773075
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Lunes",
+        "hora_apertura": "10:15",
+        "hora_cierre": "10:40"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Lunes",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ],
+    "empresa": "Pedidos Express"
+  },
+  {
+    "id_destino": "AG_EL_TRANSITO_01",
+    "nombre_destino": "EL TRANSITO",
+    "tipo": "Agencia",
+    "ubicacion": {
+      "departamento": "San Miguel",
+      "municipio": "El Tránsito",
+      "direccion_referencia": "PLAZA SAN ANTONIO, LOCAL # 9 PRIMER LOCAL A MANO DERECHA",
+      "lat": 13.3891551,
+      "lng": -88.3494431
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Lunes",
+        "hora_apertura": "09:00",
+        "hora_cierre": "16:00"
+      },
+      {
+        "dia_semana": "Martes",
+        "hora_apertura": "09:00",
+        "hora_cierre": "16:00"
+      },
+      {
+        "dia_semana": "Miércoles",
+        "hora_apertura": "09:00",
+        "hora_cierre": "16:00"
+      },
+      {
+        "dia_semana": "Jueves",
+        "hora_apertura": "09:00",
+        "hora_cierre": "16:00"
+      },
+      {
+        "dia_semana": "Viernes",
+        "hora_apertura": "09:00",
+        "hora_cierre": "16:00"
+      },
+      {
+        "dia_semana": "Sábado",
+        "hora_apertura": "09:00",
+        "hora_cierre": "12:00"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Diario",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ],
+    "empresa": "Pedidos Express"
+  },
+  {
+    "id_destino": "AG_EREGUAYQUIN_01",
+    "nombre_destino": "EREGUAYQUIN",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "Usulután",
+      "municipio": "Ereguayquín",
+      "direccion_referencia": "PARQUE CENTRAL",
+      "lat": 13.3648748,
+      "lng": -88.3915327
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Miércoles",
+        "hora_apertura": "11:30",
+        "hora_cierre": "11:50"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Miércoles",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ],
+    "empresa": "Pedidos Express"
+  },
+  {
+    "id_destino": "AG_ESTANZUELAS_01",
+    "nombre_destino": "ESTANZUELAS",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "Usulután",
+      "municipio": "Estanzuelas",
+      "direccion_referencia": "PARQUE CENTRAL",
+      "lat": 13.8957416,
+      "lng": -88.0375682
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Martes",
+        "hora_apertura": "10:10",
+        "hora_cierre": "10:45"
+      },
+      {
+        "dia_semana": "Viernes",
+        "hora_apertura": "10:10",
+        "hora_cierre": "10:45"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Martes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Viernes",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ],
+    "empresa": "Pedidos Express"
+  }
+]

@@ -1,0 +1,79 @@
+[
+  {
+    "file_name": "SANTA ANA 1.jpg",
+    "type": "AGENCIA",
+    "location": "SANTA ANA",
+    "address": "AGENCIA SANTA ANA CENTRO: SOBRE 8 CALLE PONIENTE ENTRE AV. INDEPEND Y 2DA AV NORTE -> A LA PAR DE PANADERIA XIMENA | AGENCIA SANTA ANA PLAZA 33: SOBRE 33 CALLE OTE Y AV. INDEPENDENCIA SUR, LOCAL #1 (PRIMER NIVEL)",
+    "schedule": "CENTRO: L-V 9 AM-4 PM, SAB 9 AM-12 MD | PLAZA 33: L-V 9:00 AM-4:00 PM, SAB 9:00 AM-1:00 PM"
+  },
+  {
+    "file_name": "SANTA ANA CENTRO.jpg",
+    "type": "AGENCIA",
+    "location": "SANTA ANA CENTRO",
+    "address": "SOBRE 8 CALLE PONIENTE ENTRE AV. INDEPEND Y 2DA AV NORTE -> A LA PAR DE PANADERIA XIMENA",
+    "schedule": "DE LUNES A VIERNES DESDE 9 AM HASTA 4 PM, SÁBADOS DESDE 9 AM HASTA 12 MD"
+  },
+  {
+    "file_name": "SANTA ANA PLAZA 33.jpg",
+    "type": "AGENCIA",
+    "location": "SANTA ANA PLAZA 33",
+    "address": "SOBRE 33 CALLE OTE Y AV. INDEPENDENCIA SUR, LOCAL #1 (PRIMER NIVEL) -UNA CUADRA ABAJO DE MAXI DESPENSA. -50 METROS AL ORIENTE DE GASOLINERA UNO. -A LA PAR DE CAR WASH WILLY'S.",
+    "schedule": "DE LUNES A VIERNES DESDE 9:00 AM HASTA 4:00 PM, SABADOS DESDE 9:00 AM HASTA 1:00 PM"
+  },
+  {
+    "file_name": "SANTA ELENA.jpg",
+    "type": "PUNTO DE ENCUENTRO",
+    "location": "SANTA ELENA",
+    "address": "FRENTE A IGLESIA",
+    "schedule": "LUNES Y JUEVES, Desde 11:15 am hasta 11:45 am"
+  },
+  {
+    "file_name": "SANTA MARIA.jpg",
+    "type": "PUNTO DE ENCUENTRO",
+    "location": "SANTA MARIA",
+    "address": "PARQUE CENTRAL",
+    "schedule": "MIÉRCOLES, DESDE 11:00 AM HASTA 11:20 AM"
+  },
+  {
+    "file_name": "SANTA ROSA DE LIMA AGENCIA.jpg",
+    "type": "AGENCIA",
+    "location": "SANTA ROSA DE LIMA",
+    "address": "SOBRE CALLE GRAL. GIRON PTE, ENTRE 3 Y 5 AV NORTE. ESQUINA OPUESTA A FARMACIA SANTA MARIA, FRENTE A FARMACIA EL REY, LOCAL ROJO 2DO NIVEL.",
+    "schedule": "LUNES A VIERNES DESDE 9:00 AM HASTA 4:00 PM, SÁBADO DESDE 9:00 AM HASTA 12:00 PM"
+  },
+  {
+    "file_name": "SANTA TECLA AGENCIA 2.jpg",
+    "type": "AGENCIA",
+    "location": "SANTA TECLA",
+    "address": "SOBRE PASEO EL CARMEN ENTRE 3 Y 5 AVENIDA NORTE. A 500 MTS DEL BANCO IZALQUEÑO DE LOS TRABAJADORES",
+    "schedule": "LUNES A VIERNES DESDE 9:00 AM HASTA 4:00 PM, SÁBADO DESDE 9:00 AM HASTA 3:00 PM"
+  },
+  {
+    "file_name": "SANTIAGO DE LA FRONTERA.jpg",
+    "type": "PUNTO DE ENCUENTRO",
+    "location": "SANTIAGO DE LA FRONTERA",
+    "address": "PARQUE FRENTE A CLINICA",
+    "schedule": "MARTES Y VIERNES, DESDE 10:00 AM HASTA 10:45 AM"
+  },
+  {
+    "file_name": "SANTIAGO DE MARIA AGENCIA.jpg",
+    "type": "AGENCIA",
+    "location": "SANTIAGO DE MARIA",
+    "address": "RN14 ENTRE 3° Y 5° CALLE PTE. A LA PAR DE SHERWIN-WILLIAMS. EX NEVERIA.",
+    "schedule": "LUNES A VIERNES DESDE 9:00 AM HASTA 4:00 PM, SÁBADO DESDE 9:00 AM HASTA 12:00 PM"
+  },
+  {
+    "file_name": "SANTIAGO NONUALCO.jpg",
+    "type": "PUNTO DE ENCUENTRO",
+    "location": "SANTIAGO NONUALCO",
+    "address": "PARQUEO SANTIAGUEÑO FRENTE A LICEO CRISTIANO JUAN BUENO",
+    "schedule": "LUNES Y JUEVES, DESDE 8:30 AM HASTA 9:30 AM"
+  },
+  {
+    "file_name": "SANTIAGO TEXACUANGO.jpg",
+    "type": "PUNTO DE ENCUENTRO",
+    "location": "SANTIAGO TEXACUANGO",
+    "address": "FRENTE A ALCALDÍA",
+    "schedule": "MARTES Y VIERNES, DESDE 9:45 AM HASTA 10:10 AM"
+  }
+]

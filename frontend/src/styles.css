@@ -1,0 +1,80 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+  /* BRAND MANUAL CSS VARIABLES */
+  --primary: #FF5A5F;
+  --primary-dark: #E04E53;
+  --bg-color: #F7F7F7;
+  --surface: rgba(255, 255, 255, 0.85);
+  --surface-solid: #FFFFFF;
+  --text-main: #111827;
+  --text-muted: #6B7280;
+  --border: rgba(0, 0, 0, 0.08);
+  --radius-lg: 24px;
+  --radius-md: 12px;
+  --radius-sm: 8px;
+  --radius-pill: 100px;
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.04);
+  --shadow-md: 0 8px 32px rgba(0,0,0,0.08);
+  --shadow-lg: 0 -4px 32px rgba(0,0,0,0.08);
+
+  /* Aliases for variables used in CSS but previously undefined */
+  --border-color: rgba(0, 0, 0, 0.08);
+  --surface-color: rgba(255, 255, 255, 0.85);
+  --surface-bg: #F7F7F7;
+  --text-color: #111827;
+  --surface-hover: #f1f5f9;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', sans-serif;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  position: fixed;
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg-color, #F7F7F7);
+  color: var(--text-main, #222222);
+}
+
+/* Custom Origin & Destination Markers for Map */
+.admin-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+/* Modales minimizados (Floating Picture-in-Picture) */
+.overlay-minimized {
+  pointer-events: none;
+  background: transparent !important;
+  backdrop-filter: none !important;
+}
+
+.modal-minimized {
+  position: fixed !important;
+  bottom: 24px !important;
+  right: 24px !important;
+  width: 320px !important;
+  height: auto !important;
+  pointer-events: auto;
+  z-index: 10000;
+  transform: none !important;
+  top: auto !important;
+  left: auto !important;
+}
+
+.custom-map-marker-container { display: flex; justify-content: center; align-items: flex-end; background: transparent; border: none; }
+.custom-map-marker { width: 32px; height: 32px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); position: relative; transition: all 0.2s ease; }
+.custom-map-marker span { transform: rotate(45deg); color: white; font-weight: 800; font-size: 14px; }
+.origin-marker { background-color: #1e293b; border: 2px solid white; }
+.destination-marker { background-color: #ff5a5f; border: 2px solid white; }
+.marker-selected { transform: scale(1.2) rotate(-45deg); z-index: 1000 !important; box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4); }

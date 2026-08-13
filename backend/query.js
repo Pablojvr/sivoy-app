@@ -1,0 +1,1 @@
+const sqlite3 = require('sqlite3').verbose(); const db = new sqlite3.Database('../data/sivoyapp.sqlite'); db.all('SELECT id_destino, empresa, nombre_destino, departamento, municipio FROM agencias WHERE empresa = \'Melo Express\' AND LOWER(nombre_destino) LIKE \'%salvador%\';', [], (err, rows) => { console.log(rows); });

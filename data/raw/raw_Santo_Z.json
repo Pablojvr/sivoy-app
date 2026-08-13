@@ -1,0 +1,184 @@
+[
+  {
+    "archivo": "SANTO DOMINGO.jpg",
+    "destino": "SANTO DOMINGO",
+    "dias": "MARTES Y VIERNES",
+    "direccion": "FRENTE A ALCALDÍA",
+    "horario": "DESDE 10:20 AM HASTA 10:45 AM"
+  },
+  {
+    "archivo": "SENSEMBRA.jpg",
+    "destino": "SENSEMBRA",
+    "dias": "MIÉRCOLES",
+    "direccion": "PARQUE CENTRAL",
+    "horario": "DESDE 1:45 PM HASTA 2:15 PM"
+  },
+  {
+    "archivo": "SENSUNTEPEQUE.jpg",
+    "destino": "SENSUNTEPEQUE",
+    "dias": "LUNES Y JUEVES",
+    "direccion": "SOBRE 4° AVENIDA NORTE. FERRETERIA DIVINA PROVIDENCIA. ESQUINA OPUESTA A ACOMATIC FTE A FARMACIA EL ANGEL. INGRESAR A LA FERRETERIA POR FAVOR.",
+    "horario": "DESDE 9:00 AM HASTA 11:00 AM"
+  },
+  {
+    "archivo": "SOCIEDAD.jpg",
+    "destino": "SOCIEDAD",
+    "dias": "MARTES Y VIERNES",
+    "direccion": "PARQUE CENTRAL",
+    "horario": "DESDE 10:00 AM HASTA 10:45 AM"
+  },
+  {
+    "archivo": "SONSONATE AGENCIA.jpg",
+    "destino": "AGENCIA SONSONATE",
+    "dias": "LUNES A VIERNES, SÁBADO, DOMINGO",
+    "direccion": "PLAZA MASAHUA LOCAL #4 PRIMER NIVEL. FRENTE A METROCENTRO SONSONATE POR PASARELA.",
+    "horario": "ENTREGA: L-V 9:00 AM HASTA 4:00 PM, SAB 9:00 AM HASTA 12:00 PM. RECEPCIÓN: L-V 9:00 AM HASTA 3:00 PM, SAB 9:00 AM HASTA 11:30 AM. DOMINGOS DESDE 12:40 PM A 1:40 PM."
+  },
+  {
+    "archivo": "SONZACATE AGENCIA.jpg",
+    "destino": "AGENCIA SONZACATE",
+    "dias": "LUNES A VIERNES, SÁBADO, DOMINGO",
+    "direccion": "BULEVAR LAS PALMERAS. LOCAL FRENTE A GASOLINERA UNO. EX GIMNASIO.",
+    "horario": "ENTREGA: L-V 9:00 AM HASTA 4:00 PM, SAB 9:00 AM HASTA 12:00 PM, DOMINGO 11:50 AM HASTA 12:20 PM. ENVIOS: L-V 9:00 AM HASTA 6:00 PM, SAB 9:00 AM HASTA 6:00 PM, DOM 11:50 AM HASTA 12:20 PM. REMUNERACIONES: L-V 9:00 AM HASTA 3:30 PM, SAB 9:00 AM HASTA 11:30 AM, DOM 11:50 AM HASTA 12:20 PM."
+  },
+  {
+    "archivo": "SOYAPANGO AGENCIA.jpg",
+    "destino": "AGENCIA SOYAPANGO",
+    "dias": "LUNES A VIERNES, SÁBADOS",
+    "direccion": "SOBRE 4° AV NORTE -> EDIFICIO LA JOYA LOCAL 1-B. PUNTOS DE REFERENCIA: Fte al mercado de soyapango > cerca del triangulo > parada de bus ruta 49.",
+    "horario": "ENTREGA: L-V 9:00 AM HASTA 4:00 PM, SAB 9:00 AM A 12:00 MD. RECEPCIÓN: L-V 9:00 AM HASTA 3:30 PM, SAB 9:00 AM HASTA 11:30 AM."
+  },
+  {
+    "archivo": "SOYAPANGO PLAZA MUNDO.jpg",
+    "destino": "PLAZA MUNDO SOYAPANGO",
+    "dias": "LUNES Y JUEVES",
+    "direccion": "GAS TEXACO SALIDA DE PLAZA MUNDO",
+    "horario": "DESDE 8:30 AM HASTA 9:30 AM"
+  },
+  {
+    "archivo": "SOYAPANGO UNICENTRO.jpg",
+    "destino": "AGENCIA UNICENTRO SOYAPANGO",
+    "dias": "LUNES A VIERNES, SÁBADO",
+    "direccion": "SOBRE CALLE ANTIGUA A TONACA.. FRENTE A UNICENTRO SOYAPANGO, A UN COSTADO DE GAS UNO, A LA PAR DE DON POLLO Y PIZZA SICILIANA.",
+    "horario": "ENTREGA: L-V 9:00 AM HASTA 6:00 PM, SAB 9:00 AM HASTA 1:00 PM. REMUNERACIONES: L-V 9:00 AM HASTA 4:00 PM, SAB 9:00 AM HASTA 12:00 PM."
+  },
+  {
+    "archivo": "SUCHITOTO.jpg",
+    "destino": "SUCHITOTO",
+    "dias": "MARTES Y VIERNES",
+    "direccion": "PARQUE CENTRAL",
+    "horario": "DESDE 8:00 AM A 9:00 AM"
+  },
+  {
+    "archivo": "TACACHICO.jpg",
+    "destino": "TACACHICO",
+    "dias": "LUNES Y JUEVES",
+    "direccion": "PARQUE CENTRAL FTE A ALCALDÍA",
+    "horario": "DESDE 8:00 AM HASTA 9:00 AM"
+  },
+  {
+    "archivo": "TECAPAN.jpg",
+    "destino": "TECAPAN",
+    "dias": "MIÉRCOLES",
+    "direccion": "PARQUE CENTRAL",
+    "horario": "DESDE 8:00 AM HASTA 8:20 AM"
+  },
+  {
+    "archivo": "TECOLUCA.jpg",
+    "destino": "TECOLUCA",
+    "dias": "LUNES Y JUEVES",
+    "direccion": "PARQUE CENTRAL",
+    "horario": "DESDE 11:30 AM HASTA 12:00 PM"
+  },
+  {
+    "archivo": "TEJUTEPEQUE.jpg",
+    "destino": "TEJUTEPEQUE (CABAÑAS)",
+    "dias": "LUNES Y JUEVES",
+    "direccion": "PARQUE CENTRAL",
+    "horario": "DESDE 1:00 PM HASTA 1:30 PM"
+  },
+  {
+    "archivo": "TEXISTEPEQUE.jpg",
+    "destino": "TEXISTEPEQUE",
+    "dias": "MARTES Y VIERNES",
+    "direccion": "COSTADO DEL PARQUE CENTRAL AFUERA DE VENTA DE TROPIGAS TONY (CALLE LIBERTAD)",
+    "horario": "DESDE 9:30 AM HASTA 10:00 AM"
+  },
+  {
+    "archivo": "TIERRA BLANCA.jpg",
+    "destino": "TIERRA BLANCA",
+    "dias": "LUNES Y JUEVES",
+    "direccion": "POR CANCHA DE FUTBOL",
+    "horario": "DESDE 8:30 AM HASTA 8:50 AM"
+  },
+  {
+    "archivo": "TONACATEPEQUE.jpg",
+    "destino": "TONACATEPEQUE",
+    "dias": "MARTES Y VIERNES",
+    "direccion": "PARQUE CENTRAL",
+    "horario": "DESDE 2:00 PM HASTA 2:30 PM"
+  },
+  {
+    "archivo": "TURIN.jpg",
+    "destino": "TURIN",
+    "dias": "MARTES Y VIERNES",
+    "direccion": "PARQUE CENTRAL FTE A ALCALDÍA",
+    "horario": "DESDE 11:15 AM HASTA 12:00 PM"
+  },
+  {
+    "archivo": "ULUAZAPA.jpg",
+    "destino": "ULUAZAPA",
+    "dias": "LUNES",
+    "direccion": "PARQUE CENTRAL",
+    "horario": "DESDE 2:45 AM HASTA 3:00 PM"
+  },
+  {
+    "archivo": "USULUTAN AGENCIA.jpg",
+    "destino": "USULUTÁN",
+    "dias": "LUNES A VIERNES, SÁBADO",
+    "direccion": "EDIFICIO ANDALUCIA LOCAL #6 PRIMER NIVEL. COLINDANTE CON DOMINO'S PIZZA Y BAC",
+    "horario": "ENTREGA: L-V 9:00 AM HASTA 4:00 PM, SAB 9:00 AM HASTA 12:00 PM. REMUNERACIÓN PRESENCIAL Y PAQUETES NO RETIRADOS: L-V 9:00 AM HASTA 3:30 PM, SAB 9:00 AM HASTA 11:30 M."
+  },
+  {
+    "archivo": "YAMABAL.jpg",
+    "destino": "YAMABAL",
+    "dias": "MIÉRCOLES",
+    "direccion": "FTE A ALCALDIA",
+    "horario": "DESDE 1:00 PM HASTA 1:30 PM"
+  },
+  {
+    "archivo": "YOLOAIQUIN.jpg",
+    "destino": "YOLOAIQUIN",
+    "dias": "JUEVES",
+    "direccion": "PARQUE CENTRAL",
+    "horario": "DESDE 9:15 AM HASTA 9:40 AM"
+  },
+  {
+    "archivo": "YUCUAIQUIN.jpg",
+    "destino": "YUCUAIQUIN",
+    "dias": "LUNES",
+    "direccion": "PARQUE CENTRAL",
+    "horario": "DESDE 1:00 AM HASTA 1:30 PM"
+  },
+  {
+    "archivo": "ZACATECOLUCA AGENCIA.jpg",
+    "destino": "AGENCIA ZACATECOLUCA",
+    "dias": "LUNES A VIERNES, SÁBADO",
+    "direccion": "SOBRE 3° AV SUR / RN4E Y 7° CALLE OTE. A 200 MTS DE COLEGIO MODELO ADVENTISTA. A LA PAR DE SALA DE BELLEZA.",
+    "horario": "ENTREGA: L-V 9:00 AM HASTA 4:00 PM, SAB 9:00 AM HASTA 12:00 PM. RECEPCIÓN: L-V 9:00 AM HASTA 3:30 PM, SAB 9:00 AM HASTA 11:30 AM."
+  },
+  {
+    "archivo": "ZARAGOZA.jpg",
+    "destino": "ZARAGOZA",
+    "dias": "MIERCOLES Y SABADO",
+    "direccion": "FTE A CASA DE LA CULTURA / VENTA DE DULCES TIPICOS",
+    "horario": "DESDE 2:15 PM HASTA 3:00 PM"
+  },
+  {
+    "archivo": "perquin.jpg",
+    "destino": "PERQUIN",
+    "dias": "MARTES",
+    "direccion": "PARQUE CENTRAL",
+    "horario": "DESDE 9:00 AM HASTA 9:30 AM"
+  }
+]

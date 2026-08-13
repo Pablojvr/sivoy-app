@@ -1,0 +1,175 @@
+[
+  {
+    "filename": "SAN JACINTO.jpg",
+    "destination": "SAN JACINTO",
+    "days": "MARTES Y VIERNES",
+    "location": "PLAZA SAN JACINTO -> (SALIDA DEL CENTRO COMERCIAL)",
+    "time": "DESDE 1:00 PM HASTA 1:30 PM"
+  },
+  {
+    "filename": "SAN JORGE.png",
+    "destination": "SAN JORGE",
+    "days": "LUNES Y JUEVES",
+    "location": "ALCALDIA MUNICIPAL",
+    "time": "DESDE 2:30 PM HASTA 3:00 PM"
+  },
+  {
+    "filename": "SAN JUAN NONUALCO.jpg",
+    "destination": "SAN JUAN NONUALCO",
+    "days": "LUNES Y JUEVES",
+    "location": "(PARQUE CENTRAL)",
+    "time": "DESDE 10:30 AM HASTA 11:00 AM"
+  },
+  {
+    "filename": "SAN JUAN TALPA.jpg",
+    "destination": "SAN JUAN TALPA",
+    "days": "MARTES Y VIERNES",
+    "location": "FRENTE A ALCALDÍA",
+    "time": "DESDE 11:15 AM HASTA 11:40 AM"
+  },
+  {
+    "filename": "SAN JULIAN.jpg",
+    "destination": "SAN JULIAN",
+    "days": "JUEVES Y DOMINGO",
+    "location": "(POR LA FUENTE EN LA PLAZA EL BALZAMO - FTE ALCALDIA)",
+    "time": "DESDE 9:30 AM HASTA 10:00 AM"
+  },
+  {
+    "filename": "SAN LUIS DE LA REINA.jpg",
+    "destination": "SAN LUIS DE LA REINA",
+    "days": "LUNES Y JUEVES",
+    "location": "PARQUE CENTRAL",
+    "time": "DESDE 11:00 AM HASTA 11:30 AM"
+  },
+  {
+    "filename": "SAN LUIS TALPA.jpg",
+    "destination": "SAN LUIS TALPA",
+    "days": "MARTES Y VIERNES",
+    "location": "FTE A ALCALDÍA",
+    "time": "DESDE 12:00 PM HASTA 1:00 PM"
+  },
+  {
+    "filename": "SAN MARCOS LEMPA.jpg",
+    "destination": "SAN MARCOLES LEMPA",
+    "days": "LUNES Y JUEVES",
+    "location": "POR PASARELA Y NEVERIA",
+    "time": "DESDE 8:00 AM HASTA 8:20 AM"
+  },
+  {
+    "filename": "San Marcos Agencia.jpg",
+    "destination": "AGENCIA SAN MARCOS",
+    "address": "CALLE HACIA SAN MARCOS. FRENTE A MAXI DESPENSA, PLAZA ENTRE GALVANIZA Y SUPER REPUESTO. LOCAL #12 SEGUNDO NIVEL",
+    "delivery_schedule": "DE LUNES A VIERNES DESDE 9:00 AM HASTA 4:00 PM, SÁBADO DESDE 9:00 AM HASTA 12:00 PM",
+    "reception_schedule": "DE LUNES A VIERNES DESDE 9:00 AM HASTA 2:00 PM, SÁBADO DESDE 9:00 AM HASTA 11:30 AM"
+  },
+  {
+    "filename": "SAN MARTIN AGENCIA.png",
+    "destination": "AGENCIA SAN MARTIN",
+    "address": "1° AV SUR ENTRE 4° Y 6° CALLE OTE. FRENTE A PLAZA LA CEIBA / PARADA DE BUS",
+    "delivery_schedule": "DE LUNES A VIERNES DESDE 9:00 AM HASTA 4:00 PM, SÁBADO DESDE 9:00 AM HASTA 12:00 PM",
+    "reception_schedule": "DE LUNES A VIERNES DESDE 9:00 AM HASTA 3:30 PM, SÁBADO DESDE 9:00 AM HASTA 11:30 AM"
+  },
+  {
+    "filename": "SAN MATIAS.jpg",
+    "destination": "SAN MATÍAS",
+    "days": "LUNES Y JUEVES",
+    "location": "PARQUE CENTRAL FTE A ALCALDÍA",
+    "time": "DESDE 11:15 AM HASTA 11:45 AM"
+  },
+  {
+    "filename": "SAN MIGUEL AGENCIA.jpg",
+    "destination": "AGENCIA SAN MIGUEL",
+    "address": "PLAZA MINERVA LOCAL #7 SEGUNDO NIVEL SOBRE 4° CALLE PTE Y 5 AV NORTE FTE A PASTELERÍA KENDY.",
+    "delivery_schedule": "DE LUNES A VIERNES DESDE 9:00 AM HASTA 4:00 PM, SÁBADO DESDE 9:00 AM HASTA 12:00 PM",
+    "reception_schedule": "DE LUNES A VIERNES DESDE 9:00 AM HASTA 3:00 PM, SÁBADO DESDE 9:00 AM HASTA 11:30 AM"
+  },
+  {
+    "filename": "SAN MIGUEL BODEGA AGENCIA.jpg",
+    "destination": "BODEGA SAN MIGUEL",
+    "address": "CARR. PANAMERICANA ENTRE KM 35 Y 36 A UNA CUADRA DE MAXI DESPENSA VIDRI Y SUPER REPUESTOS.",
+    "delivery_schedule": "DE LUNES A VIERNES DESDE 9:00 AM HASTA 4:00 PM, SÁBADO DESDE 9:00 AM HASTA 12:00 PM",
+    "reception_schedule": "DE LUNES A VIERNES DESDE 9:00 AM HASTA 3:30 PM, SÁBADO DESDE 9:00 AM HASTA 11:30 AM"
+  },
+  {
+    "filename": "SAN MIGUEL HATO NUEVO.jpg",
+    "destination": "SAN MIGUEL REDONDEL HATO NUEVO",
+    "days": "JUEVES",
+    "location": "FRENTE A GASOLINERA UNO",
+    "time": "DESDE 1:00 PM HASTA 1:20 PM"
+  },
+  {
+    "filename": "SAN PEDRO PERULAPAN.jpg",
+    "destination": "SAN PEDRO PERULAPAN",
+    "days": "LUNES Y JUEVES",
+    "location": "FTE A ALCALDIA",
+    "time": "DESDE 12:00 PM HASTA 12:30 PM"
+  },
+  {
+    "filename": "SAN RAFAEL CEDROS.jpg",
+    "destination": "SAN RAFAEL CEDROS",
+    "days": "MARTES Y VIERNES",
+    "location": "AFUERA DE HELADOS BOSTON",
+    "time": "DESDE 12:00 PM HASTA 12:30 PM"
+  },
+  {
+    "filename": "SAN RAFAEL OBRAJUELOS.jpg",
+    "destination": "SAN RAFAEL OBRAJUELOS",
+    "days": "LUNES Y JUVES",
+    "location": "(FTE A IGLESIA CATOLICA)",
+    "time": "DESDE 9:45 AM HASTA 10:15 AM"
+  },
+  {
+    "filename": "SAN RAFAEL ORIENTE.jpg",
+    "destination": "SAN RAFAEL ORIENTE",
+    "days": "LUNES Y JUEVES",
+    "location": "(EN EL PARQUE MUNICIPAL)",
+    "time": "Desde 1:45 pm hasta 2:15 pm"
+  },
+  {
+    "filename": "SAN SALVADOR CENTRO AGENCIA.png",
+    "destination": "AGENCIA SAN SALVADOR CENTRO HISTORICO",
+    "address": "CALLE ARCE ENTRE 9° Y 11° AV SUR A 2 CUADRAS DE SUPER SELECTOS.",
+    "delivery_schedule": "DE LUNES A VIERNES DESDE 9:00 AM HASTA 4:00 PM, SÁBADO DESDE 9:00 AM HASTA 12:00 PM",
+    "reception_schedule": "DE LUNES A VIERNES DESDE 9:00 AM HASTA 3:00 PM, SÁBADO DESDE 9:00 AM HASTA 11:30 AM"
+  },
+  {
+    "filename": "San Salvador Bodega.jpg",
+    "destination": "BODEGA SAN SALVADOR",
+    "address": "SOBRE CALLE LOS SISIMILES ENTRE AV BERNAL Y AV MAYARI. A 150 METROS DE CLAVO Y CANELA. FRENTE A PLAZA SISIMILES FRENTE A CAPITAL DEL TACO.",
+    "delivery_schedule": "DE LUNES A SABADO DESDE 1:00 PM HASTA 6:00 PM"
+  },
+  {
+    "filename": "SAN SALVADOR METROGALERIAS AGENCIA.jpg",
+    "destination": "SAN SALVADOR METROGALERÍAS LOCAL 3-18 (TERCER NIVEL)",
+    "delivery_schedule": "LUNES A VIERNES DESDE 9:00 AM HASTA 4:00 PM, SÁBADO DESDE 9:00 AM HASTA 1:00 PM",
+    "reception_schedule": "DE LUNES A VIERNES DESDE 9 AM HASTA 3:00 PM, SÁBADOS DESDE 9 AM HASTA 1:00 PM"
+  },
+  {
+    "filename": "SAN SALVADOR Plaza jerez.jpg",
+    "destination": "PLAZA JEREZ SAN SALVADOR",
+    "address": "CALLE LOS SISIMILES, PLAZA JEREZ LOCAL #4 PRIMER NIVEL. UNA CUADRA ANTES DE LLEGAR A BURGER KING CONSTITUCIÓN.",
+    "delivery_schedule": "DE LUNES A VIERNES DESDE 9:00 AM HASTA 4:00 PM, SÁBADO DESDE 9:00 AM HASTA 12:00 PM",
+    "reception_schedule": "DE LUNES A VIERNES DESDE 9:00 AM HASTA 3:30 PM, SÁBADO DESDE 9:00 AM HASTA 12:00 PM"
+  },
+  {
+    "filename": "SAN SEBASTIAN.jpg",
+    "destination": "SAN SEBASTIÁN",
+    "days": "MARTES Y VIERNES",
+    "location": "FRENTE A CAJA DE CRÉDITO Y DON POLLO",
+    "time": "DESDE 11:00 AM HASTA 11:30 AM"
+  },
+  {
+    "filename": "SAN SIMON.jpg",
+    "destination": "SAN SIMÓN",
+    "days": "MARTES",
+    "location": "FTE A IGLESIA",
+    "time": "DESDE 1:45 PM HASTA 2:15 PM"
+  },
+  {
+    "filename": "SAN VICENTE AGENCIA.jpg",
+    "destination": "AGENCIA SAN VICENTE",
+    "address": "SOBRE 7 CALLE ORIENTE / AV. JOSÉ MARÍA CORNEJO Y 2 AV. NORTE. (ATRAS DE CAJA DE CREDITO A MEDIA CUADRA DE GASOLINERA TEXACO).",
+    "delivery_schedule": "DE LUNES A VIERNES DESDE 9:00 AM HASTA 4:00 PM, SÁBADOS DE 9:00 AM A 12:00 MD",
+    "reception_schedule": "DE LUNES A VIERNES DESDE 9:00 AM HASTA 3:30 PM, SÁBADO DESDE 9:00 AM HASTA 11:30 AM"
+  }
+]

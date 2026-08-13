@@ -1,0 +1,876 @@
+[
+  {
+    "id_destino": "AG_CACAOPERA_01",
+    "nombre_destino": "CACAOPERA",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "Morazán",
+      "municipio": "Cacaopera",
+      "direccion_referencia": "",
+      "lat": 13.7716187,
+      "lng": -88.0777413
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Lunes",
+        "hora_apertura": "08:00",
+        "hora_cierre": "08:30"
+      },
+      {
+        "dia_semana": "Jueves",
+        "hora_apertura": "08:00",
+        "hora_cierre": "08:30"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Lunes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Jueves",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ],
+    "empresa": "Pedidos Express"
+  },
+  {
+    "id_destino": "AG_CANDELARIA_DE_LA_FRONTERA_01",
+    "nombre_destino": "CANDELARIA DE LA FRONTERA AGENCIA",
+    "tipo": "Agencia",
+    "ubicacion": {
+      "departamento": "Santa Ana",
+      "municipio": "Candelaria de la Frontera",
+      "direccion_referencia": "",
+      "lat": 14.1179519,
+      "lng": -89.6530459
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Lunes",
+        "hora_apertura": "09:00",
+        "hora_cierre": "16:00"
+      },
+      {
+        "dia_semana": "Martes",
+        "hora_apertura": "09:00",
+        "hora_cierre": "16:00"
+      },
+      {
+        "dia_semana": "Miércoles",
+        "hora_apertura": "09:00",
+        "hora_cierre": "16:00"
+      },
+      {
+        "dia_semana": "Jueves",
+        "hora_apertura": "09:00",
+        "hora_cierre": "16:00"
+      },
+      {
+        "dia_semana": "Viernes",
+        "hora_apertura": "09:00",
+        "hora_cierre": "16:00"
+      },
+      {
+        "dia_semana": "Sábado",
+        "hora_apertura": "09:00",
+        "hora_cierre": "12:00"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Diario",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ],
+    "empresa": "Pedidos Express"
+  },
+  {
+    "id_destino": "AG_CARA_SUCIA_01",
+    "nombre_destino": "CARA SUCIA AGENCIA",
+    "tipo": "Agencia",
+    "ubicacion": {
+      "departamento": "Ahuachapán",
+      "municipio": "San Francisco Menéndez",
+      "direccion_referencia": "",
+      "lat": 13.7772945,
+      "lng": -90.0324137
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Lunes",
+        "hora_apertura": "09:00",
+        "hora_cierre": "16:00"
+      },
+      {
+        "dia_semana": "Martes",
+        "hora_apertura": "09:00",
+        "hora_cierre": "16:00"
+      },
+      {
+        "dia_semana": "Miércoles",
+        "hora_apertura": "09:00",
+        "hora_cierre": "16:00"
+      },
+      {
+        "dia_semana": "Jueves",
+        "hora_apertura": "09:00",
+        "hora_cierre": "16:00"
+      },
+      {
+        "dia_semana": "Viernes",
+        "hora_apertura": "09:00",
+        "hora_cierre": "16:00"
+      },
+      {
+        "dia_semana": "Sábado",
+        "hora_apertura": "09:00",
+        "hora_cierre": "12:00"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Diario",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ],
+    "empresa": "Pedidos Express"
+  },
+  {
+    "id_destino": "AG_CHALATENANGO_01",
+    "nombre_destino": "CHALATENANGO AGENCIA",
+    "tipo": "Agencia",
+    "ubicacion": {
+      "departamento": "Chalatenango",
+      "municipio": "Chalatenango",
+      "direccion_referencia": "",
+      "lat": 14.0413868,
+      "lng": -88.9394082
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Lunes",
+        "hora_apertura": "09:00",
+        "hora_cierre": "16:00"
+      },
+      {
+        "dia_semana": "Martes",
+        "hora_apertura": "09:00",
+        "hora_cierre": "16:00"
+      },
+      {
+        "dia_semana": "Miércoles",
+        "hora_apertura": "09:00",
+        "hora_cierre": "16:00"
+      },
+      {
+        "dia_semana": "Jueves",
+        "hora_apertura": "09:00",
+        "hora_cierre": "16:00"
+      },
+      {
+        "dia_semana": "Viernes",
+        "hora_apertura": "09:00",
+        "hora_cierre": "16:00"
+      },
+      {
+        "dia_semana": "Sábado",
+        "hora_apertura": "09:00",
+        "hora_cierre": "12:00"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Diario",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ],
+    "empresa": "Pedidos Express"
+  },
+  {
+    "id_destino": "AG_CHALCHUAPA_01",
+    "nombre_destino": "CHALCHUAPA AGENCIA",
+    "tipo": "Agencia",
+    "ubicacion": {
+      "departamento": "Santa Ana",
+      "municipio": "Chalchuapa",
+      "direccion_referencia": "",
+      "lat": 14.0332552,
+      "lng": -89.7284455
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Lunes",
+        "hora_apertura": "09:00",
+        "hora_cierre": "16:00"
+      },
+      {
+        "dia_semana": "Martes",
+        "hora_apertura": "09:00",
+        "hora_cierre": "16:00"
+      },
+      {
+        "dia_semana": "Miércoles",
+        "hora_apertura": "09:00",
+        "hora_cierre": "16:00"
+      },
+      {
+        "dia_semana": "Jueves",
+        "hora_apertura": "09:00",
+        "hora_cierre": "16:00"
+      },
+      {
+        "dia_semana": "Viernes",
+        "hora_apertura": "09:00",
+        "hora_cierre": "16:00"
+      },
+      {
+        "dia_semana": "Sábado",
+        "hora_apertura": "09:00",
+        "hora_cierre": "12:00"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Diario",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ],
+    "empresa": "Pedidos Express"
+  },
+  {
+    "id_destino": "AG_CHAPELTIQUE_01",
+    "nombre_destino": "CHAPELTIQUE",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "San Miguel",
+      "municipio": "Chapeltique",
+      "direccion_referencia": "",
+      "lat": 13.6470841,
+      "lng": -88.2589349
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Martes",
+        "hora_apertura": "09:45",
+        "hora_cierre": "10:30"
+      },
+      {
+        "dia_semana": "Viernes",
+        "hora_apertura": "09:45",
+        "hora_cierre": "10:30"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Martes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Viernes",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ],
+    "empresa": "Pedidos Express"
+  },
+  {
+    "id_destino": "AG_CHILANGA_01",
+    "nombre_destino": "CHILANGA",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "Morazán",
+      "municipio": "Chilanga",
+      "direccion_referencia": "",
+      "lat": 13.7230406,
+      "lng": -88.1191156
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Jueves",
+        "hora_apertura": "10:00",
+        "hora_cierre": "10:30"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Jueves",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ],
+    "empresa": "Pedidos Express"
+  },
+  {
+    "id_destino": "AG_CHINAMECA_01",
+    "nombre_destino": "CHINAMECA",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "San Miguel",
+      "municipio": "Chinameca",
+      "direccion_referencia": "",
+      "lat": 13.4767464,
+      "lng": -88.3183964
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Martes",
+        "hora_apertura": "13:45",
+        "hora_cierre": "14:30"
+      },
+      {
+        "dia_semana": "Viernes",
+        "hora_apertura": "13:45",
+        "hora_cierre": "14:30"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Martes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Viernes",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ],
+    "empresa": "Pedidos Express"
+  },
+  {
+    "id_destino": "AG_CHIRILAGUA_01",
+    "nombre_destino": "CHIRILAGUA",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "San Miguel",
+      "municipio": "Chirilagua",
+      "direccion_referencia": "",
+      "lat": 13.219599,
+      "lng": -88.1381293
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Lunes",
+        "hora_apertura": "08:00",
+        "hora_cierre": "08:45"
+      },
+      {
+        "dia_semana": "Jueves",
+        "hora_apertura": "08:00",
+        "hora_cierre": "08:45"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Lunes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Jueves",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ],
+    "empresa": "Pedidos Express"
+  },
+  {
+    "id_destino": "AG_CIUDAD_ARCE_01",
+    "nombre_destino": "CIUDAD ARCE AGENCIA",
+    "tipo": "Agencia",
+    "ubicacion": {
+      "departamento": "La Libertad",
+      "municipio": "Ciudad Arce",
+      "direccion_referencia": "",
+      "lat": 13.840799,
+      "lng": -89.4407895
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Lunes",
+        "hora_apertura": "09:00",
+        "hora_cierre": "16:00"
+      },
+      {
+        "dia_semana": "Martes",
+        "hora_apertura": "09:00",
+        "hora_cierre": "16:00"
+      },
+      {
+        "dia_semana": "Miércoles",
+        "hora_apertura": "09:00",
+        "hora_cierre": "16:00"
+      },
+      {
+        "dia_semana": "Jueves",
+        "hora_apertura": "09:00",
+        "hora_cierre": "16:00"
+      },
+      {
+        "dia_semana": "Viernes",
+        "hora_apertura": "09:00",
+        "hora_cierre": "16:00"
+      },
+      {
+        "dia_semana": "Sábado",
+        "hora_apertura": "09:00",
+        "hora_cierre": "12:00"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Diario",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ],
+    "empresa": "Pedidos Express"
+  },
+  {
+    "id_destino": "AG_CIUDAD_BARRIOS_01",
+    "nombre_destino": "CIUDAD BARRIOS",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "San Miguel",
+      "municipio": "Ciudad Barrios",
+      "direccion_referencia": "",
+      "lat": 13.765932,
+      "lng": -88.2712924
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Martes",
+        "hora_apertura": "08:00",
+        "hora_cierre": "09:00"
+      },
+      {
+        "dia_semana": "Viernes",
+        "hora_apertura": "08:00",
+        "hora_cierre": "09:00"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Martes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Viernes",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ],
+    "empresa": "Pedidos Express"
+  },
+  {
+    "id_destino": "AG_CIUDAD_DELGADO_01",
+    "nombre_destino": "CIUDAD DELGADO",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "San Salvador",
+      "municipio": "Ciudad Delgado",
+      "direccion_referencia": "",
+      "lat": 13.7503804,
+      "lng": -89.1888137
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Martes",
+        "hora_apertura": "14:00",
+        "hora_cierre": "15:00"
+      },
+      {
+        "dia_semana": "Viernes",
+        "hora_apertura": "14:00",
+        "hora_cierre": "15:00"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Martes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Viernes",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ],
+    "empresa": "Pedidos Express"
+  },
+  {
+    "id_destino": "AG_CIUDAD_EL_TRIUNFO_01",
+    "nombre_destino": "CIUDAD EL TRIUNFO",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "Usulután",
+      "municipio": "Ciudad El Triunfo",
+      "direccion_referencia": "",
+      "lat": -12.1452744,
+      "lng": -76.9718123
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Martes",
+        "hora_apertura": "11:15",
+        "hora_cierre": "12:00"
+      },
+      {
+        "dia_semana": "Viernes",
+        "hora_apertura": "11:15",
+        "hora_cierre": "12:00"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Martes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Viernes",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ],
+    "empresa": "Pedidos Express"
+  },
+  {
+    "id_destino": "AG_CIUDAD_MARSELLA_01",
+    "nombre_destino": "CIUDAD MARSELLA",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "La Libertad",
+      "municipio": "San Juan Opico",
+      "direccion_referencia": "",
+      "lat": 13.7901548,
+      "lng": -89.3429791
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Lunes",
+        "hora_apertura": "10:20",
+        "hora_cierre": "11:00"
+      },
+      {
+        "dia_semana": "Jueves",
+        "hora_apertura": "10:20",
+        "hora_cierre": "11:00"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Lunes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Jueves",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ],
+    "empresa": "Pedidos Express"
+  },
+  {
+    "id_destino": "AG_CIUDAD_REAL_01",
+    "nombre_destino": "CIUDAD REAL",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "Santa Ana",
+      "municipio": "San Sebastián Salitrillo",
+      "direccion_referencia": "",
+      "lat": 13.9929039,
+      "lng": -89.6415255
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Martes",
+        "hora_apertura": "09:00",
+        "hora_cierre": "10:00"
+      },
+      {
+        "dia_semana": "Viernes",
+        "hora_apertura": "09:00",
+        "hora_cierre": "10:00"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Martes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Viernes",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ],
+    "empresa": "Pedidos Express"
+  },
+  {
+    "id_destino": "AG_CIUDAD_VERSALLES_01",
+    "nombre_destino": "CIUDAD VERSALLES",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "La Libertad",
+      "municipio": "San Juan Opico",
+      "direccion_referencia": "",
+      "lat": 13.7959897,
+      "lng": -89.3583015
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Lunes",
+        "hora_apertura": "11:20",
+        "hora_cierre": "12:00"
+      },
+      {
+        "dia_semana": "Jueves",
+        "hora_apertura": "11:20",
+        "hora_cierre": "12:00"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Lunes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Jueves",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ],
+    "empresa": "Pedidos Express"
+  },
+  {
+    "id_destino": "AG_COATEPEQUE_01",
+    "nombre_destino": "COATEPEQUE",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "Santa Ana",
+      "municipio": "Coatepeque",
+      "direccion_referencia": "",
+      "lat": 13.8568748,
+      "lng": -89.4769118
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Lunes",
+        "hora_apertura": "08:00",
+        "hora_cierre": "09:00"
+      },
+      {
+        "dia_semana": "Jueves",
+        "hora_apertura": "08:00",
+        "hora_cierre": "09:00"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Lunes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Jueves",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ],
+    "empresa": "Pedidos Express"
+  },
+  {
+    "id_destino": "AG_COJUTEPEQUE_01",
+    "nombre_destino": "COJUTEPEQUE AGENCIA",
+    "tipo": "Agencia",
+    "ubicacion": {
+      "departamento": "Cuscatlán",
+      "municipio": "Cojutepeque",
+      "direccion_referencia": "",
+      "lat": 13.7166407,
+      "lng": -88.9296389
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Lunes",
+        "hora_apertura": "09:00",
+        "hora_cierre": "16:00"
+      },
+      {
+        "dia_semana": "Martes",
+        "hora_apertura": "09:00",
+        "hora_cierre": "16:00"
+      },
+      {
+        "dia_semana": "Miércoles",
+        "hora_apertura": "09:00",
+        "hora_cierre": "16:00"
+      },
+      {
+        "dia_semana": "Jueves",
+        "hora_apertura": "09:00",
+        "hora_cierre": "16:00"
+      },
+      {
+        "dia_semana": "Viernes",
+        "hora_apertura": "09:00",
+        "hora_cierre": "16:00"
+      },
+      {
+        "dia_semana": "Sábado",
+        "hora_apertura": "09:00",
+        "hora_cierre": "12:00"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Diario",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ],
+    "empresa": "Pedidos Express"
+  },
+  {
+    "id_destino": "AG_COMACARAN_01",
+    "nombre_destino": "COMACARAN",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "San Miguel",
+      "municipio": "Comacarán",
+      "direccion_referencia": "",
+      "lat": 13.529452,
+      "lng": -88.0662409
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Lunes",
+        "hora_apertura": "14:00",
+        "hora_cierre": "14:30"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Lunes",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ],
+    "empresa": "Pedidos Express"
+  },
+  {
+    "id_destino": "AG_CONCEPCION_BATRES_01",
+    "nombre_destino": "CONCEPCION BATRES",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "Usulután",
+      "municipio": "Concepción Batres",
+      "direccion_referencia": "",
+      "lat": 13.341942,
+      "lng": -88.3723326
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Lunes",
+        "hora_apertura": "12:00",
+        "hora_cierre": "12:15"
+      },
+      {
+        "dia_semana": "Jueves",
+        "hora_apertura": "12:00",
+        "hora_cierre": "12:15"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Lunes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Jueves",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ],
+    "empresa": "Pedidos Express"
+  },
+  {
+    "id_destino": "AG_CONCEPCION_DE_ORIENTE_01",
+    "nombre_destino": "CONCEPCION DE ORIENTE",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "La Unión",
+      "municipio": "Concepción de Oriente",
+      "direccion_referencia": "",
+      "lat": 13.7915441,
+      "lng": -87.7128401
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Lunes",
+        "hora_apertura": "09:00",
+        "hora_cierre": "09:30"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Lunes",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ],
+    "empresa": "Pedidos Express"
+  },
+  {
+    "id_destino": "AG_CONCHAGUA_01",
+    "nombre_destino": "CONCHAGUA",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "La Unión",
+      "municipio": "Conchagua",
+      "direccion_referencia": "",
+      "lat": 13.3068023,
+      "lng": -87.8629004
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Lunes",
+        "hora_apertura": "11:20",
+        "hora_cierre": "11:50"
+      },
+      {
+        "dia_semana": "Jueves",
+        "hora_apertura": "11:20",
+        "hora_cierre": "11:50"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Lunes",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Jueves",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ],
+    "empresa": "Pedidos Express"
+  },
+  {
+    "id_destino": "AG_CORINTO_01",
+    "nombre_destino": "CORINTO",
+    "tipo": "Punto Fijo",
+    "ubicacion": {
+      "departamento": "Morazán",
+      "municipio": "Corinto",
+      "direccion_referencia": "",
+      "lat": 13.8083949,
+      "lng": -87.9696564
+    },
+    "horarios_operativos": [
+      {
+        "dia_semana": "Miércoles",
+        "hora_apertura": "11:45",
+        "hora_cierre": "12:15"
+      },
+      {
+        "dia_semana": "Domingo",
+        "hora_apertura": "11:45",
+        "hora_cierre": "12:15"
+      }
+    ],
+    "reglas_entrega": [
+      {
+        "dia_entrega": "Miércoles",
+        "dia_corte_maximo": "Día anterior"
+      },
+      {
+        "dia_entrega": "Domingo",
+        "dia_corte_maximo": "Día anterior"
+      }
+    ],
+    "empresa": "Pedidos Express"
+  }
+]

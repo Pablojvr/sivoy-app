@@ -1,0 +1,236 @@
+<div class="partner-layout">
+  <!-- SIDEBAR -->
+  <aside class="partner-sidebar">
+    <div class="sidebar-header">
+      <h2>Portal B2B</h2>
+      <select class="company-selector" [(ngModel)]="activeEmpresa" (change)="onCompanyChange()">
+        <option *ngFor="let emp of empresasList" [value]="emp">{{ emp }}</option>
+      </select>
+    </div>
+    
+    <nav class="sidebar-nav">
+      <a class="nav-item" [class.active]="activeTab === 'dashboard'" (click)="activeTab = 'dashboard'">
+        📊 Dashboard
+      </a>
+      <a class="nav-item" [class.active]="activeTab === 'puntos'" (click)="activeTab = 'puntos'">
+        📍 Mis Puntos
+      </a>
+      <a class="nav-item" [class.active]="activeTab === 'conexiones'" (click)="activeTab = 'conexiones'; initConnectionsMap()">
+        ✈️ Conexiones (Rutas)
+      </a>
+      <a class="nav-item" [class.active]="activeTab === 'reglas'" (click)="activeTab = 'reglas'">
+        ⚙️ Reglas Generales
+      </a>
+    </nav>
+    
+    <div class="sidebar-footer">
+      <a routerLink="/" class="back-link">← Volver a la App</a>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="partner-main">
+    
+    <header class="main-header">
+      <div style="display: flex; align-items: center; gap: 24px;">
+        <h1>
+          {{ activeTab === 'dashboard' ? 'Resumen' : '' }}
+          {{ activeTab === 'puntos' ? 'Gestión de Puntos' : '' }}
+          {{ activeTab === 'conexiones' ? 'Mapa de Conexiones' : '' }}
+          {{ activeTab === 'reglas' ? 'Configuración' : '' }}
+        </h1>
+        
+        <div class="search-bar" *ngIf="activeTab === 'puntos'">
+          <input type="text" placeholder="Buscar por agencia o municipio..." [(ngModel)]="searchText" (ngModelChange)="onFilterChange()" class="premium-input" style="width: 300px; padding: 8px 14px;">
+        </div>
+      </div>
+      
+      <div class="header-actions" *ngIf="activeTab === 'puntos'">
+        <button class="primary-btn">+ Añadir Punto</button>
+        <button class="secondary-btn" (click)="descargarPlantilla()">⬇️ Descargar Plantilla</button>
+      </div>
+    </header>
+
+    <div class="content-area fade-in" [ngStyle]="{'padding': activeTab === 'conexiones' ? '0' : '40px'}">
+      
+      <!-- DASHBOARD TAB -->
+      <div *ngIf="activeTab === 'dashboard'" class="dashboard-grid">
+        <div class="stat-card">
+          <h3>Total Puntos Activos</h3>
+          <div class="stat-value" *ngIf="!loading">{{ stats.total }}</div>
+          <div class="stat-value loading-text" *ngIf="loading">...</div>
+        </div>
+        <div class="stat-card">
+          <h3>Puntos Solo Envíos</h3>
+          <div class="stat-value" *ngIf="!loading">{{ stats.soloEnvios }}</div>
+          <div class="stat-value loading-text" *ngIf="loading">...</div>
+        </div>
+      </div>
+      
+      <!-- PUNTOS TAB -->
+      <div *ngIf="activeTab === 'puntos'">
+        <!-- Cargando -->
+        <div *ngIf="loading" style="text-align: center; padding: 40px; color: var(--text-muted);">
+          Cargando puntos de la empresa...
+        </div>
+        
+        <!-- Estado Vacío -->
+        <div class="empty-state" *ngIf="!loading && companyLocations.length === 0" style="padding: 60px 20px; text-align: center; background: white; border-radius: 12px; border: 1px dashed #cbd5e1;">
+          <h3 style="margin-bottom: 12px; color: var(--text-main);">No has añadido puntos recientemente</h3>
+          <p style="color: var(--text-muted); margin-bottom: 24px;">Comienza creando un punto manualmente o importando tu plantilla.</p>
+          <button class="primary-btn">+ Crear mi primer punto</button>
+        </div>
+        
+        <!-- Sin resultados de búsqueda -->
+        <div class="empty-state" *ngIf="!loading && companyLocations.length > 0 && allFilteredCompanyLocations.length === 0" style="text-align: center; padding: 40px; color: var(--text-muted);">
+          No se encontraron puntos para "{{ searchText }}".
+        </div>
+        
+        <!-- Grid de Puntos -->
+        <div class="locations-grid" *ngIf="!loading && allFilteredCompanyLocations.length > 0">
+          <div class="location-card" *ngFor="let loc of paginatedLocations">
+            <div class="loc-card-header">
+              <h4>{{ loc.nombre_destino }}</h4>
+              <span class="loc-badge">{{ loc.municipio }}</span>
+            </div>
+            <div class="loc-card-body">
+              <div class="loc-info-row">
+                <span class="loc-icon">🕒</span>
+                <span>{{ loc.horarios_operativos?.length || 0 }} días configurados</span>
+              </div>
+              <div class="loc-info-row">
+                <span class="loc-icon">📍</span>
+                <span *ngIf="loc.ubicacion?.lat">Geolocalizado</span>
+                <span *ngIf="!loc.ubicacion?.lat" style="color: #ef4444;">Sin coordenadas</span>
+              </div>
+            </div>
+            <div class="loc-card-footer">
+              <button class="btn-text" style="color: var(--primary);" (click)="administrarReglas(loc)">Administrar Reglas →</button>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Paginador Custom -->
+        <div class="custom-paginator" *ngIf="totalPages > 1">
+          <button class="page-btn" [disabled]="currentPage === 1" (click)="changePage(currentPage - 1)">‹</button>
+          
+          <button class="page-btn" 
+                  *ngFor="let p of pagesArray" 
+                  [class.active]="p === currentPage" 
+                  (click)="changePage(p)">
+            {{ p }}
+          </button>
+          
+          <button class="page-btn" [disabled]="currentPage === totalPages" (click)="changePage(currentPage + 1)">›</button>
+        </div>
+      </div>
+      
+      <!-- CONEXIONES TAB (ROUTE MAP) -->
+      <div *ngIf="activeTab === 'conexiones'" style="height: 100%; width: 100%; position: relative;">
+        <!-- Filter Overlay -->
+        <div class="map-controls-overlay">
+          <div style="font-weight: 600; margin-bottom: 8px; color: var(--text-main);">Rutas Logísticas</div>
+          <p style="font-size: 13px; color: var(--text-muted); margin-top: 0;">Selecciona un punto de origen para crear o ver sus rutas de envío (Air-routes).</p>
+        </div>
+        
+        <div id="partnerMap" style="height: 100%; width: 100%; background: #e2e8f0;"></div>
+      </div>
+      
+    </div>
+  </main>
+
+  <!-- POINT SETTINGS SIDE PANEL -->
+  <div class="side-panel-overlay" *ngIf="selectedLocationToEdit" (click)="closePanel()">
+    <div class="side-panel" (click)="$event.stopPropagation()">
+      <div class="side-panel-header">
+        <div>
+          <h2>Configuración del Punto</h2>
+          <span class="badge" style="background: rgba(255,111,97,0.1); color: var(--primary); padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: 600;">
+            {{ selectedLocationToEdit.nombre_destino }}
+          </span>
+        </div>
+        <button class="close-btn" (click)="closePanel()">×</button>
+      </div>
+      
+      <div class="side-panel-body">
+        
+        <div class="settings-section">
+          <h3>📌 Reglas Locales (Recepción)</h3>
+          <div class="form-group">
+            <label>Días base de antelación para enviar a este punto</label>
+            <select class="premium-input">
+              <option>1 Día (Estándar)</option>
+              <option>2 Días</option>
+              <option>3 Días</option>
+            </select>
+            <small>Esta regla aplica si no hay una "Ruta de Conexión" específica que lo sobrescriba.</small>
+          </div>
+        </div>
+        
+        <div class="settings-section">
+          <h3>🕒 Horarios de Operación</h3>
+          <div class="horarios-list">
+            <div class="horario-item" *ngFor="let h of selectedLocationToEdit.horarios_operativos">
+              <div class="h-dia">{{ h.dia_semana }}</div>
+              <div class="h-horas">{{ h.hora_inicio }} - {{ h.hora_fin }}</div>
+              <div class="h-tipo">{{ h.tipo_accion }}</div>
+            </div>
+            <div *ngIf="!selectedLocationToEdit.horarios_operativos?.length" style="color: var(--text-muted); font-size: 13px;">
+              No hay horarios configurados.
+            </div>
+          </div>
+          
+          <!-- DYNAMIC FORM ARRAY FOR EXCEPTIONS -->
+          <div class="excepcion-card" *ngFor="let exc of excepcionesTemporales; let i = index">
+            <div class="exc-header">
+              <h4>Excepción #{{ i + 1 }}</h4>
+              <button class="btn-icon-danger" (click)="removeExcepcion(i)">🗑️</button>
+            </div>
+            <div class="form-group">
+              <label>Punto de Destino (Hacia dónde envías)</label>
+              <select class="premium-input" [(ngModel)]="exc.destino_id">
+                <option value="">Selecciona el Destino...</option>
+                <option *ngFor="let d of getOtherLocations()" [value]="d.id">{{ d.nombre_destino }} ({{ d.municipio }})</option>
+              </select>
+            </div>
+            
+            <div class="form-group-row">
+              <div class="form-group" style="flex: 1;">
+                <label>Tipo de Regla</label>
+                <select class="premium-input" [(ngModel)]="exc.tipo_regla">
+                  <option value="corte">Exigir Día de Depósito</option>
+                  <option value="antelacion">Cambiar Días Antelación</option>
+                </select>
+              </div>
+              <div class="form-group" style="flex: 1;">
+                <label>Valor / Condición</label>
+                <select class="premium-input" *ngIf="exc.tipo_regla === 'corte'" [(ngModel)]="exc.valor">
+                  <option value="Lunes">Lunes</option>
+                  <option value="Martes">Martes</option>
+                  <option value="Miercoles">Miércoles</option>
+                  <option value="Jueves">Jueves</option>
+                  <option value="Viernes">Viernes</option>
+                  <option value="Sabado">Sábado</option>
+                </select>
+                <select class="premium-input" *ngIf="exc.tipo_regla === 'antelacion'" [(ngModel)]="exc.valor">
+                  <option value="1">1 Día</option>
+                  <option value="2">2 Días</option>
+                  <option value="3">3 Días</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          
+          <button class="btn-text" style="color: var(--primary); margin-top: 12px; padding: 0;" (click)="addExcepcion()">+ Añadir Excepción de Ruta (Punto a Punto)</button>
+        </div>
+
+      </div>
+      
+      <div class="side-panel-footer">
+        <button class="secondary-btn" (click)="closePanel()">Cancelar</button>
+        <button class="primary-btn">Guardar Cambios</button>
+      </div>
+    </div>
+  </div>
+
+</div>

@@ -1,0 +1,42 @@
+<div class="app-container mobile-first-layout" (click)="collapseSheet()">
+  
+  <div class="inicio-tab-content" [hidden]="activeMainTab !== 'inicio' && !isPickingLocation && !isMapForcedVisible">
+    <app-home
+      [locations]="locations"
+      [userLocation]="userLocation"
+      [selectedPin]="selectedPin"
+      [isPickingLocation]="isPickingLocation"
+      [highlightedRoute]="highlightedRoute"
+      (updateMapMarkers)="updateMapMarkers()"
+      (clearMap)="resetMapMarkers()"
+      (recenterMapEvent)="recenterMap()"
+      (resetMapMarkersEvent)="resetMapMarkers()"
+      (showNearbyPointsEvent)="showNearbyPoints()"
+      (previewImageEvent)="fullScreenImage = $event"
+    ></app-home>
+  </div>
+
+  <div class="admin-tab-content" *ngIf="activeMainTab === 'puntos' && !isPickingLocation">
+    <app-admin #adminRef
+      [locations]="locations"
+      (viewOnMapEvent)="viewOnMap($event)"
+      (minimizeModalEvent)="isMapForcedVisible = $event"
+      (previewMapEvent)="previewMap($event)"
+      (previewImageEvent)="fullScreenImage = $event"
+    ></app-admin>
+  </div>
+
+  <app-perfil *ngIf="activeMainTab === 'perfil'"></app-perfil>
+
+  <app-bottom-nav
+    [activeTab]="activeMainTab"
+    (tabChange)="activeMainTab = $event">
+  </app-bottom-nav>
+
+  <!-- FULLSCREEN IMAGE PREVIEW -->
+  <div class="image-preview-overlay fade-in" *ngIf="fullScreenImage" (click)="fullScreenImage = null" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); z-index: 9999; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+    <button (click)="fullScreenImage = null" style="position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.2); border: none; color: white; width: 40px; height: 40px; border-radius: 50%; font-size: 24px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10000;">&times;</button>
+    <img [src]="fullScreenImage" style="max-width: 90%; max-height: 90%; border-radius: 12px; object-fit: contain; box-shadow: 0 10px 40px rgba(0,0,0,0.5);">
+  </div>
+
+</div>

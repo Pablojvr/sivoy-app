@@ -1,3 +1,4 @@
+import { environment } from '../../../environments/environment';
 import { Component, Input, Output, EventEmitter, OnInit, ChangeDetectorRef, HostListener, ViewEncapsulation, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -14,6 +15,7 @@ import { ToastService } from '../../core/services/toast.service';
   encapsulation: ViewEncapsulation.None
 })
 export class AdminComponent implements OnInit {
+  apiUrl = environment.apiUrl;
   @Input() locations: any[] = [];
   @Output() navigateToRegistro = new EventEmitter<{id: number | null, nombre: string}>();
   @Output() viewOnMapEvent = new EventEmitter<any>();
@@ -57,7 +59,7 @@ export class AdminComponent implements OnInit {
       let fileToShare: File | null = null;
       if (loc.imagen_referencia && typeof navigator.canShare === 'function') {
         try {
-          const imageUrl = `http://localhost:3000${loc.imagen_referencia}`;
+          const imageUrl = `${environment.apiUrl}${loc.imagen_referencia}`;
           const response = await fetch(imageUrl);
           const blob = await response.blob();
           const ext = loc.imagen_referencia.split('.').pop() || 'png';
@@ -248,7 +250,7 @@ export class AdminComponent implements OnInit {
 
   previewImage(url: string | null) {
     if (!url) return;
-    this.previewImageEvent.emit('http://localhost:3000' + url);
+    this.previewImageEvent.emit(environment.apiUrl + url);
   }
 
   openEditFromView() {
@@ -266,7 +268,7 @@ export class AdminComponent implements OnInit {
     this.editFormData = JSON.parse(JSON.stringify(loc));
     this.editLocationTab = 'datos';
     this.editImageFile = null;
-    this.editImageUrl = loc.imagen_referencia ? `http://localhost:3000${loc.imagen_referencia}` : null;
+    this.editImageUrl = loc.imagen_referencia ? `${environment.apiUrl}${loc.imagen_referencia}` : null;
     
     const dias = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
     this.editHorarios = dias.map(dia => {

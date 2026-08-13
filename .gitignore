@@ -1,0 +1,7 @@
+node_modules/  
+dist/  
+.angular/  
+*.sqlite  
+*.sqlite3  
+public/uploads/*  
+.env 

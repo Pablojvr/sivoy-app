@@ -1,22 +1,21 @@
-const sqlite3 = require('sqlite3').verbose();
-const { open } = require('sqlite');
-const path = require('path');
+const { Pool } = require('pg');
 
-let dbInstance = null;
+let poolInstance = null;
 
 async function getDB() {
-    if (dbInstance) {
-        return dbInstance;
+    if (poolInstance) {
+        return poolInstance;
     }
     
-    const dbPath = path.join(__dirname, '..', '..', '..', 'data', 'sivoyapp.sqlite');
-    dbInstance = await open({
-        filename: dbPath,
-        driver: sqlite3.Database
+    // Si no hay DATABASE_URL, usamos un fallback de conexión local para testing si es necesario
+    // Pero requerimos DATABASE_URL en prod
+    poolInstance = new Pool({
+        connectionString: process.env.DATABASE_URL,
+        ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
     });
     
-    console.log('[INIT] Connected to SQLite database.');
-    return dbInstance;
+    console.log('[INIT] Connected to PostgreSQL database pool.');
+    return poolInstance;
 }
 
 module.exports = {

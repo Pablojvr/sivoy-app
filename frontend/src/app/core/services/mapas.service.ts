@@ -1,3 +1,4 @@
+import { environment } from '../../../environments/environment';
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -6,7 +7,7 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class MapasService {
-  private apiUrl = 'http://localhost:3000/api';
+  private apiUrl = environment.apiUrl + '/api';
 
   constructor(private http: HttpClient) {}
 

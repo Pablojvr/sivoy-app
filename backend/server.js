@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -9,7 +10,11 @@ const rutasRoutes = require('./src/domains/rutas/rutas.routes');
 const mapasRoutes = require('./src/domains/mapas/mapas.routes');
 
 const app = express();
-app.use(cors());
+const corsOptions = {
+    origin: process.env.FRONTEND_URL ? process.env.FRONTEND_URL.split(',') : '*',
+    optionsSuccessStatus: 200
+};
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Serve compiled Angular frontend

@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: sivoy-backend
+    env: node
+    buildCommand: "cd frontend && npm install && npm run build -- --configuration production && cd ../backend && npm install"
+    startCommand: "cd backend && npm start"
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: DATABASE_URL
+        sync: false
+      - key: NODE_ENV
+        value: production
+      - key: FRONTEND_URL
+        value: "https://sivoy-backend.onrender.com"

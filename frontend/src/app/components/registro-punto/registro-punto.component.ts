@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { ToastService } from '../../core/services/toast.service';
+import { DEPARTAMENTOS_EL_SALVADOR, EL_SALVADOR_LOCATIONS } from '../../core/constants/elsalvador-locations';
 
 @Component({
   selector: 'app-registro-punto',
@@ -38,9 +39,24 @@ export class RegistroPuntoComponent implements OnInit {
   puntoImagen: File | null = null;
   imagenPreview: string | null = null;
 
-  // Step 3: Horarios
   diasSemana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
   horarios: any = {};
+
+  departamentos = DEPARTAMENTOS_EL_SALVADOR;
+  municipiosDisponibles: string[] = [];
+  locationCatalog = EL_SALVADOR_LOCATIONS;
+
+  onDepartamentoChange() {
+    if (this.puntoDepartamento) {
+      this.municipiosDisponibles = this.locationCatalog[this.puntoDepartamento] || [];
+      if (!this.municipiosDisponibles.includes(this.puntoMunicipio)) {
+        this.puntoMunicipio = '';
+      }
+    } else {
+      this.municipiosDisponibles = [];
+      this.puntoMunicipio = '';
+    }
+  }
 
   loading: boolean = false;
   errorMsg: string = '';

@@ -6,6 +6,7 @@ import { EmpresasService } from '../../core/services/empresas.service';
 import { UbicacionesService } from '../../core/services/ubicaciones.service';
 import { MapasService } from '../../core/services/mapas.service';
 import { ToastService } from '../../core/services/toast.service';
+import { EL_SALVADOR_LOCATIONS, DEPARTAMENTOS_EL_SALVADOR } from '../../core/constants/elsalvador-locations';
 
 @Component({
   selector: 'app-admin',
@@ -46,6 +47,10 @@ export class AdminComponent implements OnInit {
   editHorarios: any[] = [];
   isPickingLocation: boolean = false;
   isMinimized: boolean = false;
+
+  departamentos = DEPARTAMENTOS_EL_SALVADOR;
+  municipiosDisponibles: string[] = [];
+  locationCatalog = EL_SALVADOR_LOCATIONS;
 
   checkB2BPassword() {
     const pwd = window.prompt('Introduce la contraseña para acceso B2B:');
@@ -278,6 +283,7 @@ export class AdminComponent implements OnInit {
     this.editLocationTab = 'datos';
     this.editImageFile = null;
     this.editImageUrl = loc.imagen_referencia ? `${environment.apiUrl}${loc.imagen_referencia}` : null;
+    this.onDepartamentoChange();
     
     const dias = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
     this.editHorarios = dias.map(dia => {
@@ -421,6 +427,18 @@ export class AdminComponent implements OnInit {
     this.editingLocation = null;
     this.isMinimized = false;
     this.minimizeModalEvent.emit(false);
+  }
+
+  onDepartamentoChange() {
+    if (this.editFormData.ubicacion?.departamento) {
+      this.municipiosDisponibles = this.locationCatalog[this.editFormData.ubicacion.departamento] || [];
+      if (!this.municipiosDisponibles.includes(this.editFormData.ubicacion.municipio)) {
+        this.editFormData.ubicacion.municipio = '';
+      }
+    } else {
+      this.municipiosDisponibles = [];
+      this.editFormData.ubicacion.municipio = '';
+    }
   }
 
   validateLocationForm(): boolean {

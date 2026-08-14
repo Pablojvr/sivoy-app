@@ -20,6 +20,7 @@ async function getAllLocations() {
     }
 
     return agencias.rows.map(a => ({
+        id: a.id,
         id_destino: a.id_destino,
         nombre_destino: a.nombre_destino,
         tipo: a.tipo,
@@ -33,8 +34,8 @@ async function getAllLocations() {
             lng: a.lng
         },
         imagen_referencia: a.imagen_referencia || null,
-        horarios_operativos: horariosMap[a.id_destino] || [],
-        reglas_entrega: reglasMap[a.id_destino] || []
+        horarios_operativos: horariosMap[a.id] || [],
+        reglas_entrega: reglasMap[a.id] || []
     }));
 }
 
@@ -45,14 +46,15 @@ async function getLocationByName(nombre) {
     }
 
     const db = await getDB();
-    const result = await db.query(`SELECT * FROM agencias WHERE LOWER(nombre_destino) = $1 OR LOWER(id_destino) = $2`, [nombre.toLowerCase(), nombre.toLowerCase()]);
+    const result = await db.query(`SELECT * FROM agencias WHERE LOWER(nombre_destino) = $1 OR id::text = $2`, [nombre.toString().toLowerCase(), nombre.toString()]);
     if (result.rows.length === 0) return null;
     const a = result.rows[0];
 
-    const horarios = await db.query('SELECT dia_semana, hora_apertura, hora_cierre FROM horarios_operativos WHERE agencia_id = $1', [a.id_destino]);
-    const reglas = await db.query('SELECT dia_entrega, dia_corte_maximo FROM reglas_entrega WHERE agencia_id = $1', [a.id_destino]);
+    const horarios = await db.query('SELECT dia_semana, hora_apertura, hora_cierre FROM horarios_operativos WHERE agencia_id = $1', [a.id]);
+    const reglas = await db.query('SELECT dia_entrega, dia_corte_maximo FROM reglas_entrega WHERE agencia_id = $1', [a.id]);
 
     return {
+        id: a.id,
         id_destino: a.id_destino,
         nombre_destino: a.nombre_destino,
         tipo: a.tipo,
@@ -82,7 +84,7 @@ async function updateLocation(locId, updateFields, params, horarios) {
             newUpdateFields.push(updateFields[i].replace('?', '$' + (i + 1)));
         }
         params.push(locId);
-        const query = `UPDATE agencias SET ${newUpdateFields.join(', ')} WHERE id_destino = $${params.length}`;
+        const query = `UPDATE agencias SET ${newUpdateFields.join(', ')} WHERE id = $${params.length}`;
         await db.query(query, params);
     }
     

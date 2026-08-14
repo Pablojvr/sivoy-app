@@ -15,11 +15,11 @@ export class UbicacionesService {
     return this.http.get<any>(`${this.apiUrl}/locations`);
   }
 
-  createLocation(formData: FormData): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/locations`, formData);
+  createLocation(payload: any): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/agencias`, payload);
   }
 
-  updateLocation(id: number, formData: FormData): Observable<any> {
-    return this.http.put<any>(`${this.apiUrl}/locations/${id}`, formData);
+  updateLocation(id: number, payload: any): Observable<any> {
+    return this.http.put<any>(`${this.apiUrl}/locations/${id}`, payload);
   }
 }

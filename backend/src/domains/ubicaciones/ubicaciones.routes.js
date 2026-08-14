@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const ubicacionesController = require('./ubicaciones.controller');
-const upload = require('../../config/upload');
 
 // En api.js estaban mapeados bajo:
 // GET /locations
@@ -13,8 +12,8 @@ const upload = require('../../config/upload');
 // Since we mount the router in server.js, we will just export these specific routes.
 
 router.get('/locations', ubicacionesController.getAllLocations);
-router.put('/locations/:id', upload.single('imagen_referencia'), ubicacionesController.updateLocation);
-router.post('/agencias', upload.single('imagen_referencia'), ubicacionesController.createAgencia);
+router.put('/locations/:id', ubicacionesController.updateLocation);
+router.post('/agencias', ubicacionesController.createAgencia);
 router.get('/test-location', ubicacionesController.testLocation);
 
 module.exports = router;

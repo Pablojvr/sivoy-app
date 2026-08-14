@@ -189,9 +189,23 @@ export class HomeComponent implements OnInit {
     const normalize = (str: string) => str ? str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase() : '';
     const normQuery = normalize(query);
     
-    // In a real app this would extract distinct municipalities from this.locations
-    this.uniqueMunicipalities = Array.from(new Set(this.locations.map(l => l.ubicacion?.municipio).filter(m => m))) as string[];
-    this.filteredMunicipalities = this.uniqueMunicipalities.filter(m => normalize(m).includes(normQuery));
+    const muns = new Map();
+    this.locations.forEach(loc => {
+      if (loc.ubicacion && loc.ubicacion.municipio) {
+        const dep = loc.ubicacion.departamento || '';
+        const key = `${loc.ubicacion.municipio}${dep ? ', ' + dep : ''}`;
+        if (!muns.has(key)) {
+          muns.set(key, {
+            nombre_display: loc.ubicacion.municipio,
+            municipio: loc.ubicacion.municipio,
+            departamento: dep
+          });
+        }
+      }
+    });
+
+    this.uniqueMunicipalities = Array.from(muns.values());
+    this.filteredMunicipalities = this.uniqueMunicipalities.filter(m => normalize(m.municipio).includes(normQuery));
     this.filteredOriginMunicipalities = [...this.filteredMunicipalities];
   }
 

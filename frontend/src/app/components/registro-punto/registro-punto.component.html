@@ -64,12 +64,18 @@
 
           <div class="input-group">
             <label>Departamento <span style="color:#ef4444">*</span></label>
-            <input type="text" [(ngModel)]="puntoDepartamento" placeholder="Ej. San Salvador" maxlength="100" [disabled]="loading">
+            <select [(ngModel)]="puntoDepartamento" (change)="onDepartamentoChange()" [disabled]="loading" class="admin-input">
+              <option value="" disabled selected>Seleccione...</option>
+              <option *ngFor="let dep of departamentos" [value]="dep">{{ dep }}</option>
+            </select>
           </div>
 
           <div class="input-group">
             <label>Municipio <span style="color:#ef4444">*</span></label>
-            <input type="text" [(ngModel)]="puntoMunicipio" placeholder="Ej. San Salvador" maxlength="100" [disabled]="loading">
+            <select [(ngModel)]="puntoMunicipio" [disabled]="!puntoDepartamento || loading" class="admin-input">
+              <option value="" disabled selected>Seleccione...</option>
+              <option *ngFor="let mun of municipiosDisponibles" [value]="mun">{{ mun }}</option>
+            </select>
           </div>
         </div>
 

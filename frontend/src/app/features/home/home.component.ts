@@ -326,8 +326,9 @@ export class HomeComponent implements OnInit {
     this.result = null;
     this.errorMsg = '';
     this.flightResults = [];
+    this.flightResults = [];
     this.municipalityResults = [];
-    this.bottomSheetState = 'expanded';
+    this.bottomSheetState = 'half';
     this.isOriginDiscoveryMode = true; 
     this.isDiscoveryMode = false;
 
@@ -368,7 +369,7 @@ export class HomeComponent implements OnInit {
     this.errorMsg = '';
     this.flightResults = [];
     this.municipalityResults = [];
-    this.bottomSheetState = 'expanded';
+    this.bottomSheetState = 'half';
     this.isDiscoveryMode = true;
     this.isOriginDiscoveryMode = false;
 

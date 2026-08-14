@@ -93,8 +93,8 @@
                 <div class="search-box" [class.focused-box]="activeInput === 'origen'">
                    <svg style="width: 18px !important; height: 18px !important; min-width: 18px !important; flex-shrink: 0 !important;" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                    <input type="text" placeholder="Municipio, agencia o punto de origen..." 
-                          [value]="origenInputValue" 
-                          (input)="onOrigenInput($event)"
+                          [(ngModel)]="origenInputValue" 
+                          (ngModelChange)="onOrigenInput($event)"
                           (focus)="focusInput('origen')">
                    <span *ngIf="origenInputValue" class="material-symbols-outlined clear-icon" (click)="clearInput('origen')">close</span>
                 </div>
@@ -348,8 +348,10 @@
     <!-- CARDS LIST -->
     <div class="sheet-content" (scroll)="onSheetScroll($event)">
 
-      <div class="sheet-header-sticky" [class.is-scrolled]="isSheetScrolled" *ngIf="destino && municipalityResults.length > 0 && flightResults.length === 0">
-        <!-- Filter Chips (Purple App Style) -->
+      <div class="sheet-header-sticky" [class.is-scrolled]="isSheetScrolled" *ngIf="(destino || isDiscoveryMode || isOriginDiscoveryMode) && municipalityResults.length > 0 && flightResults.length === 0">
+         <div class="sheet-handle"></div>
+         <h3 style="margin: 0; font-size: 16px; color: var(--text-main);">{{ isOriginDiscoveryMode ? 'Orígenes en ' + origenMunicipio : (isDiscoveryMode ? 'Destinos en ' + destinoMunicipio : 'Opciones para ' + destino) }}</h3>
+         <!-- Filter Chips (Purple App Style) -->
         <div class="filter-chips">
           <div class="chip" [class.active]="activeEmpresa === ''" (click)="setEmpresaFilter('')">
             Todas ({{ municipalityResults.length }})
@@ -372,7 +374,7 @@
 
 
       <!-- Multiple Results from mass routing (Proximity Logic) -->
-      <div *ngIf="destino && municipalityResults.length > 0 && flightResults.length === 0 && !loading" class="cards-list">
+      <div *ngIf="(destino || isDiscoveryMode || isOriginDiscoveryMode) && municipalityResults.length > 0 && flightResults.length === 0 && !loading" class="cards-list">
         <div class="location-card route-option-card" *ngFor="let res of displayedResults" (click)="toggleResultCard(res)">
           <div class="card-content">
             <div class="card-title-row">
@@ -602,7 +604,7 @@
       </div>
 
       <!-- EMPTY STATE: No Destino Seleccionado -->
-      <div class="empty-state-sheet" *ngIf="!destino && !loading">
+      <div class="empty-state-sheet" *ngIf="!destino && !isOriginDiscoveryMode && !isDiscoveryMode && !loading && !errorMsg">
          <div class="empty-icon-box">
             <svg viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
          </div>

@@ -1,4 +1,5 @@
 const ubicacionRepo = require('./ubicaciones.repository');
+const cloudinary = require('cloudinary').v2;
 
 async function getAllLocations() {
     return await ubicacionRepo.getAllLocations();
@@ -30,6 +31,17 @@ async function updateLocation(locId, payload) {
         if (ubicacion.lng) { updateFields.push('lng = ?'); params.push(ubicacion.lng); }
     }
     
+    if (imagen_referencia && imagen_referencia.startsWith('data:image')) {
+        if (!process.env.CLOUDINARY_URL) {
+            console.warn("No CLOUDINARY_URL provided, keeping raw base64");
+        } else {
+            const uploadResponse = await cloudinary.uploader.upload(imagen_referencia, {
+                folder: 'sivoy_agencias'
+            });
+            imagen_referencia = uploadResponse.secure_url;
+        }
+    }
+
     if (imagen_referencia) {
         updateFields.push('imagen_referencia = ?');
         params.push(imagen_referencia);
@@ -43,13 +55,22 @@ async function updateLocation(locId, payload) {
 }
 
 async function createAgencia(payload) {
-    const { nombre_destino, empresa_id, tipo, departamento, municipio, direccion_referencia, maps_url, lat, lng, horarios, imagen_referencia } = payload;
+    let { nombre_destino, empresa_id, tipo, departamento, municipio, direccion_referencia, maps_url, lat, lng, horarios, imagen_referencia } = payload;
     
     if (!nombre_destino || !empresa_id || !tipo) {
         throw new Error("Missing required fields");
     }
 
-    // No need to check imageFile, imagen_referencia is already base64 string or null
+    if (imagen_referencia && imagen_referencia.startsWith('data:image')) {
+        if (!process.env.CLOUDINARY_URL) {
+            console.warn("No CLOUDINARY_URL provided, keeping raw base64");
+        } else {
+            const uploadResponse = await cloudinary.uploader.upload(imagen_referencia, {
+                folder: 'sivoy_agencias'
+            });
+            imagen_referencia = uploadResponse.secure_url;
+        }
+    }
 
     const empresaNombre = await ubicacionRepo.getEmpresaNameById(empresa_id);
 

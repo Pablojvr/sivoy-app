@@ -49,6 +49,7 @@ export class HomeComponent implements OnInit {
   result: any = null;
   touchStartY: number = 0;
   selectingLocation: string | null = null;
+  origenMunicipio: string = '';
   destinoMunicipio: string = '';
   activeEmpresa: string = '';
   showAdvanced: boolean = false;
@@ -111,6 +112,8 @@ export class HomeComponent implements OnInit {
     this.destinoInputValue = '';
     this.origen = '';
     this.destino = '';
+    this.origenMunicipio = '';
+    this.destinoMunicipio = '';
     this.locationSearchQuery = '';
     this.bottomSheetState = 'collapsed';
     this.clearMap.emit();
@@ -253,6 +256,7 @@ export class HomeComponent implements OnInit {
   selectOriginMunicipality(mun: any) {
     this.origenInputValue = mun.nombre_display || mun.municipio;
     this.origen = '';
+    this.origenMunicipio = mun.municipio;
     this.origenDepartamento = mun.departamento;
     this.closeLocationSelector();
     this.executeSearch();
@@ -310,7 +314,93 @@ export class HomeComponent implements OnInit {
           this.errorMsg = 'Error de conexión al buscar rutas.';
         }
       });
+    } else if (this.origenMunicipio && !this.origen && !this.destinoInputValue) {
+      this.discoveryModeForOriginMunicipality(this.origenMunicipio, this.origenDepartamento);
+    } else if (this.destinoMunicipio && !this.destino && !this.origenInputValue) {
+      this.discoveryModeForMunicipality(this.destinoMunicipio, this.destinoDepartamento);
     }
+  }
+
+  discoveryModeForOriginMunicipality(municipio: string, departamento: string) {
+    this.loading = true;
+    this.result = null;
+    this.errorMsg = '';
+    this.flightResults = [];
+    this.municipalityResults = [];
+    this.bottomSheetState = 'expanded';
+    this.isOriginDiscoveryMode = true; 
+    this.isDiscoveryMode = false;
+
+    const targets = this.locations.filter(l => 
+      l.ubicacion?.municipio === municipio && 
+      l.ubicacion?.departamento === departamento
+    );
+
+    if (targets.length === 0) {
+      this.errorMsg = `No hay agencias de origen registradas en este municipio.`;
+      this.loading = false;
+      return;
+    }
+
+    this.municipalityResults = targets.map(loc => ({
+      destino_nombre: loc.nombre_destino,
+      empresa: loc.empresa,
+      distance: loc.distance || 9999,
+      lat: loc.ubicacion?.lat,
+      lng: loc.ubicacion?.lng,
+      horarios_operativos: loc.horarios_operativos,
+      _status: loc._status
+    })).sort((a: any, b: any) => a.distance - b.distance);
+
+    if (this.activeEmpresa) {
+      this.setEmpresaFilter(this.activeEmpresa);
+    } else {
+      this.displayedResults = [...this.municipalityResults];
+    }
+
+    this.loading = false;
+    this.updateMapMarkers.emit();
+  }
+
+  discoveryModeForMunicipality(municipio: string, departamento: string) {
+    this.loading = true;
+    this.result = null;
+    this.errorMsg = '';
+    this.flightResults = [];
+    this.municipalityResults = [];
+    this.bottomSheetState = 'expanded';
+    this.isDiscoveryMode = true;
+    this.isOriginDiscoveryMode = false;
+
+    const targets = this.locations.filter(l => 
+      l.ubicacion?.municipio === municipio && 
+      l.ubicacion?.departamento === departamento
+    );
+
+    if (targets.length === 0) {
+      this.errorMsg = `No hay agencias registradas en este municipio.`;
+      this.loading = false;
+      return;
+    }
+
+    this.municipalityResults = targets.map(loc => ({
+      destino_nombre: loc.nombre_destino,
+      empresa: loc.empresa,
+      distance: loc.distance || 9999,
+      lat: loc.ubicacion?.lat,
+      lng: loc.ubicacion?.lng,
+      horarios_operativos: loc.horarios_operativos,
+      _status: loc._status
+    })).sort((a: any, b: any) => a.distance - b.distance);
+
+    if (this.activeEmpresa) {
+      this.setEmpresaFilter(this.activeEmpresa);
+    } else {
+      this.displayedResults = [...this.municipalityResults];
+    }
+
+    this.loading = false;
+    this.updateMapMarkers.emit();
   }
 
   toggleExpandFlight(flight: any) {

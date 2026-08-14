@@ -211,7 +211,7 @@ export class MobileAppComponent implements OnInit, AfterViewInit {
         // Mock user location somewhere in El Salvador if denied
         this.updateUserMarker();
         this.sortLocationsByDistance();
-      }, { timeout: 5000, maximumAge: 60000 });
+      }, { timeout: 15000, maximumAge: 60000, enableHighAccuracy: false });
     } else {
       this.updateUserMarker();
       this.sortLocationsByDistance();
@@ -1460,9 +1460,31 @@ export class MobileAppComponent implements OnInit, AfterViewInit {
 
 
   recenterMap() {
-    if (this.userLocation) {
-      this.isProgrammaticMove = true;
-      this.map.flyTo(this.userLocation, 15, { animate: true, duration: 1 });
+    if (navigator.geolocation) {
+      this.toastService.showInfo("Buscando tu ubicación...", "Ubicación");
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          this.userLocation = L.latLng(pos.coords.latitude, pos.coords.longitude);
+          this.updateUserMarker();
+          this.isProgrammaticMove = true;
+          this.map.flyTo(this.userLocation, 15, { animate: true, duration: 1 });
+          this.fetchMunicipalityName(pos.coords.latitude, pos.coords.longitude);
+          this.sortLocationsByDistance();
+        },
+        (err) => {
+          this.toastService.showError("Verifica los permisos de ubicación de tu navegador.", "Sin acceso");
+          if (this.userLocation) {
+            this.isProgrammaticMove = true;
+            this.map.flyTo(this.userLocation, 15, { animate: true, duration: 1 });
+          }
+        },
+        { timeout: 15000, enableHighAccuracy: true, maximumAge: 0 }
+      );
+    } else {
+      if (this.userLocation) {
+        this.isProgrammaticMove = true;
+        this.map.flyTo(this.userLocation, 15, { animate: true, duration: 1 });
+      }
     }
   }
 

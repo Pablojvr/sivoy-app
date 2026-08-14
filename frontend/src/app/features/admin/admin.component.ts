@@ -450,31 +450,34 @@ export class AdminComponent implements OnInit {
     }
     return true;
   }
+  fileToBase64(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = error => reject(error);
+    });
+  }
 
-  saveLocation() {
+  async saveLocation() {
     if (!this.editingLocation) return;
     if (!this.validateLocationForm()) return;
     if (this.isSavingLocation) return;
     
     this.isSavingLocation = true;
     
-    const formData = new FormData();
-    formData.append('nombre_destino', this.editFormData.nombre_destino);
-    formData.append('empresa', this.editFormData.empresa);
-    if (this.editFormData.maps_url) {
-      formData.append('maps_url', this.editFormData.maps_url);
-    } else {
-      formData.append('maps_url', '');
-    }
-
-    const ubicacion = {
-      lat: parseFloat(this.editFormData.ubicacion?.lat),
-      lng: parseFloat(this.editFormData.ubicacion?.lng),
-      municipio: this.editFormData.ubicacion?.municipio,
-      departamento: this.editFormData.ubicacion?.departamento,
-      direccion_referencia: this.editFormData.ubicacion?.direccion_referencia
+    const payload: any = {
+      nombre_destino: this.editFormData.nombre_destino,
+      empresa: this.editFormData.empresa,
+      maps_url: this.editFormData.maps_url || null,
+      ubicacion: {
+        lat: parseFloat(this.editFormData.ubicacion?.lat),
+        lng: parseFloat(this.editFormData.ubicacion?.lng),
+        municipio: this.editFormData.ubicacion?.municipio,
+        departamento: this.editFormData.ubicacion?.departamento,
+        direccion_referencia: this.editFormData.ubicacion?.direccion_referencia
+      }
     };
-    formData.append('ubicacion', JSON.stringify(ubicacion));
     
     const activeHorarios = this.editHorarios
       .filter(h => h.selected)
@@ -483,13 +486,18 @@ export class AdminComponent implements OnInit {
         hora_apertura: h.horaApertura,
         hora_cierre: h.horaCierre
       }));
-    formData.append('horarios', JSON.stringify(activeHorarios));
+      
+    payload.horarios = activeHorarios;
 
     if (this.editImageFile) {
-      formData.append('imagen_referencia', this.editImageFile);
+      try {
+        payload.imagen_referencia = await this.fileToBase64(this.editImageFile);
+      } catch (e) {
+        console.error("Error converting image to base64", e);
+      }
     }
 
-    this.ubicacionesService.updateLocation(this.editingLocation.id_destino || this.editingLocation.id, formData).subscribe({
+    this.ubicacionesService.updateLocation(this.editingLocation.id || this.editingLocation.id_destino, payload).subscribe({
       next: (res: any) => {
         this.ngZone.run(() => {
           this.isSavingLocation = false;
@@ -497,11 +505,11 @@ export class AdminComponent implements OnInit {
           this.editingLocation.empresa = this.editFormData.empresa;
           this.editingLocation.maps_url = this.editFormData.maps_url || null;
           if (!this.editingLocation.ubicacion) this.editingLocation.ubicacion = {};
-          this.editingLocation.ubicacion.lat = ubicacion.lat;
-          this.editingLocation.ubicacion.lng = ubicacion.lng;
-          this.editingLocation.ubicacion.municipio = ubicacion.municipio;
-          this.editingLocation.ubicacion.departamento = ubicacion.departamento;
-          this.editingLocation.ubicacion.direccion_referencia = ubicacion.direccion_referencia;
+          this.editingLocation.ubicacion.lat = payload.ubicacion.lat;
+          this.editingLocation.ubicacion.lng = payload.ubicacion.lng;
+          this.editingLocation.ubicacion.municipio = payload.ubicacion.municipio;
+          this.editingLocation.ubicacion.departamento = payload.ubicacion.departamento;
+          this.editingLocation.ubicacion.direccion_referencia = payload.ubicacion.direccion_referencia;
           if (res.updated && res.updated.imagen_referencia) {
             this.editingLocation.imagen_referencia = res.updated.imagen_referencia;
           }

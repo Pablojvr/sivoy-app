@@ -8,10 +8,10 @@ async function getLocationByName(nombre) {
     return await ubicacionRepo.getLocationByName(nombre);
 }
 
-async function updateLocation(locId, payload, imageFile) {
-    let { nombre_destino, ubicacion, empresa, tipo, maps_url, horarios } = payload;
+async function updateLocation(locId, payload) {
+    let { nombre_destino, ubicacion, empresa, tipo, maps_url, horarios, imagen_referencia } = payload;
     
-    // Parse ubicacion and horarios if they are strings (FormData)
+    // Parse ubicacion and horarios if they are strings (FormData legacy support)
     if (typeof ubicacion === 'string') ubicacion = JSON.parse(ubicacion);
     if (typeof horarios === 'string') horarios = JSON.parse(horarios);
     
@@ -30,8 +30,7 @@ async function updateLocation(locId, payload, imageFile) {
         if (ubicacion.lng) { updateFields.push('lng = ?'); params.push(ubicacion.lng); }
     }
     
-    if (imageFile) {
-        const imagen_referencia = '/uploads/' + imageFile.filename;
+    if (imagen_referencia) {
         updateFields.push('imagen_referencia = ?');
         params.push(imagen_referencia);
     }
@@ -43,17 +42,14 @@ async function updateLocation(locId, payload, imageFile) {
     return updated;
 }
 
-async function createAgencia(payload, imageFile) {
-    const { nombre_destino, empresa_id, tipo, departamento, municipio, direccion_referencia, maps_url, lat, lng, horarios } = payload;
+async function createAgencia(payload) {
+    const { nombre_destino, empresa_id, tipo, departamento, municipio, direccion_referencia, maps_url, lat, lng, horarios, imagen_referencia } = payload;
     
     if (!nombre_destino || !empresa_id || !tipo) {
         throw new Error("Missing required fields");
     }
 
-    let imagen_referencia = null;
-    if (imageFile) {
-        imagen_referencia = '/uploads/' + imageFile.filename;
-    }
+    // No need to check imageFile, imagen_referencia is already base64 string or null
 
     const empresaNombre = await ubicacionRepo.getEmpresaNameById(empresa_id);
 

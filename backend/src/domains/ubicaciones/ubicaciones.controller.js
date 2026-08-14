@@ -14,9 +14,8 @@ async function updateLocation(req, res) {
     try {
         const locId = req.params.id;
         const payload = req.body;
-        const imageFile = req.file;
         
-        const updated = await ubicacionService.updateLocation(locId, payload, imageFile);
+        const updated = await ubicacionService.updateLocation(locId, payload);
         res.json({ success: true, updated: updated });
     } catch (e) {
         console.error("Error updating location:", e);
@@ -30,9 +29,8 @@ async function updateLocation(req, res) {
 async function createAgencia(req, res) {
     try {
         const payload = req.body;
-        const imageFile = req.file;
 
-        const id_destino = await ubicacionService.createAgencia(payload, imageFile);
+        const id_destino = await ubicacionService.createAgencia(payload);
         res.json({ success: true, id_destino });
     } catch (e) {
         console.error("Error creating agencia:", e);

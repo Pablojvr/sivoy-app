@@ -94,6 +94,16 @@ export class HomeComponent implements OnInit {
   closeLocationSelector() {
     this.activeInput = null;
     this.isSearchExpanded = false;
+    this.showAutocomplete = false;
+  }
+
+  @HostListener('document:click', ['$event'])
+  clickout(event: any) {
+    const clickedInside = event.target.closest('.search-box') || event.target.closest('.autocomplete-list') || event.target.closest('.form-group');
+    if (!clickedInside) {
+      this.showAutocomplete = false;
+      this.activeInput = null;
+    }
   }
 
   clearSearch() {

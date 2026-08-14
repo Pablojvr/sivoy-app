@@ -51,6 +51,7 @@ L.Icon.Default.mergeOptions({
 })
 export class MobileAppComponent implements OnInit, AfterViewInit {
   @ViewChild('adminRef') adminRef!: AdminComponent;
+  @ViewChild(HomeComponent) homeCmp!: HomeComponent;
   locations: any[] = [];
   filteredLocations: any[] = [];
   origen: string = '';
@@ -451,14 +452,23 @@ export class MobileAppComponent implements OnInit, AfterViewInit {
     this.markers.forEach(m => this.map.removeLayer(m));
     this.markers = [];
 
+    const isInicio = this.activeMainTab === 'inicio' && this.homeCmp;
+    const currentFlightResults = isInicio ? this.homeCmp.flightResults : this.flightResults;
+    const currentDisplayedResults = isInicio ? this.homeCmp.displayedResults : this.displayedResults;
+    const currentOrigen = isInicio ? this.homeCmp.origen : this.origen;
+    const currentDestino = isInicio ? this.homeCmp.destino : this.destino;
+    const currentDestinoMunicipio = isInicio ? this.homeCmp.destinoMunicipio : this.destinoMunicipio;
+    const currentOrigenMunicipio = isInicio ? this.homeCmp.origenMunicipio : this.origenMunicipio;
+    const currentExpandedResultCard = isInicio ? this.homeCmp.expandedResultCard : this.expandedResultCard;
+    const currentIsOriginDiscoveryMode = isInicio ? this.homeCmp.isOriginDiscoveryMode : this.isOriginDiscoveryMode;
+    const currentSelectedPin = isInicio ? this.homeCmp.selectedPin : this.selectedPin;
+
     let pointsToPlot: any[] = [];
     
-    if (this.selectedPin) {
-      // Si hay un pin individual seleccionado para ver, SOLO pintar ese pin
-      pointsToPlot = [this.selectedPin];
-    } else if (this.flightResults && this.flightResults.length > 0 && this.displayedResults.length > 0 && this.displayedResults[0].origen_nombre) {
-      // Si estamos mostrando rutas, mapeamos tanto el origen como el destino
-      this.displayedResults.forEach((r: any) => {
+    if (currentSelectedPin) {
+      pointsToPlot = [currentSelectedPin];
+    } else if (currentFlightResults && currentFlightResults.length > 0 && currentDisplayedResults.length > 0 && currentDisplayedResults[0].origen_nombre) {
+      currentDisplayedResults.forEach((r: any) => {
         const originLoc = this.locations.find(l => l.nombre_destino === r.origen_nombre);
         const destLoc = this.locations.find(l => l.nombre_destino === r.destino_nombre);
         if (originLoc && !pointsToPlot.find(p => p.nombre_destino === originLoc.nombre_destino)) {
@@ -468,25 +478,23 @@ export class MobileAppComponent implements OnInit, AfterViewInit {
           pointsToPlot.push({ ...destLoc, markerType: 'destination', locData: r });
         }
       });
-    } else if (this.displayedResults && this.displayedResults.length > 0) {
-      pointsToPlot = [...this.displayedResults]; // Use displayedResults so map respects filters!
+    } else if (currentDisplayedResults && currentDisplayedResults.length > 0) {
+      pointsToPlot = [...currentDisplayedResults]; 
       
-      // Asegurar de pintar también el destino específico si existe
-      if (this.destino && !this.destinoMunicipio) {
-         const destLoc = this.locations.find(l => l.id === this.destino || l.nombre_destino === this.destino);
+      if (currentDestino && !currentDestinoMunicipio) {
+         const destLoc = this.locations.find(l => l.id === currentDestino || l.nombre_destino === currentDestino);
          if (destLoc && !pointsToPlot.find(p => p.nombre_destino === destLoc.nombre_destino)) {
             pointsToPlot.push(destLoc);
          }
       }
     } else {
-      // Estado base: sin resultados de búsqueda, pero podríamos tener origen o destino seleccionados
       pointsToPlot = [];
-      if (this.destino && !this.destinoMunicipio) {
-        const destLoc = this.locations.find(l => l.id === this.destino || l.nombre_destino === this.destino);
+      if (currentDestino && !currentDestinoMunicipio) {
+        const destLoc = this.locations.find(l => l.id === currentDestino || l.nombre_destino === currentDestino);
         if (destLoc) pointsToPlot.push(destLoc);
       }
-      if (this.origen && !this.origenMunicipio) {
-        const origLoc = this.locations.find(l => l.id === this.origen || l.nombre_destino === this.origen);
+      if (currentOrigen && !currentOrigenMunicipio) {
+        const origLoc = this.locations.find(l => l.id === currentOrigen || l.nombre_destino === currentOrigen);
         if (origLoc) pointsToPlot.push(origLoc);
       }
     }
@@ -502,16 +510,15 @@ export class MobileAppComponent implements OnInit, AfterViewInit {
       if (lat && lng) {
         bounds.extend([lat, lng]);
 
-        const isSelected = this.expandedResultCard === loc || (this.selectedPin && this.selectedPin.nombre_destino === loc.nombre_destino);
+        const isSelected = currentExpandedResultCard === loc || (currentSelectedPin && currentSelectedPin.nombre_destino === loc.nombre_destino);
         
         let markerType = loc.markerType || '';
         
-        // Inferir markerType si no viene forzado
         if (!markerType) {
-          if (this.origen && (loc.id === this.origen || loc.nombre_destino === this.origen)) markerType = 'origin';
-          else if (this.destino && (loc.id === this.destino || loc.nombre_destino === this.destino)) markerType = 'destination';
-          else if (this.isOriginDiscoveryMode) markerType = 'origin';
-          else markerType = 'destination'; // Si es descubrimiento o click al azar, asumimos destination
+          if (currentOrigen && (loc.id === currentOrigen || loc.nombre_destino === currentOrigen)) markerType = 'origin';
+          else if (currentDestino && (loc.id === currentDestino || loc.nombre_destino === currentDestino)) markerType = 'destination';
+          else if (currentIsOriginDiscoveryMode) markerType = 'origin';
+          else markerType = 'destination'; 
         }
 
         let customIcon;

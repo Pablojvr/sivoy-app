@@ -335,7 +335,7 @@
 
   <!-- COLLAPSIBLE BOTTOM SHEET -->
   <div class="bottom-sheet" 
-       [ngClass]="bottomSheetState"
+       [ngClass]="[bottomSheetState, highlightedRoute ? 'has-highlight' : '']"
        (touchstart)="onTouchStart($event)"
        (touchend)="onTouchEnd($event)"
        *ngIf="!isPickingLocation && !selectingLocation && !isSearchExpanded" (click)="$event.stopPropagation()">
@@ -432,13 +432,16 @@
               90% { opacity: 1; }
               100% { left: 90%; opacity: 0; }
             }
+            .bottom-sheet.collapsed.has-highlight {
+              height: 148px !important;
+            }
           </style>
 
           <div class="route-preview-container">
             <!-- Origin -->
             <div class="route-preview-point">
               <div class="route-preview-point-icon" style="background-color: var(--primary);">
-                <i class="pi pi-box"></i>
+                <span class="material-symbols-outlined" style="font-size: 14px;">inventory_2</span>
               </div>
               <span class="route-preview-point-name">{{ formatLocationName(highlightedRoute.origen_nombre, highlightedRoute.origen_tipo) }}</span>
             </div>
@@ -446,20 +449,20 @@
             <!-- Line and Truck -->
             <div class="route-preview-line-container">
               <div class="route-preview-line"></div>
-              <i class="pi pi-truck route-preview-truck"></i>
+              <span class="material-symbols-outlined route-preview-truck">local_shipping</span>
             </div>
 
             <!-- Destination -->
             <div class="route-preview-point">
               <div class="route-preview-point-icon" style="background-color: #334155;">
-                <i class="pi pi-map-marker"></i>
+                <span class="material-symbols-outlined" style="font-size: 14px;">location_on</span>
               </div>
               <span class="route-preview-point-name">{{ formatLocationName(highlightedRoute.destino_nombre_destino || highlightedRoute.destino_nombre, highlightedRoute.destino_tipo) }}</span>
             </div>
           </div>
 
-          <p style="color: var(--primary); font-size: 11px; margin-top: 0px; font-weight: 600; margin-bottom: 6px; background: #fff1f2; padding: 4px 10px; border-radius: 12px; display: flex; align-items: center;">
-            <i class="pi pi-clock" style="font-size: 10px; margin-right: 6px;"></i>
+          <p style="color: var(--primary); font-size: 11px; margin-top: 2px; font-weight: 600; margin-bottom: 6px; background: #fff1f2; padding: 4px 10px; border-radius: 12px; display: flex; align-items: center;">
+            <span class="material-symbols-outlined" style="font-size: 14px; margin-right: 4px;">schedule</span>
             Llega {{ highlightedRoute.fecha_llegada }}, de {{ highlightedRoute.horario_recoleccion }}
           </p>
           

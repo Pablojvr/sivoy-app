@@ -657,15 +657,25 @@ export class HomeComponent implements OnInit {
     return result;
   }
 
-  formatLocationName(name: string, type: string): string {
+  formatLocationName(name: string, type?: string): string {
     if (!name) return '';
     const upperName = name.toUpperCase();
-    if (type === 'Punto Fijo' && !upperName.includes('PUNTO FIJO')) {
+    
+    // Check if it's already an agency or defined as an agency
+    if (type === 'Agencia' || upperName.includes('AGENCIA')) {
+      return upperName.includes('AGENCIA') ? upperName : `AGENCIA ${upperName}`;
+    }
+    
+    // Check if it's a Domicilio
+    if (type === 'Cobertura Domicilio' || upperName.includes('DOMICILIO')) {
+      return upperName.includes('DOMICILIO') ? upperName : `DOMICILIO ${upperName}`;
+    }
+    
+    // Default fallback: if it's not an agency and doesn't explicitly have a prefix, treat it as a Punto Fijo
+    if (!upperName.includes('PUNTO FIJO') && !upperName.includes('PUNTO')) {
       return `PUNTO FIJO ${upperName}`;
     }
-    if (type === 'Agencia' && !upperName.includes('AGENCIA')) {
-      return `AGENCIA ${upperName}`;
-    }
+    
     return upperName;
   }
 

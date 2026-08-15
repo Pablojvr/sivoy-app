@@ -772,7 +772,12 @@ export class HomeComponent implements OnInit {
     if (this.selectedPin) {
        this.origenInputValue = this.selectedPin.nombre_destino || this.selectedPin.destino_nombre;
        this.origen = this.origenInputValue;
-       this.openLocationSelector('destino');
+       if (this.destino) {
+          this.selectedPin = null;
+          this.triggerDynamicSearch();
+       } else {
+          this.openLocationSelector('destino');
+       }
     }
   }
 
@@ -789,7 +794,12 @@ export class HomeComponent implements OnInit {
     if (this.selectedPin) {
        this.destinoInputValue = this.selectedPin.nombre_destino || this.selectedPin.destino_nombre;
        this.destino = this.destinoInputValue;
-       this.openLocationSelector('origen');
+       if (this.origen) {
+          this.selectedPin = null;
+          this.triggerDynamicSearch();
+       } else {
+          this.openLocationSelector('origen');
+       }
     }
   }
 

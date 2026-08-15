@@ -1982,6 +1982,14 @@ export class MobileAppComponent implements OnInit, AfterViewInit {
 
   onMapHighlightRoute(flight: any) {
     if (this.map && flight) {
+      // Limpiar mapa primero para no dejar punteros fantasma
+      if (this.routePolyline) {
+         this.map.removeLayer(this.routePolyline);
+         this.routePolyline = null;
+      }
+      this.markers.forEach(m => this.map.removeLayer(m));
+      this.markers = [];
+
       this.resetMapMarkers();
       this.highlightedRoute = flight;
       

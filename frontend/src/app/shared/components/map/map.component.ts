@@ -35,7 +35,7 @@ export class MapComponent implements OnInit, OnDestroy {
       attributionControl: false
     }).setView([13.794185, -88.89653], 8);
 
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+    L.tileLayer('http://mt0.google.com/vt/lyrs=m&hl=es&x={x}&y={y}&z={z}', {
       maxZoom: 19
     }).addTo(this.map);
   }

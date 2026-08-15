@@ -16,7 +16,20 @@ export class HomeComponent implements OnInit {
   apiUrl = environment.apiUrl;
   @Input() locations: any[] = [];
   @Input() userLocation: any = null;
-  @Input() selectedPin: any = null;
+  private _selectedPin: any = null;
+  @Input() set selectedPin(value: any) {
+    this._selectedPin = value;
+    if (value) {
+      this.bottomSheetState = 'hidden';
+    } else {
+      if (this.bottomSheetState === 'hidden') {
+         this.bottomSheetState = 'collapsed'; // Restaura a estado contraido como esperaba el usuario
+      }
+    }
+  }
+  get selectedPin(): any {
+    return this._selectedPin;
+  }
   @Output() viewOnMapEvent = new EventEmitter<any>();
   @Input() isPickingLocation: boolean = false;
   @Input() highlightedRoute: any = null;
@@ -36,13 +49,14 @@ export class HomeComponent implements OnInit {
   origenInputValue: string = '';
   destinoInputValue: string = '';
   dropoffDate: string = '';
+  minDate: string = '';
   dropoffTime: string = '';
   activeInput: 'origen' | 'destino' | null = null;
   locationSearchQuery: string = '';
   isSearchExpanded: boolean = false;
   isDiscoveryMode: boolean = false;
   isOriginDiscoveryMode: boolean = false;
-  bottomSheetState: 'collapsed' | 'half' | 'expanded' = 'collapsed';
+  bottomSheetState: 'hidden' | 'collapsed' | 'half' | 'expanded' = 'collapsed';
   isSheetScrolled: boolean = false;
   loading: boolean = false;
   errorMsg: string = '';
@@ -60,6 +74,7 @@ export class HomeComponent implements OnInit {
   flightResults: any[] = [];
   displayedResults: any[] = [];
   expandedResultCard: any = null;
+  activeDetailedCard: any = null;
   searchRadius: number = 1.0;
   
   // Autocomplete logic properties
@@ -81,15 +96,27 @@ export class HomeComponent implements OnInit {
 
   ngOnInit() {
     const today = new Date();
-    this.dropoffDate = today.toISOString().split('T')[0];
-    this.dropoffTime = today.toTimeString().substring(0,5);
+    const tzOffset = today.getTimezoneOffset() * 60000;
+    const localISODate = new Date(today.getTime() - tzOffset).toISOString().split('T')[0];
+    this.dropoffDate = localISODate;
+    this.minDate = localISODate;
+    
+    const hours = String(today.getHours()).padStart(2, '0');
+    const minutes = String(today.getMinutes()).padStart(2, '0');
+    this.dropoffTime = `${hours}:${minutes}`;
   }
 
   // UI Handlers
   openLocationSelector(type: 'origen' | 'destino') {
+    if (this.activeInput === type && this.isSearchExpanded) {
+      this.closeLocationSelector();
+      return;
+    }
     this.activeInput = type;
     this.isSearchExpanded = true;
+    this.showAutocomplete = true;
     this.locationSearchQuery = type === 'origen' ? this.origenInputValue : this.destinoInputValue;
+    this.updateAutocompleteFilters();
   }
 
   closeLocationSelector() {
@@ -100,8 +127,10 @@ export class HomeComponent implements OnInit {
 
   @HostListener('document:click', ['$event'])
   clickout(event: any) {
-    const clickedInside = event.target.closest('.search-box') || event.target.closest('.autocomplete-list') || event.target.closest('.form-group');
-    if (!clickedInside) {
+    const clickedInsideSearchBox = event.target.closest('.search-box');
+    const clickedInsideList = event.target.closest('.autocomplete-list');
+    
+    if (!clickedInsideSearchBox && !clickedInsideList) {
       this.showAutocomplete = false;
       this.activeInput = null;
     }
@@ -116,7 +145,13 @@ export class HomeComponent implements OnInit {
     this.destinoMunicipio = '';
     this.locationSearchQuery = '';
     this.bottomSheetState = 'collapsed';
+    this.isDiscoveryMode = false;
+    this.isOriginDiscoveryMode = false;
+    this.flightResults = [];
+    this.municipalityResults = [];
+    this.displayedResults = [];
     this.clearMap.emit();
+    this.updateMapMarkers.emit();
   }
 
   onSearchLocation(query: string) {
@@ -140,26 +175,28 @@ export class HomeComponent implements OnInit {
     if (type === 'origen') {
       this.origenInputValue = loc.nombre_destino;
       this.origen = loc.nombre_destino;
+      this.origenMunicipio = loc.ubicacion?.municipio;
+      this.origenDepartamento = loc.ubicacion?.departamento;
     } else {
       this.destinoInputValue = loc.nombre_destino;
       this.destino = loc.nombre_destino;
+      this.destinoMunicipio = loc.ubicacion?.municipio;
+      this.destinoDepartamento = loc.ubicacion?.departamento;
     }
-    this.closeLocationSelector();
-    this.executeSearch();
+    this.handleSelectionHandoff(type);
   }
 
-  selectMunicipality(mun: string, type: 'origen' | 'destino') {
+  selectMunicipality(mun: any, type: 'origen' | 'destino') {
     if (type === 'origen') {
-      this.origenInputValue = mun;
-      this.origen = ''; // Not a specific point, but a municipality
-      this.destinoMunicipio = mun;
+      this.origenInputValue = mun.municipio;
+      this.origen = mun.municipio;
+      this.origenMunicipio = mun.municipio;
     } else {
-      this.destinoInputValue = mun;
-      this.destino = '';
-      this.destinoMunicipio = mun;
+      this.destinoInputValue = mun.municipio;
+      this.destino = mun.municipio;
+      this.destinoMunicipio = mun.municipio;
     }
-    this.closeLocationSelector();
-    this.executeSearch();
+    this.handleSelectionHandoff(type);
   }
 
   onOrigenInput(event: any) {
@@ -176,10 +213,37 @@ export class HomeComponent implements OnInit {
     this.updateAutocompleteFilters();
   }
 
+  private lastFocusTime = 0;
+
   focusInput(type: 'origen' | 'destino') {
+    this.lastFocusTime = Date.now();
     this.activeInput = type;
     this.showAutocomplete = true;
     this.locationSearchQuery = type === 'origen' ? this.origenInputValue : this.destinoInputValue;
+    this.updateAutocompleteFilters();
+  }
+
+  onSearchBoxClick(type: 'origen' | 'destino', event: MouseEvent) {
+    event.stopPropagation();
+    if (Date.now() - this.lastFocusTime > 200) {
+      if (this.activeInput === type && this.showAutocomplete) {
+        this.showAutocomplete = false;
+      } else {
+        this.activeInput = type;
+        this.showAutocomplete = true;
+        this.locationSearchQuery = type === 'origen' ? this.origenInputValue : this.destinoInputValue;
+        this.updateAutocompleteFilters();
+      }
+    }
+  }
+
+  toggleAutocomplete(type: 'origen' | 'destino') {
+    if (this.activeInput === type && this.showAutocomplete) {
+      this.showAutocomplete = false;
+      this.activeInput = null;
+    } else {
+      this.focusInput(type);
+    }
     this.updateAutocompleteFilters();
   }
 
@@ -230,8 +294,7 @@ export class HomeComponent implements OnInit {
       this.destinoInputValue = 'Mi Ubicación';
       this.destino = 'Mi Ubicación';
     }
-    this.closeLocationSelector();
-    this.executeSearch();
+    this.handleSelectionHandoff('destino');
   }
 
   toggleSearchPanel() {
@@ -239,14 +302,14 @@ export class HomeComponent implements OnInit {
   }
 
   onPanelClick(event: Event) {
+    this.showAutocomplete = false;
     event.stopPropagation();
   }
 
   selectUserLocationAsOrigin() {
     this.origenInputValue = 'Mi Ubicación';
     this.origen = 'Mi Ubicación';
-    this.closeLocationSelector();
-    this.executeSearch();
+    this.handleSelectionHandoff('origen');
   }
 
   onRadiusChange() {
@@ -254,12 +317,11 @@ export class HomeComponent implements OnInit {
   }
 
   selectOriginMunicipality(mun: any) {
-    this.origenInputValue = mun.nombre_display || mun.municipio;
-    this.origen = '';
+    this.origen = mun.nombre_display;
+    this.origenInputValue = mun.nombre_display;
     this.origenMunicipio = mun.municipio;
     this.origenDepartamento = mun.departamento;
-    this.closeLocationSelector();
-    this.executeSearch();
+    this.handleSelectionHandoff('origen');
   }
 
   swapLocations() {
@@ -274,7 +336,13 @@ export class HomeComponent implements OnInit {
     this.executeSearch();
   }
 
+  handleSelectionHandoff(type: 'origen' | 'destino') {
+    this.showAutocomplete = false;
+    this.activeInput = null;
+  }
+
   executeSearch() {
+    this.closeLocationSelector();
     this.triggerDynamicSearch();
   }
 
@@ -288,13 +356,26 @@ export class HomeComponent implements OnInit {
       this.bottomSheetState = 'half';
       this.errorMsg = '';
       this.flightResults = [];
+      this.activeDetailedCard = null;
       
-      const params: RouteSearchParams = {
+      this.isOriginDiscoveryMode = false;
+      this.isDiscoveryMode = false;
+      this.municipalityResults = [];
+      this.displayedResults = [];
+      
+      const params: any = {
         origen: this.origen,
         destino: this.destino,
         origenIsPin: this.origen.includes('(Pin en Mapa)'),
         dropoffDate: this.dropoffDate,
-        dropoffTime: this.dropoffTime
+        dropoffTime: this.dropoffTime,
+        // Parámetros específicos para searchFlights
+        origen_municipio: this.origen.split(',')[0]?.trim(),
+        origen_departamento: this.origen.split(',')[1]?.trim() || '',
+        destino_municipio: this.destino.split(',')[0]?.trim(),
+        destino_departamento: this.destino.split(',')[1]?.trim() || '',
+        dropoff_date: this.dropoffDate,
+        dropoff_time: this.dropoffTime
       };
 
       this.rutasService.searchFlights(params).subscribe({
@@ -302,7 +383,44 @@ export class HomeComponent implements OnInit {
           this.loading = false;
           this.result = res;
           if (res.success) {
-            this.flightResults = res.flights;
+            let vuelos = res.flights || res.results || [];
+            
+            // Filtrar agencias cerradas por hora hoy
+            const now = new Date();
+            const todayStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+            const currentHour = now.getHours();
+            const currentMinute = now.getMinutes();
+
+            vuelos.forEach((vuelo: any) => {
+              if (vuelo.opciones_entrega && vuelo.opciones_entrega.length > 0) {
+                 vuelo.opciones_entrega = vuelo.opciones_entrega.filter((op: any) => {
+                    if (op.dropoff_date === todayStr && op.dropoff_msg) {
+                       const match = op.dropoff_msg.match(/a\s*(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+                       if (match) {
+                          let endHour = parseInt(match[1], 10);
+                          const endMinute = parseInt(match[2], 10);
+                          const ampm = match[3].toUpperCase();
+                          if (ampm === 'PM' && endHour < 12) endHour += 12;
+                          if (ampm === 'AM' && endHour === 12) endHour = 0;
+                          
+                          if (currentHour > endHour || (currentHour === endHour && currentMinute > endMinute)) {
+                             vuelo.hasClosedAlert = true;
+                             return false; 
+                          }
+                       }
+                    }
+                    return true;
+                 });
+                 if (vuelo.opciones_entrega.length > 0) {
+                    vuelo.selectedOption = vuelo.opciones_entrega[0];
+                    if (vuelo.selected_opcion_idx === undefined || vuelo.selected_opcion_idx >= vuelo.opciones_entrega.length) {
+                       vuelo.selected_opcion_idx = 0;
+                    }
+                 }
+              }
+            });
+
+            this.flightResults = vuelos;
             this.bottomSheetState = 'expanded';
             this.updateMapMarkers.emit();
           } else {
@@ -314,9 +432,9 @@ export class HomeComponent implements OnInit {
           this.errorMsg = 'Error de conexión al buscar rutas.';
         }
       });
-    } else if (this.origenMunicipio && !this.origen && !this.destinoInputValue) {
+    } else if (this.origenMunicipio && !this.destinoInputValue) {
       this.discoveryModeForOriginMunicipality(this.origenMunicipio, this.origenDepartamento);
-    } else if (this.destinoMunicipio && !this.destino && !this.origenInputValue) {
+    } else if (this.destinoMunicipio && !this.origenInputValue) {
       this.discoveryModeForMunicipality(this.destinoMunicipio, this.destinoDepartamento);
     }
   }
@@ -328,6 +446,7 @@ export class HomeComponent implements OnInit {
     this.flightResults = [];
     this.flightResults = [];
     this.municipalityResults = [];
+    this.activeDetailedCard = null;
     this.bottomSheetState = 'half';
     this.isOriginDiscoveryMode = true; 
     this.isDiscoveryMode = false;
@@ -344,13 +463,9 @@ export class HomeComponent implements OnInit {
     }
 
     this.municipalityResults = targets.map(loc => ({
+      ...loc,
       destino_nombre: loc.nombre_destino,
-      empresa: loc.empresa,
-      distance: loc.distance || 9999,
-      lat: loc.ubicacion?.lat,
-      lng: loc.ubicacion?.lng,
-      horarios_operativos: loc.horarios_operativos,
-      _status: loc._status
+      distance: loc.distance || 9999
     })).sort((a: any, b: any) => a.distance - b.distance);
 
     if (this.activeEmpresa) {
@@ -369,6 +484,7 @@ export class HomeComponent implements OnInit {
     this.errorMsg = '';
     this.flightResults = [];
     this.municipalityResults = [];
+    this.activeDetailedCard = null;
     this.bottomSheetState = 'half';
     this.isDiscoveryMode = true;
     this.isOriginDiscoveryMode = false;
@@ -385,13 +501,9 @@ export class HomeComponent implements OnInit {
     }
 
     this.municipalityResults = targets.map(loc => ({
+      ...loc,
       destino_nombre: loc.nombre_destino,
-      empresa: loc.empresa,
-      distance: loc.distance || 9999,
-      lat: loc.ubicacion?.lat,
-      lng: loc.ubicacion?.lng,
-      horarios_operativos: loc.horarios_operativos,
-      _status: loc._status
+      distance: loc.distance || 9999
     })).sort((a: any, b: any) => a.distance - b.distance);
 
     if (this.activeEmpresa) {
@@ -418,6 +530,8 @@ export class HomeComponent implements OnInit {
 
   highlightRouteOnMap(flight: any) {
     this.mapHighlightRoute.emit(flight);
+    this.expandedResultCard = null;
+    this.bottomSheetState = 'collapsed';
   }
 
   showOriginPinDetails(flight: any) {
@@ -434,7 +548,11 @@ export class HomeComponent implements OnInit {
   }
 
   toggleResultCard(flight: any) {
-    this.toggleExpandFlight(flight);
+    if (this.isDiscoveryMode || this.isOriginDiscoveryMode) {
+      this.showPinDetails.emit({ location: flight, type: this.isDiscoveryMode ? 'destino' : 'origen' });
+    } else {
+      this.toggleExpandFlight(flight);
+    }
   }
 
   countResultsByEmpresa(empresa: string): number {
@@ -452,24 +570,127 @@ export class HomeComponent implements OnInit {
       this.origen = 'Mi Ubicación';
       this.destino = this.locationSearchQuery;
     }
-    this.executeSearch();
   }
 
   formatTime(timeStr: string): string {
     if (!timeStr) return '';
     const [hours, minutes] = timeStr.split(':');
-    let h = parseInt(hours);
+    let h = parseInt(hours, 10);
     const ampm = h >= 12 ? 'PM' : 'AM';
-    h = h % 12;
-    h = h ? h : 12;
-    return `${h}:${minutes} ${ampm}`;
+    h = h % 12 || 12;
+    return `${h < 10 ? '0' + h : h}:${minutes} ${ampm}`;
+  }
+
+  getGroupedSchedules(horarios: any[]): { dias: string, apertura: string, cierre: string }[] {
+    if (!horarios || horarios.length === 0) return [];
+    
+    const dayOrder = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+    
+    // 1. Group by time
+    const timeGroups: { [key: string]: { apertura: string, cierre: string, days: number[] } } = {};
+    
+    for (const h of horarios) {
+      if (!h.hora_apertura || !h.hora_cierre) continue;
+      const key = `${h.hora_apertura}-${h.hora_cierre}`;
+      const dayIndex = dayOrder.indexOf(h.dia_semana);
+      if (dayIndex === -1) continue;
+      
+      if (!timeGroups[key]) {
+        timeGroups[key] = { apertura: h.hora_apertura, cierre: h.hora_cierre, days: [] };
+      }
+      timeGroups[key].days.push(dayIndex);
+    }
+    
+    const result: { dias: string, apertura: string, cierre: string }[] = [];
+    
+    // 2. For each time group, find consecutive ranges
+    for (const key in timeGroups) {
+      const group = timeGroups[key];
+      // Sort days
+      group.days.sort((a, b) => a - b);
+      
+      const ranges: string[] = [];
+      let rangeStart = group.days[0];
+      let rangeEnd = group.days[0];
+      
+      for (let i = 1; i < group.days.length; i++) {
+        if (group.days[i] === rangeEnd + 1) {
+          rangeEnd = group.days[i];
+        } else {
+          if (rangeStart === rangeEnd) {
+            ranges.push(dayOrder[rangeStart]);
+          } else if (rangeEnd === rangeStart + 1) {
+            ranges.push(`${dayOrder[rangeStart]} y ${dayOrder[rangeEnd]}`);
+          } else {
+            ranges.push(`${dayOrder[rangeStart]} a ${dayOrder[rangeEnd]}`);
+          }
+          rangeStart = group.days[i];
+          rangeEnd = group.days[i];
+        }
+      }
+      
+      if (rangeStart === rangeEnd) {
+        ranges.push(dayOrder[rangeStart]);
+      } else if (rangeEnd === rangeStart + 1) {
+        ranges.push(`${dayOrder[rangeStart]} y ${dayOrder[rangeEnd]}`);
+      } else {
+        ranges.push(`${dayOrder[rangeStart]} a ${dayOrder[rangeEnd]}`);
+      }
+      
+      // Join ranges with commas
+      let diasLabel = ranges.join(', ');
+      
+      result.push({ dias: diasLabel, apertura: group.apertura, cierre: group.cierre });
+    }
+    
+    // Sort result by the first day of the group (optional, but good for UX)
+    result.sort((a, b) => {
+       const getFirstDay = (label: string) => {
+          for (let i=0; i<dayOrder.length; i++) {
+            if (label.includes(dayOrder[i])) return i;
+          }
+          return 99;
+       };
+       return getFirstDay(a.dias) - getFirstDay(b.dias);
+    });
+    
+    return result;
+  }
+
+  formatLocationName(name: string, type: string): string {
+    if (!name) return '';
+    const upperName = name.toUpperCase();
+    if (type === 'Punto Fijo' && !upperName.includes('PUNTO FIJO')) {
+      return `PUNTO FIJO ${upperName}`;
+    }
+    if (type === 'Agencia' && !upperName.includes('AGENCIA')) {
+      return `AGENCIA ${upperName}`;
+    }
+    return upperName;
   }
 
   formatFriendlyDate(dateStr: string): string {
     if (!dateStr) return '';
-    const date = new Date(dateStr);
-    const dias = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
-    return `${dias[date.getDay()]} ${date.getDate()}`;
+    const parts = dateStr.split('-');
+    let date = new Date(dateStr);
+    if (parts.length === 3) {
+      date = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+    }
+    const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+    const diaNombre = dias[date.getDay()];
+    
+    const today = new Date();
+    const isToday = today.getDate() === date.getDate() && today.getMonth() === date.getMonth() && today.getFullYear() === date.getFullYear();
+    
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const isTomorrow = tomorrow.getDate() === date.getDate() && tomorrow.getMonth() === date.getMonth() && tomorrow.getFullYear() === date.getFullYear();
+    
+    let suffix = '';
+    if (isToday) suffix = ' (Hoy)';
+    else if (isTomorrow) suffix = ' (Mañana)';
+    
+    return `${diaNombre} ${date.getDate()}${suffix}`;
   }
 
   recenterMap() {
@@ -563,16 +784,35 @@ export class HomeComponent implements OnInit {
   }
 
   closePinDetails() {
-    this.selectedPin = null;
+    this.selectedPin = null; // Esto triggerea el setter que restaurará el bottomSheetState a 'half'
     this.clearMap.emit();
   }
 
   copyPinDetails() {
     if (!this.selectedPin) return;
-    const textToShare = `📍 ${this.selectedPin.nombre_destino || this.selectedPin.destino_nombre}\n🏢 Empresa: ${this.selectedPin.empresa || 'Agencia'}\n🗺️ Ubicación: ${this.selectedPin.ubicacion?.municipio || 'N/A'}, ${this.selectedPin.ubicacion?.departamento || 'N/A'}\n📍 Dirección: ${this.selectedPin.direccion_referencia || 'N/A'}\n🔗 Maps: ${this.selectedPin.maps_url || 'N/A'}`;
+    const textToShare = `📍 ${this.selectedPin.nombre_destino || this.selectedPin.destino_nombre}\n🏢 Empresa: ${this.selectedPin.empresa || 'Agencia'}\n🗺️ Ubicación: ${this.selectedPin.ubicacion?.municipio || 'N/A'}, ${this.selectedPin.ubicacion?.departamento || 'N/A'}\n🛣️ Dirección: ${this.selectedPin.direccion_referencia || 'N/A'}\n📍 Maps: ${this.selectedPin.maps_url || 'N/A'}`;
     navigator.clipboard.writeText(textToShare).then(() => {
         this.toastService.showSuccess('¡Información del punto copiada al portapapeles!', 'Copiado');
     });
+  }
+
+  openInGoogleMaps() {
+    if (!this.selectedPin) return;
+    
+    if (this.selectedPin.maps_url && this.selectedPin.maps_url.trim() !== '') {
+      window.open(this.selectedPin.maps_url, '_blank');
+      return;
+    }
+
+    if (this.selectedPin.ubicacion && this.selectedPin.ubicacion.lat && this.selectedPin.ubicacion.lng) {
+      const url = `https://www.google.com/maps/search/?api=1&query=${this.selectedPin.ubicacion.lat},${this.selectedPin.ubicacion.lng}`;
+      window.open(url, '_blank');
+      return;
+    }
+
+    const query = `${this.selectedPin.nombre_destino || ''} ${this.selectedPin.ubicacion?.municipio || ''} El Salvador`;
+    const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+    window.open(url, '_blank');
   }
 
   onDayFilterChange() {
@@ -583,5 +823,16 @@ export class HomeComponent implements OnInit {
     if (!pin || !pin.horarios_operativos) return [];
     if (!this.selectedPinDayFilter) return pin.horarios_operativos;
     return pin.horarios_operativos.filter((h: any) => h.dia_semana === this.selectedPinDayFilter);
+  }
+
+  viewCardDetails(card: any) {
+    this.activeDetailedCard = card;
+    this.focusLocation.emit(card);
+    card.isExpanded = true;
+  }
+
+  backToList() {
+    this.activeDetailedCard = null;
+    this.resetMapMarkersEvent.emit();
   }
 }

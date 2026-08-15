@@ -30,12 +30,10 @@ function formatFriendlyDate(date) {
 }
 
 function getDayIndexFromString(diaStr) {
-    for (const [k, v] of Object.entries(IDX_TO_DIA)) {
-        if (v.toLowerCase() === diaStr.toLowerCase()) {
-            return parseInt(k);
-        }
-    }
-    return -1;
+    const normalize = (s) => s ? s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase() : '';
+    const d = normalize(diaStr);
+    const m = { "domingo": 0, "lunes": 1, "martes": 2, "miercoles": 3, "jueves": 4, "viernes": 5, "sabado": 6 };
+    return m[d] !== undefined ? m[d] : -1;
 }
 
 function findDestino(data, nombre) {
@@ -65,7 +63,8 @@ function calcularIngresoOficial(origen, fechaDropoffStr, horaDropoff) {
     }
     
     let diaStr = getDiaFromDate(currentDate);
-    let horarioHoy = origen.horarios_operativos?.find(h => h.dia_semana.toLowerCase() === diaStr.toLowerCase());
+    const normalize = (s) => s ? s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase() : '';
+    let horarioHoy = origen.horarios_operativos?.find(h => normalize(h.dia_semana) === normalize(diaStr));
     
     if (horarioHoy) {
         if (horaDropoff < horarioHoy.hora_apertura) {
@@ -90,7 +89,8 @@ function calcularIngresoOficial(origen, fechaDropoffStr, horaDropoff) {
     for (let i = 0; i < 7; i++) {
         currentDate = addDays(currentDate, 1);
         let diaEvalStr = getDiaFromDate(currentDate);
-        if (origen.horarios_operativos?.some(h => h.dia_semana.toLowerCase() === diaEvalStr.toLowerCase())) {
+        const normalize = (s) => s ? s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase() : '';
+        if (origen.horarios_operativos?.some(h => normalize(h.dia_semana) === normalize(diaEvalStr))) {
             return {
                 date: currentDate,
                 msg: `${tipoOrigenCerrado}, se calculó tu entrega para el día siguiente operativo (${formatFriendlyDate(currentDate)}).`
@@ -101,10 +101,11 @@ function calcularIngresoOficial(origen, fechaDropoffStr, horaDropoff) {
 }
 
 function getCorteDate(fechaDeseada, reglaCorteStr) {
-    const reglaLower = reglaCorteStr.toLowerCase();
-    if (reglaLower === 'día anterior' || reglaLower === 'dia anterior') {
+    const normalize = (s) => s ? s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase() : '';
+    const reglaLower = normalize(reglaCorteStr);
+    if (reglaLower === 'dia anterior') {
         return addDays(fechaDeseada, -1);
-    } else if (reglaLower === 'mismo día' || reglaLower === 'mismo dia') {
+    } else if (reglaLower === 'mismo dia') {
         return fechaDeseada;
     } else {
         const targetWeekday = getDayIndexFromString(reglaLower);
@@ -125,13 +126,14 @@ function validarFechaDeseada(destino, ingresoOficialDate, fechaDeseadaStr) {
         return { esPosible: true, msg: "Entrega a domicilio confirmada." };
     }
 
-    const diaDeseadoStr = getDiaFromDate(fechaDeseada);
+    const normalize = (s) => s ? s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase() : '';
+    const diaDeseadoStr = normalize(getDiaFromDate(fechaDeseada));
     const reglas = destino.reglas_entrega || [];
     
     let reglaAplicable = null;
     for (const r of reglas) {
-        const entregaStr = r.dia_entrega.toLowerCase();
-        if (entregaStr === 'diario' || entregaStr === diaDeseadoStr.toLowerCase()) {
+        const entregaStr = normalize(r.dia_entrega);
+        if (entregaStr === 'diario' || entregaStr === diaDeseadoStr) {
             reglaAplicable = r;
             break;
         }

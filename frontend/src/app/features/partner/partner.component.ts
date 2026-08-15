@@ -160,8 +160,8 @@ export class PartnerComponent implements OnInit {
         attributionControl: false
       }).setView(focusLoc ? [focusLoc.ubicacion.lat, focusLoc.ubicacion.lng] : [13.69, -88.87], focusLoc ? 11 : 9);
       
-      // Clean, light basemap for B2B style
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
+      // Clean Google Maps layer
+      L.tileLayer('http://mt0.google.com/vt/lyrs=m&hl=es&x={x}&y={y}&z={z}', {
         maxZoom: 19
       }).addTo(this.partnerMap);
       

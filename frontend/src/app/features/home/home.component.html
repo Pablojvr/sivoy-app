@@ -63,11 +63,14 @@
           <span class="field-value" [class.placeholder]="!destino">{{ destino || 'Hacia dónde' }}</span>
         </div>
       </div>
-      <div class="clear-search-btn" *ngIf="origen || destino" (click)="clearSearch(); $event.stopPropagation()">
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="18" y1="6" x2="6" y2="18"></line>
-          <line x1="6" y1="6" x2="18" y2="18"></line>
-        </svg>
+      <div class="clear-search-btn" *ngIf="origen || destino" (click)="clearSearch(); $event.stopPropagation()" style="border-radius: 8px; flex-direction: column; gap: 4px; background: transparent; padding: 4px 8px;">
+        <div style="background: var(--surface); padding: 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+            <polyline points="3 3 3 8 8 8"></polyline>
+          </svg>
+        </div>
+        <span style="font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); text-align: center; line-height: 1;">Limpiar<br>mapa</span>
       </div>
     </div>
 
@@ -90,7 +93,7 @@
             <div class="node-content">
               <div class="form-group" [class.active-group]="activeInput === 'origen'" style="margin-bottom: 0;">
                 <label>Desde (Punto de Origen)</label>
-                <div class="search-box" [class.focused-box]="activeInput === 'origen'">
+                <div class="search-box" [class.focused-box]="activeInput === 'origen'" (click)="onSearchBoxClick('origen', $event)">
                    <svg style="width: 18px !important; height: 18px !important; min-width: 18px !important; flex-shrink: 0 !important;" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                    <input type="text" placeholder="Municipio, agencia o punto de origen..." 
                           [(ngModel)]="origenInputValue" 
@@ -100,7 +103,7 @@
                 </div>
                 
                 <!-- Autocomplete para Origen -->
-                <div class="autocomplete-list fade-in" *ngIf="activeInput === 'origen' && showAutocomplete">
+                <div class="autocomplete-list fade-in" *ngIf="activeInput === 'origen' && showAutocomplete" (click)="$event.stopPropagation()">
                    <div class="location-list-item location-current-item" *ngIf="userLocation && (!origenInputValue || origenInputValue === 'Mi Ubicación')" (click)="selectUserLocationAsOrigin()">
                      <span class="material-symbols-outlined loc-icon text-orange">my_location</span>
                      <div class="loc-info">
@@ -156,7 +159,7 @@
             <div class="node-content">
               <div class="form-group" [class.active-group]="activeInput === 'destino'" style="margin-bottom: 0;">
                 <label>Hacia (Destino)</label>
-                <div class="search-box" [class.focused-box]="activeInput === 'destino'">
+                <div class="search-box" [class.focused-box]="activeInput === 'destino'" (click)="onSearchBoxClick('destino', $event)">
                    <svg style="width: 18px !important; height: 18px !important; min-width: 18px !important; flex-shrink: 0 !important;" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                    <input type="text" placeholder="Municipio o agencia destino..." 
                           [value]="destinoInputValue" 
@@ -166,7 +169,7 @@
                 </div>
 
                 <!-- Autocomplete para Destino -->
-                <div class="autocomplete-list fade-in" *ngIf="activeInput === 'destino' && showAutocomplete">
+                <div class="autocomplete-list fade-in" *ngIf="activeInput === 'destino' && showAutocomplete" (click)="$event.stopPropagation()">
                    <div class="list-section-title" *ngIf="filteredMunicipalities.length > 0">Municipios</div>
                    <div class="location-list-item dest-item" *ngFor="let mun of filteredMunicipalities" (click)="selectMunicipality(mun, 'destino')">
                      <div class="loc-icon bg-blue"><svg style="width: 20px !important; height: 20px !important; min-width: 20px !important; flex-shrink: 0 !important;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon></svg></div>
@@ -234,7 +237,13 @@
     <div class="modal-hero" style="position: relative;" [style.backgroundImage]="selectedPin.imagen_referencia ? 'url(' + apiUrl + selectedPin.imagen_referencia + ')' : 'linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%)'">
       <div style="position: absolute; top: 15px; right: 15px; display: flex; gap: 10px; z-index: 10;">
         <button (click)="shareLocation(selectedPin); $event.stopPropagation()" style="background: rgba(255,255,255,0.2); border: none; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; backdrop-filter: blur(4px);">
-          <i class="pi pi-share-alt"></i>
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="18" cy="5" r="3"></circle>
+            <circle cx="6" cy="12" r="3"></circle>
+            <circle cx="18" cy="19" r="3"></circle>
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+          </svg>
         </button>
         <button (click)="closePinDetails(); $event.stopPropagation()" style="background: rgba(255,255,255,0.2); border: none; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; backdrop-filter: blur(4px); font-size: 20px;">
           &times;
@@ -253,19 +262,24 @@
       
       <!-- DIRECCION -->
       <div class="info-card" style="background: white; padding: 0; border-radius: 12px; margin-bottom: 20px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
-        <div style="display: flex; align-items: flex-start; gap: 12px; padding: 16px;">
+        <div style="display: flex; align-items: flex-start; gap: 12px; padding: 16px; padding-bottom: 12px;">
           <div style="background: #fff1f2; color: var(--primary); padding: 8px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
             <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
           </div>
-          <div style="flex: 1; display: flex; justify-content: space-between; align-items: center;">
-            <div>
-              <h5 style="margin: 0 0 4px 0; font-size: 14px; color: var(--text-main); font-weight: 600;">Dirección</h5>
-              <p style="margin: 0; font-size: 14px; color: var(--text-muted); line-height: 1.4;">{{ selectedPin.ubicacion?.municipio || 'El Salvador' }}{{ selectedPin.ubicacion?.departamento ? ', ' + selectedPin.ubicacion.departamento : '' }}</p>
-            </div>
-            <button class="btn-text" (click)="copyPinDetails()" title="Copiar detalles" style="border: none; background: #f8fafc; border-radius: 8px; padding: 8px; color: var(--primary); cursor: pointer;">
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-            </button>
+          <div style="flex: 1;">
+            <h5 style="margin: 0 0 4px 0; font-size: 14px; color: var(--text-main); font-weight: 600;">Dirección</h5>
+            <p style="margin: 0; font-size: 14px; color: var(--text-muted); line-height: 1.4;">{{ selectedPin.ubicacion?.municipio || 'El Salvador' }}{{ selectedPin.ubicacion?.departamento ? ', ' + selectedPin.ubicacion.departamento : '' }}</p>
           </div>
+        </div>
+        <div style="display: flex; gap: 8px; padding: 0 16px 16px 16px;">
+          <button class="btn-text" (click)="openInGoogleMaps()" title="Abrir en Google Maps" style="flex: 1; border: 1px solid #bbf7d0; background: #f0fdf4; border-radius: 8px; padding: 8px; color: #16a34a; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: background 0.2s;">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"></polygon><line x1="9" y1="3" x2="9" y2="18"></line><line x1="15" y1="6" x2="15" y2="21"></line></svg>
+            Ver en Google Maps
+          </button>
+          <button class="btn-text" (click)="copyPinDetails()" title="Copiar detalles" style="border: 1px solid #e2e8f0; background: #f8fafc; border-radius: 8px; padding: 8px 12px; color: #475569; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: background 0.2s;">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            Copiar
+          </button>
         </div>
       </div>
       
@@ -282,30 +296,28 @@
       </div>
       
       <div class="pin-schedule-box">
-         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+         <div style="margin-bottom: 12px;">
            <h4 style="margin: 0; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted);">Horarios de Atención</h4>
-           
-           <!-- Dropdown for selecting day when origin is set -->
-           <div *ngIf="origen && selectedPin.horarios_operativos && selectedPin.horarios_operativos.length > 0" class="schedule-filter">
-             <select [(ngModel)]="selectedPinDayFilter" (change)="onDayFilterChange()">
-               <option value="">Próximo horario</option>
-               <option *ngFor="let h of selectedPin.horarios_operativos" [value]="h.dia_semana">{{ h.dia_semana }}</option>
-             </select>
-           </div>
          </div>
   
-         <div class="schedule-grid">
-           <div class="schedule-row" *ngFor="let h of getDisplayedSchedules(selectedPin)">
-             <span class="s-day">{{ h.dia_semana }}</span>
-             <span class="s-time">{{ formatTime(h.hora_apertura) }} - {{ formatTime(h.hora_cierre) }}</span>
+         <div style="background: white; border-radius: 10px; border: 1px solid #e2e8f0; overflow: hidden;" *ngIf="selectedPin.horarios_operativos && selectedPin.horarios_operativos.length > 0">
+           <div *ngFor="let g of getGroupedSchedules(selectedPin.horarios_operativos); let last = last" [style.border-bottom]="last ? 'none' : '1px solid #f1f5f9'" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px;">
+             <div style="display: flex; align-items: center; gap: 8px;">
+               <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#64748b" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+               <span style="font-size: 13px; font-weight: 600; color: #334155;">{{ g.dias }}</span>
+             </div>
+             <div style="background: #f8fafc; padding: 4px 8px; border-radius: 6px; font-size: 13px; font-weight: 500; color: #475569; display: flex; align-items: center; gap: 6px;">
+               <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+               {{ formatTime(g.apertura) }} - {{ formatTime(g.cierre) }}
+             </div>
            </div>
-           <div class="schedule-row empty" *ngIf="!selectedPin.horarios_operativos || selectedPin.horarios_operativos.length === 0">
-             Horarios no definidos
-           </div>
+         </div>
+         <div class="schedule-row empty" *ngIf="!selectedPin.horarios_operativos || selectedPin.horarios_operativos.length === 0" style="padding: 12px; background: #f8fafc; border-radius: 8px; text-align: center;">
+           Horarios no definidos
          </div>
       </div>
   
-      <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 20px;">
+      <div *ngIf="!highlightedRoute" style="display: flex; flex-direction: column; gap: 10px; margin-top: 20px;">
          <ng-container *ngIf="selectedPin.markerType === 'destination'">
            <button class="primary-btn w-100" style="padding: 14px; font-size: 15px; display: flex; justify-content: center; align-items: center; gap: 8px;" (click)="setPinAsDestinationAndPromptOrigin()">
               {{ origen ? 'Calcular ruta hacia aquí' : 'Seleccionar como destino' }}
@@ -330,18 +342,148 @@
     <div class="persistent-sheet-header" (click)="expandSheetIfNeeded()">
       <div class="drag-handle" (click)="toggleSheet(); $event.stopPropagation()"></div>
       <div class="persistent-title">
-        <div *ngIf="destino && municipalityResults.length > 0">
+        <div *ngIf="destino && municipalityResults.length > 0" style="display:flex; flex-direction:column; align-items:center;">
           <h3>{{ displayedResults.length }} {{ displayedResults.length === 1 ? 'Resultado' : 'Resultados' }} en {{ destino.split(',')[0] }}</h3>
-          <p class="slide-hint">Toca o desliza hacia arriba para ver resultados</p>
+          <p class="slide-hint" style="color: var(--text-muted); font-size: 12px; margin-top: 4px; display: flex; align-items: center; gap: 4px; margin-bottom: 0;">
+            <svg *ngIf="bottomSheetState === 'collapsed'" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>
+            <svg *ngIf="bottomSheetState !== 'collapsed'" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            {{ bottomSheetState === 'collapsed' ? 'Desliza hacia arriba para ver' : 'Desliza hacia abajo para esconder' }}
+          </p>
         </div>
-        <div *ngIf="destino && flightResults.length > 0">
-          <h3>{{ flightResults.length }} Rutas disponibles entre municipios</h3>
-          <p class="slide-hint">Toca o desliza hacia arriba para ver resultados</p>
+
+        <div *ngIf="destino && flightResults.length > 0 && !highlightedRoute" style="display:flex; flex-direction:column; align-items:center;">
+          <h3>{{ flightResults.length }} Rutas disponibles</h3>
+          <p class="slide-hint" style="color: var(--text-muted); font-size: 12px; margin-top: 4px; display: flex; align-items: center; gap: 4px; margin-bottom: 0;">
+            <svg *ngIf="bottomSheetState === 'collapsed'" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>
+            <svg *ngIf="bottomSheetState !== 'collapsed'" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            {{ bottomSheetState === 'collapsed' ? 'Desliza hacia arriba para ver' : 'Desliza hacia abajo para esconder' }}
+          </p>
         </div>
+
+        <div *ngIf="destino && flightResults.length > 0 && highlightedRoute" style="display:flex; flex-direction:column; align-items:center; width: 100%; padding: 0 10px;">
+          
+          <style>
+            .route-preview-container {
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              width: 100%;
+              margin-bottom: 8px;
+              position: relative;
+            }
+            .route-preview-point {
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              z-index: 2;
+              flex: 1;
+              max-width: 40%;
+            }
+            .route-preview-point-icon {
+              width: 24px;
+              height: 24px;
+              border-radius: 50%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              color: white;
+              margin-bottom: 4px;
+              font-size: 11px;
+            }
+            .route-preview-point-name {
+              font-size: 10px;
+              font-weight: 600;
+              color: #1e293b;
+              text-align: center;
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              max-width: 100%;
+            }
+            .route-preview-line-container {
+              flex: 1;
+              position: relative;
+              display: flex;
+              align-items: center;
+              height: 24px;
+              margin: 0 5px;
+              margin-top: -14px;
+            }
+            .route-preview-line {
+              width: 100%;
+              height: 2px;
+              background-image: linear-gradient(to right, #cbd5e1 50%, transparent 50%);
+              background-size: 8px 2px;
+              position: absolute;
+            }
+            .route-preview-truck {
+              position: absolute;
+              top: 50%;
+              transform: translateY(-50%);
+              color: var(--primary);
+              font-size: 14px;
+              background: white;
+              padding: 0 4px;
+              animation: driveTruck 3s linear infinite;
+            }
+            @keyframes driveTruck {
+              0% { left: 0%; opacity: 0; }
+              10% { opacity: 1; }
+              90% { opacity: 1; }
+              100% { left: 90%; opacity: 0; }
+            }
+          </style>
+
+          <div class="route-preview-container">
+            <!-- Origin -->
+            <div class="route-preview-point">
+              <div class="route-preview-point-icon" style="background-color: var(--primary);">
+                <i class="pi pi-box"></i>
+              </div>
+              <span class="route-preview-point-name">{{ formatLocationName(highlightedRoute.origen_nombre, highlightedRoute.origen_tipo) }}</span>
+            </div>
+
+            <!-- Line and Truck -->
+            <div class="route-preview-line-container">
+              <div class="route-preview-line"></div>
+              <i class="pi pi-truck route-preview-truck"></i>
+            </div>
+
+            <!-- Destination -->
+            <div class="route-preview-point">
+              <div class="route-preview-point-icon" style="background-color: #334155;">
+                <i class="pi pi-map-marker"></i>
+              </div>
+              <span class="route-preview-point-name">{{ formatLocationName(highlightedRoute.destino_nombre_destino || highlightedRoute.destino_nombre, highlightedRoute.destino_tipo) }}</span>
+            </div>
+          </div>
+
+          <p style="color: var(--primary); font-size: 11px; margin-top: 0px; font-weight: 600; margin-bottom: 6px; background: #fff1f2; padding: 4px 10px; border-radius: 12px; display: flex; align-items: center;">
+            <i class="pi pi-clock" style="font-size: 10px; margin-right: 6px;"></i>
+            Llega {{ highlightedRoute.fecha_llegada }}, de {{ highlightedRoute.horario_recoleccion }}
+          </p>
+          
+          <p class="slide-hint" style="color: var(--text-muted); font-size: 11px; display: flex; align-items: center; gap: 4px; margin-bottom: 0;">
+            <svg *ngIf="bottomSheetState === 'collapsed'" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>
+            <svg *ngIf="bottomSheetState !== 'collapsed'" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            {{ bottomSheetState === 'collapsed' ? 'Desliza hacia arriba para seleccionar o ver más' : 'Desliza hacia abajo para esconder' }}
+          </p>
+        </div>
+
+        <div *ngIf="!destino && !loading && !errorMsg" style="display:flex; flex-direction:column; align-items:center;">
+          <h3 *ngIf="isDiscoveryMode">{{ displayedResults.length }} Destinos principales</h3>
+          <h3 *ngIf="isOriginDiscoveryMode">{{ displayedResults.length }} Orígenes disponibles</h3>
+          <h3 *ngIf="!isDiscoveryMode && !isOriginDiscoveryMode">Explorar mapa</h3>
+          <p class="slide-hint" style="color: var(--text-muted); font-size: 12px; margin-top: 4px; display: flex; align-items: center; gap: 4px; margin-bottom: 0;">
+            <svg *ngIf="bottomSheetState === 'collapsed'" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>
+            <svg *ngIf="bottomSheetState !== 'collapsed'" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            {{ bottomSheetState === 'collapsed' ? 'Desliza hacia arriba para explorar' : 'Desliza hacia abajo para esconder' }}
+          </p>
+        </div>
+
         <h3 *ngIf="destino && municipalityResults.length === 0 && flightResults.length === 0 && !loading && !errorMsg">No hay rutas disponibles</h3>
-        <h3 *ngIf="!destino && !loading">Desliza o busca un destino</h3>
-        <h3 *ngIf="loading">Buscando rutas...</h3>
-        <h3 *ngIf="errorMsg">{{ errorMsg }}</h3>
+
+        <h3 *ngIf="errorMsg" style="color: var(--danger);">{{ errorMsg }}</h3>
       </div>
     </div>
     
@@ -351,113 +493,91 @@
       <div class="sheet-header-sticky" [class.is-scrolled]="isSheetScrolled" *ngIf="(destino || isDiscoveryMode || isOriginDiscoveryMode) && municipalityResults.length > 0 && flightResults.length === 0">
          <div class="sheet-handle"></div>
          <h3 style="margin: 0; font-size: 16px; color: var(--text-main);">{{ isOriginDiscoveryMode ? 'Orígenes en ' + origenMunicipio : (isDiscoveryMode ? 'Destinos en ' + destinoMunicipio : 'Opciones para ' + destino) }}</h3>
-         <!-- Filter Chips (Purple App Style) -->
-        <div class="filter-chips">
-          <div class="chip" [class.active]="activeEmpresa === ''" (click)="setEmpresaFilter('')">
-            Todas ({{ municipalityResults.length }})
-          </div>
-          <div class="chip" [class.active]="activeEmpresa === 'Pedidos Express'" (click)="setEmpresaFilter('Pedidos Express')">
-            Pedidos Express ({{ countResultsByEmpresa('Pedidos Express') }})
-          </div>
-          <div class="chip" [class.active]="activeEmpresa === 'Melo Express'" (click)="setEmpresaFilter('Melo Express')">
-            Melo ({{ countResultsByEmpresa('Melo Express') }})
-          </div>
-        </div>
+ 
       </div>
       
       <!-- Loading state -->
       <div *ngIf="loading" class="loader-container">
-        <span class="loader"></span>
+        <div class="spinner-sivoy"></div>
         <p>Buscando mejores rutas...</p>
       </div>
 
 
 
-      <!-- Multiple Results from mass routing (Proximity Logic) -->
+      <!-- Multiple Results from mass routing (Proximity Logic / Discovery) -->
       <div *ngIf="(destino || isDiscoveryMode || isOriginDiscoveryMode) && municipalityResults.length > 0 && flightResults.length === 0 && !loading" class="cards-list">
-        <div class="location-card route-option-card" *ngFor="let res of displayedResults" (click)="toggleResultCard(res)">
-          <div class="card-content">
-            <div class="card-title-row">
-              <h4>{{ res.destino_nombre }}</h4>
-              <span class="price-tag" *ngIf="res.distance">{{ res.distance.toFixed(1) }} km</span>
-            </div>
-            
-            <div class="card-footer-row" style="margin-top: 8px;">
-              <span class="company-badge">{{ res.empresa }}</span>
-            </div>
-            
-            <!-- Discovery Mode View -->
-            <div class="route-details-box discovery-box" *ngIf="isDiscoveryMode">
-              <p class="discovery-msg" style="margin-bottom: 8px !important;">Para calcular cuándo llegaría tu envío con <strong>{{ res.empresa }}</strong>, selecciona el origen de tu paquete.</p>
-              
-              <button class="primary-btn discovery-cta" (click)="startRouteForCompany(res.empresa); $event.stopPropagation()">
-                📍 Seleccionar Origen para enviar
-              </button>
-
-              <!-- Schedule Box (Mini version) -->
-              <div class="pin-schedule-box" style="margin-top: 12px; text-align: left; padding: 10px;">
-                 <h4 style="margin: 0 0 8px 0; font-size: 13px; color: var(--text-main);">Horarios de Atención:</h4>
-                 <div class="schedule-grid" style="gap: 4px;">
-                   <div class="schedule-row" *ngFor="let h of res.horarios_operativos">
-                     <span class="s-day" style="font-size: 12px; text-transform: capitalize;">{{ h.dia_semana }}</span>
-                     <span class="s-time" style="font-size: 12px;">{{ formatTime(h.hora_apertura) }} - {{ formatTime(h.hora_cierre) }}</span>
-                   </div>
-                   <div class="schedule-row empty" *ngIf="!res.horarios_operativos || res.horarios_operativos.length === 0">
-                     <span style="font-size: 12px;">Horarios no definidos</span>
-                   </div>
-                 </div>
+        <div class="ticket-card location-poi-card" *ngFor="let res of displayedResults" (click)="toggleResultCard(res)" style="cursor: pointer;">
+          
+          <!-- Header: Company Logo & Name -->
+          <div class="ticket-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; align-items: center;">
+              <div class="ticket-company-logo" style="display: flex; align-items: center; justify-content: center; background: #f1f5f9; border-radius: 8px; width: 28px; height: 28px; margin-right: 12px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
               </div>
+              <span class="ticket-company-name">{{ res.empresa }}</span>
             </div>
-
-            <!-- Default collapsed view (Route Mode) -->
-            <div class="route-details-box" *ngIf="!isDiscoveryMode && expandedResultCard !== res">
-              <p>Llega el: <strong>{{ res.fecha_llegada }}</strong></p>
-              <p>Horario: {{ res.horario_recoleccion }}</p>
-              <p class="tap-to-expand-hint">Toca para ver más horarios</p>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span class="price-tag" *ngIf="res.distance !== undefined && res.distance !== 9999" style="color: var(--primary); font-weight: 700; font-size: 14px;">{{ res.distance < 1 ? (res.distance * 1000).toFixed(0) + ' m' : res.distance.toFixed(1) + ' km' }}</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" [style.transform]="expandedResultCard === res ? 'rotate(180deg)' : 'rotate(0deg)'" style="transition: transform 0.3s ease;">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
             </div>
-
-            <!-- Expanded view (Route Mode) -->
-            <div class="route-details-box expanded fade-in" *ngIf="!isDiscoveryMode && expandedResultCard === res">
-              <p class="expanded-msg">{{ res.origen_msg }}</p>
-              
-              <div class="options-list">
-                <div class="option-item" *ngFor="let op of res.opciones">
-                  <div class="op-date">{{ op.fecha_llegada }}</div>
-                  <div class="op-time">{{ op.horario_recoleccion }}</div>
-                </div>
-              </div>
-
-              <div class="destination-preview">
-                <div class="dest-icon">📍</div>
-                <div class="dest-text">
-                  <p class="dest-label">Destino del paquete:</p>
-                  <p class="dest-name">{{ destino }}</p>
-                </div>
-              </div>
-            </div>
-
           </div>
+
+          <div class="ticket-body" style="padding: 16px 20px;">
+            <div style="display: flex; align-items: flex-start; gap: 12px;">
+              <div style="margin-top: 4px; color: var(--primary);"><i class="pi pi-map-marker" style="font-size: 1.2rem;"></i></div>
+              <div>
+                <h4 style="margin: 0; font-size: 16px; color: #1e293b;">{{ res.destino_nombre }}</h4>
+                <p style="margin: 4px 0 0; font-size: 13px; color: #64748b;" *ngIf="isOriginDiscoveryMode">Punto de origen disponible</p>
+                <p style="margin: 4px 0 0; font-size: 13px; color: #64748b;" *ngIf="isDiscoveryMode">Punto de destino disponible</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Action CTA for Discovery Modes (Collapsed) -->
+          <div *ngIf="!expandedResultCard && (isDiscoveryMode || isOriginDiscoveryMode)" style="padding: 0 20px 16px; text-align: center;">
+             <span style="font-size: 12px; font-weight: 600; color: white; background: var(--primary); padding: 6px 14px; border-radius: 16px; box-shadow: 0 2px 4px rgba(255,87,34,0.2);">
+              Ver horarios y detalles
+             </span>
+          </div>
+
+          <!-- Dashed Cutout -->
+          <div class="ticket-cutout" *ngIf="expandedResultCard === res">
+            <div class="cutout left"></div>
+            <div class="dashed-line"></div>
+            <div class="cutout right"></div>
+          </div>
+
+          <!-- Schedule & Options (Expanded) -->
+          <div class="ticket-options" *ngIf="expandedResultCard === res" (click)="$event.stopPropagation()">
+            <div class="ticket-option-item" style="cursor: default;">
+              <span class="opt-label" style="display: block; margin-bottom: 8px;">HORARIOS DE ATENCIÓN</span>
+              <div class="schedule-grid" style="gap: 4px; background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 16px;">
+                <div class="schedule-row" *ngFor="let h of res.horarios_operativos" style="display: flex; justify-content: space-between;">
+                  <span class="s-day" style="font-size: 12px; font-weight: 500; color: #475569; text-transform: capitalize;">{{ h.dia_semana }}</span>
+                  <span class="s-time" style="font-size: 12px; color: #334155;">{{ formatTime(h.hora_apertura) }} - {{ formatTime(h.hora_cierre) }}</span>
+                </div>
+                <div class="schedule-row empty" *ngIf="!res.horarios_operativos || res.horarios_operativos.length === 0">
+                  <span style="font-size: 12px; color: #64748b;">Horarios no definidos</span>
+                </div>
+              </div>
+
+              <!-- CTA for Selection -->
+              <button (click)="startRouteForCompany(res.empresa)" style="width: 100%; font-size: 14px; font-weight: 600; color: white; background: var(--primary); padding: 12px 14px; border-radius: 8px; border: none; box-shadow: 0 4px 6px rgba(255,87,34,0.2); cursor: pointer; transition: opacity 0.2s;">
+                {{ isOriginDiscoveryMode ? '📍 Enviar desde aquí' : '📍 Enviar a este Destino' }}
+              </button>
+            </div>
+          </div>
+
         </div>
       </div>
 
       <!-- Result from routing (if a specific route is requested) -->
-      <div *ngIf="result && result.success && !loading" class="route-result-card">
-        <div class="route-header">
-          <div class="status-icon success"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
-          <h4>Ruta Encontrada</h4>
-        </div>
-        <p class="route-msg">{{ result.origen_msg }}</p>
-        <div class="options-list">
-          <div class="option-item" *ngFor="let op of result.opciones">
-            <div class="op-date">{{ op.fecha_llegada }}</div>
-            <div class="op-time">{{ op.horario_recoleccion }}</div>
-          </div>
-        </div>
-      </div>
       
       <!-- FLIGHT CARDS (TICKET DESIGN) -->
       <div *ngIf="destino && flightResults.length > 0 && !loading" class="flight-cards-list">
-        <div class="ticket-card" *ngFor="let flight of flightResults" (click)="flight.isExpanded = !flight.isExpanded" [style.cursor]="flightResults.length > 1 ? 'pointer' : 'default'">
+        <div class="ticket-card" *ngFor="let flight of flightResults" (click)="flight.isExpanded = !flight.isExpanded" [style.cursor]="flightResults.length > 1 ? 'pointer' : 'default'" [style.border]="highlightedRoute === flight ? '2px solid var(--primary)' : '1px solid #e2e8f0'">
           <!-- Logo & Company Name -->
           <div class="ticket-header" style="display: flex; justify-content: space-between; align-items: center;">
             <div style="display: flex; align-items: center;">
@@ -480,10 +600,10 @@
           <div class="ticket-body" style="padding: 16px 20px;">
             <div class="route-timeline">
               <!-- Origin Point -->
-              <div class="timeline-point" (click)="$event.stopPropagation(); showOriginPinDetails(flight)">
+              <div class="timeline-point">
                 <div class="timeline-icon origin" style="display: flex; align-items: center; justify-content: center;"><i class="pi pi-box" style="font-size: 10px; color: white;"></i></div>
                 <div class="timeline-content">
-                  <span class="timeline-title">{{ flight.origen_nombre }}</span>
+                  <span class="timeline-title">{{ formatLocationName(flight.origen_nombre, flight.origen_tipo) }}</span>
                   <span class="timeline-subtitle" style="display: flex; align-items: center; gap: 4px;">
                     Punto de Origen <i class="pi pi-info-circle" style="font-size: 10px; opacity: 0.6;"></i>
                   </span>
@@ -491,10 +611,10 @@
               </div>
               
               <!-- Destination Point -->
-              <div class="timeline-point" (click)="$event.stopPropagation(); showDestinoPinDetails(flight)">
+              <div class="timeline-point">
                 <div class="timeline-icon destination" style="display: flex; align-items: center; justify-content: center;"><i class="pi pi-map-marker" style="font-size: 10px; color: white;"></i></div>
                 <div class="timeline-content">
-                  <span class="timeline-title">{{ flight.destino_nombre || destinoInputValue }}</span>
+                  <span class="timeline-title">{{ formatLocationName(flight.destino_nombre_destino || flight.destino_nombre || destinoInputValue, flight.destino_tipo) }}</span>
                   <span class="timeline-subtitle" style="display: flex; align-items: center; gap: 4px;">
                     Destino <i class="pi pi-info-circle" style="font-size: 10px; opacity: 0.6;"></i>
                   </span>
@@ -522,11 +642,16 @@
             <div class="ticket-option-item" style="cursor: default;" (click)="$event.stopPropagation()">
               
               <!-- Botones de Acción Extra -->
-              <div class="action-buttons-row" style="display: flex; justify-content: flex-end; margin-bottom: 16px;">
-                <button class="secondary-btn" (click)="highlightRouteOnMap(flight); $event.stopPropagation()" style="display: flex; align-items: center; gap: 6px; padding: 6px 12px; font-size: 12px; border-radius: 6px; border: 1px solid #cbd5e1; background: white; color: #334155; font-weight: 600;">
-                  <i class="pi pi-map" style="font-size: 14px; color: var(--primary);"></i>
-                  Ver en Mapa
+              <div class="action-buttons-row" style="margin-bottom: 16px;">
+                <button (click)="highlightRouteOnMap(flight); $event.stopPropagation()" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px; font-size: 14px; border-radius: 8px; border: none; background: #f1f5f9; color: var(--primary); font-weight: 600; cursor: pointer; transition: background 0.2s;">
+                  <i class="pi pi-map-marker"></i>
+                  Ver ruta en mapa
                 </button>
+              </div>
+
+              <div *ngIf="flight.hasClosedAlert" style="background-color: #fffbeb; color: #b45309; padding: 10px; border-radius: 8px; font-size: 12px; margin-bottom: 16px; display: flex; gap: 8px; align-items: flex-start; line-height: 1.4;">
+                <i class="pi pi-exclamation-circle" style="margin-top: 2px;"></i>
+                <span>La agencia ya cerró hoy. La entrega ha pasado para el próximo día hábil disponible.</span>
               </div>
 
               <!-- Dropdown for Day Selection -->
@@ -537,13 +662,23 @@
                     {{ formatFriendlyDate(opt.dropoff_date) }}
                   </option>
                 </select>
-                <div *ngIf="flight.origen_msg" style="margin-top: 6px; font-size: 12px; color: #64748b; font-style: italic;">
-                  {{ flight.origen_msg }}
+                <div *ngIf="flight.opciones_entrega[flight.selected_opcion_idx || 0].dropoff_msg || flight.origen_msg" style="margin-top: 6px; font-size: 12px; color: #64748b; font-style: italic;">
+                  {{ flight.opciones_entrega[flight.selected_opcion_idx || 0].dropoff_msg || flight.origen_msg }}
                 </div>
               </div>
               
               <!-- Dynamic bindings -->
               <div class="option-row" *ngIf="flight.opciones_entrega && flight.opciones_entrega.length > 0">
+                <div class="opt-col">
+                  <span class="opt-label">LLEGADA APROX. AL DESTINO</span>
+                  <span class="opt-value">{{ flight.opciones_entrega[flight.selected_opcion_idx || 0].fecha_llegada }}</span>
+                </div>
+                <div class="opt-col text-right">
+                  <span class="opt-label">HORARIO DE ENTREGA</span>
+                  <span class="opt-value">{{ flight.opciones_entrega[flight.selected_opcion_idx || 0].horario_recoleccion }}</span>
+                </div>
+              </div>
+              <div class="option-row" *ngIf="!(flight.opciones_entrega && flight.opciones_entrega.length > 0)">
                 <div class="opt-col">
                   <span class="opt-label">LLEGADA APROX. AL DESTINO</span>
                   <span class="opt-value">{{ flight.fecha_llegada }}</span>
@@ -570,16 +705,7 @@
                  No hay entregas programadas prA3ximas.
               </div>
               
-              <div style="margin-top: 16px; padding-top: 12px; border-top: 1px dashed #e2e8f0; display: flex; gap: 10px; justify-content: center;">
-                <button (click)="showOriginPinDetails(flight)" style="flex: 1; padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1; background: #f8fafc; color: #475569; font-size: 12px; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: background 0.2s;">
-                  <i class="pi pi-circle-fill" style="font-size: 10px; color: #1e293b;"></i>
-                  Detalles de Origen
-                </button>
-                <button (click)="showDestinoPinDetails(flight)" style="flex: 1; padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1; background: #f8fafc; color: #475569; font-size: 12px; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: background 0.2s;">
-                  <i class="pi pi-map-marker" style="font-size: 12px; color: var(--primary);"></i>
-                  Detalles de Destino
-                </button>
-              </div>
+
             </div>
           </div>
         </div>

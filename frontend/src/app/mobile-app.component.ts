@@ -236,9 +236,9 @@ export class MobileAppComponent implements OnInit, AfterViewInit {
 
       this.map = L.map('map', { zoomControl: false }).setView([13.79, -88.89], 8); // Centered on El Salvador
   
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+      L.tileLayer('http://mt0.google.com/vt/lyrs=m&hl=es&x={x}&y={y}&z={z}', {
         maxZoom: 18,
-        attribution: '© OpenStreetMap contributors, © CARTO'
+        attribution: '&copy; Google Maps'
       }).addTo(this.map);
   
       // UX: Handle map clicks for destination selection or collapse bottom sheet
@@ -368,9 +368,19 @@ export class MobileAppComponent implements OnInit, AfterViewInit {
     } else {
       const userIcon = L.divIcon({
         className: 'user-location-marker',
-        html: '<div class="brand-dot"></div><div class="brand-dot-pulse"></div>',
-        iconSize: [24, 24],
-        iconAnchor: [12, 12]
+        html: `
+          <div style="position: relative; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;">
+            <div style="position: absolute; width: 100%; height: 100%; background: rgba(59, 130, 246, 0.3); border-radius: 50%; animation: pulse 2s infinite;"></div>
+            <div style="position: relative; z-index: 2; background: #3b82f6; width: 28px; height: 28px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center;">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="white" stroke="none">
+                <circle cx="12" cy="8" r="4"></circle>
+                <path d="M6 20v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"></path>
+              </svg>
+            </div>
+          </div>
+        `,
+        iconSize: [36, 36],
+        iconAnchor: [18, 18]
       });
       this.userMarker = L.marker(this.userLocation, { icon: userIcon, zIndexOffset: 1000 }).addTo(this.map);
       this.map.setView(this.userLocation, 13);
@@ -448,6 +458,11 @@ export class MobileAppComponent implements OnInit, AfterViewInit {
   updateMapMarkers() {
     if (!this.map) return;
     
+    if (this.routePolyline) {
+       this.map.removeLayer(this.routePolyline);
+       this.routePolyline = null;
+    }
+
     // Clear old markers
     this.markers.forEach(m => this.map.removeLayer(m));
     this.markers = [];
@@ -607,6 +622,7 @@ export class MobileAppComponent implements OnInit, AfterViewInit {
 
   resetMapMarkers() {
     this.highlightedRoute = null;
+    this.selectedPin = null;
     this.updateMarkerStyles();
     
     // Re-fit all bounds
@@ -757,7 +773,6 @@ export class MobileAppComponent implements OnInit, AfterViewInit {
   toggleSheet() {
     if (this.bottomSheetState === 'collapsed') {
       this.bottomSheetState = 'half';
-      if (this.highlightedRoute) this.resetMapMarkers();
     }
     else if (this.bottomSheetState === 'half') this.bottomSheetState = 'expanded';
     else this.bottomSheetState = 'collapsed';
@@ -766,7 +781,6 @@ export class MobileAppComponent implements OnInit, AfterViewInit {
   expandSheetIfNeeded() {
     if (this.bottomSheetState === 'collapsed') {
       this.bottomSheetState = 'half';
-      if (this.highlightedRoute) this.resetMapMarkers();
     }
   }
 
@@ -801,7 +815,6 @@ export class MobileAppComponent implements OnInit, AfterViewInit {
       // Swiped up
       if (this.bottomSheetState === 'collapsed') {
         this.bottomSheetState = 'half';
-        if (this.highlightedRoute) this.resetMapMarkers();
       }
       else if (this.bottomSheetState === 'half') this.bottomSheetState = 'expanded';
     }
@@ -810,7 +823,13 @@ export class MobileAppComponent implements OnInit, AfterViewInit {
   focusLocation(loc: any) {
     if (loc.ubicacion && loc.ubicacion.lat && loc.ubicacion.lng) {
       this.isProgrammaticMove = true;
-      this.map.flyTo([loc.ubicacion.lat, loc.ubicacion.lng], 15);
+      const lat = parseFloat(loc.ubicacion.lat);
+      const lng = parseFloat(loc.ubicacion.lng);
+      
+      // Aplicar un offset para que el pin quede en la mitad superior de la pantalla
+      // ya que la tarjeta de detalles cubre la mitad inferior en móviles.
+      const latOffset = window.innerWidth < 768 ? 0.005 : 0.002;
+      this.map.flyTo([lat - latOffset, lng], 15);
       
       // Auto collapse bottom sheet on mobile to show map
       if (window.innerWidth < 768) {
@@ -837,7 +856,7 @@ export class MobileAppComponent implements OnInit, AfterViewInit {
   }
 
   showDestinoPinDetails(flight: any) {
-    const destLoc = this.locations.find(l => l.nombre_destino === (flight.destino_nombre || this.destinoInputValue) && l.empresa === flight.empresa);
+    const destLoc = this.locations.find(l => l.nombre_destino === (flight.destino_nombre_destino || flight.destino_nombre || this.destinoInputValue) && l.empresa === flight.empresa);
     if (destLoc) {
       this.selectedPin = { ...destLoc, markerType: 'destination' };
       this.selectedPinDayFilter = '';
@@ -1271,8 +1290,6 @@ export class MobileAppComponent implements OnInit, AfterViewInit {
       this.focusInput('destino');
     } else if (type === 'destino' && !this.origen) {
       this.focusInput('origen');
-    } else if (this.origen && this.destino) {
-      this.executeSearch();
     }
   }
 
@@ -1961,6 +1978,71 @@ export class MobileAppComponent implements OnInit, AfterViewInit {
   }
 
   previewMapMarker: any = null;
+  routePolyline: any = null;
+
+  onMapHighlightRoute(flight: any) {
+    if (this.map && flight) {
+      this.resetMapMarkers();
+      this.highlightedRoute = flight;
+      
+      const bounds = L.latLngBounds([]);
+      
+      // Añadir origen
+      if (flight.origen_lat && flight.origen_lng) {
+        const oLat = parseFloat(flight.origen_lat);
+        const oLng = parseFloat(flight.origen_lng);
+        const pinIconOrigin = L.divIcon({
+          className: 'modern-pin-container',
+          html: `<div class="modern-pin" style="background: var(--primary);"></div><div class="pin-pulse"></div>`,
+          iconSize: [32, 42],
+          iconAnchor: [16, 42]
+        });
+        const m = L.marker([oLat, oLng], { icon: pinIconOrigin }).addTo(this.map);
+        m.on('click', () => {
+          this.showOriginPinDetails(flight);
+        });
+        this.markers.push(m);
+        bounds.extend([oLat, oLng]);
+      }
+      
+      // Añadir destino
+      if (flight.destino_lat && flight.destino_lng) {
+        const dLat = parseFloat(flight.destino_lat);
+        const dLng = parseFloat(flight.destino_lng);
+        const pinIconDest = L.divIcon({
+          className: 'modern-pin-container',
+          html: `<div class="modern-pin" style="background: #334155;"></div>`,
+          iconSize: [32, 42],
+          iconAnchor: [16, 42]
+        });
+        const m = L.marker([dLat, dLng], { icon: pinIconDest }).addTo(this.map);
+        m.on('click', () => {
+          this.showDestinoPinDetails(flight);
+        });
+        this.markers.push(m);
+        bounds.extend([dLat, dLng]);
+      }
+      
+      if (this.routePolyline) {
+        this.map.removeLayer(this.routePolyline);
+      }
+      
+      if (flight.origen_lat && flight.destino_lat) {
+        this.routePolyline = L.polyline([
+          [parseFloat(flight.origen_lat), parseFloat(flight.origen_lng)],
+          [parseFloat(flight.destino_lat), parseFloat(flight.destino_lng)]
+        ], {color: '#f97316', weight: 4, dashArray: '8, 8'}).addTo(this.map);
+      }
+      
+      if (bounds.isValid()) {
+        setTimeout(() => {
+          this.map.flyToBounds(bounds, { padding: [50, 50], maxZoom: 15 });
+        }, 100);
+      }
+      
+      this.collapseSheet();
+    }
+  }
 
   previewMap(coords: {lat: number, lng: number}) {
     if (this.map && coords && coords.lat && coords.lng) {

@@ -116,6 +116,17 @@
   overflow: hidden;
 }
 
+.bottom-sheet.hidden {
+  height: 0;
+  padding: 0;
+  opacity: 0;
+  pointer-events: none;
+  overflow: hidden;
+  border: none;
+  box-shadow: none;
+  margin: 0;
+}
+
 .bottom-sheet.collapsed .sheet-content {
   opacity: 0;
   pointer-events: none;
@@ -2227,13 +2238,13 @@ input:checked + .slider:before { transform: translateX(20px); }
   background-color: #e00000;
 }
 
-.custom-map-marker.marker-selected {
+.marker-selected .custom-map-marker {
   z-index: 1000 !important;
   transform: rotate(-45deg) scale(1.2);
-  box-shadow: 0 6px 15px rgba(0,0,0,0.5);
-  animation: inhaleExhale 1.5s ease-in-out infinite;
-  background-color: #ff3333;
-  border: 3px solid white;
+  box-shadow: 0 0 15px rgba(255, 59, 48, 0.8) !important;
+  animation: pinBreathe 2s infinite ease-in-out !important;
+  background-color: #ff3b30 !important;
+  border: 3px solid #ffd60a !important;
 }
 
 .marker-hidden {
@@ -2244,6 +2255,17 @@ input:checked + .slider:before { transform: translateX(20px); }
   0% { transform: rotate(-45deg) scale(1); }
   50% { transform: rotate(-45deg) scale(1.25); }
   100% { transform: rotate(-45deg) scale(1); }
+}
+
+@keyframes pinBreathe {
+  0%, 100% {
+    transform: rotate(-45deg) scale(1.1);
+    box-shadow: 0 0 10px rgba(255, 59, 48, 0.5);
+  }
+  50% {
+    transform: rotate(-45deg) scale(1.3);
+    box-shadow: 0 0 25px rgba(255, 59, 48, 0.9);
+  }
 }
 
 /* TICKET CARD DESIGN */
@@ -2530,9 +2552,7 @@ input:checked + .slider:before { transform: translateX(20px); }
 }
 
 .marker-selected {
-  transform: scale(1.2) rotate(-45deg);
   z-index: 1000 !important;
-  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
 }
 
 /* DASHBOARD TABS */

@@ -9,10 +9,12 @@
       [highlightedRoute]="highlightedRoute"
       (updateMapMarkers)="updateMapMarkers()"
       (clearMap)="resetMapMarkers()"
+      (mapHighlightRoute)="onMapHighlightRoute($event)"
       (recenterMapEvent)="recenterMap()"
       (resetMapMarkersEvent)="resetMapMarkers()"
       (showNearbyPointsEvent)="showNearbyPoints()"
       (previewImageEvent)="fullScreenImage = $event"
+      (showPinDetails)="viewOnMap($event.location)"
     ></app-home>
   </div>
 

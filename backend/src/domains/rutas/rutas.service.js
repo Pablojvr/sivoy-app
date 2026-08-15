@@ -246,9 +246,11 @@ async function searchFlights(payload) {
                 results.push({
                     empresa: o.empresa,
                     origen_nombre: o.nombre_destino,
+                    origen_tipo: o.tipo,
                     origen_lat: o.ubicacion.lat,
                     origen_lng: o.ubicacion.lng,
                     destino_nombre_destino: d.nombre_destino,
+                    destino_tipo: d.tipo,
                     destino_lat: d.ubicacion.lat,
                     destino_lng: d.ubicacion.lng,
                     origen_msg: firstIngresoMsg,

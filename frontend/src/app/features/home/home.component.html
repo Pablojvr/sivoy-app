@@ -580,7 +580,7 @@
       
       <!-- FLIGHT CARDS (TICKET DESIGN) -->
       <div *ngIf="destino && flightResults.length > 0 && !loading" class="flight-cards-list">
-        <div class="ticket-card" *ngFor="let flight of flightResults" (click)="flight.isExpanded = !flight.isExpanded" [style.cursor]="flightResults.length > 1 ? 'pointer' : 'default'" [style.border]="highlightedRoute === flight ? '2px solid var(--primary)' : '1px solid #e2e8f0'">
+        <div class="ticket-card" *ngFor="let flight of flightResults" (click)="flight.isExpanded = !flight.isExpanded" [style.cursor]="flightResults.length > 1 ? 'pointer' : 'default'" [style.border]="flight.isExpanded ? '2px solid var(--primary)' : '1px solid #e2e8f0'">
           <!-- Logo & Company Name -->
           <div class="ticket-header" style="display: flex; justify-content: space-between; align-items: center;">
             <div style="display: flex; align-items: center;">

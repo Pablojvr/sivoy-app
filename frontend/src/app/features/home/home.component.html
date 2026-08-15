@@ -317,16 +317,16 @@
          </div>
       </div>
   
-      <div *ngIf="!highlightedRoute" style="display: flex; flex-direction: column; gap: 10px; margin-top: 20px;">
+      <div *ngIf="!highlightedRoute && !(origen && destino)" style="display: flex; flex-direction: column; gap: 10px; margin-top: 20px;">
          <ng-container *ngIf="selectedPin.markerType === 'destination'">
            <button class="primary-btn w-100" style="padding: 14px; font-size: 15px; display: flex; justify-content: center; align-items: center; gap: 8px;" (click)="setPinAsDestinationAndPromptOrigin()">
-              {{ origen ? 'Calcular ruta hacia aquí' : 'Seleccionar como destino' }}
+              {{ origen ? 'Calcular ruta hacia este punto' : 'Seleccionar como destino' }}
            </button>
          </ng-container>
   
          <ng-container *ngIf="selectedPin.markerType === 'origin'">
            <button class="primary-btn w-100" style="padding: 14px; font-size: 15px; display: flex; justify-content: center; align-items: center; gap: 8px;" (click)="setPinAsOriginAndPromptDestination()">
-              {{ destino && !destinoMunicipio ? 'Calcular ruta desde aquí' : 'Buscar destino' }}
+              {{ destino ? 'Calcular ruta desde este punto' : 'Seleccionar como origen' }}
            </button>
          </ng-container>
       </div>

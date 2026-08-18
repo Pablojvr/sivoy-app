@@ -17,9 +17,12 @@ export class HomeComponent implements OnInit {
   @Input() locations: any[] = [];
   @Input() userLocation: any = null;
   private _selectedPin: any = null;
+  activePinTab: 'info' | 'horarios' = 'info';
+
   @Input() set selectedPin(value: any) {
     this._selectedPin = value;
     if (value) {
+      this.activePinTab = 'info';
       this.bottomSheetState = 'hidden';
     } else {
       if (this.bottomSheetState === 'hidden') {

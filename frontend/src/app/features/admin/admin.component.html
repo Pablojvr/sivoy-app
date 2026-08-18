@@ -74,30 +74,50 @@
             <input type="text" [(ngModel)]="adminSearchTerm" (input)="applyAdminFilter()" placeholder="Buscar por nombre, municipio..." class="admin-input admin-search-input">
           </div>
 
-          <div class="admin-filter-row">
-            <select [(ngModel)]="adminCompanyFilter" (change)="applyAdminFilter()" class="admin-select">
-              <option value="">Todas las empresas</option>
-              <option *ngFor="let emp of adminCompanies" [value]="emp">{{ emp }}</option>
-            </select>
-            <div class="admin-count" [style.max-height]="isScrolled ? '0' : '20px'" [style.opacity]="isScrolled ? '0' : '1'" style="transition: all 0.3s ease; overflow: hidden; font-size: 13px; color: var(--text-muted); display: flex; align-items: center;">Mostrando {{ adminFilteredLocations.length }} puntos</div>
+          <!-- Paginadores Inline en Cabecera -->
+          <div class="paginator-container" *ngIf="adminFilteredLocations.length > rows" style="margin-top: 15px; transition: all 0.3s ease;">
+              
+              <!-- FULL PAGINATOR (Shown when NOT scrolled) -->
+              <div *ngIf="!isScrolled" class="full-paginator fade-in" style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <button class="paginator-btn" [disabled]="first === 0" (click)="onPageChange({first: 0, rows: rows})">
+                      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="11 17 6 12 11 7"></polyline><polyline points="18 17 13 12 18 7"></polyline></svg>
+                    </button>
+                    <button class="paginator-btn" [disabled]="first === 0" (click)="onPageChange({first: first - rows, rows: rows})">
+                      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                    </button>
+                    <ng-container *ngFor="let p of getPages()">
+                      <button class="paginator-btn paginator-num" [class.paginator-active]="p === (first/rows)" (click)="onPageChange({first: p * rows, rows: rows})">
+                        {{ p + 1 }}
+                      </button>
+                    </ng-container>
+                    <button class="paginator-btn" [disabled]="first + rows >= adminFilteredLocations.length" (click)="onPageChange({first: first + rows, rows: rows})">
+                      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                    </button>
+                    <button class="paginator-btn" [disabled]="first + rows >= adminFilteredLocations.length" (click)="onPageChange({first: (totalPages - 1) * rows, rows: rows})">
+                      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="13 17 18 12 13 7"></polyline><polyline points="6 17 11 12 6 7"></polyline></svg>
+                    </button>
+                  </div>
+                  <div style="font-size: 13px; color: var(--text-muted); font-weight: 500; text-align: center;">Mostrando {{ first + 1 }} a {{ Math.min(first + rows, adminFilteredLocations.length) }} de {{ adminFilteredLocations.length }} puntos</div>
+              </div>
+
+              <!-- COMPACT PAGINATOR (Shown when IS scrolled) -->
+              <div *ngIf="isScrolled" class="compact-paginator fade-in">
+                 <button class="pill-btn" [disabled]="first === 0" (click)="onPageChange({first: first - rows, rows: rows})">
+                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                 </button>
+                 <span class="pill-text">Pág. {{ (first / rows) + 1 }} de {{ totalPages }}</span>
+                 <button class="pill-btn" [disabled]="first + rows >= adminFilteredLocations.length" (click)="onPageChange({first: first + rows, rows: rows})">
+                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                 </button>
+              </div>
           </div>
         </div>
       </div>
       
       <!-- Listado con Paginación -->
       <div class="admin-list" style="padding-bottom: 130px;">
-        <!-- Simplified Fixed Paginator Pill -->
-        <div class="fixed-paginator-wrapper" *ngIf="adminFilteredLocations.length > rows">
-          <div class="fixed-paginator-pill">
-            <button class="pill-btn" [disabled]="first === 0" (click)="onPageChange({first: first - rows, rows: rows})">
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg>
-            </button>
-            <span class="pill-text">{{ (first / rows) + 1 }} de {{ totalPages }}</span>
-            <button class="pill-btn" [disabled]="first + rows >= adminFilteredLocations.length" (click)="onPageChange({first: first + rows, rows: rows})">
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
-            </button>
-          </div>
-        </div>
+
 
         <div class="admin-card clickable-card" *ngFor="let loc of adminFilteredLocations | slice:first:(first+rows)" (click)="viewLocation(loc)">
           <div class="admin-card-info">

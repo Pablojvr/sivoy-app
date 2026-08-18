@@ -200,14 +200,16 @@ export class HomeComponent implements OnInit {
   }
 
   onOrigenInput(event: any) {
-    this.origenInputValue = event.target.value;
+    const val = typeof event === 'string' ? event : event?.target?.value || '';
+    this.origenInputValue = val;
     this.locationSearchQuery = this.origenInputValue;
     this.showAutocomplete = true;
     this.updateAutocompleteFilters();
   }
 
   onDestinoInput(event: any) {
-    this.destinoInputValue = event.target.value;
+    const val = typeof event === 'string' ? event : event?.target?.value || '';
+    this.destinoInputValue = val;
     this.locationSearchQuery = this.destinoInputValue;
     this.showAutocomplete = true;
     this.updateAutocompleteFilters();

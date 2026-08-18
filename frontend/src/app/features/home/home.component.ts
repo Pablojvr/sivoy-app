@@ -72,6 +72,7 @@ export class HomeComponent implements OnInit {
   showAdvanced: boolean = false;
   arrivalDate: string = '';
   selectedPinDayFilter: string = '';
+  lastSelectedLocationId: any = null;
   
   municipalityResults: any[] = [];
   flightResults: any[] = [];
@@ -553,6 +554,7 @@ export class HomeComponent implements OnInit {
   }
 
   toggleResultCard(flight: any) {
+    this.lastSelectedLocationId = flight.id_destino || flight.id_origen || flight.id;
     if (this.isDiscoveryMode || this.isOriginDiscoveryMode) {
       this.showPinDetails.emit({ location: flight, type: this.isDiscoveryMode ? 'destino' : 'origen' });
     } else {

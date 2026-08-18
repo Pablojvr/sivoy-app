@@ -33,6 +33,11 @@ export class AdminComponent implements OnInit {
   adminCompanyFilter: string = '';
   adminSearchTerm: string = '';
   
+  // Pagination & Scroll State
+  first: number = 0;
+  rows: number = 10;
+  isScrolled: boolean = false;
+  
   activeEmpresaMenuId: number | null = null;
   isEditingEmpresa: boolean = false;
   isSavingEmpresa: boolean = false;
@@ -123,10 +128,22 @@ export class AdminComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.initAdminPanel();
+    this.extractCompanies();
   }
 
-  initAdminPanel() {
+  ngAfterViewInit() {
+    // Escuchar scroll del contenedor padre para el sticky header
+    setTimeout(() => {
+      const scrollContainer = document.querySelector('.admin-tab-content');
+      if (scrollContainer) {
+        scrollContainer.addEventListener('scroll', () => {
+          this.isScrolled = scrollContainer.scrollTop > 20;
+        });
+      }
+    }, 100);
+  }
+
+  extractCompanies() {
     this.adminCompanies = Array.from(new Set(this.locations.map(l => l.empresa))).filter(e => e) as string[];
     this.adminSearchTerm = '';
     this.loadAdminEmpresas();
@@ -252,6 +269,12 @@ export class AdminComponent implements OnInit {
     }
     
     this.adminFilteredLocations = filtered;
+    this.first = 0;
+  }
+
+  onPageChange(event: any) {
+    this.first = event.first;
+    this.rows = event.rows;
   }
 
   viewLocation(loc: any) {

@@ -31,7 +31,16 @@ export class HomeComponent implements OnInit {
         const cardId = 'card-' + this.lastSelectedLocationId;
         const el = document.getElementById(cardId);
         if (el) {
-          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          const container = el.closest('.sheet-content');
+          if (container) {
+            const elRect = el.getBoundingClientRect();
+            const containerRect = container.getBoundingClientRect();
+            // Calcular el desplazamiento necesario para centrar el elemento en el contenedor
+            const offsetToCenter = (elRect.top - containerRect.top) - (containerRect.height / 2) + (elRect.height / 2);
+            container.scrollTo({ top: container.scrollTop + offsetToCenter, behavior: 'smooth' });
+          } else {
+            el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          }
         }
       }, 100);
     } else {

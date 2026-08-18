@@ -2717,3 +2717,13 @@ app-home, app-admin { display: block; width: 100%; height: 100%; position: relat
 .modal-body::-webkit-scrollbar-thumb:hover {
   background-color: rgba(0,0,0,0.25);
 }
+
+/* Estilos para el Paginador de PrimeNG (Regla UI Corporativa) */
+:host ::ng-deep .custom-paginator .p-paginator-page.p-highlight { 
+  background-color: var(--primary) !important; 
+  color: white !important; 
+  border-color: var(--primary) !important; 
+}
+:host ::ng-deep .custom-paginator .p-paginator-page:not(.p-highlight):hover { 
+  background-color: rgba(255, 87, 34, 0.1) !important; 
+}

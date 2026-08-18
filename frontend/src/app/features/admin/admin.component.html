@@ -86,7 +86,17 @@
       
       <!-- Listado con Paginación -->
       <div class="admin-list">
-        <p-paginator [rows]="rows" [totalRecords]="adminFilteredLocations.length" [first]="first" (onPageChange)="onPageChange($event)" [showCurrentPageReport]="true" currentPageReportTemplate="{first} a {last} de {totalRecords}" styleClass="custom-paginator" *ngIf="adminFilteredLocations.length > rows"></p-paginator>
+        <!-- Custom Paginator Top -->
+        <div class="custom-paginator" *ngIf="adminFilteredLocations.length > rows" style="display: flex; justify-content: center; align-items: center; gap: 5px; margin-bottom: 15px; flex-wrap: wrap;">
+          <span style="font-size: 13px; color: var(--text-muted); margin-right: 10px;">{{ first + 1 }} a {{ Math.min(first + rows, adminFilteredLocations.length) }} de {{ adminFilteredLocations.length }}</span>
+          <button class="p-paginator-page" [disabled]="first === 0" (click)="onPageChange({first: first - rows, rows: rows})" style="width: 30px; height: 30px; border-radius: 5px; border: 1px solid #ddd; background: white; cursor: pointer; display: flex; align-items: center; justify-content: center;">&laquo;</button>
+          
+          <ng-container *ngFor="let p of getPages()">
+            <button class="p-paginator-page" [class.p-highlight]="p === (first/rows)" (click)="onPageChange({first: p * rows, rows: rows})" style="width: 30px; height: 30px; border-radius: 5px; border: 1px solid #ddd; background: white; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 13px;">{{ p + 1 }}</button>
+          </ng-container>
+          
+          <button class="p-paginator-page" [disabled]="first + rows >= adminFilteredLocations.length" (click)="onPageChange({first: first + rows, rows: rows})" style="width: 30px; height: 30px; border-radius: 5px; border: 1px solid #ddd; background: white; cursor: pointer; display: flex; align-items: center; justify-content: center;">&raquo;</button>
+        </div>
 
         <div class="admin-card clickable-card" *ngFor="let loc of adminFilteredLocations | slice:first:(first+rows)" (click)="viewLocation(loc)">
           <div class="admin-card-info">
@@ -98,6 +108,7 @@
             <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
           </div>
         </div>
+        <!-- Empty State -->
         <div class="empty-state" *ngIf="adminFilteredLocations.length === 0">
           No se encontraron puntos.
         </div>

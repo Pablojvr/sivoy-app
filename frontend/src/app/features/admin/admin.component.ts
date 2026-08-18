@@ -277,6 +277,15 @@ export class AdminComponent implements OnInit {
     this.rows = event.rows;
   }
 
+  get Math() {
+    return Math;
+  }
+
+  getPages(): number[] {
+    const totalPages = Math.ceil(this.adminFilteredLocations.length / this.rows);
+    return Array.from({ length: totalPages }, (_, i) => i);
+  }
+
   viewLocation(loc: any) {
     this.viewingLocation = loc;
   }

@@ -61,7 +61,7 @@
     <!-- SUBTAB: PUNTOS -->
     <div class="admin-subtab fade-in" *ngIf="adminSubTab === 'puntos'">
       <!-- Cabecera Inteligente / Sticky Header -->
-      <div class="admin-sticky-header" [class.is-scrolled]="isScrolled" style="position: sticky; top: -1.25rem; z-index: 10; background: var(--bg-color); padding-bottom: 10px; margin: 0 -20px 20px -20px; padding-left: 20px; padding-right: 20px; transition: all 0.3s ease; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+      <div class="admin-sticky-header" [class.is-scrolled]="isScrolled" style="position: sticky; top: -20px; z-index: 10; background: var(--bg-color); padding-top: 20px; padding-bottom: 15px; margin: 0 -20px 20px -20px; padding-left: 20px; padding-right: 20px; transition: all 0.3s ease; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
         
         <!-- Mini-header oculto por defecto, se muestra on scroll -->
         <div class="mini-header" [style.max-height]="isScrolled ? '40px' : '0'" [style.opacity]="isScrolled ? '1' : '0'" [style.overflow]="'hidden'" [style.transition]="'all 0.3s ease'" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: isScrolled ? '10px' : '0';">
@@ -88,7 +88,6 @@
       <div class="admin-list">
         <!-- Custom Paginator Top -->
         <div class="custom-paginator" *ngIf="adminFilteredLocations.length > rows" style="display: flex; flex-direction: column; align-items: center; gap: 10px; margin-bottom: 20px;">
-          <div style="font-size: 13px; color: var(--text-muted); font-weight: 500;">Mostrando {{ first + 1 }} a {{ Math.min(first + rows, adminFilteredLocations.length) }} de {{ adminFilteredLocations.length }} puntos</div>
           <div style="display: flex; align-items: center; gap: 8px;">
             <button class="paginator-btn" [disabled]="first === 0" (click)="onPageChange({first: 0, rows: rows})">
               <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="11 17 6 12 11 7"></polyline><polyline points="18 17 13 12 18 7"></polyline></svg>
@@ -112,6 +111,7 @@
               <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="13 17 18 12 13 7"></polyline><polyline points="6 17 11 12 6 7"></polyline></svg>
             </button>
           </div>
+          <div style="font-size: 13px; color: var(--text-muted); font-weight: 500;">Mostrando {{ first + 1 }} a {{ Math.min(first + rows, adminFilteredLocations.length) }} de {{ adminFilteredLocations.length }} puntos</div>
         </div>
 
         <div class="admin-card clickable-card" *ngFor="let loc of adminFilteredLocations | slice:first:(first+rows)" (click)="viewLocation(loc)">

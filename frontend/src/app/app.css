@@ -2238,13 +2238,13 @@ input:checked + .slider:before { transform: translateX(20px); }
   background-color: #e00000;
 }
 
-.marker-selected .custom-map-marker {
+.custom-map-marker.marker-selected {
   z-index: 1000 !important;
   transform: rotate(-45deg) scale(1.2);
-  box-shadow: 0 0 15px rgba(255, 59, 48, 0.8) !important;
+  box-shadow: 0 0 0 3px #fff, 0 0 20px 8px rgba(255, 87, 34, 0.6) !important;
   animation: pinBreathe 2s infinite ease-in-out !important;
-  background-color: #ff3b30 !important;
-  border: 3px solid #ffd60a !important;
+  background-color: var(--primary) !important;
+  border: 3px solid #fff !important;
 }
 
 .marker-hidden {

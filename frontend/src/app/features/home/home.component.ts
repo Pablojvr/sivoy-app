@@ -24,6 +24,16 @@ export class HomeComponent implements OnInit {
     if (value) {
       this.activePinTab = 'info';
       this.bottomSheetState = 'hidden';
+      this.lastSelectedLocationId = value.id_destino || value.id_origen || value.id;
+      
+      // Auto-scroll the list to the selected card
+      setTimeout(() => {
+        const cardId = 'card-' + this.lastSelectedLocationId;
+        const el = document.getElementById(cardId);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 100);
     } else {
       if (this.bottomSheetState === 'hidden') {
          this.bottomSheetState = 'collapsed'; // Restaura a estado contraido como esperaba el usuario

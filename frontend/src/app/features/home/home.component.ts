@@ -39,8 +39,20 @@ export class HomeComponent implements OnInit {
             // Calculate element's absolute top relative to the container's scroll content
             const absoluteElTop = container.scrollTop + (elRect.top - containerRect.top);
             
-            // Calculate target scroll to center the element
-            let targetScrollTop = absoluteElTop - (containerRect.height / 2) + (elRect.height / 2);
+            // Buscar el header sticky si existe, para restar su altura del area visible
+            const stickyHeader = container.querySelector('.sheet-header-sticky') as HTMLElement;
+            const stickyHeight = stickyHeader ? stickyHeader.offsetHeight : 0;
+            const visibleHeight = containerRect.height - stickyHeight;
+            
+            // Calculate target scroll to center the element within the VISIBLE area
+            let targetScrollTop = absoluteElTop - stickyHeight - (visibleHeight / 2) + (elRect.height / 2);
+            
+            // Prevent the top of the card from hiding under the sticky header
+            // If centering pushes the top too far up, clamp it so the top is visible
+            const minSafeScroll = absoluteElTop - stickyHeight - 16; // 16px de margen
+            if (targetScrollTop > minSafeScroll) {
+              targetScrollTop = minSafeScroll;
+            }
             
             // Clamp the scroll value to prevent scrolling past bounds (prevents white gaps)
             const maxScroll = container.scrollHeight - container.clientHeight;

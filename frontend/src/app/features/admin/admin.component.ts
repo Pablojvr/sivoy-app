@@ -26,7 +26,7 @@ export class AdminComponent implements OnInit {
   @Output() previewImageEvent = new EventEmitter<string>();
   @Output() locationUpdated = new EventEmitter<any>();
 
-  adminSubTab: 'empresas' | 'puntos' = 'empresas';
+  adminSubTab: 'empresas' | 'puntos' = 'puntos';
   adminEmpresasList: any[] = [];
   adminFilteredLocations: any[] = [];
   adminCompanies: string[] = [];

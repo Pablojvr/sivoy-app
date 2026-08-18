@@ -258,7 +258,7 @@
     </div>
     
     <!-- MODAL BODY -->
-    <div class="modal-body" style="padding: 24px; overflow-y: auto; max-height: 60vh;">
+    <div class="modal-body" style="padding: 12px 24px 24px 24px; overflow-y: auto; max-height: 60vh;">
        <!-- TABS HEADER -->
       <div style="display: flex; gap: 8px; margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; padding-bottom: 0;">
         <button (click)="activePinTab = 'info'" 
@@ -313,6 +313,20 @@
             </button>
           </div>
         </div>
+
+        <div *ngIf="!highlightedRoute && !(origen && destino)" style="display: flex; flex-direction: column; gap: 10px; margin-top: 20px;">
+           <ng-container *ngIf="selectedPin.markerType === 'destination'">
+             <button class="primary-btn w-100" style="padding: 14px; font-size: 15px; display: flex; justify-content: center; align-items: center; gap: 8px;" (click)="setPinAsDestinationAndPromptOrigin()">
+                {{ origen ? 'Calcular ruta hacia este punto' : 'Seleccionar como destino' }}
+             </button>
+           </ng-container>
+    
+           <ng-container *ngIf="selectedPin.markerType === 'origin'">
+             <button class="primary-btn w-100" style="padding: 14px; font-size: 15px; display: flex; justify-content: center; align-items: center; gap: 8px;" (click)="setPinAsOriginAndPromptDestination()">
+                {{ destino ? 'Calcular ruta desde este punto' : 'Seleccionar como origen' }}
+             </button>
+           </ng-container>
+        </div>
       </div>
 
       <!-- TAB 2: HORARIOS -->
@@ -338,20 +352,6 @@
              Horarios no definidos
            </div>
         </div>
-      </div>
-  
-      <div *ngIf="!highlightedRoute && !(origen && destino)" style="display: flex; flex-direction: column; gap: 10px; margin-top: 20px;">
-         <ng-container *ngIf="selectedPin.markerType === 'destination'">
-           <button class="primary-btn w-100" style="padding: 14px; font-size: 15px; display: flex; justify-content: center; align-items: center; gap: 8px;" (click)="setPinAsDestinationAndPromptOrigin()">
-              {{ origen ? 'Calcular ruta hacia este punto' : 'Seleccionar como destino' }}
-           </button>
-         </ng-container>
-  
-         <ng-container *ngIf="selectedPin.markerType === 'origin'">
-           <button class="primary-btn w-100" style="padding: 14px; font-size: 15px; display: flex; justify-content: center; align-items: center; gap: 8px;" (click)="setPinAsOriginAndPromptDestination()">
-              {{ destino ? 'Calcular ruta desde este punto' : 'Seleccionar como origen' }}
-           </button>
-         </ng-container>
       </div>
     </div>
   </div>
@@ -546,6 +546,7 @@
       <!-- Multiple Results from mass routing (Proximity Logic / Discovery) -->
       <div *ngIf="(destino || isDiscoveryMode || isOriginDiscoveryMode) && municipalityResults.length > 0 && flightResults.length === 0 && !loading" class="cards-list">
         <div class="ticket-card location-poi-card" 
+             [id]="'card-' + (res.id_destino || res.id_origen || res.id)"
              *ngFor="let res of displayedResults" 
              (click)="toggleResultCard(res)" 
              [style.box-shadow]="lastSelectedLocationId === (res.id_destino || res.id_origen || res.id) ? '0 0 0 2px var(--primary), 0 4px 20px rgba(255,87,34,0.35)' : '0 4px 6px rgba(0,0,0,0.05)'"

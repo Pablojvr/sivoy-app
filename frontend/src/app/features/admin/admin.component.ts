@@ -281,9 +281,32 @@ export class AdminComponent implements OnInit {
     return Math;
   }
 
+  get totalPages(): number {
+    return Math.ceil(this.adminFilteredLocations.length / this.rows);
+  }
+
   getPages(): number[] {
-    const totalPages = Math.ceil(this.adminFilteredLocations.length / this.rows);
-    return Array.from({ length: totalPages }, (_, i) => i);
+    const total = this.totalPages;
+    if (total === 0) return [];
+    
+    const currentPage = Math.floor(this.first / this.rows);
+    let startPage = Math.max(0, currentPage - 1);
+    let endPage = Math.min(total - 1, currentPage + 1);
+
+    // Ajuste para asegurar siempre 3 botones si hay suficientes páginas
+    if (endPage - startPage < 2) {
+      if (startPage === 0) {
+        endPage = Math.min(total - 1, 2);
+      } else if (endPage === total - 1) {
+        startPage = Math.max(0, total - 3);
+      }
+    }
+
+    const pages = [];
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+    return pages;
   }
 
   viewLocation(loc: any) {

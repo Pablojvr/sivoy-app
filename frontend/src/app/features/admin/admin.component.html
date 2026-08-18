@@ -87,15 +87,31 @@
       <!-- Listado con Paginación -->
       <div class="admin-list">
         <!-- Custom Paginator Top -->
-        <div class="custom-paginator" *ngIf="adminFilteredLocations.length > rows" style="display: flex; justify-content: center; align-items: center; gap: 5px; margin-bottom: 15px; flex-wrap: wrap;">
-          <span style="font-size: 13px; color: var(--text-muted); margin-right: 10px;">{{ first + 1 }} a {{ Math.min(first + rows, adminFilteredLocations.length) }} de {{ adminFilteredLocations.length }}</span>
-          <button class="p-paginator-page" [disabled]="first === 0" (click)="onPageChange({first: first - rows, rows: rows})" style="width: 30px; height: 30px; border-radius: 5px; border: 1px solid #ddd; background: white; cursor: pointer; display: flex; align-items: center; justify-content: center;">&laquo;</button>
-          
-          <ng-container *ngFor="let p of getPages()">
-            <button class="p-paginator-page" [class.p-highlight]="p === (first/rows)" (click)="onPageChange({first: p * rows, rows: rows})" style="width: 30px; height: 30px; border-radius: 5px; border: 1px solid #ddd; background: white; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 13px;">{{ p + 1 }}</button>
-          </ng-container>
-          
-          <button class="p-paginator-page" [disabled]="first + rows >= adminFilteredLocations.length" (click)="onPageChange({first: first + rows, rows: rows})" style="width: 30px; height: 30px; border-radius: 5px; border: 1px solid #ddd; background: white; cursor: pointer; display: flex; align-items: center; justify-content: center;">&raquo;</button>
+        <div class="custom-paginator" *ngIf="adminFilteredLocations.length > rows" style="display: flex; flex-direction: column; align-items: center; gap: 10px; margin-bottom: 20px;">
+          <div style="font-size: 13px; color: var(--text-muted); font-weight: 500;">Mostrando {{ first + 1 }} a {{ Math.min(first + rows, adminFilteredLocations.length) }} de {{ adminFilteredLocations.length }} puntos</div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <button class="paginator-btn" [disabled]="first === 0" (click)="onPageChange({first: 0, rows: rows})">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="11 17 6 12 11 7"></polyline><polyline points="18 17 13 12 18 7"></polyline></svg>
+            </button>
+            
+            <button class="paginator-btn" [disabled]="first === 0" (click)="onPageChange({first: first - rows, rows: rows})">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            </button>
+            
+            <ng-container *ngFor="let p of getPages()">
+              <button class="paginator-btn paginator-num" [class.paginator-active]="p === (first/rows)" (click)="onPageChange({first: p * rows, rows: rows})">
+                {{ p + 1 }}
+              </button>
+            </ng-container>
+            
+            <button class="paginator-btn" [disabled]="first + rows >= adminFilteredLocations.length" (click)="onPageChange({first: first + rows, rows: rows})">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </button>
+
+            <button class="paginator-btn" [disabled]="first + rows >= adminFilteredLocations.length" (click)="onPageChange({first: (totalPages - 1) * rows, rows: rows})">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="13 17 18 12 13 7"></polyline><polyline points="6 17 11 12 6 7"></polyline></svg>
+            </button>
+          </div>
         </div>
 
         <div class="admin-card clickable-card" *ngFor="let loc of adminFilteredLocations | slice:first:(first+rows)" (click)="viewLocation(loc)">

@@ -35,14 +35,24 @@ export class HomeComponent implements OnInit {
           if (container) {
             const elRect = el.getBoundingClientRect();
             const containerRect = container.getBoundingClientRect();
-            // Calcular el desplazamiento necesario para centrar el elemento en el contenedor
-            const offsetToCenter = (elRect.top - containerRect.top) - (containerRect.height / 2) + (elRect.height / 2);
-            container.scrollTo({ top: container.scrollTop + offsetToCenter, behavior: 'smooth' });
+            
+            // Calculate element's absolute top relative to the container's scroll content
+            const absoluteElTop = container.scrollTop + (elRect.top - containerRect.top);
+            
+            // Calculate target scroll to center the element
+            let targetScrollTop = absoluteElTop - (containerRect.height / 2) + (elRect.height / 2);
+            
+            // Clamp the scroll value to prevent scrolling past bounds (prevents white gaps)
+            const maxScroll = container.scrollHeight - container.clientHeight;
+            if (targetScrollTop < 0) targetScrollTop = 0;
+            if (targetScrollTop > maxScroll) targetScrollTop = maxScroll;
+            
+            container.scrollTo({ top: targetScrollTop, behavior: 'smooth' });
           } else {
             el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
           }
         }
-      }, 100);
+      }, 150);
     } else {
       if (this.bottomSheetState === 'hidden') {
          this.bottomSheetState = 'collapsed'; // Restaura a estado contraido como esperaba el usuario

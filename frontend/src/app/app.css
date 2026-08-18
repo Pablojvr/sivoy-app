@@ -2718,12 +2718,44 @@ app-home, app-admin { display: block; width: 100%; height: 100%; position: relat
   background-color: rgba(0,0,0,0.25);
 }
 
-/* Estilos para el Paginador de PrimeNG (Regla UI Corporativa) */
-:host ::ng-deep .custom-paginator .p-paginator-page.p-highlight { 
-  background-color: var(--primary) !important; 
-  color: white !important; 
-  border-color: var(--primary) !important; 
+/* Estilos para el Paginador Personalizado (Regla UI Corporativa) */
+.paginator-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: white;
+  color: var(--text-color);
+  font-size: 14px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  transition: all 0.2s ease;
 }
-:host ::ng-deep .custom-paginator .p-paginator-page:not(.p-highlight):hover { 
-  background-color: rgba(255, 87, 34, 0.1) !important; 
+
+.paginator-btn:hover:not(:disabled) {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  transform: translateY(-1px);
+  color: var(--primary);
+}
+
+.paginator-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  box-shadow: none;
+  background: #f8f9fa;
+}
+
+.paginator-btn.paginator-active {
+  background-color: var(--primary);
+  color: white;
+  box-shadow: 0 4px 12px rgba(255, 87, 34, 0.3);
+}
+
+.paginator-btn.paginator-active:hover {
+  color: white;
+  transform: translateY(-1px);
 }

@@ -1596,8 +1596,33 @@ export class MobileAppComponent implements OnInit, AfterViewInit {
         );
         payloadOrigen = deptAgencies.map(a => a.id);
       } else if (this.origen === 'Mi Ubicación') {
-        const nearbyAgencies = this.locations.filter(l => (l.distance || 9999) <= this.searchRadius && l.empresa);
-        payloadOrigen = nearbyAgencies.map(a => a.id);
+        let userMuni = this.userMunicipalityName;
+        let userDept = this.userDepartamento;
+        
+        // Inferir el municipio del usuario basado en la agencia más cercana (más preciso que Nominatim directo)
+        const closestAgencies = [...this.locations].filter(l => l.distance !== undefined).sort((a,b) => (a.distance || 9999) - (b.distance || 9999));
+        if (closestAgencies.length > 0 && closestAgencies[0].distance! <= 20) {
+           userMuni = closestAgencies[0].ubicacion?.municipio || userMuni;
+           userDept = closestAgencies[0].ubicacion?.departamento || userDept;
+        }
+
+        // Si el destino es un municipio, buscar TODOS los puntos de TODAS las empresas en el municipio del usuario
+        if (this.destinoMunicipio && userMuni) {
+           const munAgencies = this.locations.filter(l => 
+               l.ubicacion?.municipio === userMuni && 
+               l.ubicacion?.departamento === userDept && 
+               l.empresa
+           );
+           if (munAgencies.length > 0) {
+               payloadOrigen = munAgencies.map(a => a.id);
+           } else {
+               const nearbyAgencies = this.locations.filter(l => (l.distance || 9999) <= this.searchRadius && l.empresa);
+               payloadOrigen = nearbyAgencies.map(a => a.id);
+           }
+        } else {
+           const nearbyAgencies = this.locations.filter(l => (l.distance || 9999) <= this.searchRadius && l.empresa);
+           payloadOrigen = nearbyAgencies.map(a => a.id);
+        }
       }
     }
     

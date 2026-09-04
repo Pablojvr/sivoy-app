@@ -45,188 +45,210 @@
   <div class="search-panel-overlay fade-in" *ngIf="isSearchExpanded" (click)="closeLocationSelector()"></div>
   
   <div class="search-panel-container" [class.expanded]="isSearchExpanded">
-    <!-- Collapsed State (Top Bar) -->
-    <div class="search-pill" *ngIf="!isSearchExpanded" (click)="toggleSearchPanel()">
-      <div class="search-connectors">
-        <div class="dot-start"></div>
-        <div class="line-dashed"></div>
-        <div class="square-end"></div>
-      </div>
-      <div class="search-inputs">
-        <div class="search-field" (click)="openLocationSelector('origen'); $event.stopPropagation()">
-          <span class="field-label">ORIGEN</span>
-          <span class="field-value" [class.placeholder]="!origen">{{ origen || 'Buscar origen' }}</span>
-        </div>
-        <div class="search-divider"></div>
-        <div class="search-field" (click)="openLocationSelector('destino'); $event.stopPropagation()">
-          <span class="field-label">DESTINO</span>
-          <span class="field-value" [class.placeholder]="!destino">{{ destino || 'Hacia dónde' }}</span>
-        </div>
-      </div>
-      <div class="clear-search-btn" *ngIf="origen || destino" (click)="clearSearch(); $event.stopPropagation()" style="border-radius: 8px; flex-direction: column; gap: 4px; background: transparent; padding: 4px 8px;">
-        <div style="background: var(--surface); padding: 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
-            <polyline points="3 3 3 8 8 8"></polyline>
+    <!-- Primary intent: search by destination -->
+    <div class="search-pill" *ngIf="!isSearchExpanded">
+      <button
+        type="button"
+        class="destination-search-trigger"
+        (click)="openLocationSelector('destino')"
+        [attr.aria-label]="destino ? 'Cambiar municipio de destino' : 'Buscar municipio de destino'">
+        <span class="destination-search-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 10c0 5.5-8 11-8 11S4 15.5 4 10a8 8 0 1 1 16 0Z"></path>
+            <circle cx="12" cy="10" r="2.5"></circle>
           </svg>
-        </div>
-        <span style="font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); text-align: center; line-height: 1;">Limpiar<br>mapa</span>
-      </div>
+        </span>
+        <span class="destination-search-copy">
+          <span class="destination-search-label">{{ destino ? 'Destino seleccionado' : 'Buscar destino' }}</span>
+          <span class="destination-search-value" [class.placeholder]="!destino">
+            {{ destinoInputValue || '¿Adónde deseas enviar?' }}
+          </span>
+          <span class="destination-search-hint">
+            {{ destino ? 'Toca para cambiar de municipio' : 'Encuentra todos los puntos de entrega' }}
+          </span>
+        </span>
+        <span class="destination-search-arrow" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25">
+            <path d="m9 18 6-6-6-6"></path>
+          </svg>
+        </span>
+      </button>
+
+      <button
+        type="button"
+        class="clear-search-btn"
+        *ngIf="origen || destino"
+        (click)="clearSearch(); $event.stopPropagation()"
+        aria-label="Limpiar búsqueda y mapa"
+        title="Limpiar búsqueda">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 12a9 9 0 1 0 3-6.7L3 8"></path>
+          <path d="M3 3v5h5"></path>
+        </svg>
+      </button>
     </div>
 
-    <!-- Expanded State (Advanced Form) -->
-    <div class="search-panel-expanded card-style slide-down" *ngIf="isSearchExpanded" (click)="onPanelClick($event)">
+    <!-- Progressive selector: destination first, origin only when requested from a card -->
+    <section
+      class="search-panel-expanded card-style slide-down"
+      *ngIf="isSearchExpanded"
+      (click)="$event.stopPropagation()"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="location-search-title">
       <div class="panel-header">
-        <h3 style="margin:0; font-size: 16px; font-weight: 700;">
-          {{ activeInput === 'origen' ? 'Seleccionar Origen' : 'Seleccionar Destino' }}
-        </h3>
-        <button class="close-panel-btn" (click)="closeLocationSelector()">
-           <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        <div>
+          <span class="panel-step-label">{{ activeInput === 'origen' ? 'Paso 2 · Origen' : 'Destino' }}</span>
+          <h2 id="location-search-title">
+            {{ activeInput === 'origen' ? '¿Desde dónde lo enviarás?' : '¿Adónde deseas enviar?' }}
+          </h2>
+          <p>
+            {{ activeInput === 'origen'
+              ? 'Elige el punto donde entregarás tu paquete.'
+              : 'Selecciona un municipio para ver todos sus puntos de entrega.' }}
+          </p>
+        </div>
+        <button type="button" class="close-panel-btn" (click)="closeLocationSelector()" aria-label="Cerrar búsqueda">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </button>
       </div>
 
-      <div class="form-scroll-area" style="padding: 16px; background: #f8fafc; overflow: visible;">
-        <div class="journey-container">
-          <!-- ORIGEN BLOCK -->
-          <div class="journey-node" [class.active-journey-node]="activeInput === 'origen'">
-            <div class="node-icon origin-icon"></div>
-            <div class="node-content">
-              <div class="form-group" [class.active-group]="activeInput === 'origen'" style="margin-bottom: 0;">
-                <label>Desde (Punto de Origen)</label>
-                <div class="search-box" [class.focused-box]="activeInput === 'origen'" (click)="onSearchBoxClick('origen', $event)">
-                   <svg style="width: 18px !important; height: 18px !important; min-width: 18px !important; flex-shrink: 0 !important;" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                   <input type="text" placeholder="Municipio, agencia o punto de origen..." 
-                          [(ngModel)]="origenInputValue" 
-                          (ngModelChange)="onOrigenInput($event)"
-                          (focus)="focusInput('origen')">
-                   <span *ngIf="origenInputValue" class="material-symbols-outlined clear-icon" (click)="clearInput('origen')">close</span>
-                </div>
-                
-                <!-- Autocomplete para Origen -->
-                <div class="autocomplete-list fade-in" *ngIf="activeInput === 'origen' && showAutocomplete" (click)="$event.stopPropagation()">
-                   <div class="location-list-item location-current-item" *ngIf="userLocation && (!origenInputValue || origenInputValue === 'Mi Ubicación')" (click)="selectUserLocationAsOrigin()">
-                     <span class="material-symbols-outlined loc-icon text-orange">my_location</span>
-                     <div class="loc-info">
-                       <h4 class="text-orange" style="margin: 0; font-size: 14px; font-weight: 600; color: #ff7a59;">Mi Ubicación</h4>
-                       <p style="margin: 0; font-size: 12px; color: #6b7280;">{{ userMunicipalityName || 'Calculando ubicación...' }}</p>
-                     </div>
-                   </div>
-
-                   <!-- Slider de distancia, solo visible si seleccionaron Mi Ubicación -->
-                   <div class="radius-slider-container" *ngIf="userLocation && origenInputValue === 'Mi Ubicación'" style="padding: 12px 16px; border-bottom: 1px solid var(--border); background: var(--surface-hover);">
-                     <div class="slider-header" style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                       <span class="slider-label" style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; color: #888;">Radio de búsqueda</span>
-                       <span class="slider-value" style="font-size: 12px; font-weight: 600; color: #ff7a59;">{{ searchRadius }} km</span>
-                     </div>
-                     <input type="range" min="0.5" max="3" step="0.5" [(ngModel)]="searchRadius" (change)="onRadiusChange()" class="range-slider" style="width: 100%; accent-color: #ff7a59;">
-                   </div>
-
-                   <div class="list-section-title" *ngIf="filteredOriginMunicipalities.length > 0">Municipios</div>
-                   <div class="location-list-item dest-item" *ngFor="let mun of filteredOriginMunicipalities" (click)="selectOriginMunicipality(mun)">
-                     <div class="loc-icon bg-blue"><svg style="width: 20px !important; height: 20px !important; min-width: 20px !important; flex-shrink: 0 !important;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg></div>
-                     <div class="loc-info"><h4>{{ mun.nombre_display }}</h4><p>{{ mun.departamento }}</p></div>
-                   </div>
-
-                   <div class="list-section-title" *ngIf="filteredModalLocations.length > 0">Agencias Específicas</div>
-                   <div class="location-list-item" *ngFor="let loc of filteredModalLocations" (click)="selectLocation(loc, 'origen')">
-                     <div class="loc-icon"><svg style="width: 20px !important; height: 20px !important; min-width: 20px !important; flex-shrink: 0 !important;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg></div>
-                     <div class="loc-info" style="width: 100%;">
-                       <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                         <h4 style="margin-bottom: 2px;">{{ loc.nombre_destino }}</h4>
-                         <span *ngIf="loc._status" style="font-size: 10px; font-weight: 700; border-radius: 4px; padding: 2px 6px; white-space: nowrap; margin-left: 8px;" 
-                               [style.background]="loc._status.color === 'green' ? '#ecfdf5' : (loc._status.color === 'orange' ? '#fffbeb' : '#f3f4f6')"
-                               [style.color]="loc._status.color === 'green' ? '#10b981' : (loc._status.color === 'orange' ? '#f59e0b' : '#6b7280')">
-                           {{ loc._status.mainText }}
-                         </span>
-                       </div>
-                       <p style="margin-top: 0;">{{ loc.ubicacion?.municipio || 'SV' }} &bull; {{ loc.empresa }}</p>
-                     </div>
-                   </div>
-                   <div class="empty-state" *ngIf="filteredModalLocations.length === 0 && filteredOriginMunicipalities.length === 0">
-                      No se encontraron ubicaciones
-                   </div>
-                </div>
-              </div>
-            </div>
+      <div class="destination-search-body">
+        <!-- Destination-first search -->
+        <div *ngIf="activeInput !== 'origen'">
+          <label class="destination-input-label" for="destination-municipality">Municipio de destino</label>
+          <div class="destination-input-shell">
+            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="7"></circle>
+              <path d="m20 20-4-4"></path>
+            </svg>
+            <input
+              id="destination-municipality"
+              type="text"
+              inputmode="search"
+              autocomplete="off"
+              placeholder="Escribe un municipio"
+              [value]="destinoInputValue"
+              (input)="onDestinoInput($event)"
+              (focus)="focusInput('destino')"
+              (keydown.enter)="selectFirstDestinationMunicipality()"
+              aria-controls="destination-options"
+              aria-autocomplete="list">
+            <button
+              type="button"
+              class="input-clear-btn"
+              *ngIf="destinoInputValue"
+              (click)="clearInput('destino'); $event.stopPropagation()"
+              aria-label="Borrar destino">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 6 12 12M18 6 6 18"></path></svg>
+            </button>
           </div>
 
-          <!-- CONNECTING LINE -->
-          <div class="journey-line"></div>
+          <div class="destination-results-heading">
+            <span>Municipios disponibles</span>
+            <span>{{ filteredMunicipalities.length }}</span>
+          </div>
 
-          <!-- DESTINO BLOCK -->
-          <div class="journey-node" [class.active-journey-node]="activeInput === 'destino'">
-            <div class="node-icon dest-icon"></div>
-            <div class="node-content">
-              <div class="form-group" [class.active-group]="activeInput === 'destino'" style="margin-bottom: 0;">
-                <label>Hacia (Destino)</label>
-                <div class="search-box" [class.focused-box]="activeInput === 'destino'" (click)="onSearchBoxClick('destino', $event)">
-                   <svg style="width: 18px !important; height: 18px !important; min-width: 18px !important; flex-shrink: 0 !important;" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                   <input type="text" placeholder="Municipio o agencia destino..." 
-                          [value]="destinoInputValue" 
-                          (input)="onDestinoInput($event)"
-                          (focus)="focusInput('destino')">
-                   <span *ngIf="destinoInputValue" class="material-symbols-outlined clear-icon" (click)="clearInput('destino')">close</span>
-                </div>
+          <div id="destination-options" class="destination-options-list" role="listbox" *ngIf="showAutocomplete && filteredMunicipalities.length > 0">
+            <button
+              type="button"
+              class="destination-option"
+              role="option"
+              *ngFor="let mun of filteredMunicipalities"
+              (click)="selectMunicipality(mun, 'destino')">
+              <span class="destination-option-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M20 10c0 5.5-8 11-8 11S4 15.5 4 10a8 8 0 1 1 16 0Z"></path>
+                  <circle cx="12" cy="10" r="2.5"></circle>
+                </svg>
+              </span>
+              <span class="destination-option-copy">
+                <strong>{{ mun.municipio }}</strong>
+                <span>{{ mun.departamento }}</span>
+              </span>
+              <span class="destination-point-count">
+                {{ mun.pointCount }} {{ mun.pointCount === 1 ? 'punto' : 'puntos' }}
+              </span>
+            </button>
+          </div>
 
-                <!-- Autocomplete para Destino -->
-                <div class="autocomplete-list fade-in" *ngIf="activeInput === 'destino' && showAutocomplete" (click)="$event.stopPropagation()">
-                   <div class="list-section-title" *ngIf="filteredMunicipalities.length > 0">Municipios</div>
-                   <div class="location-list-item dest-item" *ngFor="let mun of filteredMunicipalities" (click)="selectMunicipality(mun, 'destino')">
-                     <div class="loc-icon bg-blue"><svg style="width: 20px !important; height: 20px !important; min-width: 20px !important; flex-shrink: 0 !important;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon></svg></div>
-                     <div class="loc-info"><h4>{{ mun.municipio }}</h4><p>{{ mun.departamento }}</p></div>
-                   </div>
-
-                   <div class="list-section-title" *ngIf="filteredModalLocations.length > 0">Agencias Específicas</div>
-                   <div class="location-list-item" *ngFor="let loc of filteredModalLocations" (click)="selectLocation(loc, 'destino')">
-                     <div class="loc-icon"><svg style="width: 20px !important; height: 20px !important; min-width: 20px !important; flex-shrink: 0 !important;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg></div>
-                     <div class="loc-info" style="width: 100%;">
-                       <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                         <h4 style="margin-bottom: 2px;">{{ loc.nombre_destino }}</h4>
-                         <span *ngIf="loc._status" style="font-size: 10px; font-weight: 700; border-radius: 4px; padding: 2px 6px; white-space: nowrap; margin-left: 8px;" 
-                               [style.background]="loc._status.color === 'green' ? '#ecfdf5' : (loc._status.color === 'orange' ? '#fffbeb' : '#f3f4f6')"
-                               [style.color]="loc._status.color === 'green' ? '#10b981' : (loc._status.color === 'orange' ? '#f59e0b' : '#6b7280')">
-                           {{ loc._status.mainText }}
-                         </span>
-                       </div>
-                       <p style="margin-top: 0;">{{ loc.ubicacion?.municipio || 'SV' }} &bull; {{ loc.empresa }}</p>
-                     </div>
-                   </div>
-                   
-                   <div class="empty-state" *ngIf="filteredMunicipalities.length === 0 && filteredModalLocations.length === 0">
-                      No se encontraron destinos
-                   </div>
-                </div>
-              </div>
-            </div>
+          <div class="destination-empty-state" *ngIf="showAutocomplete && filteredMunicipalities.length === 0">
+            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+              <circle cx="11" cy="11" r="7"></circle>
+              <path d="m20 20-4-4"></path>
+            </svg>
+            <strong>No encontramos ese municipio</strong>
+            <span>Prueba con otro nombre o departamento.</span>
           </div>
         </div>
 
-        <div class="advanced-options-toggle" (click)="showAdvanced = !showAdvanced" style="font-size: 13px; font-weight: 600; color: var(--primary-color); cursor: pointer; margin: 15px 0 10px; text-align: center;">
-          {{ showAdvanced ? 'Ocultar Opciones de Fecha/Hora' : '+ Opciones de Fecha y Hora' }}
-        </div>
+        <!-- Origin is intentionally a second step -->
+        <div *ngIf="activeInput === 'origen'">
+          <div class="selected-destination-context" *ngIf="destinoInputValue">
+            <span>Enviando a</span>
+            <strong>{{ destinoInputValue }}</strong>
+          </div>
 
-        <div class="form-row" *ngIf="showAdvanced">
-           <div class="form-group half">
-              <label>Salida (Opcional)</label>
-              <input type="date" class="date-input" [(ngModel)]="dropoffDate" (change)="onDateChanged()">
-           </div>
-           <div class="form-group half">
-              <label>Hora</label>
-              <input type="time" class="date-input" [(ngModel)]="dropoffTime" (change)="onDateChanged()">
-           </div>
-        </div>
-        <div class="form-row" *ngIf="showAdvanced">
-           <div class="form-group half">
-              <label>Llegada Max. (Opcional)</label>
-              <input type="date" class="date-input" [(ngModel)]="arrivalDate" (change)="onDateChanged()">
-           </div>
-        </div>
+          <label class="destination-input-label" for="origin-location">Punto de origen</label>
+          <div class="destination-input-shell">
+            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="7"></circle>
+              <path d="m20 20-4-4"></path>
+            </svg>
+            <input
+              id="origin-location"
+              type="text"
+              inputmode="search"
+              autocomplete="off"
+              placeholder="Municipio o agencia de origen"
+              [(ngModel)]="origenInputValue"
+              (ngModelChange)="onOrigenInput($event)"
+              (focus)="focusInput('origen')"
+              aria-controls="origin-options"
+              aria-autocomplete="list">
+            <button
+              type="button"
+              class="input-clear-btn"
+              *ngIf="origenInputValue"
+              (click)="clearInput('origen'); $event.stopPropagation()"
+              aria-label="Borrar origen">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 6 12 12M18 6 6 18"></path></svg>
+            </button>
+          </div>
 
-        <button class="primary-btn w-100 mt-3" style="margin-top: 15px;" (click)="executeSearch()">
-          Buscar Rutas
-        </button>
+          <div id="origin-options" class="destination-options-list origin-options-list" role="listbox" *ngIf="showAutocomplete">
+            <button type="button" class="destination-option current-location-option" *ngIf="userLocation && (!origenInputValue || origenInputValue === 'Mi Ubicación')" (click)="selectUserLocationAsOrigin()">
+              <span class="destination-option-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><circle cx="12" cy="12" r="8"></circle><path d="M12 2v2M12 20v2M2 12h2M20 12h2"></path></svg>
+              </span>
+              <span class="destination-option-copy"><strong>Mi ubicación</strong><span>{{ userMunicipalityName || 'Usar ubicación actual' }}</span></span>
+            </button>
+
+            <div class="option-section-label" *ngIf="filteredOriginMunicipalities.length > 0">Municipios</div>
+            <button type="button" class="destination-option" *ngFor="let mun of filteredOriginMunicipalities" (click)="selectOriginMunicipality(mun)">
+              <span class="destination-option-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 5.5-8 11-8 11S4 15.5 4 10a8 8 0 1 1 16 0Z"></path><circle cx="12" cy="10" r="2.5"></circle></svg>
+              </span>
+              <span class="destination-option-copy"><strong>{{ mun.municipio }}</strong><span>{{ mun.departamento }}</span></span>
+              <span class="destination-point-count">{{ mun.pointCount }} {{ mun.pointCount === 1 ? 'punto' : 'puntos' }}</span>
+            </button>
+
+            <div class="option-section-label" *ngIf="filteredModalLocations.length > 0">Agencias</div>
+            <button type="button" class="destination-option" *ngFor="let loc of filteredModalLocations" (click)="selectLocation(loc, 'origen')">
+              <span class="destination-option-icon agency-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 21V8l8-5 8 5v13"></path><path d="M9 21v-6h6v6M8 10h.01M12 10h.01M16 10h.01"></path></svg>
+              </span>
+              <span class="destination-option-copy"><strong>{{ loc.nombre_destino }}</strong><span>{{ loc.ubicacion?.municipio }} · {{ loc.empresa }}</span></span>
+            </button>
+
+            <div class="destination-empty-state compact" *ngIf="filteredOriginMunicipalities.length === 0 && filteredModalLocations.length === 0 && origenInputValue">
+              <strong>No encontramos ese origen</strong>
+              <span>Prueba con otro municipio o agencia.</span>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
+    </section>
   </div>
 
   <!-- PIN DETAILS MODAL -->
@@ -258,7 +280,7 @@
     </div>
     
     <!-- MODAL BODY -->
-    <div class="modal-body" style="padding: 12px 24px 24px 24px; overflow-y: auto; max-height: 60vh;">
+    <div class="modal-body" style="padding: 0 24px 24px 24px; overflow-y: auto; max-height: 60vh;">
        <!-- TABS HEADER -->
       <div style="display: flex; gap: 8px; margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; padding-bottom: 0;">
         <button (click)="activePinTab = 'info'" 
@@ -786,4 +808,4 @@
       </div>
 
     </div>
-  </div>
+  </div>

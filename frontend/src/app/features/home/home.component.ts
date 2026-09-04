@@ -229,6 +229,9 @@ export class HomeComponent implements OnInit {
       this.destinoDepartamento = loc.ubicacion?.departamento;
     }
     this.handleSelectionHandoff(type);
+    if (type === 'origen' && this.destino) {
+      this.executeSearch();
+    }
   }
 
   selectMunicipality(mun: any, type: 'origen' | 'destino') {
@@ -236,12 +239,17 @@ export class HomeComponent implements OnInit {
       this.origenInputValue = mun.municipio;
       this.origen = mun.municipio;
       this.origenMunicipio = mun.municipio;
+      this.origenDepartamento = mun.departamento || '';
     } else {
       this.destinoInputValue = mun.municipio;
       this.destino = mun.municipio;
       this.destinoMunicipio = mun.municipio;
+      this.destinoDepartamento = mun.departamento || '';
     }
     this.handleSelectionHandoff(type);
+    if (type === 'destino') {
+      this.executeSearch();
+    }
   }
 
   onOrigenInput(event: any) {
@@ -298,9 +306,13 @@ export class HomeComponent implements OnInit {
     if (type === 'origen') {
       this.origenInputValue = '';
       this.origen = '';
+      this.origenMunicipio = '';
+      this.origenDepartamento = '';
     } else {
       this.destinoInputValue = '';
       this.destino = '';
+      this.destinoMunicipio = '';
+      this.destinoDepartamento = '';
     }
     this.locationSearchQuery = '';
     this.updateAutocompleteFilters();
@@ -313,7 +325,7 @@ export class HomeComponent implements OnInit {
     const normalize = (str: string) => str ? str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase() : '';
     const normQuery = normalize(query);
     
-    const muns = new Map();
+    const muns = new Map<string, any>();
     this.locations.forEach(loc => {
       if (loc.ubicacion && loc.ubicacion.municipio) {
         const dep = loc.ubicacion.departamento || '';
@@ -322,15 +334,27 @@ export class HomeComponent implements OnInit {
           muns.set(key, {
             nombre_display: loc.ubicacion.municipio,
             municipio: loc.ubicacion.municipio,
-            departamento: dep
+            departamento: dep,
+            pointCount: 0
           });
         }
+        muns.get(key).pointCount += 1;
       }
     });
 
-    this.uniqueMunicipalities = Array.from(muns.values());
-    this.filteredMunicipalities = this.uniqueMunicipalities.filter(m => normalize(m.municipio).includes(normQuery));
+    this.uniqueMunicipalities = Array.from(muns.values()).sort((a, b) =>
+      a.municipio.localeCompare(b.municipio, 'es', { sensitivity: 'base' })
+    );
+    this.filteredMunicipalities = this.uniqueMunicipalities.filter(m =>
+      normalize(`${m.municipio} ${m.departamento}`).includes(normQuery)
+    );
     this.filteredOriginMunicipalities = [...this.filteredMunicipalities];
+  }
+
+  selectFirstDestinationMunicipality() {
+    if (this.filteredMunicipalities.length > 0) {
+      this.selectMunicipality(this.filteredMunicipalities[0], 'destino');
+    }
   }
 
   selectMyPosition() {
@@ -345,7 +369,11 @@ export class HomeComponent implements OnInit {
   }
 
   toggleSearchPanel() {
-    this.isSearchExpanded = !this.isSearchExpanded;
+    if (this.isSearchExpanded) {
+      this.closeLocationSelector();
+    } else {
+      this.openLocationSelector('destino');
+    }
   }
 
   onPanelClick(event: Event) {
@@ -357,6 +385,9 @@ export class HomeComponent implements OnInit {
     this.origenInputValue = 'Mi Ubicación';
     this.origen = 'Mi Ubicación';
     this.handleSelectionHandoff('origen');
+    if (this.destino) {
+      this.executeSearch();
+    }
   }
 
   onRadiusChange() {
@@ -369,6 +400,9 @@ export class HomeComponent implements OnInit {
     this.origenMunicipio = mun.municipio;
     this.origenDepartamento = mun.departamento;
     this.handleSelectionHandoff('origen');
+    if (this.destino) {
+      this.executeSearch();
+    }
   }
 
   swapLocations() {
@@ -417,10 +451,10 @@ export class HomeComponent implements OnInit {
         dropoffDate: this.dropoffDate,
         dropoffTime: this.dropoffTime,
         // Parámetros específicos para searchFlights
-        origen_municipio: this.origen.split(',')[0]?.trim(),
-        origen_departamento: this.origen.split(',')[1]?.trim() || '',
-        destino_municipio: this.destino.split(',')[0]?.trim(),
-        destino_departamento: this.destino.split(',')[1]?.trim() || '',
+        origen_municipio: this.origenMunicipio || this.origen.split(',')[0]?.trim(),
+        origen_departamento: this.origenDepartamento || this.origen.split(',')[1]?.trim() || '',
+        destino_municipio: this.destinoMunicipio || this.destino.split(',')[0]?.trim(),
+        destino_departamento: this.destinoDepartamento || this.destino.split(',')[1]?.trim() || '',
         dropoff_date: this.dropoffDate,
         dropoff_time: this.dropoffTime
       };
@@ -820,6 +854,8 @@ export class HomeComponent implements OnInit {
     if (this.selectedPin) {
        this.origenInputValue = this.selectedPin.nombre_destino || this.selectedPin.destino_nombre;
        this.origen = this.origenInputValue;
+       this.origenMunicipio = this.selectedPin.ubicacion?.municipio || '';
+       this.origenDepartamento = this.selectedPin.ubicacion?.departamento || '';
        if (this.destino) {
           this.selectedPin = null;
           this.triggerDynamicSearch();
@@ -842,6 +878,8 @@ export class HomeComponent implements OnInit {
     if (this.selectedPin) {
        this.destinoInputValue = this.selectedPin.nombre_destino || this.selectedPin.destino_nombre;
        this.destino = this.destinoInputValue;
+       this.destinoMunicipio = this.selectedPin.ubicacion?.municipio || '';
+       this.destinoDepartamento = this.selectedPin.ubicacion?.departamento || '';
        if (this.origen) {
           this.selectedPin = null;
           this.triggerDynamicSearch();

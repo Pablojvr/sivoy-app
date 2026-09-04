@@ -2,27 +2,27 @@
 
 :root {
   /* BRAND MANUAL CSS VARIABLES */
-  --primary: #FF5A5F;
-  --primary-dark: #E04E53;
-  --bg-color: #F7F7F7;
+  --primary: #FF654F;
+  --primary-dark: #E94F3D;
+  --bg-color: #F6F3EF;
   --surface: rgba(255, 255, 255, 0.85);
   --surface-solid: #FFFFFF;
-  --text-main: #111827;
-  --text-muted: #6B7280;
-  --border: rgba(0, 0, 0, 0.08);
-  --radius-lg: 24px;
-  --radius-md: 12px;
+  --text-main: #171717;
+  --text-muted: #667085;
+  --border: rgba(23, 23, 23, 0.10);
+  --radius-lg: 28px;
+  --radius-md: 16px;
   --radius-sm: 8px;
   --radius-pill: 100px;
-  --shadow-sm: 0 2px 8px rgba(0,0,0,0.04);
-  --shadow-md: 0 8px 32px rgba(0,0,0,0.08);
-  --shadow-lg: 0 -4px 32px rgba(0,0,0,0.08);
+  --shadow-sm: 0 4px 14px rgba(23, 23, 23, 0.06);
+  --shadow-md: 0 18px 48px rgba(23, 23, 23, 0.12);
+  --shadow-lg: 0 20px 60px rgba(23, 23, 23, 0.16);
 
   /* Aliases for variables used in CSS but previously undefined */
   --border-color: rgba(0, 0, 0, 0.08);
   --surface-color: rgba(255, 255, 255, 0.85);
   --surface-bg: #F7F7F7;
-  --text-color: #111827;
+  --text-color: #171717;
   --surface-hover: #f1f5f9;
 }
 

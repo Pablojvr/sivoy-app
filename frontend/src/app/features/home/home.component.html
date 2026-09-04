@@ -419,7 +419,21 @@
         </div>
 
         <div *ngIf="destino && flightResults.length > 0 && !highlightedRoute" class="sheet-summary">
-          <h3>{{ flightResults.length }} Rutas disponibles</h3>
+          <div class="route-results-title-row">
+            <div>
+              <span class="sheet-step-kicker">Ruta calculada</span>
+              <h3>{{ flightResults.length }} {{ flightResults.length === 1 ? 'ruta disponible' : 'rutas disponibles' }}</h3>
+            </div>
+            <button
+              type="button"
+              class="change-origin-compact"
+              (pointerdown)="$event.stopPropagation()"
+              (click)="restartOriginSelection(); $event.stopPropagation()"
+              aria-label="Seleccionar otro origen">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"></path><path d="M3 3v5h5"></path></svg>
+              <span>Cambiar origen</span>
+            </button>
+          </div>
           <p class="slide-hint" style="color: var(--text-muted); font-size: 12px; margin-top: 4px; display: flex; align-items: center; gap: 4px; margin-bottom: 0;">
             <svg *ngIf="bottomSheetState === 'collapsed'" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>
             <svg *ngIf="bottomSheetState !== 'collapsed'" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
@@ -691,140 +705,114 @@
 
       <!-- Result from routing (if a specific route is requested) -->
       
-      <!-- FLIGHT CARDS (TICKET DESIGN) -->
+      <!-- ROUTE RESULT CARDS -->
       <div *ngIf="destino && flightResults.length > 0 && !loading" class="flight-cards-list">
-        <div class="ticket-card" *ngFor="let flight of flightResults" (click)="flight.isExpanded = !flight.isExpanded" [style.cursor]="flightResults.length > 1 ? 'pointer' : 'default'" [style.border]="flight.isExpanded ? '2px solid var(--primary)' : '1px solid #e2e8f0'">
-          <!-- Logo & Company Name -->
-          <div class="ticket-header" style="display: flex; justify-content: space-between; align-items: center;">
-            <div style="display: flex; align-items: center;">
-              <div class="ticket-company-logo" style="display: flex; align-items: center; justify-content: center; background: #f1f5f9; border-radius: 8px; width: 28px; height: 28px; margin-right: 12px;">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
-              </div>
-              <span class="ticket-company-name">{{ flight.empresa }}</span>
-            </div>
-            <div style="color: #64748b; display: flex; align-items: center; gap: 8px;">
-                <span style="font-size: 12px; font-weight: 500; color: var(--primary);" *ngIf="!flight.isExpanded">Ver detalles</span>
-                <span style="font-size: 12px; font-weight: 500; color: #64748b;" *ngIf="flight.isExpanded">Ocultar</span>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" 
-                stroke-linecap="round" stroke-linejoin="round" [style.transform]="flight.isExpanded ? 'rotate(180deg)' : 'rotate(0deg)'" style="transition: transform 0.3s ease;">
-                  <polyline points="6 9 12 15 18 9"></polyline>
-                </svg>
-            </div>
-          </div>
-
-          <!-- Route Info (Timeline Layout) -->
-          <div class="ticket-body" style="padding: 16px 20px;">
-            <div class="route-timeline">
-              <!-- Origin Point -->
-              <div class="timeline-point">
-                <div class="timeline-icon origin" style="display: flex; align-items: center; justify-content: center;"><i class="pi pi-box" style="font-size: 10px; color: white;"></i></div>
-                <div class="timeline-content">
-                  <span class="timeline-title">{{ formatLocationName(flight.origen_nombre, flight.origen_tipo) }}</span>
-                  <span class="timeline-subtitle" style="display: flex; align-items: center; gap: 4px;">
-                    Punto de Origen <i class="pi pi-info-circle" style="font-size: 10px; opacity: 0.6;"></i>
-                  </span>
-                </div>
-              </div>
-              
-              <!-- Destination Point -->
-              <div class="timeline-point">
-                <div class="timeline-icon destination" style="display: flex; align-items: center; justify-content: center;"><i class="pi pi-map-marker" style="font-size: 10px; color: white;"></i></div>
-                <div class="timeline-content">
-                  <span class="timeline-title">{{ formatLocationName(flight.destino_nombre_destino || flight.destino_nombre || destinoInputValue, flight.destino_tipo) }}</span>
-                  <span class="timeline-subtitle" style="display: flex; align-items: center; gap: 4px;">
-                    Destino <i class="pi pi-info-circle" style="font-size: 10px; opacity: 0.6;"></i>
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Call To Action (Visual Indicator) -->
-          <div *ngIf="!flight.isExpanded" style="padding: 0 20px 16px; text-align: center;">
-            <span style="font-size: 12px; font-weight: 600; color: white; background: var(--primary); padding: 6px 14px; border-radius: 16px; box-shadow: 0 2px 4px rgba(255,87,34,0.2);">
-              Ver horarios y rutas
+        <article class="sivoy-route-card" *ngFor="let flight of flightResults; let routeIndex = index" [class.is-expanded]="flight.isExpanded">
+          <button
+            type="button"
+            class="route-card-summary"
+            (click)="flight.isExpanded = !flight.isExpanded"
+            [attr.aria-expanded]="flight.isExpanded"
+            [attr.aria-label]="(flight.isExpanded ? 'Ocultar' : 'Ver') + ' detalles de la ruta de ' + flight.origen_nombre + ' a ' + (flight.destino_nombre_destino || flight.destino_nombre)">
+            <span class="route-card-topline">
+              <span class="route-provider">
+                <span class="route-provider-mark" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z"></path><path d="m4.5 7.8 7.5 4.3 7.5-4.3M12 21v-8.9"></path></svg>
+                </span>
+                <span>
+                  <small>Ruta {{ routeIndex + 1 }}</small>
+                  <strong>{{ flight.empresa }}</strong>
+                </span>
+              </span>
+              <span class="route-available-badge"><i aria-hidden="true"></i> Disponible</span>
             </span>
-          </div>
-          
-          <!-- Dashed Cutout -->
-          <div class="ticket-cutout" *ngIf="flight.isExpanded">
-            <div class="cutout left"></div>
-            <div class="dashed-line"></div>
-            <div class="cutout right"></div>
-          </div>
-          
-          <!-- Options -->
-          <div class="ticket-options" *ngIf="flight.isExpanded">
-            <div class="ticket-option-item" style="cursor: default;" (click)="$event.stopPropagation()">
-              
-              <!-- Botones de Acción Extra -->
-              <div class="action-buttons-row" style="margin-bottom: 16px;">
-                <button (click)="highlightRouteOnMap(flight); $event.stopPropagation()" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px; font-size: 14px; border-radius: 8px; border: none; background: #f1f5f9; color: var(--primary); font-weight: 600; cursor: pointer; transition: background 0.2s;">
-                  <i class="pi pi-map-marker"></i>
-                  Ver ruta en mapa
-                </button>
-              </div>
 
-              <div *ngIf="flight.hasClosedAlert" style="background-color: #fffbeb; color: #b45309; padding: 10px; border-radius: 8px; font-size: 12px; margin-bottom: 16px; display: flex; gap: 8px; align-items: flex-start; line-height: 1.4;">
-                <i class="pi pi-exclamation-circle" style="margin-top: 2px;"></i>
-                <span>La agencia ya cerró hoy. La entrega ha pasado para el próximo día hábil disponible.</span>
-              </div>
+            <span class="route-card-path">
+              <span class="route-card-endpoint">
+                <span class="route-endpoint-icon origin" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 21V8l8-5 8 5v13"></path><path d="M9 21v-6h6v6"></path></svg>
+                </span>
+                <small>Origen</small>
+                <strong>{{ formatLocationName(flight.origen_nombre, flight.origen_tipo) }}</strong>
+              </span>
 
-              <!-- Dropdown for Day Selection -->
-              <div class="option-row" *ngIf="flight.opciones_entrega && flight.opciones_entrega.length > 0" style="margin-bottom: 12px; border-bottom: 1px dashed #e2e8f0; padding-bottom: 12px; display: block;">
-                <span class="opt-label" style="display: block; margin-bottom: 6px;">DÍA DE ENTREGA EN ORIGEN</span>
-                <select class="flight-day-select" (change)="onDeliveryDayChange(flight, $event)" [value]="flight.selected_opcion_idx || 0" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: inherit; font-size: 14px; color: #334155; background-color: #f8fafc; cursor: pointer; outline: none; transition: border-color 0.2s;">
-                  <option *ngFor="let opt of flight.opciones_entrega; let i = index" [value]="i">
-                    {{ formatFriendlyDate(opt.dropoff_date) }}
-                  </option>
-                </select>
-                <div *ngIf="flight.opciones_entrega[flight.selected_opcion_idx || 0].dropoff_msg || flight.origen_msg" style="margin-top: 6px; font-size: 12px; color: #64748b; font-style: italic;">
-                  {{ flight.opciones_entrega[flight.selected_opcion_idx || 0].dropoff_msg || flight.origen_msg }}
-                </div>
-              </div>
-              
-              <!-- Dynamic bindings -->
-              <div class="option-row" *ngIf="flight.opciones_entrega && flight.opciones_entrega.length > 0">
-                <div class="opt-col">
-                  <span class="opt-label">LLEGADA APROX. AL DESTINO</span>
-                  <span class="opt-value">{{ flight.opciones_entrega[flight.selected_opcion_idx || 0].fecha_llegada }}</span>
-                </div>
-                <div class="opt-col text-right">
-                  <span class="opt-label">HORARIO DE ENTREGA</span>
-                  <span class="opt-value">{{ flight.opciones_entrega[flight.selected_opcion_idx || 0].horario_recoleccion }}</span>
-                </div>
-              </div>
-              <div class="option-row" *ngIf="!(flight.opciones_entrega && flight.opciones_entrega.length > 0)">
-                <div class="opt-col">
-                  <span class="opt-label">LLEGADA APROX. AL DESTINO</span>
-                  <span class="opt-value">{{ flight.fecha_llegada }}</span>
-                </div>
-                <div class="opt-col text-right">
-                  <span class="opt-label">HORARIO DE ENTREGA</span>
-                  <span class="opt-value">{{ flight.horario_recoleccion }}</span>
-                </div>
-              </div>
-              
-              <!-- Fallback to old behavior if no opciones_entrega -->
-              <div class="option-row" *ngIf="(!flight.opciones_entrega || flight.opciones_entrega.length === 0) && flight.opciones && flight.opciones.length > 0">
-                <div class="opt-col">
-                  <span class="opt-label">ENTREGA APROX.</span>
-                  <span class="opt-value"><i class="pi pi-calendar"></i> {{ flight.opciones[0].fecha_llegada }}</span>
-                </div>
-                <div class="opt-col text-right">
-                  <span class="opt-label">HORARIO DE ENTREGA DE TU PAQUETE</span>
-                  <span class="opt-value"><i class="pi pi-clock"></i> {{ flight.opciones[0].horario_recoleccion }}</span>
-                </div>
-              </div>
-              
-              <div class="flight-no-options" *ngIf="(!flight.opciones_entrega || flight.opciones_entrega.length === 0) && (!flight.opciones || flight.opciones.length === 0)">
-                 No hay entregas programadas prA3ximas.
-              </div>
-              
+              <span class="route-path-connector" aria-hidden="true">
+                <i></i>
+                <span>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 17h4V5H2v12h3"></path><path d="M14 9h4l4 4v4h-3"></path><circle cx="7.5" cy="17.5" r="2.5"></circle><circle cx="16.5" cy="17.5" r="2.5"></circle></svg>
+                </span>
+                <i></i>
+              </span>
 
+              <span class="route-card-endpoint destination">
+                <span class="route-endpoint-icon destination" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 5.5-8 11-8 11S4 15.5 4 10a8 8 0 1 1 16 0Z"></path><circle cx="12" cy="10" r="2.5"></circle></svg>
+                </span>
+                <small>Destino</small>
+                <strong>{{ formatLocationName(flight.destino_nombre_destino || flight.destino_nombre || destinoInputValue, flight.destino_tipo) }}</strong>
+              </span>
+            </span>
+
+            <span class="route-card-eta">
+              <span class="route-eta-copy">
+                <small>Llegada estimada</small>
+                <ng-container *ngIf="flight.opciones_entrega && flight.opciones_entrega.length > 0; else fallbackRouteEta">
+                  <strong>{{ flight.opciones_entrega[flight.selected_opcion_idx || 0].fecha_llegada }}</strong>
+                  <span>{{ flight.opciones_entrega[flight.selected_opcion_idx || 0].horario_recoleccion }}</span>
+                </ng-container>
+                <ng-template #fallbackRouteEta>
+                  <strong>{{ flight.fecha_llegada || flight.opciones?.[0]?.fecha_llegada }}</strong>
+                  <span>{{ flight.horario_recoleccion || flight.opciones?.[0]?.horario_recoleccion }}</span>
+                </ng-template>
+              </span>
+              <span class="route-details-label">
+                {{ flight.isExpanded ? 'Ocultar' : 'Ver detalles' }}
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" [class.rotated]="flight.isExpanded"><path d="m6 9 6 6 6-6"></path></svg>
+              </span>
+            </span>
+          </button>
+
+          <div class="route-card-details" *ngIf="flight.isExpanded">
+            <div class="route-closed-alert" *ngIf="flight.hasClosedAlert">
+              <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v6M12 17h.01"></path></svg>
+              <span>La agencia ya cerró hoy. Calculamos el próximo día hábil disponible.</span>
+            </div>
+
+            <label class="route-date-selector" *ngIf="flight.opciones_entrega && flight.opciones_entrega.length > 0">
+              <span>Día para entregar en origen</span>
+              <select class="flight-day-select" (change)="onDeliveryDayChange(flight, $event)" [value]="flight.selected_opcion_idx || 0">
+                <option *ngFor="let opt of flight.opciones_entrega; let optionIndex = index" [value]="optionIndex">
+                  {{ formatFriendlyDate(opt.dropoff_date) }}
+                </option>
+              </select>
+              <small *ngIf="flight.opciones_entrega[flight.selected_opcion_idx || 0].dropoff_msg || flight.origen_msg">
+                {{ flight.opciones_entrega[flight.selected_opcion_idx || 0].dropoff_msg || flight.origen_msg }}
+              </small>
+            </label>
+
+            <div class="route-data-grid" *ngIf="flight.opciones_entrega && flight.opciones_entrega.length > 0">
+              <div>
+                <span>Fecha de llegada</span>
+                <strong>{{ flight.opciones_entrega[flight.selected_opcion_idx || 0].fecha_llegada }}</strong>
+              </div>
+              <div>
+                <span>Horario de entrega</span>
+                <strong>{{ flight.opciones_entrega[flight.selected_opcion_idx || 0].horario_recoleccion }}</strong>
+              </div>
+            </div>
+
+            <div class="route-card-actions">
+              <button type="button" class="route-secondary-action" (click)="restartOriginSelection()">
+                <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"></path><path d="M3 3v5h5"></path></svg>
+                Cambiar origen
+              </button>
+              <button type="button" class="route-primary-action" (click)="highlightRouteOnMap(flight)">
+                <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 5.5-8 11-8 11S4 15.5 4 10a8 8 0 1 1 16 0Z"></path><circle cx="12" cy="10" r="2.5"></circle></svg>
+                Ver en mapa
+              </button>
             </div>
           </div>
-        </div>
+        </article>
       </div>
       <!-- Error state -->
       <div *ngIf="result && !result.success && !loading" class="route-result-card error">

@@ -1049,6 +1049,33 @@ export class HomeComponent implements OnInit {
     );
   }
 
+  restartOriginSelection() {
+    this.origenInputValue = '';
+    this.origen = '';
+    this.origenMunicipio = '';
+    this.origenDepartamento = '';
+    this.selectedOriginPoint = null;
+    this.originPointQuery = '';
+    this.originPointPage = 1;
+    this.result = null;
+    this.errorMsg = '';
+    this.flightResults = [];
+    this.expandedResultCard = null;
+    this.activeDetailedCard = null;
+    this.isOriginDiscoveryMode = false;
+    this.isDiscoveryMode = false;
+    this.resetMapMarkersEvent.emit();
+
+    if (this.selectedDestinationPoint) {
+      this.isOriginChoiceMode = true;
+      this.bottomSheetState = 'half';
+      return;
+    }
+
+    this.isOriginChoiceMode = false;
+    this.openLocationSelector('origen');
+  }
+
   openOriginMunicipalitySelector() {
     this.origenInputValue = '';
     this.origen = '';

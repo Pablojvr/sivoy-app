@@ -4321,6 +4321,425 @@ textarea {
   color: #697067;
 }
 
+/* Route results — SiVoy Signal cards */
+.route-results-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.change-origin-compact {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid rgba(29, 30, 28, 0.1);
+  border-radius: 999px;
+  background: #f3f4f2;
+  color: #343733;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: background 180ms ease, border-color 180ms ease, color 180ms ease;
+}
+
+.change-origin-compact:hover {
+  border-color: rgba(244, 91, 120, 0.32);
+  background: #fff0f3;
+  color: var(--primary-dark);
+}
+
+.change-origin-compact svg {
+  width: 16px;
+  height: 16px;
+}
+
+.flight-cards-list {
+  display: grid;
+  gap: 14px;
+  padding: 14px 16px 30px;
+}
+
+.sivoy-route-card {
+  overflow: hidden;
+  border: 1px solid rgba(29, 30, 28, 0.09);
+  border-radius: 24px;
+  background: #fff;
+  box-shadow: 0 12px 30px rgba(29, 30, 28, 0.09);
+  transition: border-color 200ms ease, box-shadow 200ms ease, transform 200ms ease;
+}
+
+.sivoy-route-card:hover,
+.sivoy-route-card.is-expanded {
+  border-color: rgba(244, 91, 120, 0.34);
+  box-shadow: 0 18px 38px rgba(29, 30, 28, 0.13);
+}
+
+.route-card-summary {
+  display: grid;
+  gap: 18px;
+  width: 100%;
+  padding: 16px;
+  border: 0;
+  background: transparent;
+  color: var(--text-main);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.route-card-topline,
+.route-provider,
+.route-provider > span:last-child,
+.route-card-eta,
+.route-eta-copy {
+  display: flex;
+}
+
+.route-card-topline,
+.route-card-eta {
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.route-provider {
+  align-items: center;
+  gap: 10px;
+}
+
+.route-provider > span:last-child,
+.route-eta-copy {
+  min-width: 0;
+  flex-direction: column;
+}
+
+.route-provider-mark {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 13px;
+  background: #1d1e1c;
+  color: #fff;
+}
+
+.route-provider-mark svg {
+  width: 20px;
+  height: 20px;
+}
+
+.route-provider small,
+.route-card-endpoint small,
+.route-eta-copy small,
+.route-date-selector > span,
+.route-data-grid span {
+  color: var(--text-muted);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+.route-provider strong {
+  overflow: hidden;
+  font-size: 14px;
+  font-weight: 850;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.route-available-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: #f0f8dc;
+  color: #40501b;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.route-available-badge i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #8fbd31;
+  box-shadow: 0 0 0 4px rgba(143, 189, 49, 0.14);
+}
+
+.route-card-path {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 68px minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+}
+
+.route-card-endpoint {
+  display: grid;
+  min-width: 0;
+  justify-items: start;
+  gap: 3px;
+}
+
+.route-card-endpoint.destination {
+  justify-items: end;
+  text-align: right;
+}
+
+.route-endpoint-icon {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  margin-bottom: 3px;
+  border-radius: 13px;
+}
+
+.route-endpoint-icon svg {
+  width: 19px;
+  height: 19px;
+}
+
+.route-endpoint-icon.origin {
+  background: #fff0f3;
+  color: var(--primary);
+}
+
+.route-endpoint-icon.destination {
+  background: #1d1e1c;
+  color: #fff;
+}
+
+.route-card-endpoint strong {
+  display: -webkit-box;
+  overflow: hidden;
+  min-height: 34px;
+  color: #1d1e1c;
+  font-size: 12px;
+  font-weight: 850;
+  line-height: 1.35;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.route-path-connector {
+  display: grid;
+  grid-template-columns: 1fr 28px 1fr;
+  align-items: center;
+  color: var(--primary);
+}
+
+.route-path-connector > i {
+  height: 1px;
+  background: repeating-linear-gradient(90deg, rgba(244, 91, 120, 0.7) 0 4px, transparent 4px 8px);
+}
+
+.route-path-connector > span {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid rgba(244, 91, 120, 0.18);
+  border-radius: 50%;
+  background: #fff5f7;
+}
+
+.route-path-connector svg {
+  width: 15px;
+  height: 15px;
+}
+
+.route-card-eta {
+  min-height: 64px;
+  margin: 0 -4px -4px;
+  padding: 11px 12px;
+  border-radius: 17px;
+  background: linear-gradient(135deg, #eef5ff 0%, #f5f9ff 100%);
+}
+
+.route-eta-copy strong {
+  color: #263853;
+  font-size: 14px;
+  font-weight: 850;
+}
+
+.route-eta-copy > span {
+  color: #5e708a;
+  font-size: 10px;
+}
+
+.route-details-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--primary-dark);
+  font-size: 11px;
+  font-weight: 850;
+  white-space: nowrap;
+}
+
+.route-details-label svg {
+  width: 16px;
+  height: 16px;
+  transition: transform 200ms ease;
+}
+
+.route-details-label svg.rotated {
+  transform: rotate(180deg);
+}
+
+.route-card-details {
+  display: grid;
+  gap: 13px;
+  padding: 0 16px 16px;
+  animation: route-details-enter 220ms ease both;
+}
+
+.route-card-details::before {
+  height: 1px;
+  margin-bottom: 1px;
+  background: repeating-linear-gradient(90deg, rgba(29, 30, 28, 0.18) 0 5px, transparent 5px 10px);
+  content: '';
+}
+
+.route-closed-alert {
+  display: flex;
+  gap: 9px;
+  align-items: flex-start;
+  padding: 11px 12px;
+  border-radius: 14px;
+  background: #fff6e5;
+  color: #7c4a08;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.route-closed-alert svg {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+}
+
+.route-date-selector {
+  display: grid;
+  gap: 6px;
+}
+
+.route-date-selector select {
+  width: 100%;
+  min-height: 46px;
+  padding: 0 38px 0 12px;
+  border: 1px solid rgba(29, 30, 28, 0.12);
+  border-radius: 14px;
+  outline: 0;
+  background: #f7f8f6;
+  color: var(--text-main);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.route-date-selector select:focus {
+  border-color: rgba(244, 91, 120, 0.55);
+  box-shadow: var(--focus-ring);
+}
+
+.route-date-selector small {
+  color: var(--text-muted);
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.route-data-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.route-data-grid > div {
+  display: grid;
+  align-content: start;
+  gap: 4px;
+  min-height: 72px;
+  padding: 11px;
+  border: 1px solid rgba(29, 30, 28, 0.07);
+  border-radius: 15px;
+  background: #f7f8f6;
+}
+
+.route-data-grid > div:last-child {
+  background: #fff0f3;
+}
+
+.route-data-grid strong {
+  color: var(--text-main);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.route-card-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.route-card-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 46px;
+  padding: 0 10px;
+  border-radius: 14px;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 850;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: background 180ms ease, color 180ms ease, border-color 180ms ease;
+}
+
+.route-card-actions svg {
+  width: 17px;
+  height: 17px;
+}
+
+.route-secondary-action {
+  border: 1px solid rgba(29, 30, 28, 0.12);
+  background: #fff;
+  color: #41453f;
+}
+
+.route-primary-action {
+  border: 1px solid #1d1e1c;
+  background: #1d1e1c;
+  color: #fff;
+}
+
+.route-card-summary:focus-visible,
+.change-origin-compact:focus-visible,
+.route-card-actions button:focus-visible {
+  outline: 0;
+  box-shadow: var(--focus-ring);
+}
+
+@keyframes route-details-enter {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 /* Origin selection — progressive second step after choosing a destination point */
 .bottom-sheet.choosing-origin {
   --sheet-state-height: min(72dvh, 680px);

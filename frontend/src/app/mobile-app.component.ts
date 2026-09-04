@@ -1982,7 +1982,7 @@ export class MobileAppComponent implements OnInit, AfterViewInit {
     }
   }
 
-  viewOnMap(loc: any) {
+  viewOnMap(loc: any, pointRole?: string) {
     this.activeMainTab = 'inicio';
     
     // Borrar la selección de los filtros y búsqueda anterior
@@ -1994,7 +1994,12 @@ export class MobileAppComponent implements OnInit, AfterViewInit {
     this.errorMsg = '';
     
     // Select the pin to open its detail modal
-    this.selectedPin = loc;
+    const markerType = pointRole === 'origen'
+      ? 'origin'
+      : pointRole === 'destino'
+        ? 'destination'
+        : loc.markerType;
+    this.selectedPin = markerType ? { ...loc, markerType } : loc;
     this.updateMapMarkers(); // Asegurarnos de pintar el marcador antes de hacer focus
     
     setTimeout(() => {

@@ -2,7 +2,7 @@ import { environment } from '../../../environments/environment';
 import { Component, Input, Output, EventEmitter, OnInit, ChangeDetectorRef, AfterViewInit, HostListener, ElementRef, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RutasService, RouteSearchParams } from '../../core/services/rutas.service';
+import { RutasService } from '../../core/services/rutas.service';
 import { ToastService } from '../../core/services/toast.service';
 
 @Component({
@@ -100,6 +100,12 @@ export class HomeComponent implements OnInit {
   isSearchExpanded: boolean = false;
   isDiscoveryMode: boolean = false;
   isOriginDiscoveryMode: boolean = false;
+  isOriginChoiceMode: boolean = false;
+  selectedOriginPoint: any = null;
+  selectedDestinationPoint: any = null;
+  originPointQuery: string = '';
+  originPointPage: number = 1;
+  readonly originPointPageSize: number = 8;
   bottomSheetState: 'hidden' | 'collapsed' | 'half' | 'expanded' = 'collapsed';
   isSheetScrolled: boolean = false;
   loading: boolean = false;
@@ -197,6 +203,11 @@ export class HomeComponent implements OnInit {
     this.bottomSheetState = 'collapsed';
     this.isDiscoveryMode = false;
     this.isOriginDiscoveryMode = false;
+    this.isOriginChoiceMode = false;
+    this.selectedOriginPoint = null;
+    this.selectedDestinationPoint = null;
+    this.originPointQuery = '';
+    this.originPointPage = 1;
     this.flightResults = [];
     this.municipalityResults = [];
     this.displayedResults = [];
@@ -214,22 +225,35 @@ export class HomeComponent implements OnInit {
     const normalize = (str: string) => str ? str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase() : '';
     const normQuery = normalize(query);
     
-    return this.locations.filter(l => 
+    const matchingLocations = this.locations.filter(l =>
       normalize(l.nombre_destino).includes(normQuery) || 
       normalize(l.ubicacion?.municipio).includes(normQuery) ||
       normalize(l.ubicacion?.departamento).includes(normQuery)
     );
+
+    if (this.activeInput === 'origen' && this.selectedDestinationPoint?.empresa) {
+      const destinationId = this.getLocationIdentity(this.selectedDestinationPoint);
+      return matchingLocations.filter(location =>
+        location.empresa === this.selectedDestinationPoint.empresa &&
+        this.getLocationIdentity(location) !== destinationId
+      );
+    }
+
+    return matchingLocations;
   }
 
   selectLocation(loc: any, type: 'origen' | 'destino') {
+    const locationName = this.getLocationName(loc);
     if (type === 'origen') {
-      this.origenInputValue = loc.nombre_destino;
-      this.origen = loc.nombre_destino;
+      this.selectedOriginPoint = loc;
+      this.origenInputValue = locationName;
+      this.origen = locationName;
       this.origenMunicipio = loc.ubicacion?.municipio;
       this.origenDepartamento = loc.ubicacion?.departamento;
     } else {
-      this.destinoInputValue = loc.nombre_destino;
-      this.destino = loc.nombre_destino;
+      this.selectedDestinationPoint = loc;
+      this.destinoInputValue = locationName;
+      this.destino = locationName;
       this.destinoMunicipio = loc.ubicacion?.municipio;
       this.destinoDepartamento = loc.ubicacion?.departamento;
     }
@@ -241,11 +265,13 @@ export class HomeComponent implements OnInit {
 
   selectMunicipality(mun: any, type: 'origen' | 'destino') {
     if (type === 'origen') {
+      this.selectedOriginPoint = null;
       this.origenInputValue = mun.municipio;
       this.origen = mun.municipio;
       this.origenMunicipio = mun.municipio;
       this.origenDepartamento = mun.departamento || '';
     } else {
+      this.selectedDestinationPoint = null;
       this.destinoInputValue = mun.municipio;
       this.destino = mun.municipio;
       this.destinoMunicipio = mun.municipio;
@@ -309,11 +335,13 @@ export class HomeComponent implements OnInit {
 
   clearInput(type: 'origen' | 'destino') {
     if (type === 'origen') {
+      this.selectedOriginPoint = null;
       this.origenInputValue = '';
       this.origen = '';
       this.origenMunicipio = '';
       this.origenDepartamento = '';
     } else {
+      this.selectedDestinationPoint = null;
       this.destinoInputValue = '';
       this.destino = '';
       this.destinoMunicipio = '';
@@ -387,8 +415,10 @@ export class HomeComponent implements OnInit {
   }
 
   selectUserLocationAsOrigin() {
+    this.selectedOriginPoint = null;
     this.origenInputValue = 'Mi Ubicación';
     this.origen = 'Mi Ubicación';
+    this.origenMunicipio = this.userMunicipalityName || '';
     this.handleSelectionHandoff('origen');
     if (this.destino) {
       this.executeSearch();
@@ -400,6 +430,7 @@ export class HomeComponent implements OnInit {
   }
 
   selectOriginMunicipality(mun: any) {
+    this.selectedOriginPoint = null;
     this.origen = mun.nombre_display;
     this.origenInputValue = mun.nombre_display;
     this.origenMunicipio = mun.municipio;
@@ -418,6 +449,18 @@ export class HomeComponent implements OnInit {
     const temp = this.origen;
     this.origen = this.destino;
     this.destino = temp;
+
+    const tempMunicipio = this.origenMunicipio;
+    this.origenMunicipio = this.destinoMunicipio;
+    this.destinoMunicipio = tempMunicipio;
+
+    const tempDepartamento = this.origenDepartamento;
+    this.origenDepartamento = this.destinoDepartamento;
+    this.destinoDepartamento = tempDepartamento;
+
+    const tempPoint = this.selectedOriginPoint;
+    this.selectedOriginPoint = this.selectedDestinationPoint;
+    this.selectedDestinationPoint = tempPoint;
     
     this.executeSearch();
   }
@@ -428,6 +471,7 @@ export class HomeComponent implements OnInit {
   }
 
   executeSearch() {
+    this.isOriginChoiceMode = false;
     this.closeLocationSelector();
     this.triggerDynamicSearch();
   }
@@ -438,6 +482,11 @@ export class HomeComponent implements OnInit {
 
   triggerDynamicSearch() {
     if (this.origen && this.destino) {
+      if (this.selectedOriginPoint || this.selectedDestinationPoint) {
+        this.searchRoutesWithPointConstraints();
+        return;
+      }
+
       this.loading = true;
       this.bottomSheetState = 'half';
       this.errorMsg = '';
@@ -905,6 +954,7 @@ export class HomeComponent implements OnInit {
 
   setPinAsOriginAndPromptDestination() {
     if (this.selectedPin) {
+       this.selectedOriginPoint = this.selectedPin;
        this.origenInputValue = this.selectedPin.nombre_destino || this.selectedPin.destino_nombre;
        this.origen = this.origenInputValue;
        this.origenMunicipio = this.selectedPin.ubicacion?.municipio || '';
@@ -929,6 +979,7 @@ export class HomeComponent implements OnInit {
 
   setPinAsDestinationAndPromptOrigin() {
     if (this.selectedPin) {
+       this.selectedDestinationPoint = this.selectedPin;
        this.destinoInputValue = this.selectedPin.nombre_destino || this.selectedPin.destino_nombre;
        this.destino = this.destinoInputValue;
        this.destinoMunicipio = this.selectedPin.ubicacion?.municipio || '';
@@ -937,9 +988,191 @@ export class HomeComponent implements OnInit {
           this.selectedPin = null;
           this.triggerDynamicSearch();
        } else {
-          this.openLocationSelector('origen');
+          this.selectedPin = null;
+          this.isOriginChoiceMode = true;
+          this.originPointQuery = '';
+          this.originPointPage = 1;
+          this.bottomSheetState = 'half';
        }
     }
+  }
+
+  get compatibleOriginPoints(): any[] {
+    if (!this.selectedDestinationPoint?.empresa) return [];
+
+    const destinationId = this.getLocationIdentity(this.selectedDestinationPoint);
+    return this.locations
+      .filter(location =>
+        location.empresa === this.selectedDestinationPoint.empresa &&
+        this.getLocationIdentity(location) !== destinationId
+      )
+      .sort((a, b) => {
+        const municipalityComparison = (a.ubicacion?.municipio || '').localeCompare(
+          b.ubicacion?.municipio || '',
+          'es',
+          { sensitivity: 'base' }
+        );
+        return municipalityComparison || this.getLocationName(a).localeCompare(this.getLocationName(b), 'es');
+      });
+  }
+
+  get filteredCompatibleOriginPoints(): any[] {
+    const normalizedQuery = this.normalizeSearchText(this.originPointQuery);
+    if (!normalizedQuery) return this.compatibleOriginPoints;
+
+    return this.compatibleOriginPoints.filter(point =>
+      this.normalizeSearchText([
+        this.getLocationName(point),
+        point.ubicacion?.municipio,
+        point.ubicacion?.departamento
+      ].filter(Boolean).join(' ')).includes(normalizedQuery)
+    );
+  }
+
+  get visibleCompatibleOriginPoints(): any[] {
+    const start = (this.originPointPage - 1) * this.originPointPageSize;
+    return this.filteredCompatibleOriginPoints.slice(start, start + this.originPointPageSize);
+  }
+
+  get originPointPageCount(): number {
+    return Math.max(1, Math.ceil(this.filteredCompatibleOriginPoints.length / this.originPointPageSize));
+  }
+
+  onOriginPointQueryChange() {
+    this.originPointPage = 1;
+  }
+
+  changeOriginPointPage(direction: -1 | 1) {
+    this.originPointPage = Math.min(
+      this.originPointPageCount,
+      Math.max(1, this.originPointPage + direction)
+    );
+  }
+
+  openOriginMunicipalitySelector() {
+    this.origenInputValue = '';
+    this.origen = '';
+    this.origenMunicipio = '';
+    this.origenDepartamento = '';
+    this.selectedOriginPoint = null;
+    this.openLocationSelector('origen');
+  }
+
+  selectCompatibleOriginPoint(location: any) {
+    this.selectLocation(location, 'origen');
+  }
+
+  changeDestinationFromOriginChoice() {
+    this.isOriginChoiceMode = false;
+    this.selectedDestinationPoint = null;
+    this.originPointQuery = '';
+    this.originPointPage = 1;
+    this.destinoInputValue = '';
+    this.destino = '';
+    this.destinoMunicipio = '';
+    this.destinoDepartamento = '';
+    this.openLocationSelector('destino');
+  }
+
+  private getLocationIdentity(location: any): string {
+    return String(location?.id_destino || location?.id_origen || location?.id || this.getLocationName(location));
+  }
+
+  private getLocationName(location: any): string {
+    return location?.nombre_destino || location?.destino_nombre || location?.destino_nombre_destino || '';
+  }
+
+  private normalizeSearchText(value: string): string {
+    return (value || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .trim();
+  }
+
+  private getMunicipalityLocations(municipio: string, departamento: string): any[] {
+    if (!municipio) return [];
+    return this.locations.filter(location =>
+      location.ubicacion?.municipio === municipio &&
+      (!departamento || location.ubicacion?.departamento === departamento)
+    );
+  }
+
+  private searchRoutesWithPointConstraints() {
+    this.loading = true;
+    this.bottomSheetState = 'half';
+    this.errorMsg = '';
+    this.result = null;
+    this.flightResults = [];
+    this.municipalityResults = [];
+    this.displayedResults = [];
+    this.isOriginChoiceMode = false;
+    this.isOriginDiscoveryMode = false;
+    this.isDiscoveryMode = false;
+
+    const originLocations = this.selectedOriginPoint
+      ? [this.selectedOriginPoint]
+      : this.getMunicipalityLocations(this.origenMunicipio, this.origenDepartamento);
+    const destinationLocations = this.selectedDestinationPoint
+      ? [this.selectedDestinationPoint]
+      : this.getMunicipalityLocations(this.destinoMunicipio, this.destinoDepartamento);
+
+    const originNames = [...new Set<string>(originLocations.map(location => this.getLocationName(location)).filter(Boolean))];
+    const destinationNames = [...new Set<string>(destinationLocations.map(location => this.getLocationName(location)).filter(Boolean))];
+
+    if (originNames.length === 0 || destinationNames.length === 0) {
+      this.loading = false;
+      this.errorMsg = 'No encontramos puntos operativos para completar esta combinación.';
+      return;
+    }
+
+    this.rutasService.getUpcomingRoutes({
+      origen: originNames,
+      destino: destinationNames,
+      dropoff_date: this.dropoffDate,
+      dropoff_time: this.dropoffTime
+    }).subscribe({
+      next: (response: any) => {
+        this.loading = false;
+        this.result = response;
+
+        const routes = response.results || [];
+        this.flightResults = routes.map((route: any) => {
+          const originLocation = originLocations.find(location => this.getLocationName(location) === route.origen_nombre);
+          const destinationLocation = destinationLocations.find(location => this.getLocationName(location) === route.destino_nombre);
+          const firstOption = route.opciones_entrega?.[0] || route.opciones?.[0] || null;
+
+          return {
+            ...route,
+            origen_tipo: originLocation?.tipo,
+            origen_lat: originLocation?.ubicacion?.lat,
+            origen_lng: originLocation?.ubicacion?.lng,
+            destino_nombre_destino: route.destino_nombre,
+            destino_tipo: destinationLocation?.tipo,
+            destino_lat: destinationLocation?.ubicacion?.lat,
+            destino_lng: destinationLocation?.ubicacion?.lng,
+            fecha_llegada: route.fecha_llegada || firstOption?.fecha_llegada,
+            horario_recoleccion: route.horario_recoleccion || firstOption?.horario_recoleccion,
+            selectedOption: firstOption,
+            selected_opcion_idx: 0,
+            distance: 0
+          };
+        });
+
+        if (this.flightResults.length === 0) {
+          this.errorMsg = response.origen_msg || 'No hay rutas disponibles para esta combinación.';
+          this.bottomSheetState = 'half';
+          return;
+        }
+
+        this.bottomSheetState = 'expanded';
+        this.updateMapMarkers.emit();
+      },
+      error: () => {
+        this.loading = false;
+        this.errorMsg = 'Error de conexión al buscar la ruta punto a punto.';
+      }
+    });
   }
 
   closePinDetails() {

@@ -14,7 +14,7 @@
       (resetMapMarkersEvent)="resetMapMarkers()"
       (showNearbyPointsEvent)="showNearbyPoints()"
       (previewImageEvent)="fullScreenImage = $event"
-      (showPinDetails)="viewOnMap($event.location)"
+      (showPinDetails)="viewOnMap($event.location, $event.type)"
     ></app-home>
   </div>
 

@@ -105,7 +105,12 @@ export class HomeComponent implements OnInit {
   loading: boolean = false;
   errorMsg: string = '';
   result: any = null;
-  touchStartY: number = 0;
+  sheetDragOffset: number = 0;
+  isSheetDragging: boolean = false;
+  private activeSheetPointerId: number | null = null;
+  private sheetDragStartY: number = 0;
+  private sheetDragStartedAt: number = 0;
+  private didSheetDrag: boolean = false;
   selectingLocation: string | null = null;
   origenMunicipio: string = '';
   destinoMunicipio: string = '';
@@ -817,27 +822,75 @@ export class HomeComponent implements OnInit {
     this.showNearbyPointsEvent.emit();
   }
 
-  onTouchStart(event: TouchEvent) {
-    this.touchStartY = event.touches[0].clientY;
+  onSheetPointerDown(event: PointerEvent) {
+    if (this.bottomSheetState === 'hidden' || (event.pointerType === 'mouse' && event.button !== 0)) return;
+
+    this.activeSheetPointerId = event.pointerId;
+    this.sheetDragStartY = event.clientY;
+    this.sheetDragStartedAt = performance.now();
+    this.sheetDragOffset = 0;
+    this.isSheetDragging = true;
+    this.didSheetDrag = false;
+
+    (event.currentTarget as HTMLElement).setPointerCapture?.(event.pointerId);
   }
-  
-  onTouchEnd(event: TouchEvent) {
-    const touchEndY = event.changedTouches[0].clientY;
-    const diff = touchEndY - this.touchStartY;
-    
-    if (diff > 50) {
-      if (this.bottomSheetState === 'expanded') {
-        this.bottomSheetState = 'half';
-      } else if (this.bottomSheetState === 'half') {
-        this.bottomSheetState = 'collapsed';
-      }
-    } else if (diff < -50) {
-      if (this.bottomSheetState === 'collapsed') {
-        this.bottomSheetState = 'half';
-      } else if (this.bottomSheetState === 'half') {
-        this.bottomSheetState = 'expanded';
-      }
+
+  onSheetPointerMove(event: PointerEvent) {
+    if (!this.isSheetDragging || event.pointerId !== this.activeSheetPointerId) return;
+
+    const rawOffset = event.clientY - this.sheetDragStartY;
+    const viewportLimit = Math.max(180, window.innerHeight * 0.58);
+    const upwardLimit = this.bottomSheetState === 'expanded' ? 24 : viewportLimit;
+    const downwardLimit = this.bottomSheetState === 'collapsed' ? 24 : viewportLimit;
+
+    this.sheetDragOffset = Math.max(-upwardLimit, Math.min(downwardLimit, rawOffset));
+    this.didSheetDrag = this.didSheetDrag || Math.abs(rawOffset) > 5;
+
+    if (this.didSheetDrag) event.preventDefault();
+  }
+
+  onSheetPointerEnd(event: PointerEvent) {
+    if (!this.isSheetDragging || event.pointerId !== this.activeSheetPointerId) return;
+
+    const elapsed = Math.max(1, performance.now() - this.sheetDragStartedAt);
+    const velocity = this.sheetDragOffset / elapsed;
+    const shouldSnap = Math.abs(this.sheetDragOffset) >= 44 || Math.abs(velocity) >= 0.35;
+
+    if (shouldSnap) {
+      this.stepSheet(this.sheetDragOffset < 0 ? 'up' : 'down');
     }
+
+    const captureTarget = event.currentTarget as HTMLElement;
+    if (captureTarget.hasPointerCapture?.(event.pointerId)) {
+      captureTarget.releasePointerCapture(event.pointerId);
+    }
+    this.activeSheetPointerId = null;
+    this.isSheetDragging = false;
+    this.sheetDragOffset = 0;
+
+    setTimeout(() => {
+      this.didSheetDrag = false;
+    });
+  }
+
+  onSheetHeaderClick() {
+    if (!this.didSheetDrag) this.expandSheetIfNeeded();
+  }
+
+  onSheetHandleClick(event: MouseEvent) {
+    event.stopPropagation();
+    if (!this.didSheetDrag) this.toggleSheet();
+  }
+
+  private stepSheet(direction: 'up' | 'down') {
+    if (direction === 'up') {
+      if (this.bottomSheetState === 'collapsed') this.bottomSheetState = 'half';
+      else if (this.bottomSheetState === 'half') this.bottomSheetState = 'expanded';
+      return;
+    }
+
+    if (this.bottomSheetState === 'expanded') this.bottomSheetState = 'half';
+    else if (this.bottomSheetState === 'half') this.bottomSheetState = 'collapsed';
   }
 
   toggleSheet() {

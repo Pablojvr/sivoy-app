@@ -15,20 +15,20 @@
   align-items: center;
   gap: 16px;
   padding: 16px 20px;
-  border-radius: 16px;
+  border-radius: 20px;
   min-width: 320px;
   max-width: 400px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 16px 42px rgba(29, 30, 28, 0.16);
   position: relative;
   overflow: hidden;
 }
 
 /* Glassmorphism base styling */
 .glassmorphism {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(252, 253, 251, 0.96);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(29, 30, 28, 0.09);
 }
 
 .toast-card::before {
@@ -40,9 +40,9 @@
   width: 5px;
 }
 
-.toast-card.success::before { background-color: #10b981; }
-.toast-card.error::before { background-color: #ef4444; }
-.toast-card.info::before { background-color: #3b82f6; }
+.toast-card.success::before { background-color: #b8ee4a; }
+.toast-card.error::before { background-color: #f45b78; }
+.toast-card.info::before { background-color: #a9ddf5; }
 
 .toast-icon {
   display: flex;
@@ -54,16 +54,16 @@
 }
 
 .toast-card.success .toast-icon { 
-  color: #10b981; 
-  background: rgba(16, 185, 129, 0.1); 
+  color: #41651b;
+  background: #effbd5;
 }
 .toast-card.error .toast-icon { 
-  color: #ef4444; 
-  background: rgba(239, 68, 68, 0.1); 
+  color: #c93655;
+  background: #fff0f3;
 }
 .toast-card.info .toast-icon { 
-  color: #3b82f6; 
-  background: rgba(59, 130, 246, 0.1); 
+  color: #21657d;
+  background: #eaf7fc;
 }
 
 .toast-content {
@@ -74,13 +74,13 @@
   margin: 0 0 4px 0;
   font-size: 15px;
   font-weight: 700;
-  color: var(--text-main, #1e293b);
+  color: var(--text-main, #1d1e1c);
 }
 
 .toast-content p {
   margin: 0;
   font-size: 14px;
-  color: var(--text-muted, #64748b);
+  color: var(--text-muted, #626760);
   line-height: 1.4;
 }
 
@@ -99,6 +99,27 @@
 
 .toast-close:hover {
   color: #475569;
+}
+
+@media (max-width: 640px) {
+  .toast-container {
+    top: 120px;
+    right: 12px;
+    left: 12px;
+  }
+
+  .toast-card {
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slide-in,
+  .fade-out {
+    animation-duration: 0.01ms !important;
+  }
 }
 
 @keyframes slideInRight {

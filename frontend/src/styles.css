@@ -1,28 +1,34 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap');
 
 :root {
   /* BRAND MANUAL CSS VARIABLES */
-  --primary: #FF654F;
-  --primary-dark: #E94F3D;
-  --bg-color: #F6F3EF;
+  --primary: #F45B78;
+  --primary-dark: #D94262;
+  --signal-lime: #B8EE4A;
+  --signal-blue: #A9DDF5;
+  --signal-amber: #FFD18A;
+  --bg-color: #F2F4F2;
   --surface: rgba(255, 255, 255, 0.85);
   --surface-solid: #FFFFFF;
-  --text-main: #171717;
-  --text-muted: #667085;
-  --border: rgba(23, 23, 23, 0.10);
+  --text-main: #1D1E1C;
+  --text-muted: #626760;
+  --border: rgba(29, 30, 28, 0.10);
   --radius-lg: 28px;
   --radius-md: 16px;
   --radius-sm: 8px;
   --radius-pill: 100px;
-  --shadow-sm: 0 4px 14px rgba(23, 23, 23, 0.06);
-  --shadow-md: 0 18px 48px rgba(23, 23, 23, 0.12);
-  --shadow-lg: 0 20px 60px rgba(23, 23, 23, 0.16);
+  --shadow-sm: 0 4px 14px rgba(29, 30, 28, 0.06);
+  --shadow-md: 0 18px 48px rgba(29, 30, 28, 0.12);
+  --shadow-lg: 0 22px 64px rgba(29, 30, 28, 0.17);
+  --focus-ring: 0 0 0 4px rgba(244, 91, 120, 0.22);
+  --danger: #C93655;
+  --success: #347A35;
 
   /* Aliases for variables used in CSS but previously undefined */
   --border-color: rgba(0, 0, 0, 0.08);
   --surface-color: rgba(255, 255, 255, 0.85);
-  --surface-bg: #F7F7F7;
-  --text-color: #171717;
+  --surface-bg: #F2F4F2;
+  --text-color: #1D1E1C;
   --surface-hover: #f1f5f9;
 }
 
@@ -30,7 +36,7 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Manrope', system-ui, sans-serif;
 }
 
 html, body {

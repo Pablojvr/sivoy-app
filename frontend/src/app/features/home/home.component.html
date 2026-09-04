@@ -379,15 +379,28 @@
   </div>
 
   <!-- COLLAPSIBLE BOTTOM SHEET -->
-  <div class="bottom-sheet" 
+  <section class="bottom-sheet"
        [ngClass]="[bottomSheetState, highlightedRoute ? 'has-highlight' : '']"
-       (touchstart)="onTouchStart($event)"
-       (touchend)="onTouchEnd($event)"
+       [class.dragging]="isSheetDragging"
+       [style.--sheet-drag-offset]="sheetDragOffset + 'px'"
        *ngIf="!isPickingLocation && !selectingLocation && !isSearchExpanded" (click)="$event.stopPropagation()">
-    <div class="persistent-sheet-header" (click)="expandSheetIfNeeded()">
-      <div class="drag-handle" (click)="toggleSheet(); $event.stopPropagation()"></div>
+    <header
+      class="persistent-sheet-header"
+      (pointerdown)="onSheetPointerDown($event)"
+      (pointermove)="onSheetPointerMove($event)"
+      (pointerup)="onSheetPointerEnd($event)"
+      (pointercancel)="onSheetPointerEnd($event)"
+      (click)="onSheetHeaderClick()">
+      <button
+        type="button"
+        class="drag-handle"
+        (click)="onSheetHandleClick($event)"
+        [attr.aria-expanded]="bottomSheetState !== 'collapsed'"
+        aria-label="Cambiar altura del panel de resultados">
+        <span class="sr-only">Cambiar altura del panel</span>
+      </button>
       <div class="persistent-title">
-        <div *ngIf="destino && municipalityResults.length > 0" style="display:flex; flex-direction:column; align-items:center;">
+        <div *ngIf="destino && municipalityResults.length > 0" class="sheet-summary">
           <h3>{{ displayedResults.length }} {{ displayedResults.length === 1 ? 'Resultado' : 'Resultados' }} en {{ destino.split(',')[0] }}</h3>
           <p class="slide-hint" style="color: var(--text-muted); font-size: 12px; margin-top: 4px; display: flex; align-items: center; gap: 4px; margin-bottom: 0;">
             <svg *ngIf="bottomSheetState === 'collapsed'" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>
@@ -396,7 +409,7 @@
           </p>
         </div>
 
-        <div *ngIf="destino && flightResults.length > 0 && !highlightedRoute" style="display:flex; flex-direction:column; align-items:center;">
+        <div *ngIf="destino && flightResults.length > 0 && !highlightedRoute" class="sheet-summary">
           <h3>{{ flightResults.length }} Rutas disponibles</h3>
           <p class="slide-hint" style="color: var(--text-muted); font-size: 12px; margin-top: 4px; display: flex; align-items: center; gap: 4px; margin-bottom: 0;">
             <svg *ngIf="bottomSheetState === 'collapsed'" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>
@@ -405,87 +418,12 @@
           </p>
         </div>
 
-        <div *ngIf="destino && flightResults.length > 0 && highlightedRoute" style="display:flex; flex-direction:column; align-items:center; width: 100%; padding: 0 10px;">
+        <div *ngIf="destino && flightResults.length > 0 && highlightedRoute" class="sheet-summary route-summary">
           
-          <style>
-            .route-preview-container {
-              display: flex;
-              align-items: center;
-              justify-content: space-between;
-              width: 100%;
-              margin-bottom: 8px;
-              position: relative;
-            }
-            .route-preview-point {
-              display: flex;
-              flex-direction: column;
-              align-items: center;
-              z-index: 2;
-              flex: 1;
-              max-width: 40%;
-            }
-            .route-preview-point-icon {
-              width: 24px;
-              height: 24px;
-              border-radius: 50%;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              color: white;
-              margin-bottom: 4px;
-              font-size: 11px;
-            }
-            .route-preview-point-name {
-              font-size: 10px;
-              font-weight: 600;
-              color: #1e293b;
-              text-align: center;
-              white-space: nowrap;
-              overflow: hidden;
-              text-overflow: ellipsis;
-              max-width: 100%;
-            }
-            .route-preview-line-container {
-              flex: 1;
-              position: relative;
-              display: flex;
-              align-items: center;
-              height: 24px;
-              margin: 0 5px;
-              margin-top: -14px;
-            }
-            .route-preview-line {
-              width: 100%;
-              height: 2px;
-              background-image: linear-gradient(to right, #cbd5e1 50%, transparent 50%);
-              background-size: 8px 2px;
-              position: absolute;
-            }
-            .route-preview-truck {
-              position: absolute;
-              top: 50%;
-              transform: translateY(-50%);
-              color: var(--primary);
-              font-size: 14px;
-              background: white;
-              padding: 0 4px;
-              animation: driveTruck 3s linear infinite;
-            }
-            @keyframes driveTruck {
-              0% { left: 0%; opacity: 0; }
-              10% { opacity: 1; }
-              90% { opacity: 1; }
-              100% { left: 90%; opacity: 0; }
-            }
-            .bottom-sheet.collapsed.has-highlight {
-              height: 148px !important;
-            }
-          </style>
-
           <div class="route-preview-container">
             <!-- Origin -->
             <div class="route-preview-point">
-              <div class="route-preview-point-icon" style="background-color: var(--primary);">
+              <div class="route-preview-point-icon origin">
                 <span class="material-symbols-outlined" style="font-size: 14px;">inventory_2</span>
               </div>
               <span class="route-preview-point-name">{{ formatLocationName(highlightedRoute.origen_nombre, highlightedRoute.origen_tipo) }}</span>
@@ -499,15 +437,15 @@
 
             <!-- Destination -->
             <div class="route-preview-point">
-              <div class="route-preview-point-icon" style="background-color: #334155;">
+              <div class="route-preview-point-icon destination">
                 <span class="material-symbols-outlined" style="font-size: 14px;">location_on</span>
               </div>
               <span class="route-preview-point-name">{{ formatLocationName(highlightedRoute.destino_nombre_destino || highlightedRoute.destino_nombre, highlightedRoute.destino_tipo) }}</span>
             </div>
           </div>
 
-          <div style="display: flex; flex-direction: column; gap: 4px; margin-bottom: 8px;">
-            <p style="color: #64748b; font-size: 11px; margin: 0; padding: 4px 10px; border-radius: 8px; background: #f8fafc; border: 1px solid #e2e8f0; display: flex; align-items: flex-start; line-height: 1.3;">
+          <div class="route-timing-grid">
+            <p class="route-timing-card dropoff">
               <span class="material-symbols-outlined" style="font-size: 14px; margin-right: 6px; margin-top: 1px;">inventory_2</span>
               <span>
                 <strong>Entregar: {{ highlightedRoute.opciones_entrega ? formatFriendlyDate(highlightedRoute.opciones_entrega[highlightedRoute.selected_opcion_idx || 0].dropoff_date) : '' }}</strong><br>
@@ -515,7 +453,7 @@
               </span>
             </p>
             
-            <p style="color: var(--primary); font-size: 11px; margin: 0; background: #fff1f2; padding: 4px 10px; border-radius: 8px; display: flex; align-items: flex-start; line-height: 1.3;">
+            <p class="route-timing-card arrival">
               <span class="material-symbols-outlined" style="font-size: 14px; margin-right: 6px; margin-top: 1px;">local_shipping</span>
               <span>
                 <strong>Llega: {{ highlightedRoute.opciones_entrega ? highlightedRoute.opciones_entrega[highlightedRoute.selected_opcion_idx || 0].fecha_llegada : highlightedRoute.fecha_llegada }}</strong><br>
@@ -531,7 +469,7 @@
           </p>
         </div>
 
-        <div *ngIf="!destino && !loading && !errorMsg" style="display:flex; flex-direction:column; align-items:center;">
+        <div *ngIf="!destino && !loading && !errorMsg" class="sheet-summary">
           <h3 *ngIf="isDiscoveryMode">{{ displayedResults.length }} Destinos principales</h3>
           <h3 *ngIf="isOriginDiscoveryMode">{{ displayedResults.length }} Orígenes disponibles</h3>
           <h3 *ngIf="!isDiscoveryMode && !isOriginDiscoveryMode">Explorar mapa</h3>
@@ -544,9 +482,9 @@
 
         <h3 *ngIf="destino && municipalityResults.length === 0 && flightResults.length === 0 && !loading && !errorMsg">No hay rutas disponibles</h3>
 
-        <h3 *ngIf="errorMsg" style="color: var(--danger);">{{ errorMsg }}</h3>
+        <h3 *ngIf="errorMsg" class="sheet-error-title">{{ errorMsg }}</h3>
       </div>
-    </div>
+    </header>
     
     <!-- CARDS LIST -->
     <div class="sheet-content" (scroll)="onSheetScroll($event)">
@@ -808,4 +746,4 @@
       </div>
 
     </div>
-  </div>
+  </section>

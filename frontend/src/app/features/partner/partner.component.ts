@@ -1,10 +1,10 @@
 import { environment } from '../../../environments/environment';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
-import * as L from 'leaflet';
+import { asCoordinate, createBounds, createMarkerElement, createSiVoyMap, mapRuntime, SiVoyCoordinate, SiVoyMap, SiVoyMarker } from '../../core/maps/sivoy-map';
 
 @Component({
   selector: 'app-partner-dashboard',
@@ -13,7 +13,7 @@ import * as L from 'leaflet';
   templateUrl: './partner.component.html',
   styleUrls: ['./partner.component.css']
 })
-export class PartnerComponent implements OnInit {
+export class PartnerComponent implements OnInit, OnDestroy {
   activeTab: 'puntos' | 'reglas' | 'dashboard' | 'conexiones' = 'puntos';
   activeEmpresa: string = '';
   
@@ -22,8 +22,8 @@ export class PartnerComponent implements OnInit {
   companyLocations: any[] = [];
   loading: boolean = true;
   
-  partnerMap: any;
-  mapMarkers: any[] = [];
+  partnerMap?: SiVoyMap;
+  mapMarkers: SiVoyMarker[] = [];
   
   selectedLocationToEdit: any = null;
   excepcionesTemporales: any[] = [];
@@ -36,6 +36,11 @@ export class PartnerComponent implements OnInit {
 
   ngOnInit(): void {
     this.fetchLocations();
+  }
+
+  ngOnDestroy(): void {
+    this.mapMarkers.forEach(marker => marker.remove());
+    this.partnerMap?.remove();
   }
   
   fetchLocations() {
@@ -154,18 +159,14 @@ export class PartnerComponent implements OnInit {
       if (this.partnerMap) {
         this.partnerMap.remove();
       }
-      
-      this.partnerMap = L.map('partnerMap', {
-        zoomControl: false,
-        attributionControl: false
-      }).setView(focusLoc ? [focusLoc.ubicacion.lat, focusLoc.ubicacion.lng] : [13.69, -88.87], focusLoc ? 11 : 9);
-      
-      // Clean Google Maps layer
-      L.tileLayer('http://mt0.google.com/vt/lyrs=m&hl=es&x={x}&y={y}&z={z}', {
-        maxZoom: 19
-      }).addTo(this.partnerMap);
-      
-      this.drawConnections();
+
+      const mapElement = document.getElementById('partnerMap');
+      if (!mapElement) return;
+      const center = focusLoc
+        ? asCoordinate(focusLoc.ubicacion.lat, focusLoc.ubicacion.lng)
+        : [-88.87, 13.69] as SiVoyCoordinate;
+      this.partnerMap = createSiVoyMap(mapElement, center, focusLoc ? 11 : 9);
+      this.partnerMap!.once('load', () => this.drawConnections());
     }, 100);
   }
   
@@ -173,37 +174,58 @@ export class PartnerComponent implements OnInit {
     // 1. Draw all points as Hub nodes
     const validLocations = this.companyLocations.filter(l => l.ubicacion?.lat && l.ubicacion?.lng);
     
-    validLocations.forEach(loc => {
-      const circle = L.circleMarker([loc.ubicacion.lat, loc.ubicacion.lng], {
-        radius: 6,
-        fillColor: 'var(--primary)',
-        color: '#fff',
-        weight: 2,
-        fillOpacity: 1
-      }).addTo(this.partnerMap);
-      
-      circle.bindTooltip(`<b>${loc.nombre_destino}</b><br>${loc.municipio}`, { direction: 'top', className: 'b2b-tooltip' });
+    if (!this.partnerMap) return;
+    this.mapMarkers.forEach(marker => marker.remove());
+    this.mapMarkers = validLocations.map(loc => {
+      const element = createMarkerElement('nearby', loc.nombre_destino);
+      return new mapRuntime.Marker({ element, anchor: 'center' })
+        .setLngLat(asCoordinate(loc.ubicacion.lat, loc.ubicacion.lng))
+        .setPopup(new mapRuntime.Popup({ offset: 16, closeButton: false }).setHTML(`<strong>${loc.nombre_destino}</strong><br>${loc.ubicacion?.municipio || ''}`))
+        .addTo(this.partnerMap!);
     });
     
     // 2. Simulate drawing curved flight paths between the first location and a few others
     if (validLocations.length >= 2) {
       const origin = validLocations[0];
+      const routeFeatures: any[] = [];
       
       for (let i = 1; i < Math.min(validLocations.length, 5); i++) {
         const dest = validLocations[i];
-        this.drawBezierCurve([origin.ubicacion.lat, origin.ubicacion.lng], [dest.ubicacion.lat, dest.ubicacion.lng]);
+        routeFeatures.push({
+          type: 'Feature',
+          properties: {},
+          geometry: {
+            type: 'LineString',
+            coordinates: this.createBezierCurve(
+              asCoordinate(origin.ubicacion.lat, origin.ubicacion.lng),
+              asCoordinate(dest.ubicacion.lat, dest.ubicacion.lng)
+            )
+          }
+        });
       }
-      
-      // Fit bounds
-      const group = new L.FeatureGroup(validLocations.map(l => L.marker([l.ubicacion.lat, l.ubicacion.lng])));
-      this.partnerMap.fitBounds(group.getBounds(), { padding: [50, 50] });
+
+      if (this.partnerMap.getLayer('partner-connections')) this.partnerMap.removeLayer('partner-connections');
+      if (this.partnerMap.getSource('partner-connections')) this.partnerMap.removeSource('partner-connections');
+      this.partnerMap.addSource('partner-connections', {
+        type: 'geojson',
+        data: { type: 'FeatureCollection', features: routeFeatures } as any
+      });
+      this.partnerMap.addLayer({
+        id: 'partner-connections',
+        type: 'line',
+        source: 'partner-connections',
+        paint: { 'line-color': '#F45B78', 'line-width': 3, 'line-opacity': 0.62, 'line-dasharray': [1, 1.5] }
+      });
+
+      const bounds = createBounds(validLocations.map(location => asCoordinate(location.ubicacion.lat, location.ubicacion.lng)));
+      if (bounds) this.partnerMap.fitBounds(bounds, { padding: 50, maxZoom: 13, duration: 700 });
     }
   }
-  
-  drawBezierCurve(latlng1: [number, number], latlng2: [number, number]) {
+
+  private createBezierCurve(point1: SiVoyCoordinate, point2: SiVoyCoordinate): SiVoyCoordinate[] {
     // Simple Quadratic Bezier Curve logic
-    const lat1 = latlng1[0], lng1 = latlng1[1];
-    const lat2 = latlng2[0], lng2 = latlng2[1];
+    const lng1 = point1[0], lat1 = point1[1];
+    const lng2 = point2[0], lat2 = point2[1];
     
     // Calculate midpoint
     const midLat = (lat1 + lat2) / 2;
@@ -227,7 +249,7 @@ export class PartnerComponent implements OnInit {
     const cLng = midLng + (pLng / length) * offset;
     
     // Generate points along the curve (t from 0 to 1)
-    const points: [number, number][] = [];
+    const points: SiVoyCoordinate[] = [];
     const segments = 50;
     
     for (let i = 0; i <= segments; i++) {
@@ -237,15 +259,9 @@ export class PartnerComponent implements OnInit {
       const qLat = u * u * lat1 + 2 * u * t * cLat + t * t * lat2;
       const qLng = u * u * lng1 + 2 * u * t * cLng + t * t * lng2;
       
-      points.push([qLat, qLng]);
+      points.push([qLng, qLat]);
     }
-    
-    // Draw the curved line
-    L.polyline(points, {
-      color: 'var(--primary)',
-      weight: 3,
-      opacity: 0.6,
-      dashArray: '5, 5' // Dashed line for effect
-    }).addTo(this.partnerMap);
+
+    return points;
   }
 }

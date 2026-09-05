@@ -1,30 +1,30 @@
 import { environment } from '../../../environments/environment';
-import { Component, Input, Output, EventEmitter, OnInit, ChangeDetectorRef, AfterViewInit, HostListener, ElementRef, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChanges, HostListener, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RutasService } from '../../core/services/rutas.service';
 import { ToastService } from '../../core/services/toast.service';
 import { MapasService } from '../../core/services/mapas.service';
-import { DiscoveryHomeComponent } from './discovery-home.component';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, FormsModule, DiscoveryHomeComponent],
+  imports: [CommonModule, FormsModule],
   templateUrl: './home.component.html',
   encapsulation: ViewEncapsulation.None
 })
-export class HomeComponent implements OnInit {
+export class HomeComponent implements OnInit, OnChanges {
   apiUrl = environment.apiUrl;
   @Input() locations: any[] = [];
   @Input() userLocation: any = null;
+  @Input() initialIntent: Record<string, string> = {};
+  private appliedIntentKey = '';
   private _selectedPin: any = null;
   activePinTab: 'info' | 'horarios' = 'info';
 
   @Input() set selectedPin(value: any) {
     this._selectedPin = value;
     if (value) {
-      this.showDiscoveryHome = false;
       this.activePinTab = 'info';
       this.bottomSheetState = 'hidden';
       this.lastSelectedLocationId = value.id_destino || value.id_origen || value.id;
@@ -90,6 +90,7 @@ export class HomeComponent implements OnInit {
   @Output() resetMapMarkersEvent = new EventEmitter<void>();
   @Output() showNearbyPointsEvent = new EventEmitter<void>();
   @Output() previewImageEvent = new EventEmitter<string>();
+  @Output() homeRequested = new EventEmitter<void>();
 
   origen: string = '';
   destino: string = '';
@@ -142,7 +143,6 @@ export class HomeComponent implements OnInit {
   expandedResultCard: any = null;
   activeDetailedCard: any = null;
   searchRadius: number = 1.0;
-  showDiscoveryHome: boolean = true;
   
   // Autocomplete logic properties
   showAutocomplete: boolean = false;
@@ -162,7 +162,8 @@ export class HomeComponent implements OnInit {
   constructor(
     private rutasService: RutasService,
     private toastService: ToastService,
-    private mapasService: MapasService
+    private mapasService: MapasService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit() {
@@ -226,19 +227,57 @@ export class HomeComponent implements OnInit {
     this.flightResults = [];
     this.municipalityResults = [];
     this.displayedResults = [];
-    this.showDiscoveryHome = true;
     this.clearMap.emit();
     this.updateMapMarkers.emit();
   }
 
+  returnToHome() {
+    this.closeLocationSelector();
+    this.homeRequested.emit();
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    if ((changes['locations'] || changes['initialIntent']) && this.locations.length > 0) {
+      this.applyInitialIntent();
+    }
+  }
+
+  private applyInitialIntent() {
+    if (Object.keys(this.initialIntent || {}).length === 0) return;
+    const intentKey = JSON.stringify(this.initialIntent);
+    if (intentKey === this.appliedIntentKey) return;
+    this.appliedIntentKey = intentKey;
+    const intent = this.initialIntent;
+
+    setTimeout(() => {
+      if (intent['buscar'] === 'destino') {
+        this.openLocationSelector('destino');
+      } else if (intent['empresa']) {
+        this.exploreCompanyFromDiscovery(intent['empresa']);
+      } else if (intent['municipio']) {
+        this.selectMunicipalityFromDiscovery({
+          municipio: intent['municipio'],
+          departamento: intent['departamento'] || ''
+        });
+      } else if (intent['punto']) {
+        const point = this.locations.find(location =>
+          String(location.id_destino || location.id) === String(intent['punto'])
+        );
+        if (point) {
+          if (intent['accion'] === 'select') this.selectPointFromDiscovery(point);
+          else this.previewPointFromDiscovery(point);
+        }
+      }
+      this.cdr.detectChanges();
+    });
+  }
+
   exploreMapFromDiscovery() {
-    this.showDiscoveryHome = false;
     this.bottomSheetState = 'collapsed';
     this.resetMapMarkersEvent.emit();
   }
 
   selectMunicipalityFromDiscovery(municipality: any) {
-    this.showDiscoveryHome = false;
     this.selectMunicipality(municipality, 'destino');
   }
 
@@ -246,7 +285,6 @@ export class HomeComponent implements OnInit {
     const companyLocations = this.locations.filter(location => location.empresa === empresa);
     if (companyLocations.length === 0) return;
 
-    this.showDiscoveryHome = false;
     this.isDiscoveryMode = true;
     this.isOriginDiscoveryMode = false;
     this.isOriginChoiceMode = false;
@@ -265,12 +303,10 @@ export class HomeComponent implements OnInit {
   }
 
   selectPointFromDiscovery(point: any) {
-    this.showDiscoveryHome = false;
     this.selectPointFromList(point);
   }
 
   previewPointFromDiscovery(point: any) {
-    this.showDiscoveryHome = false;
     this.isDiscoveryMode = true;
     this.activeEmpresa = point.empresa || '';
     this.municipalityResults = [{ ...point, destino_nombre: point.nombre_destino }];

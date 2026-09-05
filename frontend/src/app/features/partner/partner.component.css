@@ -274,22 +274,6 @@
   border: 1px solid rgba(255, 255, 255, 0.5);
 }
 
-/* LEAFLET B2B CUSTOMIZATION */
-.b2b-tooltip {
-  background: white;
-  border: none;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-  border-radius: 8px;
-  padding: 8px 12px;
-  color: var(--text-main);
-  font-family: 'Inter', sans-serif;
-  font-size: 13px;
-  line-height: 1.4;
-}
-.b2b-tooltip::before {
-  border-top-color: white;
-}
-
 /* SIDE PANEL */
 .side-panel-overlay {
   position: fixed;

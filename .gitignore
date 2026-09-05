@@ -4,6 +4,7 @@ dist/
 *.sqlite  
 *.sqlite3  
 public/uploads/*  
+/backend/public/
 .env 
 
 /data/

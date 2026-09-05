@@ -20,6 +20,13 @@ app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 // Serve compiled Angular frontend
 const DIST_PATH = path.join(__dirname, '..', 'frontend', 'dist', 'frontend', 'browser');
+app.get('/runtime-config.js', (req, res) => {
+    res.type('application/javascript');
+    res.set('Cache-Control', 'no-store');
+    res.send(`window.__SIVOY_CONFIG__=${JSON.stringify({
+        mapboxPublicToken: process.env.MAPBOX_PUBLIC_TOKEN || ''
+    })};`);
+});
 app.use(express.static(DIST_PATH));
 
 // Serve uploaded files

@@ -671,6 +671,37 @@
             </span>
           </div>
 
+          <section
+            class="point-hours-panel"
+            [class.state-green]="res._status?.color === 'green'"
+            [class.state-orange]="res._status?.color === 'orange'"
+            [class.state-red]="res._status?.color === 'red'"
+            [class.state-gray]="!res._status || res._status?.color === 'gray'"
+            aria-label="Horarios de atención">
+            <header class="point-hours-heading">
+              <span class="point-hours-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
+              </span>
+              <span class="point-hours-status">
+                <small>Disponibilidad</small>
+                <strong>{{ res._status?.mainText || 'Consulta sus horarios' }}</strong>
+                <span *ngIf="res._status?.timeText">{{ res._status.timeText }}</span>
+              </span>
+              <span class="point-hours-count">{{ res.horarios_operativos?.length || 0 }} días</span>
+            </header>
+
+            <div class="point-hours-grid" *ngIf="res.horarios_operativos?.length; else noPointHours">
+              <div *ngFor="let h of res.horarios_operativos">
+                <span>{{ h.dia_semana }}</span>
+                <strong>{{ formatTime(h.hora_apertura) }} – {{ formatTime(h.hora_cierre) }}</strong>
+              </div>
+            </div>
+            <ng-template #noPointHours>
+              <p class="point-hours-empty">Esta agencia todavía no ha publicado sus horarios.</p>
+            </ng-template>
+          </section>
+
+          <div class="point-options-label">Opciones</div>
           <div class="point-result-actions">
             <button type="button" class="point-use-action" (click)="selectPointFromList(res)">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 5.5-8 11-8 11S4 15.5 4 10a8 8 0 1 1 16 0Z"></path><circle cx="12" cy="10" r="2.5"></circle></svg>
@@ -678,25 +709,8 @@
             </button>
             <button type="button" class="point-map-action" (click)="viewPointOnMap(res)">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3V6Z"></path><path d="M9 3v15M15 6v15"></path></svg>
-              Mapa
+              Ver en mapa
             </button>
-          </div>
-
-          <button
-            type="button"
-            class="point-hours-toggle"
-            (click)="togglePointSchedule(res)"
-            [attr.aria-expanded]="expandedResultCard === res">
-            <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg> Horarios</span>
-            <span>{{ res.horarios_operativos?.length || 0 }} días <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" [class.rotated]="expandedResultCard === res"><path d="m6 9 6 6 6-6"></path></svg></span>
-          </button>
-
-          <div class="point-hours-preview" *ngIf="expandedResultCard === res">
-            <div *ngFor="let h of res.horarios_operativos">
-              <span>{{ h.dia_semana }}</span>
-              <strong>{{ formatTime(h.hora_apertura) }} – {{ formatTime(h.hora_cierre) }}</strong>
-            </div>
-            <p *ngIf="!res.horarios_operativos || res.horarios_operativos.length === 0">Horarios no definidos</p>
           </div>
         </article>
       </div>

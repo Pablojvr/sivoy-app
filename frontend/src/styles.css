@@ -669,9 +669,9 @@ html, body {
 
 .point-result-actions {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 92px;
+  grid-template-columns: minmax(0, 1fr) minmax(118px, 0.55fr);
   gap: 8px;
-  padding: 4px 12px 11px;
+  padding: 0 12px 12px;
 }
 
 .point-result-actions button {
@@ -715,71 +715,151 @@ html, body {
   background: #fff;
 }
 
-.point-hours-toggle {
-  width: 100%;
-  min-height: 44px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 0 14px;
-  border: 0;
-  border-top: 1px solid rgba(29, 30, 28, 0.07);
-  background: rgba(255, 255, 255, 0.54);
-  color: #596057;
-  font: inherit;
-  font-size: 11px;
-  font-weight: 750;
-  cursor: pointer;
+.point-hours-panel {
+  --availability-accent: var(--signal-blue);
+  --availability-ink: #285b71;
+  margin: 0 12px 10px;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--availability-accent) 48%, #fff);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--availability-accent) 16%, #fff);
 }
 
-.point-hours-toggle > span {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
+.point-hours-panel.state-green {
+  --availability-accent: var(--signal-lime);
+  --availability-ink: #3d5d12;
 }
 
-.point-hours-toggle svg {
-  width: 16px;
-  height: 16px;
-  transition: transform 180ms ease;
+.point-hours-panel.state-orange {
+  --availability-accent: var(--signal-amber);
+  --availability-ink: #7b5314;
 }
 
-.point-hours-toggle svg.rotated {
-  transform: rotate(180deg);
+.point-hours-panel.state-red {
+  --availability-accent: var(--primary);
+  --availability-ink: #963048;
 }
 
-.point-hours-preview {
+.point-hours-heading {
+  min-height: 61px;
   display: grid;
-  gap: 5px;
-  padding: 10px 14px 13px;
-  border-top: 1px solid rgba(29, 30, 28, 0.06);
-  background: rgba(255, 255, 255, 0.78);
-  animation: point-details-enter 180ms ease-out;
+  grid-template-columns: 34px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 10px;
+  border-bottom: 1px solid rgba(29, 30, 28, 0.07);
 }
 
-.point-hours-preview > div {
+.point-hours-icon {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 11px;
+  background: var(--availability-accent);
+  color: var(--availability-ink);
+}
+
+.point-hours-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.point-hours-status {
+  min-width: 0;
+  display: grid;
+  gap: 1px;
+}
+
+.point-hours-status small {
+  color: var(--availability-ink);
+  font-size: 8px;
+  font-weight: 850;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.point-hours-status strong {
+  overflow: hidden;
+  color: #242723;
+  font-size: 12px;
+  font-weight: 850;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.point-hours-status > span {
+  overflow: hidden;
+  color: #61685f;
+  font-size: 10px;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.point-hours-count {
+  padding: 5px 7px;
+  border: 1px solid rgba(29, 30, 28, 0.07);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.78);
+  color: #545b51;
+  font-size: 9px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.point-hours-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  background: rgba(29, 30, 28, 0.06);
+}
+
+.point-hours-grid > div {
+  min-width: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  color: #626960;
-  font-size: 11px;
+  gap: 6px;
+  min-height: 34px;
+  padding: 6px 8px;
+  background: rgba(255, 255, 255, 0.88);
 }
 
-.point-hours-preview > div span {
+.point-hours-grid span {
+  overflow: hidden;
+  color: #687066;
+  font-size: 9px;
+  font-weight: 700;
+  text-overflow: ellipsis;
   text-transform: capitalize;
+  white-space: nowrap;
 }
 
-.point-hours-preview > div strong {
-  color: #30342e;
-  font-weight: 750;
+.point-hours-grid strong {
+  color: #2f332e;
+  font-size: 9px;
+  font-weight: 800;
+  white-space: nowrap;
 }
 
-.point-hours-preview p {
+.point-hours-empty {
   margin: 0;
-  color: #6f766c;
-  font-size: 11px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.78);
+  color: #636a61;
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.point-options-label {
+  padding: 0 14px 6px;
+  color: #7a8077;
+  font-size: 8px;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 /* Point detail: route action remains visible before secondary information. */
@@ -1218,7 +1298,6 @@ html, body {
 }
 
 .point-result-actions button:focus-visible,
-.point-hours-toggle:focus-visible,
 .pin-card-hero-actions button:focus-visible,
 .pin-route-action:focus-visible,
 .pin-map-action:focus-visible,
@@ -1228,14 +1307,9 @@ html, body {
   outline-offset: 2px;
 }
 
-@keyframes point-details-enter {
-  from { opacity: 0; transform: translateY(-4px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
 @media (max-width: 380px) {
   .point-result-actions {
-    grid-template-columns: minmax(0, 1fr) 84px;
+    grid-template-columns: minmax(0, 1fr) 108px;
   }
 
   .pin-details-card.pin-point-card {
@@ -1251,8 +1325,6 @@ html, body {
 @media (prefers-reduced-motion: reduce) {
   .point-result-card,
   .point-result-actions button,
-  .point-hours-preview,
-  .point-hours-toggle svg,
   .pin-card-hero-actions button,
   .pin-route-action {
     animation: none;

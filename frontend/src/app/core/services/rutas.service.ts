@@ -11,6 +11,13 @@ export interface RouteSearchParams {
   dropoffTime: string;
 }
 
+export interface PointAwareRouteSearchParams {
+  origen: string[];
+  destino: string[];
+  dropoff_date: string;
+  dropoff_time: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -21,6 +28,10 @@ export class RutasService {
 
   searchRoutesByMunicipality(params: any): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/search-routes-by-municipality`, params);
+  }
+
+  getUpcomingRoutes(params: PointAwareRouteSearchParams): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/get-upcoming-routes`, params);
   }
 
   searchFlights(params: RouteSearchParams): Observable<any> {

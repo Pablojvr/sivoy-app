@@ -2,8 +2,9 @@ import { environment } from '../../../environments/environment';
 import { Component, Input, Output, EventEmitter, OnInit, ChangeDetectorRef, AfterViewInit, HostListener, ElementRef, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RutasService, RouteSearchParams } from '../../core/services/rutas.service';
+import { RutasService } from '../../core/services/rutas.service';
 import { ToastService } from '../../core/services/toast.service';
+import { MapasService } from '../../core/services/mapas.service';
 
 @Component({
   selector: 'app-home',
@@ -100,12 +101,30 @@ export class HomeComponent implements OnInit {
   isSearchExpanded: boolean = false;
   isDiscoveryMode: boolean = false;
   isOriginDiscoveryMode: boolean = false;
+  isOriginChoiceMode: boolean = false;
+  selectedOriginPoint: any = null;
+  selectedDestinationPoint: any = null;
+  originPointQuery: string = '';
+  originPointPage: number = 1;
+  readonly originPointPageSize: number = 8;
+  showPlaceSearchHelper: boolean = false;
+  placeSearchQuery: string = '';
+  placeSuggestions: any[] = [];
+  placeSearchLoading: boolean = false;
+  placeSearchError: string = '';
+  private placeSearchTimer: ReturnType<typeof setTimeout> | null = null;
+  private placeSearchSessionToken: string = '';
   bottomSheetState: 'hidden' | 'collapsed' | 'half' | 'expanded' = 'collapsed';
   isSheetScrolled: boolean = false;
   loading: boolean = false;
   errorMsg: string = '';
   result: any = null;
-  touchStartY: number = 0;
+  sheetDragOffset: number = 0;
+  isSheetDragging: boolean = false;
+  private activeSheetPointerId: number | null = null;
+  private sheetDragStartY: number = 0;
+  private sheetDragStartedAt: number = 0;
+  private didSheetDrag: boolean = false;
   selectingLocation: string | null = null;
   origenMunicipio: string = '';
   destinoMunicipio: string = '';
@@ -137,7 +156,11 @@ export class HomeComponent implements OnInit {
   cancelPickingLocation() { this.isPickingLocation = false; }
   confirmPickedLocation() { this.isPickingLocation = false; }
 
-  constructor(private rutasService: RutasService, private toastService: ToastService) {}
+  constructor(
+    private rutasService: RutasService,
+    private toastService: ToastService,
+    private mapasService: MapasService
+  ) {}
 
   ngOnInit() {
     const today = new Date();
@@ -192,6 +215,11 @@ export class HomeComponent implements OnInit {
     this.bottomSheetState = 'collapsed';
     this.isDiscoveryMode = false;
     this.isOriginDiscoveryMode = false;
+    this.isOriginChoiceMode = false;
+    this.selectedOriginPoint = null;
+    this.selectedDestinationPoint = null;
+    this.originPointQuery = '';
+    this.originPointPage = 1;
     this.flightResults = [];
     this.municipalityResults = [];
     this.displayedResults = [];
@@ -209,39 +237,62 @@ export class HomeComponent implements OnInit {
     const normalize = (str: string) => str ? str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase() : '';
     const normQuery = normalize(query);
     
-    return this.locations.filter(l => 
+    const matchingLocations = this.locations.filter(l =>
       normalize(l.nombre_destino).includes(normQuery) || 
       normalize(l.ubicacion?.municipio).includes(normQuery) ||
       normalize(l.ubicacion?.departamento).includes(normQuery)
     );
+
+    if (this.activeInput === 'origen' && this.selectedDestinationPoint?.empresa) {
+      const destinationId = this.getLocationIdentity(this.selectedDestinationPoint);
+      return matchingLocations.filter(location =>
+        location.empresa === this.selectedDestinationPoint.empresa &&
+        this.getLocationIdentity(location) !== destinationId
+      );
+    }
+
+    return matchingLocations;
   }
 
   selectLocation(loc: any, type: 'origen' | 'destino') {
+    const locationName = this.getLocationName(loc);
     if (type === 'origen') {
-      this.origenInputValue = loc.nombre_destino;
-      this.origen = loc.nombre_destino;
+      this.selectedOriginPoint = loc;
+      this.origenInputValue = locationName;
+      this.origen = locationName;
       this.origenMunicipio = loc.ubicacion?.municipio;
       this.origenDepartamento = loc.ubicacion?.departamento;
     } else {
-      this.destinoInputValue = loc.nombre_destino;
-      this.destino = loc.nombre_destino;
+      this.selectedDestinationPoint = loc;
+      this.destinoInputValue = locationName;
+      this.destino = locationName;
       this.destinoMunicipio = loc.ubicacion?.municipio;
       this.destinoDepartamento = loc.ubicacion?.departamento;
     }
     this.handleSelectionHandoff(type);
+    if (type === 'origen' && this.destino) {
+      this.executeSearch();
+    }
   }
 
   selectMunicipality(mun: any, type: 'origen' | 'destino') {
     if (type === 'origen') {
+      this.selectedOriginPoint = null;
       this.origenInputValue = mun.municipio;
       this.origen = mun.municipio;
       this.origenMunicipio = mun.municipio;
+      this.origenDepartamento = mun.departamento || '';
     } else {
+      this.selectedDestinationPoint = null;
       this.destinoInputValue = mun.municipio;
       this.destino = mun.municipio;
       this.destinoMunicipio = mun.municipio;
+      this.destinoDepartamento = mun.departamento || '';
     }
     this.handleSelectionHandoff(type);
+    if (type === 'destino') {
+      this.executeSearch();
+    }
   }
 
   onOrigenInput(event: any) {
@@ -250,6 +301,131 @@ export class HomeComponent implements OnInit {
     this.locationSearchQuery = this.origenInputValue;
     this.showAutocomplete = true;
     this.updateAutocompleteFilters();
+  }
+
+  togglePlaceSearchHelper() {
+    this.showPlaceSearchHelper = !this.showPlaceSearchHelper;
+    this.showAutocomplete = !this.showPlaceSearchHelper;
+    this.placeSearchError = '';
+    if (this.showPlaceSearchHelper && !this.placeSearchSessionToken) {
+      this.placeSearchSessionToken = this.createPlaceSessionToken();
+    }
+  }
+
+  onPlaceSearchInput(value: string) {
+    this.placeSearchQuery = value;
+    this.placeSuggestions = [];
+    this.placeSearchError = '';
+    if (this.placeSearchTimer) clearTimeout(this.placeSearchTimer);
+
+    if (value.trim().length < 3) {
+      this.placeSearchLoading = false;
+      return;
+    }
+
+    this.placeSearchTimer = setTimeout(() => this.searchPlaces(value.trim()), 350);
+  }
+
+  clearPlaceSearch() {
+    if (this.placeSearchTimer) clearTimeout(this.placeSearchTimer);
+    this.placeSearchQuery = '';
+    this.placeSuggestions = [];
+    this.placeSearchError = '';
+    this.placeSearchLoading = false;
+    this.placeSearchSessionToken = this.createPlaceSessionToken();
+  }
+
+  selectPlaceSuggestion(suggestion: any) {
+    if (!suggestion?.placeId || this.placeSearchLoading) return;
+    this.placeSearchLoading = true;
+    this.placeSearchError = '';
+
+    this.mapasService.resolvePlace(suggestion.placeId, this.placeSearchSessionToken).subscribe({
+      next: response => {
+        const municipality = this.matchRegisteredMunicipality(response?.place);
+        this.placeSearchLoading = false;
+
+        if (!municipality) {
+          this.placeSearchError = 'Reconocimos el lugar, pero todavía no tenemos puntos en ese municipio.';
+          return;
+        }
+
+        const placeName = response?.place?.name || suggestion.mainText || suggestion.text;
+        this.clearPlaceSearch();
+        this.showPlaceSearchHelper = false;
+        this.toastService.showInfo(
+          `${placeName} corresponde a ${municipality.municipio}. Buscaremos desde ese municipio.`,
+          'Municipio identificado'
+        );
+        this.selectOriginMunicipality(municipality);
+      },
+      error: error => {
+        this.placeSearchLoading = false;
+        this.placeSearchError = error?.error?.error || 'No pudimos identificar el municipio de este lugar.';
+      }
+    });
+  }
+
+  private searchPlaces(query: string) {
+    if (!this.placeSearchSessionToken) this.placeSearchSessionToken = this.createPlaceSessionToken();
+    this.placeSearchLoading = true;
+
+    this.mapasService.searchPlaces(query, this.placeSearchSessionToken).subscribe({
+      next: response => {
+        this.placeSuggestions = response?.suggestions || [];
+        this.placeSearchLoading = false;
+        if (this.placeSuggestions.length === 0) {
+          this.placeSearchError = 'No encontramos lugares con ese nombre en El Salvador.';
+        }
+      },
+      error: error => {
+        this.placeSearchLoading = false;
+        this.placeSuggestions = [];
+        this.placeSearchError = error?.error?.code === 'GOOGLE_PLACES_NOT_CONFIGURED'
+          ? 'Esta ayuda requiere configurar Google Places en el servidor.'
+          : (error?.error?.error || 'No pudimos buscar lugares en este momento.');
+      }
+    });
+  }
+
+  private matchRegisteredMunicipality(place: any): any | null {
+    const components = Array.isArray(place?.addressComponents) ? place.addressComponents : [];
+    const preferredTypes = ['locality', 'postal_town', 'administrative_area_level_2', 'sublocality_level_1'];
+    const candidates = components
+      .map((component: any) => ({
+        value: component.longText || component.shortText || '',
+        priority: preferredTypes.findIndex(type => component.types?.includes(type))
+      }))
+      .filter((candidate: any) => candidate.value)
+      .sort((a: any, b: any) => {
+        const aPriority = a.priority < 0 ? 99 : a.priority;
+        const bPriority = b.priority < 0 ? 99 : b.priority;
+        return aPriority - bPriority;
+      });
+
+    for (const candidate of candidates) {
+      const normalizedCandidate = this.normalizeSearchText(candidate.value);
+      const exactMatch = this.uniqueMunicipalities.find(municipality =>
+        this.normalizeSearchText(municipality.municipio) === normalizedCandidate
+      );
+      if (exactMatch) return exactMatch;
+    }
+
+    const fullAddress = this.normalizeSearchText([
+      place?.formattedAddress,
+      ...candidates.map((candidate: any) => candidate.value)
+    ].filter(Boolean).join(' '));
+
+    return [...this.uniqueMunicipalities]
+      .sort((a, b) => b.municipio.length - a.municipio.length)
+      .find(municipality => fullAddress.includes(this.normalizeSearchText(municipality.municipio))) || null;
+  }
+
+  private createPlaceSessionToken(): string {
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+      return crypto.randomUUID();
+    }
+    return `sivoy-${Date.now()}-${Math.random().toString(36).slice(2)}`;
   }
 
   onDestinoInput(event: any) {
@@ -296,11 +472,17 @@ export class HomeComponent implements OnInit {
 
   clearInput(type: 'origen' | 'destino') {
     if (type === 'origen') {
+      this.selectedOriginPoint = null;
       this.origenInputValue = '';
       this.origen = '';
+      this.origenMunicipio = '';
+      this.origenDepartamento = '';
     } else {
+      this.selectedDestinationPoint = null;
       this.destinoInputValue = '';
       this.destino = '';
+      this.destinoMunicipio = '';
+      this.destinoDepartamento = '';
     }
     this.locationSearchQuery = '';
     this.updateAutocompleteFilters();
@@ -313,7 +495,7 @@ export class HomeComponent implements OnInit {
     const normalize = (str: string) => str ? str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase() : '';
     const normQuery = normalize(query);
     
-    const muns = new Map();
+    const muns = new Map<string, any>();
     this.locations.forEach(loc => {
       if (loc.ubicacion && loc.ubicacion.municipio) {
         const dep = loc.ubicacion.departamento || '';
@@ -322,15 +504,27 @@ export class HomeComponent implements OnInit {
           muns.set(key, {
             nombre_display: loc.ubicacion.municipio,
             municipio: loc.ubicacion.municipio,
-            departamento: dep
+            departamento: dep,
+            pointCount: 0
           });
         }
+        muns.get(key).pointCount += 1;
       }
     });
 
-    this.uniqueMunicipalities = Array.from(muns.values());
-    this.filteredMunicipalities = this.uniqueMunicipalities.filter(m => normalize(m.municipio).includes(normQuery));
+    this.uniqueMunicipalities = Array.from(muns.values()).sort((a, b) =>
+      a.municipio.localeCompare(b.municipio, 'es', { sensitivity: 'base' })
+    );
+    this.filteredMunicipalities = this.uniqueMunicipalities.filter(m =>
+      normalize(`${m.municipio} ${m.departamento}`).includes(normQuery)
+    );
     this.filteredOriginMunicipalities = [...this.filteredMunicipalities];
+  }
+
+  selectFirstDestinationMunicipality() {
+    if (this.filteredMunicipalities.length > 0) {
+      this.selectMunicipality(this.filteredMunicipalities[0], 'destino');
+    }
   }
 
   selectMyPosition() {
@@ -345,7 +539,11 @@ export class HomeComponent implements OnInit {
   }
 
   toggleSearchPanel() {
-    this.isSearchExpanded = !this.isSearchExpanded;
+    if (this.isSearchExpanded) {
+      this.closeLocationSelector();
+    } else {
+      this.openLocationSelector('destino');
+    }
   }
 
   onPanelClick(event: Event) {
@@ -354,9 +552,14 @@ export class HomeComponent implements OnInit {
   }
 
   selectUserLocationAsOrigin() {
+    this.selectedOriginPoint = null;
     this.origenInputValue = 'Mi Ubicación';
     this.origen = 'Mi Ubicación';
+    this.origenMunicipio = this.userMunicipalityName || '';
     this.handleSelectionHandoff('origen');
+    if (this.destino) {
+      this.executeSearch();
+    }
   }
 
   onRadiusChange() {
@@ -364,11 +567,15 @@ export class HomeComponent implements OnInit {
   }
 
   selectOriginMunicipality(mun: any) {
+    this.selectedOriginPoint = null;
     this.origen = mun.nombre_display;
     this.origenInputValue = mun.nombre_display;
     this.origenMunicipio = mun.municipio;
     this.origenDepartamento = mun.departamento;
     this.handleSelectionHandoff('origen');
+    if (this.destino) {
+      this.executeSearch();
+    }
   }
 
   swapLocations() {
@@ -379,6 +586,18 @@ export class HomeComponent implements OnInit {
     const temp = this.origen;
     this.origen = this.destino;
     this.destino = temp;
+
+    const tempMunicipio = this.origenMunicipio;
+    this.origenMunicipio = this.destinoMunicipio;
+    this.destinoMunicipio = tempMunicipio;
+
+    const tempDepartamento = this.origenDepartamento;
+    this.origenDepartamento = this.destinoDepartamento;
+    this.destinoDepartamento = tempDepartamento;
+
+    const tempPoint = this.selectedOriginPoint;
+    this.selectedOriginPoint = this.selectedDestinationPoint;
+    this.selectedDestinationPoint = tempPoint;
     
     this.executeSearch();
   }
@@ -389,6 +608,7 @@ export class HomeComponent implements OnInit {
   }
 
   executeSearch() {
+    this.isOriginChoiceMode = false;
     this.closeLocationSelector();
     this.triggerDynamicSearch();
   }
@@ -399,6 +619,11 @@ export class HomeComponent implements OnInit {
 
   triggerDynamicSearch() {
     if (this.origen && this.destino) {
+      if (this.selectedOriginPoint || this.selectedDestinationPoint) {
+        this.searchRoutesWithPointConstraints();
+        return;
+      }
+
       this.loading = true;
       this.bottomSheetState = 'half';
       this.errorMsg = '';
@@ -417,10 +642,10 @@ export class HomeComponent implements OnInit {
         dropoffDate: this.dropoffDate,
         dropoffTime: this.dropoffTime,
         // Parámetros específicos para searchFlights
-        origen_municipio: this.origen.split(',')[0]?.trim(),
-        origen_departamento: this.origen.split(',')[1]?.trim() || '',
-        destino_municipio: this.destino.split(',')[0]?.trim(),
-        destino_departamento: this.destino.split(',')[1]?.trim() || '',
+        origen_municipio: this.origenMunicipio || this.origen.split(',')[0]?.trim(),
+        origen_departamento: this.origenDepartamento || this.origen.split(',')[1]?.trim() || '',
+        destino_municipio: this.destinoMunicipio || this.destino.split(',')[0]?.trim(),
+        destino_departamento: this.destinoDepartamento || this.destino.split(',')[1]?.trim() || '',
         dropoff_date: this.dropoffDate,
         dropoff_time: this.dropoffTime
       };
@@ -783,27 +1008,75 @@ export class HomeComponent implements OnInit {
     this.showNearbyPointsEvent.emit();
   }
 
-  onTouchStart(event: TouchEvent) {
-    this.touchStartY = event.touches[0].clientY;
+  onSheetPointerDown(event: PointerEvent) {
+    if (this.bottomSheetState === 'hidden' || (event.pointerType === 'mouse' && event.button !== 0)) return;
+
+    this.activeSheetPointerId = event.pointerId;
+    this.sheetDragStartY = event.clientY;
+    this.sheetDragStartedAt = performance.now();
+    this.sheetDragOffset = 0;
+    this.isSheetDragging = true;
+    this.didSheetDrag = false;
+
+    (event.currentTarget as HTMLElement).setPointerCapture?.(event.pointerId);
   }
-  
-  onTouchEnd(event: TouchEvent) {
-    const touchEndY = event.changedTouches[0].clientY;
-    const diff = touchEndY - this.touchStartY;
-    
-    if (diff > 50) {
-      if (this.bottomSheetState === 'expanded') {
-        this.bottomSheetState = 'half';
-      } else if (this.bottomSheetState === 'half') {
-        this.bottomSheetState = 'collapsed';
-      }
-    } else if (diff < -50) {
-      if (this.bottomSheetState === 'collapsed') {
-        this.bottomSheetState = 'half';
-      } else if (this.bottomSheetState === 'half') {
-        this.bottomSheetState = 'expanded';
-      }
+
+  onSheetPointerMove(event: PointerEvent) {
+    if (!this.isSheetDragging || event.pointerId !== this.activeSheetPointerId) return;
+
+    const rawOffset = event.clientY - this.sheetDragStartY;
+    const viewportLimit = Math.max(180, window.innerHeight * 0.58);
+    const upwardLimit = this.bottomSheetState === 'expanded' ? 24 : viewportLimit;
+    const downwardLimit = this.bottomSheetState === 'collapsed' ? 24 : viewportLimit;
+
+    this.sheetDragOffset = Math.max(-upwardLimit, Math.min(downwardLimit, rawOffset));
+    this.didSheetDrag = this.didSheetDrag || Math.abs(rawOffset) > 5;
+
+    if (this.didSheetDrag) event.preventDefault();
+  }
+
+  onSheetPointerEnd(event: PointerEvent) {
+    if (!this.isSheetDragging || event.pointerId !== this.activeSheetPointerId) return;
+
+    const elapsed = Math.max(1, performance.now() - this.sheetDragStartedAt);
+    const velocity = this.sheetDragOffset / elapsed;
+    const shouldSnap = Math.abs(this.sheetDragOffset) >= 44 || Math.abs(velocity) >= 0.35;
+
+    if (shouldSnap) {
+      this.stepSheet(this.sheetDragOffset < 0 ? 'up' : 'down');
     }
+
+    const captureTarget = event.currentTarget as HTMLElement;
+    if (captureTarget.hasPointerCapture?.(event.pointerId)) {
+      captureTarget.releasePointerCapture(event.pointerId);
+    }
+    this.activeSheetPointerId = null;
+    this.isSheetDragging = false;
+    this.sheetDragOffset = 0;
+
+    setTimeout(() => {
+      this.didSheetDrag = false;
+    });
+  }
+
+  onSheetHeaderClick() {
+    if (!this.didSheetDrag) this.expandSheetIfNeeded();
+  }
+
+  onSheetHandleClick(event: MouseEvent) {
+    event.stopPropagation();
+    if (!this.didSheetDrag) this.toggleSheet();
+  }
+
+  private stepSheet(direction: 'up' | 'down') {
+    if (direction === 'up') {
+      if (this.bottomSheetState === 'collapsed') this.bottomSheetState = 'half';
+      else if (this.bottomSheetState === 'half') this.bottomSheetState = 'expanded';
+      return;
+    }
+
+    if (this.bottomSheetState === 'expanded') this.bottomSheetState = 'half';
+    else if (this.bottomSheetState === 'half') this.bottomSheetState = 'collapsed';
   }
 
   toggleSheet() {
@@ -818,8 +1091,11 @@ export class HomeComponent implements OnInit {
 
   setPinAsOriginAndPromptDestination() {
     if (this.selectedPin) {
+       this.selectedOriginPoint = this.selectedPin;
        this.origenInputValue = this.selectedPin.nombre_destino || this.selectedPin.destino_nombre;
        this.origen = this.origenInputValue;
+       this.origenMunicipio = this.selectedPin.ubicacion?.municipio || '';
+       this.origenDepartamento = this.selectedPin.ubicacion?.departamento || '';
        if (this.destino) {
           this.selectedPin = null;
           this.triggerDynamicSearch();
@@ -840,15 +1116,284 @@ export class HomeComponent implements OnInit {
 
   setPinAsDestinationAndPromptOrigin() {
     if (this.selectedPin) {
+       this.selectedDestinationPoint = this.selectedPin;
        this.destinoInputValue = this.selectedPin.nombre_destino || this.selectedPin.destino_nombre;
        this.destino = this.destinoInputValue;
+       this.destinoMunicipio = this.selectedPin.ubicacion?.municipio || '';
+       this.destinoDepartamento = this.selectedPin.ubicacion?.departamento || '';
        if (this.origen) {
           this.selectedPin = null;
           this.triggerDynamicSearch();
        } else {
-          this.openLocationSelector('origen');
+          this.selectedPin = null;
+          this.isOriginChoiceMode = true;
+          this.originPointQuery = '';
+          this.originPointPage = 1;
+          this.bottomSheetState = 'half';
        }
     }
+  }
+
+  viewPointOnMap(point: any) {
+    this.lastSelectedLocationId = point.id_destino || point.id_origen || point.id;
+    this.showPinDetails.emit({
+      location: point,
+      type: this.isOriginDiscoveryMode ? 'origen' : 'destino'
+    });
+  }
+
+  togglePointSchedule(point: any) {
+    this.expandedResultCard = this.expandedResultCard === point ? null : point;
+  }
+
+  selectPointFromList(point: any) {
+    const locationName = this.getLocationName(point);
+    this.lastSelectedLocationId = point.id_destino || point.id_origen || point.id;
+    this.expandedResultCard = null;
+    this.result = null;
+    this.errorMsg = '';
+
+    if (this.isOriginDiscoveryMode) {
+      this.selectedOriginPoint = point;
+      this.origen = locationName;
+      this.origenInputValue = locationName;
+      this.origenMunicipio = point.ubicacion?.municipio || '';
+      this.origenDepartamento = point.ubicacion?.departamento || '';
+      this.isOriginDiscoveryMode = false;
+      this.municipalityResults = [];
+      this.displayedResults = [];
+
+      if (this.destino) {
+        this.executeSearch();
+      } else {
+        this.openLocationSelector('destino');
+      }
+      return;
+    }
+
+    this.selectedDestinationPoint = point;
+    this.destino = locationName;
+    this.destinoInputValue = locationName;
+    this.destinoMunicipio = point.ubicacion?.municipio || '';
+    this.destinoDepartamento = point.ubicacion?.departamento || '';
+    this.isDiscoveryMode = false;
+    this.municipalityResults = [];
+    this.displayedResults = [];
+
+    if (this.origen) {
+      this.executeSearch();
+      return;
+    }
+
+    this.isOriginChoiceMode = true;
+    this.originPointQuery = '';
+    this.originPointPage = 1;
+    this.bottomSheetState = 'half';
+  }
+
+  get compatibleOriginPoints(): any[] {
+    if (!this.selectedDestinationPoint?.empresa) return [];
+
+    const destinationId = this.getLocationIdentity(this.selectedDestinationPoint);
+    return this.locations
+      .filter(location =>
+        location.empresa === this.selectedDestinationPoint.empresa &&
+        this.getLocationIdentity(location) !== destinationId
+      )
+      .sort((a, b) => {
+        const municipalityComparison = (a.ubicacion?.municipio || '').localeCompare(
+          b.ubicacion?.municipio || '',
+          'es',
+          { sensitivity: 'base' }
+        );
+        return municipalityComparison || this.getLocationName(a).localeCompare(this.getLocationName(b), 'es');
+      });
+  }
+
+  get filteredCompatibleOriginPoints(): any[] {
+    const normalizedQuery = this.normalizeSearchText(this.originPointQuery);
+    if (!normalizedQuery) return this.compatibleOriginPoints;
+
+    return this.compatibleOriginPoints.filter(point =>
+      this.normalizeSearchText([
+        this.getLocationName(point),
+        point.ubicacion?.municipio,
+        point.ubicacion?.departamento
+      ].filter(Boolean).join(' ')).includes(normalizedQuery)
+    );
+  }
+
+  get visibleCompatibleOriginPoints(): any[] {
+    const start = (this.originPointPage - 1) * this.originPointPageSize;
+    return this.filteredCompatibleOriginPoints.slice(start, start + this.originPointPageSize);
+  }
+
+  get originPointPageCount(): number {
+    return Math.max(1, Math.ceil(this.filteredCompatibleOriginPoints.length / this.originPointPageSize));
+  }
+
+  onOriginPointQueryChange() {
+    this.originPointPage = 1;
+  }
+
+  changeOriginPointPage(direction: -1 | 1) {
+    this.originPointPage = Math.min(
+      this.originPointPageCount,
+      Math.max(1, this.originPointPage + direction)
+    );
+  }
+
+  restartOriginSelection() {
+    this.origenInputValue = '';
+    this.origen = '';
+    this.origenMunicipio = '';
+    this.origenDepartamento = '';
+    this.selectedOriginPoint = null;
+    this.originPointQuery = '';
+    this.originPointPage = 1;
+    this.result = null;
+    this.errorMsg = '';
+    this.flightResults = [];
+    this.expandedResultCard = null;
+    this.activeDetailedCard = null;
+    this.isOriginDiscoveryMode = false;
+    this.isDiscoveryMode = false;
+    this.resetMapMarkersEvent.emit();
+
+    if (this.selectedDestinationPoint) {
+      this.isOriginChoiceMode = true;
+      this.bottomSheetState = 'half';
+      return;
+    }
+
+    this.isOriginChoiceMode = false;
+    this.openLocationSelector('origen');
+  }
+
+  openOriginMunicipalitySelector() {
+    this.origenInputValue = '';
+    this.origen = '';
+    this.origenMunicipio = '';
+    this.origenDepartamento = '';
+    this.selectedOriginPoint = null;
+    this.openLocationSelector('origen');
+  }
+
+  selectCompatibleOriginPoint(location: any) {
+    this.selectLocation(location, 'origen');
+  }
+
+  changeDestinationFromOriginChoice() {
+    this.isOriginChoiceMode = false;
+    this.selectedDestinationPoint = null;
+    this.originPointQuery = '';
+    this.originPointPage = 1;
+    this.destinoInputValue = '';
+    this.destino = '';
+    this.destinoMunicipio = '';
+    this.destinoDepartamento = '';
+    this.openLocationSelector('destino');
+  }
+
+  private getLocationIdentity(location: any): string {
+    return String(location?.id_destino || location?.id_origen || location?.id || this.getLocationName(location));
+  }
+
+  private getLocationName(location: any): string {
+    return location?.nombre_destino || location?.destino_nombre || location?.destino_nombre_destino || '';
+  }
+
+  private normalizeSearchText(value: string): string {
+    return (value || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .trim();
+  }
+
+  private getMunicipalityLocations(municipio: string, departamento: string): any[] {
+    if (!municipio) return [];
+    return this.locations.filter(location =>
+      location.ubicacion?.municipio === municipio &&
+      (!departamento || location.ubicacion?.departamento === departamento)
+    );
+  }
+
+  private searchRoutesWithPointConstraints() {
+    this.loading = true;
+    this.bottomSheetState = 'half';
+    this.errorMsg = '';
+    this.result = null;
+    this.flightResults = [];
+    this.municipalityResults = [];
+    this.displayedResults = [];
+    this.isOriginChoiceMode = false;
+    this.isOriginDiscoveryMode = false;
+    this.isDiscoveryMode = false;
+
+    const originLocations = this.selectedOriginPoint
+      ? [this.selectedOriginPoint]
+      : this.getMunicipalityLocations(this.origenMunicipio, this.origenDepartamento);
+    const destinationLocations = this.selectedDestinationPoint
+      ? [this.selectedDestinationPoint]
+      : this.getMunicipalityLocations(this.destinoMunicipio, this.destinoDepartamento);
+
+    const originNames = [...new Set<string>(originLocations.map(location => this.getLocationName(location)).filter(Boolean))];
+    const destinationNames = [...new Set<string>(destinationLocations.map(location => this.getLocationName(location)).filter(Boolean))];
+
+    if (originNames.length === 0 || destinationNames.length === 0) {
+      this.loading = false;
+      this.errorMsg = 'No encontramos puntos operativos para completar esta combinación.';
+      return;
+    }
+
+    this.rutasService.getUpcomingRoutes({
+      origen: originNames,
+      destino: destinationNames,
+      dropoff_date: this.dropoffDate,
+      dropoff_time: this.dropoffTime
+    }).subscribe({
+      next: (response: any) => {
+        this.loading = false;
+        this.result = response;
+
+        const routes = response.results || [];
+        this.flightResults = routes.map((route: any) => {
+          const originLocation = originLocations.find(location => this.getLocationName(location) === route.origen_nombre);
+          const destinationLocation = destinationLocations.find(location => this.getLocationName(location) === route.destino_nombre);
+          const firstOption = route.opciones_entrega?.[0] || route.opciones?.[0] || null;
+
+          return {
+            ...route,
+            origen_tipo: originLocation?.tipo,
+            origen_lat: originLocation?.ubicacion?.lat,
+            origen_lng: originLocation?.ubicacion?.lng,
+            destino_nombre_destino: route.destino_nombre,
+            destino_tipo: destinationLocation?.tipo,
+            destino_lat: destinationLocation?.ubicacion?.lat,
+            destino_lng: destinationLocation?.ubicacion?.lng,
+            fecha_llegada: route.fecha_llegada || firstOption?.fecha_llegada,
+            horario_recoleccion: route.horario_recoleccion || firstOption?.horario_recoleccion,
+            selectedOption: firstOption,
+            selected_opcion_idx: 0,
+            distance: 0
+          };
+        });
+
+        if (this.flightResults.length === 0) {
+          this.errorMsg = response.origen_msg || 'No hay rutas disponibles para esta combinación.';
+          this.bottomSheetState = 'half';
+          return;
+        }
+
+        this.bottomSheetState = 'expanded';
+        this.updateMapMarkers.emit();
+      },
+      error: () => {
+        this.loading = false;
+        this.errorMsg = 'Error de conexión al buscar la ruta punto a punto.';
+      }
+    });
   }
 
   closePinDetails() {

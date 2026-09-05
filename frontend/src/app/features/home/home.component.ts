@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RutasService } from '../../core/services/rutas.service';
 import { ToastService } from '../../core/services/toast.service';
+import { MapasService } from '../../core/services/mapas.service';
 
 @Component({
   selector: 'app-home',
@@ -106,6 +107,13 @@ export class HomeComponent implements OnInit {
   originPointQuery: string = '';
   originPointPage: number = 1;
   readonly originPointPageSize: number = 8;
+  showPlaceSearchHelper: boolean = false;
+  placeSearchQuery: string = '';
+  placeSuggestions: any[] = [];
+  placeSearchLoading: boolean = false;
+  placeSearchError: string = '';
+  private placeSearchTimer: ReturnType<typeof setTimeout> | null = null;
+  private placeSearchSessionToken: string = '';
   bottomSheetState: 'hidden' | 'collapsed' | 'half' | 'expanded' = 'collapsed';
   isSheetScrolled: boolean = false;
   loading: boolean = false;
@@ -148,7 +156,11 @@ export class HomeComponent implements OnInit {
   cancelPickingLocation() { this.isPickingLocation = false; }
   confirmPickedLocation() { this.isPickingLocation = false; }
 
-  constructor(private rutasService: RutasService, private toastService: ToastService) {}
+  constructor(
+    private rutasService: RutasService,
+    private toastService: ToastService,
+    private mapasService: MapasService
+  ) {}
 
   ngOnInit() {
     const today = new Date();
@@ -289,6 +301,131 @@ export class HomeComponent implements OnInit {
     this.locationSearchQuery = this.origenInputValue;
     this.showAutocomplete = true;
     this.updateAutocompleteFilters();
+  }
+
+  togglePlaceSearchHelper() {
+    this.showPlaceSearchHelper = !this.showPlaceSearchHelper;
+    this.showAutocomplete = !this.showPlaceSearchHelper;
+    this.placeSearchError = '';
+    if (this.showPlaceSearchHelper && !this.placeSearchSessionToken) {
+      this.placeSearchSessionToken = this.createPlaceSessionToken();
+    }
+  }
+
+  onPlaceSearchInput(value: string) {
+    this.placeSearchQuery = value;
+    this.placeSuggestions = [];
+    this.placeSearchError = '';
+    if (this.placeSearchTimer) clearTimeout(this.placeSearchTimer);
+
+    if (value.trim().length < 3) {
+      this.placeSearchLoading = false;
+      return;
+    }
+
+    this.placeSearchTimer = setTimeout(() => this.searchPlaces(value.trim()), 350);
+  }
+
+  clearPlaceSearch() {
+    if (this.placeSearchTimer) clearTimeout(this.placeSearchTimer);
+    this.placeSearchQuery = '';
+    this.placeSuggestions = [];
+    this.placeSearchError = '';
+    this.placeSearchLoading = false;
+    this.placeSearchSessionToken = this.createPlaceSessionToken();
+  }
+
+  selectPlaceSuggestion(suggestion: any) {
+    if (!suggestion?.placeId || this.placeSearchLoading) return;
+    this.placeSearchLoading = true;
+    this.placeSearchError = '';
+
+    this.mapasService.resolvePlace(suggestion.placeId, this.placeSearchSessionToken).subscribe({
+      next: response => {
+        const municipality = this.matchRegisteredMunicipality(response?.place);
+        this.placeSearchLoading = false;
+
+        if (!municipality) {
+          this.placeSearchError = 'Reconocimos el lugar, pero todavía no tenemos puntos en ese municipio.';
+          return;
+        }
+
+        const placeName = response?.place?.name || suggestion.mainText || suggestion.text;
+        this.clearPlaceSearch();
+        this.showPlaceSearchHelper = false;
+        this.toastService.showInfo(
+          `${placeName} corresponde a ${municipality.municipio}. Buscaremos desde ese municipio.`,
+          'Municipio identificado'
+        );
+        this.selectOriginMunicipality(municipality);
+      },
+      error: error => {
+        this.placeSearchLoading = false;
+        this.placeSearchError = error?.error?.error || 'No pudimos identificar el municipio de este lugar.';
+      }
+    });
+  }
+
+  private searchPlaces(query: string) {
+    if (!this.placeSearchSessionToken) this.placeSearchSessionToken = this.createPlaceSessionToken();
+    this.placeSearchLoading = true;
+
+    this.mapasService.searchPlaces(query, this.placeSearchSessionToken).subscribe({
+      next: response => {
+        this.placeSuggestions = response?.suggestions || [];
+        this.placeSearchLoading = false;
+        if (this.placeSuggestions.length === 0) {
+          this.placeSearchError = 'No encontramos lugares con ese nombre en El Salvador.';
+        }
+      },
+      error: error => {
+        this.placeSearchLoading = false;
+        this.placeSuggestions = [];
+        this.placeSearchError = error?.error?.code === 'GOOGLE_PLACES_NOT_CONFIGURED'
+          ? 'Esta ayuda requiere configurar Google Places en el servidor.'
+          : (error?.error?.error || 'No pudimos buscar lugares en este momento.');
+      }
+    });
+  }
+
+  private matchRegisteredMunicipality(place: any): any | null {
+    const components = Array.isArray(place?.addressComponents) ? place.addressComponents : [];
+    const preferredTypes = ['locality', 'postal_town', 'administrative_area_level_2', 'sublocality_level_1'];
+    const candidates = components
+      .map((component: any) => ({
+        value: component.longText || component.shortText || '',
+        priority: preferredTypes.findIndex(type => component.types?.includes(type))
+      }))
+      .filter((candidate: any) => candidate.value)
+      .sort((a: any, b: any) => {
+        const aPriority = a.priority < 0 ? 99 : a.priority;
+        const bPriority = b.priority < 0 ? 99 : b.priority;
+        return aPriority - bPriority;
+      });
+
+    for (const candidate of candidates) {
+      const normalizedCandidate = this.normalizeSearchText(candidate.value);
+      const exactMatch = this.uniqueMunicipalities.find(municipality =>
+        this.normalizeSearchText(municipality.municipio) === normalizedCandidate
+      );
+      if (exactMatch) return exactMatch;
+    }
+
+    const fullAddress = this.normalizeSearchText([
+      place?.formattedAddress,
+      ...candidates.map((candidate: any) => candidate.value)
+    ].filter(Boolean).join(' '));
+
+    return [...this.uniqueMunicipalities]
+      .sort((a, b) => b.municipio.length - a.municipio.length)
+      .find(municipality => fullAddress.includes(this.normalizeSearchText(municipality.municipio))) || null;
+  }
+
+  private createPlaceSessionToken(): string {
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+      return crypto.randomUUID();
+    }
+    return `sivoy-${Date.now()}-${Math.random().toString(36).slice(2)}`;
   }
 
   onDestinoInput(event: any) {

@@ -216,6 +216,58 @@
             </button>
           </div>
 
+          <button
+            type="button"
+            class="origin-place-helper-trigger"
+            [attr.aria-expanded]="showPlaceSearchHelper"
+            aria-controls="origin-place-helper"
+            (click)="togglePlaceSearchHelper()">
+            <span class="origin-place-helper-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 5.5-8 11-8 11S4 15.5 4 10a8 8 0 1 1 16 0Z"></path><circle cx="12" cy="10" r="2.5"></circle></svg>
+            </span>
+            <span><strong>¿No sabes el municipio?</strong><small>Busca un centro comercial, mercado o lugar conocido</small></span>
+            <svg class="origin-place-helper-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path [attr.d]="showPlaceSearchHelper ? 'm18 15-6-6-6 6' : 'm9 18 6-6-6-6'"></path></svg>
+          </button>
+
+          <section id="origin-place-helper" class="origin-place-helper" *ngIf="showPlaceSearchHelper" aria-label="Buscar origen por lugar conocido">
+            <div class="place-helper-heading">
+              <span><small>Ayuda opcional</small><strong>Buscar un lugar</strong></span>
+              <span class="google-source">Google</span>
+            </div>
+            <label class="place-helper-search">
+              <span class="sr-only">Nombre del lugar</span>
+              <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-4-4"></path></svg>
+              <input
+                type="search"
+                autocomplete="off"
+                placeholder="Ej. Metrocentro San Salvador"
+                [ngModel]="placeSearchQuery"
+                (ngModelChange)="onPlaceSearchInput($event)">
+              <button type="button" *ngIf="placeSearchQuery" (click)="clearPlaceSearch()" aria-label="Limpiar lugar">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 6 12 12M18 6 6 18"></path></svg>
+              </button>
+            </label>
+
+            <div class="place-helper-loading" *ngIf="placeSearchLoading" role="status">
+              <span aria-hidden="true"></span> Identificando municipio…
+            </div>
+
+            <div class="place-helper-results" *ngIf="!placeSearchLoading && placeSuggestions.length > 0" role="listbox">
+              <button type="button" *ngFor="let suggestion of placeSuggestions" (click)="selectPlaceSuggestion(suggestion)">
+                <span class="place-result-pin" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 5.5-8 11-8 11S4 15.5 4 10a8 8 0 1 1 16 0Z"></path><circle cx="12" cy="10" r="2.5"></circle></svg>
+                </span>
+                <span><strong>{{ suggestion.mainText }}</strong><small>{{ suggestion.secondaryText }}</small></span>
+                <svg class="place-result-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"></path></svg>
+              </button>
+            </div>
+
+            <p class="place-helper-message" *ngIf="!placeSearchLoading && placeSearchError">{{ placeSearchError }}</p>
+            <p class="place-helper-caption" *ngIf="!placeSearchLoading && !placeSearchError && placeSuggestions.length === 0">
+              Elegiremos el municipio registrado; el lugar no reemplaza tu punto de origen.
+            </p>
+          </section>
+
           <div id="origin-options" class="destination-options-list origin-options-list" role="listbox" *ngIf="showAutocomplete">
             <button type="button" class="destination-option current-location-option" *ngIf="userLocation && (!origenInputValue || origenInputValue === 'Mi Ubicación')" (click)="selectUserLocationAsOrigin()">
               <span class="destination-option-icon" aria-hidden="true">
@@ -441,54 +493,62 @@
           </p>
         </div>
 
-        <div *ngIf="destino && flightResults.length > 0 && highlightedRoute" class="sheet-summary route-summary">
-          
+        <div *ngIf="destino && flightResults.length > 0 && highlightedRoute" class="sheet-summary route-summary route-preview-summary">
+          <div class="route-preview-status-row">
+            <span class="route-active-badge"><i aria-hidden="true"></i> Ruta seleccionada</span>
+            <button type="button" class="route-preview-change" (pointerdown)="$event.stopPropagation()" (click)="restartOriginSelection(); $event.stopPropagation()">
+              Cambiar origen
+            </button>
+          </div>
+
           <div class="route-preview-container">
-            <!-- Origin -->
-            <div class="route-preview-point">
-              <div class="route-preview-point-icon origin">
-                <span class="material-symbols-outlined" style="font-size: 14px;">inventory_2</span>
+            <div class="route-preview-point origin-point">
+              <div class="route-preview-point-icon origin" aria-hidden="true">
+                <span class="material-symbols-outlined">inventory_2</span>
               </div>
-              <span class="route-preview-point-name">{{ formatLocationName(highlightedRoute.origen_nombre, highlightedRoute.origen_tipo) }}</span>
+              <span class="route-preview-point-copy"><small>Entregas en</small><strong>{{ formatLocationName(highlightedRoute.origen_nombre, highlightedRoute.origen_tipo) }}</strong></span>
             </div>
 
-            <!-- Line and Truck -->
-            <div class="route-preview-line-container">
+            <div class="route-preview-line-container" aria-hidden="true">
               <div class="route-preview-line"></div>
               <span class="material-symbols-outlined route-preview-truck">local_shipping</span>
             </div>
 
-            <!-- Destination -->
-            <div class="route-preview-point">
-              <div class="route-preview-point-icon destination">
-                <span class="material-symbols-outlined" style="font-size: 14px;">location_on</span>
+            <div class="route-preview-point destination-point">
+              <div class="route-preview-point-icon destination" aria-hidden="true">
+                <span class="material-symbols-outlined">location_on</span>
               </div>
-              <span class="route-preview-point-name">{{ formatLocationName(highlightedRoute.destino_nombre_destino || highlightedRoute.destino_nombre, highlightedRoute.destino_tipo) }}</span>
+              <span class="route-preview-point-copy"><small>Recibes en</small><strong>{{ formatLocationName(highlightedRoute.destino_nombre_destino || highlightedRoute.destino_nombre, highlightedRoute.destino_tipo) }}</strong></span>
             </div>
           </div>
 
           <div class="route-timing-grid">
-            <p class="route-timing-card dropoff">
-              <span class="material-symbols-outlined" style="font-size: 14px; margin-right: 6px; margin-top: 1px;">inventory_2</span>
-              <span>
-                <strong>Entregar: {{ highlightedRoute.opciones_entrega ? formatFriendlyDate(highlightedRoute.opciones_entrega[highlightedRoute.selected_opcion_idx || 0].dropoff_date) : '' }}</strong><br>
-                <span style="font-size: 10px;">{{ highlightedRoute.opciones_entrega ? (highlightedRoute.opciones_entrega[highlightedRoute.selected_opcion_idx || 0].dropoff_msg || highlightedRoute.origen_msg) : highlightedRoute.origen_msg }}</span>
+            <div class="route-timing-card dropoff">
+              <span class="route-timing-icon" aria-hidden="true"><span class="material-symbols-outlined">inventory_2</span></span>
+              <span class="route-timing-copy">
+                <small>Entrega el paquete</small>
+                <strong>{{ highlightedRoute.opciones_entrega ? formatFriendlyDate(highlightedRoute.opciones_entrega[highlightedRoute.selected_opcion_idx || 0].dropoff_date) : 'Fecha por confirmar' }}</strong>
               </span>
-            </p>
-            
-            <p class="route-timing-card arrival">
-              <span class="material-symbols-outlined" style="font-size: 14px; margin-right: 6px; margin-top: 1px;">local_shipping</span>
-              <span>
-                <strong>Llega: {{ highlightedRoute.opciones_entrega ? highlightedRoute.opciones_entrega[highlightedRoute.selected_opcion_idx || 0].fecha_llegada : highlightedRoute.fecha_llegada }}</strong><br>
-                <span style="font-size: 10px; font-weight: normal;">Horario de entrega: {{ highlightedRoute.opciones_entrega ? highlightedRoute.opciones_entrega[highlightedRoute.selected_opcion_idx || 0].horario_recoleccion : highlightedRoute.horario_recoleccion }}</span>
+            </div>
+
+            <span class="route-timing-arrow" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M14 7l5 5-5 5"></path></svg>
+            </span>
+
+            <div class="route-timing-card arrival">
+              <span class="route-timing-icon" aria-hidden="true"><span class="material-symbols-outlined">local_shipping</span></span>
+              <span class="route-timing-copy">
+                <small>Llega el</small>
+                <strong>{{ highlightedRoute.opciones_entrega ? highlightedRoute.opciones_entrega[highlightedRoute.selected_opcion_idx || 0].fecha_llegada : highlightedRoute.fecha_llegada }}</strong>
+                <span>{{ highlightedRoute.opciones_entrega ? highlightedRoute.opciones_entrega[highlightedRoute.selected_opcion_idx || 0].horario_recoleccion : highlightedRoute.horario_recoleccion }}</span>
               </span>
-            </p>
+            </div>
           </div>
-          
-          <p class="slide-hint" style="color: var(--text-muted); font-size: 11px; display: flex; align-items: center; gap: 4px; margin-bottom: 0;">
+
+          <p class="slide-hint route-preview-hint">
             <svg *ngIf="bottomSheetState === 'collapsed'" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>
             <svg *ngIf="bottomSheetState !== 'collapsed'" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
-            {{ bottomSheetState === 'collapsed' ? 'Desliza hacia arriba para seleccionar o ver más' : 'Desliza hacia abajo para esconder' }}
+            {{ bottomSheetState === 'collapsed' ? 'Desliza para ver horarios y alternativas' : 'Desliza hacia abajo para esconder' }}
           </p>
         </div>
 

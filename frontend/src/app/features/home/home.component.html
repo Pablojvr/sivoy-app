@@ -404,9 +404,9 @@
       </button>
       <div class="persistent-title">
         <div *ngIf="isOriginChoiceMode" class="sheet-summary origin-choice-summary">
-          <span class="sheet-step-kicker">Paso 2 · Origen</span>
+          <span class="sheet-step-kicker">Explorar envío · Origen</span>
           <h3>¿Desde dónde enviarás?</h3>
-          <p>Elige un municipio o un punto compatible.</p>
+          <p>Elige cómo iniciar la ruta.</p>
         </div>
 
         <div *ngIf="destino && municipalityResults.length > 0" class="sheet-summary">
@@ -528,90 +528,73 @@
           <button type="button" class="endpoint-change-btn" (click)="changeDestinationFromOriginChoice()">Cambiar</button>
         </article>
 
-        <div class="origin-choice-heading">
-          <div>
-            <span class="sheet-step-kicker">Tipo de origen</span>
-            <h4 id="origin-choice-title">Selecciona cómo quieres buscar</h4>
+        <section class="origin-methods" aria-labelledby="origin-choice-title">
+          <div class="origin-section-title">
+            <span class="sheet-step-kicker">Elige una opción</span>
+            <h4 id="origin-choice-title">Tipo de origen</h4>
           </div>
-        </div>
 
-        <button type="button" class="origin-mode-card municipality-mode" (click)="openOriginMunicipalitySelector()">
-          <span class="origin-mode-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M3 21h18M5 21V9l7-5 7 5v12M9 21v-6h6v6"></path>
-              <path d="M8 11h.01M12 11h.01M16 11h.01"></path>
-            </svg>
-          </span>
-          <span class="origin-mode-copy">
-            <strong>Buscar por municipio</strong>
-            <span>Compara todos los puntos disponibles en una zona.</span>
-          </span>
-          <span class="origin-mode-arrow" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25"><path d="m9 18 6-6-6-6"></path></svg>
-          </span>
-        </button>
+          <div class="origin-method-grid">
+            <button type="button" class="origin-mode-card municipality-mode" (click)="openOriginMunicipalitySelector()">
+              <span class="origin-mode-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V9l7-5 7 5v12M9 21v-6h6v6"></path><path d="M8 11h.01M12 11h.01M16 11h.01"></path></svg>
+              </span>
+              <span class="origin-mode-copy"><strong>Municipio</strong><span>Comparar zona</span></span>
+              <span class="origin-mode-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25"><path d="m9 18 6-6-6-6"></path></svg></span>
+            </button>
 
-        <div class="compatible-points-heading">
-          <div>
-            <span class="sheet-step-kicker">Ruta exacta</span>
-            <h4>Puntos de {{ selectedDestinationPoint?.empresa }}</h4>
+            <div class="origin-mode-card point-mode" aria-current="true">
+              <span class="origin-mode-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 5.5-8 11-8 11S4 15.5 4 10a8 8 0 1 1 16 0Z"></path><circle cx="12" cy="10" r="2.5"></circle></svg>
+              </span>
+              <span class="origin-mode-copy"><strong>Punto exacto</strong><span>Ruta directa</span></span>
+            </div>
           </div>
-          <span class="compatible-count">{{ filteredCompatibleOriginPoints.length }}</span>
-        </div>
+        </section>
 
-        <label class="origin-point-search" *ngIf="compatibleOriginPoints.length > 0">
-          <span class="sr-only">Buscar punto de origen</span>
-          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-4-4"></path></svg>
-          <input
-            type="search"
-            placeholder="Buscar agencia o municipio"
-            [(ngModel)]="originPointQuery"
-            (ngModelChange)="onOriginPointQueryChange()">
-          <button type="button" *ngIf="originPointQuery" (click)="originPointQuery = ''; onOriginPointQueryChange()" aria-label="Limpiar búsqueda de origen">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 6 12 12M18 6 6 18"></path></svg>
-          </button>
-        </label>
+        <section class="origin-points-section" aria-labelledby="compatible-points-title">
+          <div class="compatible-points-heading">
+            <div>
+              <span class="sheet-step-kicker">{{ selectedDestinationPoint?.empresa }}</span>
+              <h4 id="compatible-points-title">Elige un punto</h4>
+            </div>
+            <span class="compatible-count">{{ filteredCompatibleOriginPoints.length }} disponibles</span>
+          </div>
 
-        <div class="compatible-points-list" *ngIf="visibleCompatibleOriginPoints.length > 0">
-          <button
-            type="button"
-            class="compatible-point-card"
-            *ngFor="let point of visibleCompatibleOriginPoints"
-            (click)="selectCompatibleOriginPoint(point)">
-            <span class="compatible-point-marker" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M20 10c0 5.5-8 11-8 11S4 15.5 4 10a8 8 0 1 1 16 0Z"></path>
-                <circle cx="12" cy="10" r="2.5"></circle>
-              </svg>
-            </span>
-            <span class="compatible-point-copy">
-              <strong>{{ point.nombre_destino }}</strong>
-              <span>{{ point.ubicacion?.municipio }}<ng-container *ngIf="point.ubicacion?.departamento">, {{ point.ubicacion.departamento }}</ng-container></span>
-            </span>
-            <span class="compatible-point-action">
-              Elegir
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"></path></svg>
-            </span>
-          </button>
-        </div>
+          <label class="origin-point-search" *ngIf="compatibleOriginPoints.length > 0">
+            <span class="sr-only">Buscar punto de origen</span>
+            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-4-4"></path></svg>
+            <input type="search" placeholder="Agencia o municipio" [(ngModel)]="originPointQuery" (ngModelChange)="onOriginPointQueryChange()">
+            <button type="button" *ngIf="originPointQuery" (click)="originPointQuery = ''; onOriginPointQueryChange()" aria-label="Limpiar búsqueda de origen">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 6 12 12M18 6 6 18"></path></svg>
+            </button>
+          </label>
 
-        <nav class="origin-points-pager" *ngIf="originPointPageCount > 1" aria-label="Páginas de puntos de origen">
-          <button type="button" (click)="changeOriginPointPage(-1)" [disabled]="originPointPage === 1" aria-label="Página anterior">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"></path></svg>
-          </button>
-          <span>Página <strong>{{ originPointPage }}</strong> de {{ originPointPageCount }}</span>
-          <button type="button" (click)="changeOriginPointPage(1)" [disabled]="originPointPage === originPointPageCount" aria-label="Página siguiente">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"></path></svg>
-          </button>
-        </nav>
+          <div class="compatible-points-list" *ngIf="visibleCompatibleOriginPoints.length > 0">
+            <button type="button" class="compatible-point-card" *ngFor="let point of visibleCompatibleOriginPoints" (click)="selectCompatibleOriginPoint(point)">
+              <span class="compatible-point-marker" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 5.5-8 11-8 11S4 15.5 4 10a8 8 0 1 1 16 0Z"></path><circle cx="12" cy="10" r="2.5"></circle></svg>
+              </span>
+              <span class="compatible-point-copy">
+                <strong>{{ point.nombre_destino }}</strong>
+                <span>{{ point.ubicacion?.municipio }}<ng-container *ngIf="point.ubicacion?.departamento">, {{ point.ubicacion.departamento }}</ng-container></span>
+              </span>
+              <span class="compatible-point-action" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"></path></svg></span>
+            </button>
+          </div>
 
-        <div class="origin-choice-empty" *ngIf="compatibleOriginPoints.length === 0 || (originPointQuery && filteredCompatibleOriginPoints.length === 0)">
-          <span aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 21V8l8-5 8 5v13"></path><path d="M9 21v-6h6v6"></path></svg>
-          </span>
-          <strong>{{ compatibleOriginPoints.length === 0 ? 'No hay otros puntos de esta empresa' : 'No encontramos ese punto' }}</strong>
-          <p>{{ compatibleOriginPoints.length === 0 ? 'Aún puedes buscar un origen por municipio.' : 'Prueba con otra agencia, municipio o departamento.' }}</p>
-        </div>
+          <nav class="origin-points-pager" *ngIf="originPointPageCount > 1" aria-label="Páginas de puntos de origen">
+            <button type="button" (click)="changeOriginPointPage(-1)" [disabled]="originPointPage === 1" aria-label="Página anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"></path></svg></button>
+            <span><strong>{{ originPointPage }}</strong> / {{ originPointPageCount }}</span>
+            <button type="button" (click)="changeOriginPointPage(1)" [disabled]="originPointPage === originPointPageCount" aria-label="Página siguiente"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"></path></svg></button>
+          </nav>
+
+          <div class="origin-choice-empty" *ngIf="compatibleOriginPoints.length === 0 || (originPointQuery && filteredCompatibleOriginPoints.length === 0)">
+            <span aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 21V8l8-5 8 5v13"></path><path d="M9 21v-6h6v6"></path></svg></span>
+            <strong>{{ compatibleOriginPoints.length === 0 ? 'No hay otros puntos' : 'Sin resultados' }}</strong>
+            <p>{{ compatibleOriginPoints.length === 0 ? 'Prueba buscando por municipio.' : 'Busca otra agencia o municipio.' }}</p>
+          </div>
+        </section>
       </section>
 
       <div class="sheet-header-sticky" [class.is-scrolled]="isSheetScrolled" *ngIf="(destino || isDiscoveryMode || isOriginDiscoveryMode) && municipalityResults.length > 0 && flightResults.length === 0">

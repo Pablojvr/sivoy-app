@@ -145,6 +145,7 @@ export class HomeComponent implements OnInit, OnChanges {
   displayedResults: any[] = [];
   expandedResultCard: any = null;
   activeDetailedCard: any = null;
+  private unavailablePointImages = new Set<string>();
   searchRadius: number = 1.0;
   
   // Autocomplete logic properties
@@ -1115,6 +1116,16 @@ export class HomeComponent implements OnInit, OnChanges {
     if (!url) return '';
     if (/^(https?:|data:|blob:)/i.test(url)) return url;
     return `${environment.apiUrl}${url.startsWith('/') ? '' : '/'}${url}`;
+  }
+
+  hasPointImage(point: any): boolean {
+    const url = this.resolveImageUrl(point?.imagen_referencia);
+    return Boolean(url) && !this.unavailablePointImages.has(url);
+  }
+
+  markPointImageUnavailable(point: any) {
+    const url = this.resolveImageUrl(point?.imagen_referencia);
+    if (url) this.unavailablePointImages.add(url);
   }
 
   async shareLocation(loc: any) {

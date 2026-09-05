@@ -703,8 +703,8 @@
 
           <figure
             class="point-reference-media point-card-expandable"
-            *ngIf="res.imagen_referencia && isPointCardExpanded(res)">
-            <img [src]="resolveImageUrl(res.imagen_referencia)" [alt]="'Referencia visual de ' + (res.destino_nombre || res.nombre_destino)" loading="lazy">
+            *ngIf="hasPointImage(res) && isPointCardExpanded(res)">
+            <img [src]="resolveImageUrl(res.imagen_referencia)" [alt]="'Referencia visual de ' + (res.destino_nombre || res.nombre_destino)" loading="lazy" (error)="markPointImageUnavailable(res)">
             <figcaption>
               <span><small>Para tu cliente</small><strong>Referencia del punto</strong></span>
               <button type="button" (click)="copyPointResource(res); $event.stopPropagation()">
@@ -755,7 +755,7 @@
             </button>
             <button type="button" class="point-share-action" (click)="copyPointResource(res)">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M15 9V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h4"></path></svg>
-              {{ res.imagen_referencia ? 'Copiar' : 'Copiar datos' }}
+              {{ hasPointImage(res) ? 'Copiar' : 'Copiar datos' }}
             </button>
             <button type="button" class="point-map-action" (click)="viewPointOnMap(res)">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3V6Z"></path><path d="M9 3v15M15 6v15"></path></svg>

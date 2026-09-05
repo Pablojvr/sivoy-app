@@ -1134,6 +1134,63 @@ export class HomeComponent implements OnInit {
     }
   }
 
+  viewPointOnMap(point: any) {
+    this.lastSelectedLocationId = point.id_destino || point.id_origen || point.id;
+    this.showPinDetails.emit({
+      location: point,
+      type: this.isOriginDiscoveryMode ? 'origen' : 'destino'
+    });
+  }
+
+  togglePointSchedule(point: any) {
+    this.expandedResultCard = this.expandedResultCard === point ? null : point;
+  }
+
+  selectPointFromList(point: any) {
+    const locationName = this.getLocationName(point);
+    this.lastSelectedLocationId = point.id_destino || point.id_origen || point.id;
+    this.expandedResultCard = null;
+    this.result = null;
+    this.errorMsg = '';
+
+    if (this.isOriginDiscoveryMode) {
+      this.selectedOriginPoint = point;
+      this.origen = locationName;
+      this.origenInputValue = locationName;
+      this.origenMunicipio = point.ubicacion?.municipio || '';
+      this.origenDepartamento = point.ubicacion?.departamento || '';
+      this.isOriginDiscoveryMode = false;
+      this.municipalityResults = [];
+      this.displayedResults = [];
+
+      if (this.destino) {
+        this.executeSearch();
+      } else {
+        this.openLocationSelector('destino');
+      }
+      return;
+    }
+
+    this.selectedDestinationPoint = point;
+    this.destino = locationName;
+    this.destinoInputValue = locationName;
+    this.destinoMunicipio = point.ubicacion?.municipio || '';
+    this.destinoDepartamento = point.ubicacion?.departamento || '';
+    this.isDiscoveryMode = false;
+    this.municipalityResults = [];
+    this.displayedResults = [];
+
+    if (this.origen) {
+      this.executeSearch();
+      return;
+    }
+
+    this.isOriginChoiceMode = true;
+    this.originPointQuery = '';
+    this.originPointPage = 1;
+    this.bottomSheetState = 'half';
+  }
+
   get compatibleOriginPoints(): any[] {
     if (!this.selectedDestinationPoint?.empresa) return [];
 

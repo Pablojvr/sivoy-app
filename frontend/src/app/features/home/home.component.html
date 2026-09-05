@@ -108,9 +108,18 @@
               : 'Selecciona un municipio para ver todos sus puntos de entrega.' }}
           </p>
         </div>
-        <button type="button" class="close-panel-btn" (click)="closeLocationSelector()" aria-label="Cerrar búsqueda">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-        </button>
+        <div class="panel-header-actions">
+          <button type="button" class="home-panel-btn" (click)="returnToHome()" aria-label="Volver a la pantalla principal" title="Volver al inicio">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m3 11 9-8 9 8"></path>
+              <path d="M5 10v10h14V10"></path>
+              <path d="M9 20v-6h6v6"></path>
+            </svg>
+          </button>
+          <button type="button" class="close-panel-btn" (click)="closeLocationSelector()" aria-label="Cerrar búsqueda">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
       </div>
 
       <div class="destination-search-body">
@@ -516,7 +525,7 @@
         </div>
 
         <div *ngIf="!destino && !loading && !errorMsg" class="sheet-summary">
-          <h3 *ngIf="isDiscoveryMode">{{ displayedResults.length }} Destinos principales</h3>
+          <h3 *ngIf="isDiscoveryMode">{{ activeEmpresa ? displayedResults.length + ' puntos de ' + activeEmpresa : displayedResults.length + ' destinos principales' }}</h3>
           <h3 *ngIf="isOriginDiscoveryMode">{{ displayedResults.length }} Orígenes disponibles</h3>
           <h3 *ngIf="!isDiscoveryMode && !isOriginDiscoveryMode">Explorar mapa</h3>
           <p class="slide-hint" style="color: var(--text-muted); font-size: 12px; margin-top: 4px; display: flex; align-items: center; gap: 4px; margin-bottom: 0;">
@@ -622,7 +631,7 @@
 
       <div class="sheet-header-sticky" [class.is-scrolled]="isSheetScrolled" *ngIf="(destino || isDiscoveryMode || isOriginDiscoveryMode) && municipalityResults.length > 0 && flightResults.length === 0">
          <div class="sheet-handle"></div>
-         <h3 style="margin: 0; font-size: 16px; color: var(--text-main);">{{ isOriginDiscoveryMode ? 'Orígenes en ' + origenMunicipio : (isDiscoveryMode ? 'Destinos en ' + destinoMunicipio : 'Opciones para ' + destino) }}</h3>
+         <h3 style="margin: 0; font-size: 16px; color: var(--text-main);">{{ isOriginDiscoveryMode ? 'Orígenes en ' + origenMunicipio : (isDiscoveryMode ? (activeEmpresa ? 'Puntos de ' + activeEmpresa : 'Destinos en ' + destinoMunicipio) : 'Opciones para ' + destino) }}</h3>
  
       </div>
       

@@ -1,55 +1,26 @@
 import { environment } from '../environments/environment';
-import { Component, OnInit, ChangeDetectorRef, AfterViewInit, HostListener, ElementRef, ViewEncapsulation, ViewChild } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, AfterViewInit, HostListener, ElementRef, ViewEncapsulation, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { ActivatedRoute, Router } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { ToastService } from './core/services/toast.service';
 import { HttpClient } from '@angular/common/http';
-import * as L from 'leaflet';
-import { RegistroPuntoComponent } from './components/registro-punto/registro-punto.component';
+import { asCoordinate, createBounds, createMarkerElement, createSiVoyMap, mapRuntime, SiVoyCoordinate, SiVoyLngLat, SiVoyMap, SiVoyMarker } from './core/maps/sivoy-map';
 import { HomeComponent } from './features/home/home.component';
 import { AdminComponent } from './features/admin/admin.component';
 import { BottomNavComponent } from './shared/components/bottom-nav/bottom-nav.component';
-import { MapComponent } from './shared/components/map/map.component';
 import { PerfilComponent } from './features/perfil/perfil.component';
-
-// Fix Leaflet marker icons not loading in Angular
-const iconRetinaUrl = 'assets/marker-icon-2x.png';
-const iconUrl = 'assets/marker-icon.png';
-const shadowUrl = 'assets/marker-shadow.png';
-const iconDefault = L.icon({
-  iconRetinaUrl,
-  iconUrl,
-  shadowUrl,
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  tooltipAnchor: [16, -28],
-  shadowSize: [41, 41]
-});
-L.Marker.prototype.options.icon = iconDefault;
-
-L.Icon.Default.imagePath = 'assets/';
-
-const defaultIcon = L.Icon.Default.prototype as any;
-if (defaultIcon._getIconUrl) {
-  delete defaultIcon._getIconUrl;
-}
-
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl,
-  iconUrl,
-  shadowUrl,
-});
 
 @Component({
   selector: 'app-mobile-layout',
-  imports: [CommonModule, FormsModule, RegistroPuntoComponent, HomeComponent, AdminComponent, BottomNavComponent, MapComponent, PerfilComponent],
+  imports: [CommonModule, FormsModule, HomeComponent, AdminComponent, BottomNavComponent, PerfilComponent],
   templateUrl: './mobile-app.component.html',
   styleUrl: './app.css',
   encapsulation: ViewEncapsulation.None
 })
-export class MobileAppComponent implements OnInit, AfterViewInit {
+export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('adminRef') adminRef!: AdminComponent;
   @ViewChild(HomeComponent) homeCmp!: HomeComponent;
   locations: any[] = [];
@@ -131,17 +102,28 @@ export class MobileAppComponent implements OnInit, AfterViewInit {
   mapCenterLat: number = 0;
   mapCenterLng: number = 0;
   
-  map!: L.Map;
-  markers: L.Marker[] = [];
-  userLocation: L.LatLng | null = null;
+  map!: SiVoyMap;
+  markers: SiVoyMarker[] = [];
+  userLocation: SiVoyLngLat | null = null;
   userMunicipalityName: string | null = null;
   userDepartamento: string | null = null;
-  userMarker: L.Marker | null = null;
+  userMarker: SiVoyMarker | null = null;
   mapResizeObserver!: ResizeObserver;
   
   first: number = 0; // Required by design rules for pagination reset
 
-  constructor(private http: HttpClient, private cdr: ChangeDetectorRef, private elRef: ElementRef, private sanitizer: DomSanitizer, private toastService: ToastService) {}
+  navigationIntent: Record<string, string> = {};
+  private routeParamsSubscription?: Subscription;
+
+  constructor(
+    private http: HttpClient,
+    private cdr: ChangeDetectorRef,
+    private elRef: ElementRef,
+    private sanitizer: DomSanitizer,
+    private toastService: ToastService,
+    private route: ActivatedRoute,
+    private router: Router
+  ) {}
 
   // onDocumentClick removido para evitar conflictos con los botones que abren el panel.
 
@@ -153,6 +135,10 @@ export class MobileAppComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit() {
+    this.routeParamsSubscription = this.route.queryParams.subscribe(params => {
+      this.navigationIntent = { ...params };
+      this.cdr.detectChanges();
+    });
     const today = new Date();
     this.dropoffDate = today.toISOString().split('T')[0];
     this.generateTimeSlots();
@@ -198,13 +184,13 @@ export class MobileAppComponent implements OnInit, AfterViewInit {
     this.loadAdminEmpresas();
 
     // Default to El Salvador immediately so marker renders even if GPS hangs
-    this.userLocation = L.latLng(13.69, -89.21);
+    this.userLocation = new mapRuntime.LngLat(-89.21, 13.69);
     this.fetchMunicipalityName(13.69, -89.21);
 
     // Attempt to get user location
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition((pos) => {
-        this.userLocation = L.latLng(pos.coords.latitude, pos.coords.longitude);
+        this.userLocation = new mapRuntime.LngLat(pos.coords.longitude, pos.coords.latitude);
         this.updateUserMarker();
         this.sortLocationsByDistance();
         this.fetchMunicipalityName(pos.coords.latitude, pos.coords.longitude);
@@ -220,13 +206,29 @@ export class MobileAppComponent implements OnInit, AfterViewInit {
   }
 
   ngOnDestroy() {
+    this.routeParamsSubscription?.unsubscribe();
     if (this.mapResizeObserver) {
       this.mapResizeObserver.disconnect();
     }
+    this.markers.forEach(marker => marker.remove());
+    this.userMarker?.remove();
+    this.map?.remove();
   }
 
   ngAfterViewInit() {
     this.initMap();
+  }
+
+  onMainTabChange(tab: 'inicio' | 'puntos' | 'perfil') {
+    if (tab === 'inicio') {
+      this.router.navigate(['/']);
+      return;
+    }
+    this.activeMainTab = tab;
+  }
+
+  goHome() {
+    this.router.navigate(['/']);
   }
 
   initMap() {
@@ -234,17 +236,12 @@ export class MobileAppComponent implements OnInit, AfterViewInit {
       const mapElement = document.getElementById('map');
       if (!mapElement) return;
 
-      this.map = L.map('map', { zoomControl: false }).setView([13.79, -88.89], 8); // Centered on El Salvador
-  
-      L.tileLayer('http://mt0.google.com/vt/lyrs=m&hl=es&x={x}&y={y}&z={z}', {
-        maxZoom: 18,
-        attribution: '&copy; Google Maps'
-      }).addTo(this.map);
+      this.map = createSiVoyMap(mapElement, [-88.89, 13.79], 8.2);
   
       // UX: Handle map clicks for destination selection or collapse bottom sheet
       this.map.on('click', (e: any) => {
         if (this.selectingLocation === 'destino' || this.activeInput === 'destino') {
-          const { lat, lng } = e.latlng;
+          const { lat, lng } = e.lngLat;
           this.setCustomDestination(lat, lng);
           return;
         }
@@ -287,21 +284,25 @@ export class MobileAppComponent implements OnInit, AfterViewInit {
       this.mapCenterLat = initCenter.lat;
       this.mapCenterLng = initCenter.lng;
 
-      // Force map to recalculate its size after a short delay (fixes gray boxes issue)
+      this.map.once('load', () => {
+        this.updateMapMarkers();
+        this.updateUserMarker();
+      });
+
+      // Recalculate the WebGL canvas after layout transitions.
       setTimeout(() => {
-        this.map.invalidateSize();
+        this.map.resize();
       }, 200);
 
       // Add ResizeObserver to handle map container size changes permanently
       if (mapElement) {
         this.mapResizeObserver = new ResizeObserver(() => {
-          this.map.invalidateSize();
+          this.map.resize();
         });
         this.mapResizeObserver.observe(mapElement);
       }
       
-      // Initialize map markers after the map is fully ready
-      this.updateMapMarkers();
+      if (this.map.loaded()) this.updateMapMarkers();
     }, 50);
 
     // In case location was fetched before map was ready
@@ -342,18 +343,15 @@ export class MobileAppComponent implements OnInit, AfterViewInit {
 
   setCustomDestination(lat: number, lng: number) {
     if (this.customDestinoMarker) {
-      this.map.removeLayer(this.customDestinoMarker);
+      this.customDestinoMarker.remove();
     }
-    const pinIcon = L.divIcon({
-      className: 'modern-pin-container',
-      html: `<div class="modern-pin" style="background: #ef4444;"></div>`, // Red pin
-      iconSize: [32, 42],
-      iconAnchor: [16, 42]
-    });
-    this.customDestinoMarker = L.marker([lat, lng], { icon: pinIcon, draggable: true }).addTo(this.map);
+    const markerElement = createMarkerElement('preview', 'Destino elegido en el mapa');
+    this.customDestinoMarker = new mapRuntime.Marker({ element: markerElement, draggable: true, anchor: 'bottom' })
+      .setLngLat([lng, lat])
+      .addTo(this.map);
     
     this.customDestinoMarker.on('dragend', (e: any) => {
-      const pos = e.target.getLatLng();
+      const pos = e.target.getLngLat();
       this.fetchMunicipalityName(pos.lat, pos.lng, true);
     });
 
@@ -364,26 +362,13 @@ export class MobileAppComponent implements OnInit, AfterViewInit {
     if (!this.map || !this.userLocation) return;
     
     if (this.userMarker) {
-      this.userMarker.setLatLng(this.userLocation);
+      this.userMarker.setLngLat(this.userLocation);
     } else {
-      const userIcon = L.divIcon({
-        className: 'user-location-marker',
-        html: `
-          <div style="position: relative; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;">
-            <div style="position: absolute; width: 100%; height: 100%; background: rgba(59, 130, 246, 0.3); border-radius: 50%; animation: pulse 2s infinite;"></div>
-            <div style="position: relative; z-index: 2; background: #3b82f6; width: 28px; height: 28px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center;">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="white" stroke="none">
-                <circle cx="12" cy="8" r="4"></circle>
-                <path d="M6 20v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"></path>
-              </svg>
-            </div>
-          </div>
-        `,
-        iconSize: [36, 36],
-        iconAnchor: [18, 18]
-      });
-      this.userMarker = L.marker(this.userLocation, { icon: userIcon, zIndexOffset: 1000 }).addTo(this.map);
-      this.map.setView(this.userLocation, 13);
+      const userElement = createMarkerElement('user', 'Tu ubicación');
+      this.userMarker = new mapRuntime.Marker({ element: userElement, anchor: 'center' })
+        .setLngLat(this.userLocation)
+        .addTo(this.map);
+      this.map.jumpTo({ center: this.userLocation, zoom: 13 });
     }
   }
 
@@ -405,30 +390,22 @@ export class MobileAppComponent implements OnInit, AfterViewInit {
     }
 
     // Clear existing markers
-    this.markers.forEach(m => this.map.removeLayer(m));
+    this.markers.forEach(marker => marker.remove());
     this.markers = [];
 
-    // Add pulsing markers
-    const pulseIcon = L.divIcon({
-      className: 'pulse-marker',
-      html: `<div class="pulse-marker-container"><div class="pulse-circle"></div></div>`,
-      iconSize: [16, 16],
-      iconAnchor: [8, 8]
-    });
-
-    const bounds = L.latLngBounds([this.userLocation]);
+    const coordinates: SiVoyCoordinate[] = [[this.userLocation.lng, this.userLocation.lat]];
 
     nearby.forEach(loc => {
       if (loc.ubicacion && loc.ubicacion.lat && loc.ubicacion.lng) {
-        const marker = L.marker([loc.ubicacion.lat, loc.ubicacion.lng], { icon: pulseIcon }).addTo(this.map);
-        bounds.extend([loc.ubicacion.lat, loc.ubicacion.lng]);
+        const element = createMarkerElement('nearby', loc.nombre_destino);
+        const marker = new mapRuntime.Marker({ element, anchor: 'center' })
+          .setLngLat(asCoordinate(loc.ubicacion.lat, loc.ubicacion.lng))
+          .setPopup(new mapRuntime.Popup({ offset: 18, closeButton: false }).setHTML(`<strong>${loc.empresa}</strong><br>${loc._status?.mainText || loc.nombre_destino}`))
+          .addTo(this.map);
+        coordinates.push(asCoordinate(loc.ubicacion.lat, loc.ubicacion.lng));
         
-        // Add a tooltip to show the status quickly on the map
-        const statusText = loc._status ? `${loc._status.mainText}` : loc.nombre_destino;
-        marker.bindTooltip(`<b>${loc.empresa}</b><br>${statusText}`, { direction: 'top', offset: [0, -10] });
-
-        marker.on('click', (e: any) => {
-          if (e.originalEvent) L.DomEvent.stopPropagation(e.originalEvent);
+        element.addEventListener('click', event => {
+          event.stopPropagation();
           this.focusLocation(loc);
           this.selectedPin = loc;
           this.selectedPinDayFilter = '';
@@ -440,7 +417,8 @@ export class MobileAppComponent implements OnInit, AfterViewInit {
 
     // Zoom map to fit the nearby points
     this.isProgrammaticMove = true;
-    this.map.flyToBounds(bounds, { padding: [50, 50], maxZoom: 15 });
+    const bounds = createBounds(coordinates);
+    if (bounds) this.map.fitBounds(bounds, { padding: 50, maxZoom: 15, duration: 850 });
   }
 
   onDeliveryDayChange(res: any, event: any) {
@@ -459,12 +437,11 @@ export class MobileAppComponent implements OnInit, AfterViewInit {
     if (!this.map) return;
     
     if (this.routePolyline) {
-       this.map.removeLayer(this.routePolyline);
-       this.routePolyline = null;
+       this.removeRouteLine();
     }
 
     // Clear old markers
-    this.markers.forEach(m => this.map.removeLayer(m));
+    this.markers.forEach(marker => marker.remove());
     this.markers = [];
 
     const isInicio = this.activeMainTab === 'inicio' && this.homeCmp;
@@ -516,14 +493,14 @@ export class MobileAppComponent implements OnInit, AfterViewInit {
     
     if (pointsToPlot.length === 0) return;
 
-    const bounds = L.latLngBounds([]);
+    const coordinates: SiVoyCoordinate[] = [];
 
     pointsToPlot.forEach(loc => {
       const lat = loc.lat || loc.ubicacion?.lat;
       const lng = loc.lng || loc.ubicacion?.lng;
 
       if (lat && lng) {
-        bounds.extend([lat, lng]);
+        coordinates.push(asCoordinate(lat, lng));
 
         const isSelected = currentExpandedResultCard === loc || (currentSelectedPin && currentSelectedPin.nombre_destino === loc.nombre_destino);
         
@@ -536,39 +513,20 @@ export class MobileAppComponent implements OnInit, AfterViewInit {
           else markerType = 'destination'; 
         }
 
-        let customIcon;
-        if (markerType === 'origin') {
-          const classes = isSelected ? 'custom-map-marker origin-marker marker-selected' : 'custom-map-marker origin-marker';
-          customIcon = L.divIcon({
-            className: 'custom-map-marker-container',
-            html: `<div class="${classes}"><span>O</span></div>`,
-            iconSize: [40, 40],
-            iconAnchor: [20, 40]
-          });
-        } else if (markerType === 'destination') {
-          const classes = isSelected ? 'custom-map-marker destination-marker marker-selected' : 'custom-map-marker destination-marker';
-          customIcon = L.divIcon({
-            className: 'custom-map-marker-container',
-            html: `<div class="${classes}"><span>D</span></div>`,
-            iconSize: [40, 40],
-            iconAnchor: [20, 40]
-          });
-        } else {
-          customIcon = L.divIcon({
-            className: 'custom-map-marker-container',
-            html: `<div class="custom-map-marker destination-marker"><span>D</span></div>`,
-            iconSize: [40, 40],
-            iconAnchor: [20, 40]
-          });
-        }
-
-        const marker = L.marker([lat, lng], { icon: customIcon }).addTo(this.map);
+        const element = createMarkerElement(
+          markerType === 'origin' ? 'origin' : 'destination',
+          loc.nombre_destino || loc.destino_nombre || 'Punto logístico',
+          isSelected
+        );
+        const marker = new mapRuntime.Marker({ element, anchor: 'bottom' })
+          .setLngLat(asCoordinate(lat, lng))
+          .addTo(this.map);
         
         // Save the location object reference to update its class later
         (marker as any).locData = loc;
 
-        marker.on('click', (e: any) => {
-          if (e.originalEvent) L.DomEvent.stopPropagation(e.originalEvent);
+        element.addEventListener('click', event => {
+          event.stopPropagation();
           
           this.focusLocation(loc);
           
@@ -587,10 +545,11 @@ export class MobileAppComponent implements OnInit, AfterViewInit {
       }
     });
 
-    if (bounds.isValid()) {
+    const bounds = createBounds(coordinates);
+    if (bounds) {
       // Avoid zooming in too much if there's only 1 point
       this.isProgrammaticMove = true;
-      this.map.flyToBounds(bounds, { padding: [50, 50], maxZoom: 15 });
+      this.map.fitBounds(bounds, { padding: 50, maxZoom: 15, duration: 850 });
     }
     
     // Ensure styles (like highlight/dim) are applied to the newly created markers
@@ -607,13 +566,14 @@ export class MobileAppComponent implements OnInit, AfterViewInit {
     if (this.map && route) {
       const p1 = this.locations.find((l:any) => l.nombre_destino === route.origen_nombre && l.empresa === route.empresa);
       const p2 = this.locations.find((l:any) => l.nombre_destino === route.destino_nombre && l.empresa === route.empresa);
-      const b = L.latLngBounds([]);
-      if (p1 && (p1.ubicacion?.lat || p1.lat)) b.extend([(p1.ubicacion?.lat || p1.lat), (p1.ubicacion?.lng || p1.lng)]);
-      if (p2 && (p2.ubicacion?.lat || p2.lat)) b.extend([(p2.ubicacion?.lat || p2.lat), (p2.ubicacion?.lng || p2.lng)]);
-      
-      if (b.isValid()) {
+      const routeCoordinates: SiVoyCoordinate[] = [];
+      if (p1 && (p1.ubicacion?.lat || p1.lat)) routeCoordinates.push(asCoordinate(p1.ubicacion?.lat || p1.lat, p1.ubicacion?.lng || p1.lng));
+      if (p2 && (p2.ubicacion?.lat || p2.lat)) routeCoordinates.push(asCoordinate(p2.ubicacion?.lat || p2.lat, p2.ubicacion?.lng || p2.lng));
+      const bounds = createBounds(routeCoordinates);
+
+      if (bounds) {
         this.isProgrammaticMove = true;
-        this.map.flyToBounds(b, { padding: [50, 50], maxZoom: 15 });
+        this.map.fitBounds(bounds, { padding: 50, maxZoom: 15, duration: 850 });
       }
       this.bottomSheetState = 'collapsed';
       this.cdr.detectChanges();
@@ -627,9 +587,12 @@ export class MobileAppComponent implements OnInit, AfterViewInit {
     
     // Re-fit all bounds
     if (this.map && this.markers.length > 0) {
-      const group = L.featureGroup(this.markers);
       this.isProgrammaticMove = true;
-      this.map.fitBounds(group.getBounds(), { padding: [50, 50], maxZoom: 15 });
+      const bounds = createBounds(this.markers.map(marker => {
+        const point = marker.getLngLat();
+        return [point.lng, point.lat] as SiVoyCoordinate;
+      }));
+      if (bounds) this.map.fitBounds(bounds, { padding: 50, maxZoom: 15, duration: 700 });
     }
     this.bottomSheetState = 'expanded';
     this.cdr.detectChanges();
@@ -690,7 +653,7 @@ export class MobileAppComponent implements OnInit, AfterViewInit {
     // Sort and calculate on the main locations array
     this.locations.forEach(loc => {
       if (loc.ubicacion && loc.ubicacion.lat && loc.ubicacion.lng) {
-        const locLatLng = L.latLng(loc.ubicacion.lat, loc.ubicacion.lng);
+        const locLatLng = new mapRuntime.LngLat(loc.ubicacion.lng, loc.ubicacion.lat);
         loc.distance = (this.userLocation!.distanceTo(locLatLng) / 1000); // km
       } else {
         loc.distance = 9999;
@@ -699,7 +662,7 @@ export class MobileAppComponent implements OnInit, AfterViewInit {
 
     this.filteredLocations.forEach(loc => {
       if (loc.ubicacion && loc.ubicacion.lat && loc.ubicacion.lng) {
-        const locLatLng = L.latLng(loc.ubicacion.lat, loc.ubicacion.lng);
+        const locLatLng = new mapRuntime.LngLat(loc.ubicacion.lng, loc.ubicacion.lat);
         loc.distance = (this.userLocation!.distanceTo(locLatLng) / 1000); // km
       } else {
         loc.distance = 9999;
@@ -745,11 +708,14 @@ export class MobileAppComponent implements OnInit, AfterViewInit {
     if (this.map) {
       if (this.userLocation) {
         this.isProgrammaticMove = true;
-        this.map.setView(this.userLocation, 13);
+        this.map.jumpTo({ center: this.userLocation, zoom: 13 });
       } else if (this.markers.length > 0) {
-        const group = L.featureGroup(this.markers);
         this.isProgrammaticMove = true;
-        this.map.fitBounds(group.getBounds(), { padding: [50, 50] });
+        const bounds = createBounds(this.markers.map(marker => {
+          const point = marker.getLngLat();
+          return [point.lng, point.lat] as SiVoyCoordinate;
+        }));
+        if (bounds) this.map.fitBounds(bounds, { padding: 50, duration: 700 });
       }
     }
     
@@ -829,7 +795,7 @@ export class MobileAppComponent implements OnInit, AfterViewInit {
       // Aplicar un offset para que el pin quede en la mitad superior de la pantalla
       // ya que la tarjeta de detalles cubre la mitad inferior en móviles.
       const latOffset = window.innerWidth < 768 ? 0.005 : 0.002;
-      this.map.flyTo([lat - latOffset, lng], 15);
+      this.map.flyTo({ center: [lng, lat - latOffset], zoom: 15, duration: 800 });
       
       // Auto collapse bottom sheet on mobile to show map
       if (window.innerWidth < 768) {
@@ -1363,10 +1329,10 @@ export class MobileAppComponent implements OnInit, AfterViewInit {
     
     // Fit bounds to these locations
     if (targets.length > 0) {
-      const bounds = L.latLngBounds(targets.filter(t => t.ubicacion?.lat).map(t => [t.ubicacion.lat, t.ubicacion.lng]));
-      if (bounds.isValid()) {
+      const bounds = createBounds(targets.filter(t => t.ubicacion?.lat).map(t => asCoordinate(t.ubicacion.lat, t.ubicacion.lng)));
+      if (bounds) {
          this.isProgrammaticMove = true;
-         this.map.fitBounds(bounds.pad(0.2));
+         this.map.fitBounds(bounds, { padding: 64, maxZoom: 15, duration: 750 });
       }
     }
     
@@ -1418,10 +1384,10 @@ export class MobileAppComponent implements OnInit, AfterViewInit {
     
     // Fit bounds to these locations
     if (targets.length > 0) {
-      const bounds = L.latLngBounds(targets.filter(t => t.ubicacion?.lat).map(t => [t.ubicacion.lat, t.ubicacion.lng]));
-      if (bounds.isValid()) {
+      const bounds = createBounds(targets.filter(t => t.ubicacion?.lat).map(t => asCoordinate(t.ubicacion.lat, t.ubicacion.lng)));
+      if (bounds) {
          this.isProgrammaticMove = true;
-         this.map.fitBounds(bounds.pad(0.2));
+         this.map.fitBounds(bounds, { padding: 64, maxZoom: 15, duration: 750 });
       }
     }
     
@@ -1488,10 +1454,10 @@ export class MobileAppComponent implements OnInit, AfterViewInit {
       this.toastService.showInfo("Buscando tu ubicación...", "Ubicación");
       navigator.geolocation.getCurrentPosition(
         (pos) => {
-          this.userLocation = L.latLng(pos.coords.latitude, pos.coords.longitude);
+          this.userLocation = new mapRuntime.LngLat(pos.coords.longitude, pos.coords.latitude);
           this.updateUserMarker();
           this.isProgrammaticMove = true;
-          this.map.flyTo(this.userLocation, 15, { animate: true, duration: 1 });
+          this.map.flyTo({ center: this.userLocation, zoom: 15, duration: 900 });
           this.fetchMunicipalityName(pos.coords.latitude, pos.coords.longitude);
           this.sortLocationsByDistance();
         },
@@ -1499,7 +1465,7 @@ export class MobileAppComponent implements OnInit, AfterViewInit {
           this.toastService.showError("Verifica los permisos de ubicación de tu navegador.", "Sin acceso");
           if (this.userLocation) {
             this.isProgrammaticMove = true;
-            this.map.flyTo(this.userLocation, 15, { animate: true, duration: 1 });
+            this.map.flyTo({ center: this.userLocation, zoom: 15, duration: 900 });
           }
         },
         { timeout: 15000, enableHighAccuracy: true, maximumAge: 0 }
@@ -1507,7 +1473,7 @@ export class MobileAppComponent implements OnInit, AfterViewInit {
     } else {
       if (this.userLocation) {
         this.isProgrammaticMove = true;
-        this.map.flyTo(this.userLocation, 15, { animate: true, duration: 1 });
+        this.map.flyTo({ center: this.userLocation, zoom: 15, duration: 900 });
       }
     }
   }
@@ -1727,7 +1693,7 @@ export class MobileAppComponent implements OnInit, AfterViewInit {
       this.expandedResultCard = res;
       if (res.lat && res.lng) {
         this.isProgrammaticMove = true;
-        this.map.flyTo([res.lat, res.lng], 16);
+        this.map.flyTo({ center: [res.lng, res.lat], zoom: 16, duration: 750 });
       }
     }
     this.updateMarkerStyles();
@@ -1799,7 +1765,7 @@ export class MobileAppComponent implements OnInit, AfterViewInit {
     this.activeMainTab = 'inicio';
     setTimeout(() => {
       if (this.map) {
-        this.map.invalidateSize();
+        this.map.resize();
       }
     }, 50); // slight delay to allow display:block to take effect
   }
@@ -2010,71 +1976,95 @@ export class MobileAppComponent implements OnInit, AfterViewInit {
   previewMapMarker: any = null;
   routePolyline: any = null;
 
+  private removeRouteLine() {
+    if (!this.map) return;
+    if (this.map.getLayer('sivoy-route-line')) this.map.removeLayer('sivoy-route-line');
+    if (this.map.getSource('sivoy-route')) this.map.removeSource('sivoy-route');
+    this.routePolyline = null;
+  }
+
+  private drawRouteLine(coordinates: SiVoyCoordinate[]) {
+    if (!this.map || coordinates.length < 2) return;
+    this.removeRouteLine();
+    const renderLine = () => {
+      if (this.map.getSource('sivoy-route')) return;
+      this.map.addSource('sivoy-route', {
+        type: 'geojson',
+        data: {
+          type: 'Feature',
+          properties: {},
+          geometry: { type: 'LineString', coordinates }
+        }
+      });
+      this.map.addLayer({
+        id: 'sivoy-route-line',
+        type: 'line',
+        source: 'sivoy-route',
+        layout: { 'line-cap': 'round', 'line-join': 'round' },
+        paint: {
+          'line-color': '#F45B78',
+          'line-width': 4,
+          'line-opacity': 0.9,
+          'line-dasharray': [1.2, 1.4]
+        }
+      });
+      this.routePolyline = 'sivoy-route-line';
+    };
+
+    if (this.map.isStyleLoaded()) renderLine();
+    else this.map.once('load', renderLine);
+  }
+
   onMapHighlightRoute(flight: any) {
     if (this.map && flight) {
       // Limpiar mapa primero para no dejar punteros fantasma
       if (this.routePolyline) {
-         this.map.removeLayer(this.routePolyline);
-         this.routePolyline = null;
+         this.removeRouteLine();
       }
-      this.markers.forEach(m => this.map.removeLayer(m));
+      this.markers.forEach(marker => marker.remove());
       this.markers = [];
 
       this.resetMapMarkers();
       this.highlightedRoute = flight;
       
-      const bounds = L.latLngBounds([]);
+      const routeCoordinates: SiVoyCoordinate[] = [];
       
       // Añadir origen
       if (flight.origen_lat && flight.origen_lng) {
         const oLat = parseFloat(flight.origen_lat);
         const oLng = parseFloat(flight.origen_lng);
-        const pinIconOrigin = L.divIcon({
-          className: 'modern-pin-container',
-          html: `<div class="modern-pin" style="background: var(--primary);"></div><div class="pin-pulse"></div>`,
-          iconSize: [32, 42],
-          iconAnchor: [16, 42]
-        });
-        const m = L.marker([oLat, oLng], { icon: pinIconOrigin }).addTo(this.map);
-        m.on('click', () => {
+        const element = createMarkerElement('origin', flight.origen_nombre || 'Origen');
+        const marker = new mapRuntime.Marker({ element, anchor: 'bottom' }).setLngLat([oLng, oLat]).addTo(this.map);
+        element.addEventListener('click', event => {
+          event.stopPropagation();
           this.showOriginPinDetails(flight);
         });
-        this.markers.push(m);
-        bounds.extend([oLat, oLng]);
+        (marker as any).locData = { nombre_destino: flight.origen_nombre, empresa: flight.empresa };
+        this.markers.push(marker);
+        routeCoordinates.push([oLng, oLat]);
       }
       
       // Añadir destino
       if (flight.destino_lat && flight.destino_lng) {
         const dLat = parseFloat(flight.destino_lat);
         const dLng = parseFloat(flight.destino_lng);
-        const pinIconDest = L.divIcon({
-          className: 'modern-pin-container',
-          html: `<div class="modern-pin" style="background: #334155;"></div>`,
-          iconSize: [32, 42],
-          iconAnchor: [16, 42]
-        });
-        const m = L.marker([dLat, dLng], { icon: pinIconDest }).addTo(this.map);
-        m.on('click', () => {
+        const element = createMarkerElement('destination', flight.destino_nombre || 'Destino');
+        const marker = new mapRuntime.Marker({ element, anchor: 'bottom' }).setLngLat([dLng, dLat]).addTo(this.map);
+        element.addEventListener('click', event => {
+          event.stopPropagation();
           this.showDestinoPinDetails(flight);
         });
-        this.markers.push(m);
-        bounds.extend([dLat, dLng]);
+        (marker as any).locData = { nombre_destino: flight.destino_nombre, empresa: flight.empresa };
+        this.markers.push(marker);
+        routeCoordinates.push([dLng, dLat]);
       }
       
-      if (this.routePolyline) {
-        this.map.removeLayer(this.routePolyline);
-      }
+      this.drawRouteLine(routeCoordinates);
       
-      if (flight.origen_lat && flight.destino_lat) {
-        this.routePolyline = L.polyline([
-          [parseFloat(flight.origen_lat), parseFloat(flight.origen_lng)],
-          [parseFloat(flight.destino_lat), parseFloat(flight.destino_lng)]
-        ], {color: '#f97316', weight: 4, dashArray: '8, 8'}).addTo(this.map);
-      }
-      
-      if (bounds.isValid()) {
+      const bounds = createBounds(routeCoordinates);
+      if (bounds) {
         setTimeout(() => {
-          this.map.flyToBounds(bounds, { padding: [50, 50], maxZoom: 15 });
+          this.map.fitBounds(bounds, { padding: 50, maxZoom: 15, duration: 850 });
         }, 100);
       }
       
@@ -2086,24 +2076,20 @@ export class MobileAppComponent implements OnInit, AfterViewInit {
     if (this.map && coords && coords.lat && coords.lng) {
       setTimeout(() => {
         this.isProgrammaticMove = true;
-        this.map.flyTo([coords.lat, coords.lng], 18); // Más cerca (zoom 18)
+        this.map.flyTo({ center: [coords.lng, coords.lat], zoom: 18, duration: 750 });
         
         if (this.previewMapMarker) {
-          this.map.removeLayer(this.previewMapMarker);
+          this.previewMapMarker.remove();
         }
         
-        const pinIcon = L.divIcon({
-          className: 'modern-pin-container',
-          html: `<div class="modern-pin" style="background: #ef4444;"></div>`, // Red pin
-          iconSize: [32, 42],
-          iconAnchor: [16, 42]
-        });
-        
-        this.previewMapMarker = L.marker([coords.lat, coords.lng], { icon: pinIcon, draggable: true }).addTo(this.map);
+        const element = createMarkerElement('preview', 'Ubicación de vista previa');
+        this.previewMapMarker = new mapRuntime.Marker({ element, draggable: true, anchor: 'bottom' })
+          .setLngLat([coords.lng, coords.lat])
+          .addTo(this.map);
         
         // Update coordinates if user drags the pin during preview
         this.previewMapMarker.on('dragend', (e: any) => {
-          const pos = e.target.getLatLng();
+          const pos = e.target.getLngLat();
           if (this.adminRef) {
              this.adminRef.updatePickedLocation(pos.lat.toFixed(6), pos.lng.toFixed(6));
           }
@@ -2117,10 +2103,10 @@ export class MobileAppComponent implements OnInit, AfterViewInit {
     this.isPickingLocation = true;
     setTimeout(() => {
       if (this.map) {
-        this.map.invalidateSize();
+        this.map.resize();
         if (this.map && this.editFormData.lat && this.editFormData.lng) {
           this.isProgrammaticMove = true;
-          this.map.setView([this.editFormData.lat, this.editFormData.lng], 16);
+          this.map.jumpTo({ center: [this.editFormData.lng, this.editFormData.lat], zoom: 16 });
         }
         
         const center = this.map.getCenter();

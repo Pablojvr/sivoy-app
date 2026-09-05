@@ -31,6 +31,7 @@ export class DiscoveryHomeComponent implements OnChanges {
   @Output() municipalitySelected = new EventEmitter<MunicipalitySummary>();
   @Output() pointSelected = new EventEmitter<any>();
   @Output() pointPreview = new EventEmitter<any>();
+  @Output() pointMap = new EventEmitter<any>();
 
   companies: CompanySummary[] = [];
   municipalities: MunicipalitySummary[] = [];
@@ -118,6 +119,8 @@ export class DiscoveryHomeComponent implements OnChanges {
     const seenMunicipalities = new Set<string>();
     this.featuredPoints = [...this.locations]
       .sort((a, b) => {
+        const imagePriority = Number(Boolean(b.imagen_referencia)) - Number(Boolean(a.imagen_referencia));
+        if (imagePriority !== 0) return imagePriority;
         const distanceA = typeof a.distance === 'number' ? a.distance : Number.MAX_SAFE_INTEGER;
         const distanceB = typeof b.distance === 'number' ? b.distance : Number.MAX_SAFE_INTEGER;
         return distanceA - distanceB || Number(b.id || 0) - Number(a.id || 0);

@@ -1,4 +1,4 @@
-<div class="app-container mobile-first-layout" (click)="collapseSheet()">
+<div class="app-container mobile-first-layout" [class.map-resource-mode]="isMapResourceMode" [class.list-first-mode]="!isMapResourceMode" (click)="collapseSheet()">
   
   <div class="inicio-tab-content" [hidden]="activeMainTab !== 'inicio' && !isPickingLocation && !isMapForcedVisible">
     <app-home
@@ -8,14 +8,16 @@
       [selectedPin]="selectedPin"
       [isPickingLocation]="isPickingLocation"
       [highlightedRoute]="highlightedRoute"
+      [mapResourceMode]="isMapResourceMode"
       (updateMapMarkers)="updateMapMarkers()"
       (clearMap)="resetMapMarkers()"
-      (mapHighlightRoute)="onMapHighlightRoute($event)"
+      (mapHighlightRoute)="onMapHighlightRoute($event); setMapResourceMode(true)"
       (recenterMapEvent)="recenterMap()"
       (resetMapMarkersEvent)="resetMapMarkers()"
       (showNearbyPointsEvent)="showNearbyPoints()"
       (previewImageEvent)="fullScreenImage = $event"
       (showPinDetails)="viewOnMap($event.location, $event.type)"
+      (mapResourceModeChange)="setMapResourceMode($event)"
     ></app-home>
   </div>
 

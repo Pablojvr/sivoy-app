@@ -17,7 +17,8 @@ import { DiscoveryHomeComponent } from '../home/discovery-home.component';
       (companySelected)="openCompany($event)"
       (municipalitySelected)="openMunicipality($event)"
       (pointSelected)="openPoint($event, 'select')"
-      (pointPreview)="openPoint($event, 'preview')">
+      (pointPreview)="openPoint($event, 'preview')"
+      (pointMap)="openPoint($event, 'map')">
     </app-discovery-home>
   `,
   styles: [`
@@ -51,7 +52,7 @@ export class DiscoveryPageComponent {
   }
 
   openMap() {
-    this.router.navigate(['/enviar']);
+    this.router.navigate(['/enviar'], { queryParams: { vista: 'mapa' } });
   }
 
   openCompany(company: string) {
@@ -67,11 +68,12 @@ export class DiscoveryPageComponent {
     });
   }
 
-  openPoint(point: any, action: 'select' | 'preview') {
+  openPoint(point: any, action: 'select' | 'preview' | 'map') {
     this.router.navigate(['/enviar'], {
       queryParams: {
         punto: point.id_destino || point.id,
-        accion: action
+        accion: action,
+        vista: action === 'map' ? 'mapa' : null
       }
     });
   }

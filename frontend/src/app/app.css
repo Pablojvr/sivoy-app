@@ -5222,3 +5222,238 @@ textarea {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ================================================================
+   LIST-FIRST DELIVERY FLOW
+   The map stays mounted for fast access, but is revealed only when
+   the user explicitly asks to locate a point or inspect a route.
+   ================================================================ */
+
+app-home {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+app-home.list-first-mode .map-wrapper {
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.list-first-canvas {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 92% 6%, rgba(169, 221, 245, 0.52), transparent 31%),
+    radial-gradient(circle at -8% 84%, rgba(184, 238, 74, 0.25), transparent 32%),
+    linear-gradient(180deg, #f5f6f3 0%, #eef1ed 100%);
+}
+
+.list-canvas-orb {
+  position: absolute;
+  display: block;
+  border-radius: 999px;
+  pointer-events: none;
+}
+
+.list-canvas-orb-one {
+  top: 18%;
+  right: -88px;
+  width: 210px;
+  height: 210px;
+  border: 44px solid rgba(244, 91, 120, 0.09);
+}
+
+.list-canvas-orb-two {
+  bottom: 9%;
+  left: -54px;
+  width: 132px;
+  height: 132px;
+  background: rgba(169, 221, 245, 0.2);
+}
+
+.list-first-intro {
+  position: absolute;
+  z-index: 12;
+  top: 50%;
+  left: 50%;
+  width: min(410px, calc(100% - 48px));
+  display: grid;
+  justify-items: start;
+  transform: translate(-50%, -44%);
+}
+
+.list-intro-mark {
+  width: 56px;
+  height: 56px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 19px;
+  border-radius: 18px;
+  background: #1d1e1c;
+  color: var(--primary);
+  box-shadow: 0 16px 36px rgba(29, 30, 28, 0.18);
+}
+
+.list-intro-mark svg {
+  width: 27px;
+  height: 27px;
+}
+
+.list-first-intro h1 {
+  max-width: 12ch;
+  margin: 7px 0 10px;
+  color: #1d1e1c;
+  font-size: clamp(29px, 8vw, 42px);
+  font-weight: 850;
+  line-height: 1.03;
+  letter-spacing: -0.055em;
+}
+
+.list-first-intro p {
+  max-width: 37ch;
+  margin: 0;
+  color: #626961;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.55;
+}
+
+.list-first-intro > button {
+  min-height: 50px;
+  margin-top: 22px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: 16px;
+  background: var(--primary);
+  color: #fff;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 12px 28px rgba(244, 91, 120, 0.25);
+}
+
+.map-resource-exit {
+  position: absolute;
+  z-index: 1002;
+  top: max(122px, calc(env(safe-area-inset-top) + 112px));
+  left: max(14px, calc((100% - 560px) / 2));
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 14px 0 10px;
+  border: 1px solid rgba(29, 30, 28, 0.12);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.94);
+  color: #292c28;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 10px 26px rgba(29, 30, 28, 0.15);
+  backdrop-filter: blur(12px);
+}
+
+.map-resource-exit svg {
+  width: 18px;
+  height: 18px;
+}
+
+.bottom-sheet.list-first-sheet {
+  top: max(118px, calc(env(safe-area-inset-top) + 108px));
+  bottom: calc(100px + env(safe-area-inset-bottom));
+  left: 50%;
+  width: min(680px, calc(100% - 24px));
+  max-width: 680px;
+  height: auto !important;
+  max-height: none;
+  transform: translateX(-50%);
+  border-radius: 28px 28px 22px 22px;
+  background: rgba(249, 250, 247, 0.98);
+  box-shadow: 0 24px 64px rgba(29, 30, 28, 0.14);
+}
+
+.bottom-sheet.list-first-sheet .persistent-sheet-header {
+  min-height: 82px;
+  padding: 14px 22px 16px;
+  cursor: default;
+  touch-action: auto;
+}
+
+.bottom-sheet.list-first-sheet .drag-handle,
+.bottom-sheet.list-first-sheet .slide-hint {
+  display: none !important;
+}
+
+.bottom-sheet.list-first-sheet .sheet-content,
+.bottom-sheet.list-first-sheet.collapsed .sheet-content {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+
+.bottom-sheet.list-first-sheet .sheet-header-sticky {
+  top: 0;
+}
+
+.bottom-sheet.list-first-sheet .cards-list {
+  width: min(100%, 590px);
+  margin: 0 auto;
+  padding: 14px 14px 28px;
+}
+
+.bottom-sheet.list-first-sheet.choosing-origin,
+.bottom-sheet.list-first-sheet.choosing-origin.half,
+.bottom-sheet.list-first-sheet.choosing-origin.expanded {
+  height: auto !important;
+}
+
+.map-resource-mode .list-first-canvas,
+.map-resource-mode .list-first-intro {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .bottom-sheet.list-first-sheet {
+    top: 122px;
+    right: 24px;
+    bottom: 24px;
+    left: auto;
+    width: min(520px, calc(100% - 48px));
+    max-width: 520px;
+    transform: none;
+  }
+
+  .list-first-intro {
+    left: calc(50% - 220px);
+  }
+}
+
+@media (max-width: 420px) {
+  .bottom-sheet.list-first-sheet {
+    width: calc(100% - 16px);
+    border-radius: 24px 24px 18px 18px;
+  }
+
+  .bottom-sheet.list-first-sheet .persistent-sheet-header {
+    padding-inline: 16px;
+  }
+
+  .bottom-sheet.list-first-sheet .cards-list {
+    padding-inline: 9px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .list-first-intro > button,
+  .map-resource-exit {
+    transition: none;
+  }
+}

@@ -221,14 +221,10 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
 
   onMainTabChange(tab: 'inicio' | 'puntos' | 'perfil') {
     if (tab === 'inicio') {
-      this.router.navigate(['/']);
+      window.location.hash = '/';
       return;
     }
     this.activeMainTab = tab;
-  }
-
-  goHome() {
-    this.router.navigate(['/']);
   }
 
   initMap() {

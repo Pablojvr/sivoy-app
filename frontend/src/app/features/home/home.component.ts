@@ -90,7 +90,6 @@ export class HomeComponent implements OnInit, OnChanges {
   @Output() resetMapMarkersEvent = new EventEmitter<void>();
   @Output() showNearbyPointsEvent = new EventEmitter<void>();
   @Output() previewImageEvent = new EventEmitter<string>();
-  @Output() homeRequested = new EventEmitter<void>();
 
   origen: string = '';
   destino: string = '';
@@ -233,7 +232,7 @@ export class HomeComponent implements OnInit, OnChanges {
 
   returnToHome() {
     this.closeLocationSelector();
-    this.homeRequested.emit();
+    window.location.hash = '/';
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -1227,10 +1226,6 @@ export class HomeComponent implements OnInit, OnChanges {
       location: point,
       type: this.isOriginDiscoveryMode ? 'origen' : 'destino'
     });
-  }
-
-  togglePointSchedule(point: any) {
-    this.expandedResultCard = this.expandedResultCard === point ? null : point;
   }
 
   selectPointFromList(point: any) {

@@ -5,11 +5,12 @@ import { FormsModule } from '@angular/forms';
 import { RutasService } from '../../core/services/rutas.service';
 import { ToastService } from '../../core/services/toast.service';
 import { MapasService } from '../../core/services/mapas.service';
+import { DiscoveryHomeComponent } from './discovery-home.component';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, DiscoveryHomeComponent],
   templateUrl: './home.component.html',
   encapsulation: ViewEncapsulation.None
 })
@@ -23,6 +24,7 @@ export class HomeComponent implements OnInit {
   @Input() set selectedPin(value: any) {
     this._selectedPin = value;
     if (value) {
+      this.showDiscoveryHome = false;
       this.activePinTab = 'info';
       this.bottomSheetState = 'hidden';
       this.lastSelectedLocationId = value.id_destino || value.id_origen || value.id;
@@ -140,6 +142,7 @@ export class HomeComponent implements OnInit {
   expandedResultCard: any = null;
   activeDetailedCard: any = null;
   searchRadius: number = 1.0;
+  showDiscoveryHome: boolean = true;
   
   // Autocomplete logic properties
   showAutocomplete: boolean = false;
@@ -223,8 +226,56 @@ export class HomeComponent implements OnInit {
     this.flightResults = [];
     this.municipalityResults = [];
     this.displayedResults = [];
+    this.showDiscoveryHome = true;
     this.clearMap.emit();
     this.updateMapMarkers.emit();
+  }
+
+  exploreMapFromDiscovery() {
+    this.showDiscoveryHome = false;
+    this.bottomSheetState = 'collapsed';
+    this.resetMapMarkersEvent.emit();
+  }
+
+  selectMunicipalityFromDiscovery(municipality: any) {
+    this.showDiscoveryHome = false;
+    this.selectMunicipality(municipality, 'destino');
+  }
+
+  exploreCompanyFromDiscovery(empresa: string) {
+    const companyLocations = this.locations.filter(location => location.empresa === empresa);
+    if (companyLocations.length === 0) return;
+
+    this.showDiscoveryHome = false;
+    this.isDiscoveryMode = true;
+    this.isOriginDiscoveryMode = false;
+    this.isOriginChoiceMode = false;
+    this.activeEmpresa = empresa;
+    this.destino = '';
+    this.destinoInputValue = '';
+    this.destinoMunicipio = '';
+    this.flightResults = [];
+    this.municipalityResults = companyLocations.map(location => ({
+      ...location,
+      destino_nombre: location.nombre_destino
+    }));
+    this.displayedResults = [...this.municipalityResults];
+    this.bottomSheetState = 'half';
+    this.updateMapMarkers.emit();
+  }
+
+  selectPointFromDiscovery(point: any) {
+    this.showDiscoveryHome = false;
+    this.selectPointFromList(point);
+  }
+
+  previewPointFromDiscovery(point: any) {
+    this.showDiscoveryHome = false;
+    this.isDiscoveryMode = true;
+    this.activeEmpresa = point.empresa || '';
+    this.municipalityResults = [{ ...point, destino_nombre: point.nombre_destino }];
+    this.displayedResults = [...this.municipalityResults];
+    this.viewPointOnMap(point);
   }
 
   onSearchLocation(query: string) {

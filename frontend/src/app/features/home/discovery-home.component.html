@@ -1,0 +1,131 @@
+<main class="discovery-page" (click)="$event.stopPropagation()">
+  <div class="ambient-orb orb-one" aria-hidden="true"></div>
+  <div class="ambient-orb orb-two" aria-hidden="true"></div>
+
+  <div class="discovery-shell">
+    <header class="discovery-header">
+      <a class="brand-lockup" href="#/" aria-label="SiVoy, inicio">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 28 28" fill="none"><path d="M7 7.5h9.5a4.5 4.5 0 0 1 0 9H12" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="m8.5 13-4 4 4 4" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+        <span>SiVoy</span>
+      </a>
+      <span class="coverage-chip"><i aria-hidden="true"></i> El Salvador</span>
+    </header>
+
+    <section class="hero-section" aria-labelledby="discovery-title">
+      <div class="hero-copy">
+        <span class="eyebrow">Envíos más claros</span>
+        <h1 id="discovery-title">Tu próximo envío empieza por el destino.</h1>
+        <p>Compara puntos y descubre cuándo puede llegar, sin conocer de logística.</p>
+      </div>
+
+      <button type="button" class="destination-command" (click)="destinationSearch.emit()">
+        <span class="command-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 5.5-8 11-8 11S4 15.5 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>
+        </span>
+        <span class="command-copy">
+          <small>Buscar destino</small>
+          <strong>¿Adónde deseas enviar hoy?</strong>
+          <span>Municipio o punto de entrega</span>
+        </span>
+        <span class="command-go" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m9 18 6-6-6-6"/></svg>
+        </span>
+      </button>
+
+      <div class="quick-destinations" *ngIf="municipalities.length > 0" aria-label="Destinos frecuentes">
+        <span>Más buscados</span>
+        <button type="button" *ngFor="let municipality of municipalities; trackBy: trackMunicipality" (click)="municipalitySelected.emit(municipality)">
+          {{ municipality.municipio }}
+        </button>
+      </div>
+    </section>
+
+    <section class="signal-card" aria-label="Resumen de cobertura">
+      <div class="signal-copy">
+        <span class="signal-label">Cobertura conectada</span>
+        <h2>Encuentra el punto que ya encaja con tu rutina.</h2>
+        <button type="button" (click)="mapExplore.emit()">
+          Explorar el mapa
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M14 7l5 5-5 5"/></svg>
+        </button>
+      </div>
+      <div class="signal-visual" aria-hidden="true">
+        <span class="route-line route-a"></span>
+        <span class="route-line route-b"></span>
+        <span class="route-dot dot-a"></span>
+        <span class="route-dot dot-b"></span>
+        <span class="route-dot dot-c"></span>
+        <svg viewBox="0 0 64 64" fill="none"><rect x="13" y="21" width="38" height="29" rx="8" fill="currentColor"/><path d="M22 21v-3a10 10 0 0 1 20 0v3M13 31h38" stroke="#191919" stroke-width="4"/><circle cx="24" cy="39" r="3" fill="#191919"/><circle cx="40" cy="39" r="3" fill="#191919"/></svg>
+      </div>
+      <div class="coverage-metrics" aria-live="polite">
+        <span><strong>{{ isLoading ? '—' : pointCount }}</strong><small>Puntos</small></span>
+        <span><strong>{{ isLoading ? '—' : totalMunicipalities }}</strong><small>Municipios</small></span>
+        <span><strong>{{ isLoading ? '—' : companyCount }}</strong><small>{{ companyCount === 1 ? 'Empresa' : 'Empresas' }}</small></span>
+      </div>
+    </section>
+
+    <section class="content-section" aria-labelledby="companies-title">
+      <div class="section-heading">
+        <div><span class="eyebrow">Red SiVoy</span><h2 id="companies-title">Empresas registradas</h2></div>
+        <button type="button" class="text-action" (click)="mapExplore.emit()">Ver mapa</button>
+      </div>
+
+      <div class="company-grid" *ngIf="companies.length > 0; else companySkeleton">
+        <button
+          type="button"
+          class="company-card"
+          *ngFor="let company of companies; trackBy: trackCompany"
+          [style.--company-accent]="company.accent"
+          (click)="companySelected.emit(company.name)">
+          <span class="company-monogram">{{ company.monogram }}</span>
+          <span class="company-copy">
+            <strong>{{ company.name }}</strong>
+            <span>{{ company.pointCount }} puntos · {{ company.municipalityCount }} municipios</span>
+          </span>
+          <span class="company-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg></span>
+        </button>
+      </div>
+      <ng-template #companySkeleton>
+        <div class="company-card company-loading"><span></span><span></span></div>
+      </ng-template>
+    </section>
+
+    <section class="content-section point-section" aria-labelledby="points-title">
+      <div class="section-heading">
+        <div><span class="eyebrow">Ideas para empezar</span><h2 id="points-title">Puntos para descubrir</h2></div>
+      </div>
+
+      <div class="point-rail" *ngIf="featuredPoints.length > 0; else pointSkeleton">
+        <article class="discovery-point-card" *ngFor="let point of featuredPoints; trackBy: trackPoint">
+          <div class="point-card-top">
+            <span class="point-pin" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 5.5-8 11-8 11S4 15.5 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>
+            </span>
+            <span class="point-provider">{{ point.empresa }}</span>
+            <button type="button" class="map-icon-button" (click)="pointPreview.emit(point)" [attr.aria-label]="'Ver ' + pointName(point) + ' en el mapa'">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3V6Z"/><path d="M9 3v15M15 6v15"/></svg>
+            </button>
+          </div>
+          <div class="point-card-copy">
+            <h3>{{ pointName(point) }}</h3>
+            <p>{{ locationLabel(point) }}</p>
+          </div>
+          <button type="button" class="point-primary-action" (click)="pointSelected.emit(point)">
+            Enviar aquí
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M14 7l5 5-5 5"/></svg>
+          </button>
+        </article>
+      </div>
+      <ng-template #pointSkeleton>
+        <div class="point-rail"><article class="discovery-point-card point-loading"></article><article class="discovery-point-card point-loading"></article></div>
+      </ng-template>
+    </section>
+
+    <footer class="discovery-footer">
+      <span class="footer-mark" aria-hidden="true">S</span>
+      <p><strong>Primero el destino.</strong> SiVoy te ayuda a resolver el resto.</p>
+    </footer>
+  </div>
+</main>

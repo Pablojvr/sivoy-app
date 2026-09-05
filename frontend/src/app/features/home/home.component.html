@@ -5,18 +5,18 @@
     <!-- FIXED CENTER PIN (Removed as per design changes, using blue dot marker for user location instead) -->
     
     <!-- RECENTER BUTTON -->
-    <button class="recenter-btn" (click)="recenterMap()">
+    <button class="recenter-btn" (click)="recenterMap()" *ngIf="!showDiscoveryHome">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="3"></circle></svg>
     </button>
     
     <!-- RESTORE MAP BUTTON -->
-    <button class="nearby-fab" (click)="resetMapMarkers()" *ngIf="highlightedRoute" style="bottom: 90px; background: white; color: var(--text-main);">
+    <button class="nearby-fab" (click)="resetMapMarkers()" *ngIf="highlightedRoute && !showDiscoveryHome" style="bottom: 90px; background: white; color: var(--text-main);">
       <i class="pi pi-undo" style="margin-right: 6px;"></i>
       Ver todas las rutas
     </button>
     
     <!-- NEARBY POINTS BUTTON -->
-    <button class="nearby-fab" (click)="showNearbyPoints()" *ngIf="!destino && !isPickingLocation">
+    <button class="nearby-fab" (click)="showNearbyPoints()" *ngIf="!destino && !isPickingLocation && !showDiscoveryHome">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
         <circle cx="12" cy="10" r="3"></circle>
@@ -41,12 +41,23 @@
     </div>
   </div>
 
+  <app-discovery-home
+    *ngIf="showDiscoveryHome && !isSearchExpanded && !isPickingLocation"
+    [locations]="locations"
+    (destinationSearch)="openLocationSelector('destino')"
+    (mapExplore)="exploreMapFromDiscovery()"
+    (companySelected)="exploreCompanyFromDiscovery($event)"
+    (municipalitySelected)="selectMunicipalityFromDiscovery($event)"
+    (pointSelected)="selectPointFromDiscovery($event)"
+    (pointPreview)="previewPointFromDiscovery($event)">
+  </app-discovery-home>
+
   <!-- DYNAMIC SEARCH PANEL -->
   <div class="search-panel-overlay fade-in" *ngIf="isSearchExpanded" (click)="closeLocationSelector()"></div>
   
   <div class="search-panel-container" [class.expanded]="isSearchExpanded">
     <!-- Primary intent: search by destination -->
-    <div class="search-pill" *ngIf="!isSearchExpanded">
+    <div class="search-pill" *ngIf="!isSearchExpanded && !showDiscoveryHome">
       <button
         type="button"
         class="destination-search-trigger"
@@ -401,7 +412,7 @@
        [class.dragging]="isSheetDragging"
        [class.choosing-origin]="isOriginChoiceMode"
        [style.--sheet-drag-offset]="sheetDragOffset + 'px'"
-       *ngIf="!isPickingLocation && !selectingLocation && !isSearchExpanded" (click)="$event.stopPropagation()">
+       *ngIf="!isPickingLocation && !selectingLocation && !isSearchExpanded && !showDiscoveryHome" (click)="$event.stopPropagation()">
     <header
       class="persistent-sheet-header"
       (pointerdown)="onSheetPointerDown($event)"
@@ -516,7 +527,7 @@
         </div>
 
         <div *ngIf="!destino && !loading && !errorMsg" class="sheet-summary">
-          <h3 *ngIf="isDiscoveryMode">{{ displayedResults.length }} Destinos principales</h3>
+          <h3 *ngIf="isDiscoveryMode">{{ activeEmpresa ? displayedResults.length + ' puntos de ' + activeEmpresa : displayedResults.length + ' destinos principales' }}</h3>
           <h3 *ngIf="isOriginDiscoveryMode">{{ displayedResults.length }} Orígenes disponibles</h3>
           <h3 *ngIf="!isDiscoveryMode && !isOriginDiscoveryMode">Explorar mapa</h3>
           <p class="slide-hint" style="color: var(--text-muted); font-size: 12px; margin-top: 4px; display: flex; align-items: center; gap: 4px; margin-bottom: 0;">
@@ -622,7 +633,7 @@
 
       <div class="sheet-header-sticky" [class.is-scrolled]="isSheetScrolled" *ngIf="(destino || isDiscoveryMode || isOriginDiscoveryMode) && municipalityResults.length > 0 && flightResults.length === 0">
          <div class="sheet-handle"></div>
-         <h3 style="margin: 0; font-size: 16px; color: var(--text-main);">{{ isOriginDiscoveryMode ? 'Orígenes en ' + origenMunicipio : (isDiscoveryMode ? 'Destinos en ' + destinoMunicipio : 'Opciones para ' + destino) }}</h3>
+         <h3 style="margin: 0; font-size: 16px; color: var(--text-main);">{{ isOriginDiscoveryMode ? 'Orígenes en ' + origenMunicipio : (isDiscoveryMode ? (activeEmpresa ? 'Puntos de ' + activeEmpresa : 'Destinos en ' + destinoMunicipio) : 'Opciones para ' + destino) }}</h3>
  
       </div>
       

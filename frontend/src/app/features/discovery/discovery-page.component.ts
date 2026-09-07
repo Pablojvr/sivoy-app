@@ -3,12 +3,13 @@ import { HttpClient } from '@angular/common/http';
 import { ChangeDetectorRef, Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { environment } from '../../../environments/environment';
+import { BottomNavComponent } from '../../shared/components/bottom-nav/bottom-nav.component';
 import { DiscoveryHomeComponent } from '../home/discovery-home.component';
 
 @Component({
   selector: 'app-discovery-page',
   standalone: true,
-  imports: [CommonModule, DiscoveryHomeComponent],
+  imports: [CommonModule, DiscoveryHomeComponent, BottomNavComponent],
   template: `
     <app-discovery-home
       [locations]="locations"
@@ -17,8 +18,10 @@ import { DiscoveryHomeComponent } from '../home/discovery-home.component';
       (companySelected)="openCompany($event)"
       (municipalitySelected)="openMunicipality($event)"
       (pointSelected)="openPoint($event, 'select')"
-      (pointPreview)="openPoint($event, 'preview')">
+      (pointPreview)="openPoint($event, 'preview')"
+      (pointMap)="openPoint($event, 'map')">
     </app-discovery-home>
+    <app-bottom-nav activeTab="inicio"></app-bottom-nav>
   `,
   styles: [`
     :host {
@@ -51,7 +54,7 @@ export class DiscoveryPageComponent {
   }
 
   openMap() {
-    this.router.navigate(['/enviar']);
+    this.router.navigate(['/enviar'], { queryParams: { vista: 'mapa' } });
   }
 
   openCompany(company: string) {
@@ -67,12 +70,14 @@ export class DiscoveryPageComponent {
     });
   }
 
-  openPoint(point: any, action: 'select' | 'preview') {
+  openPoint(point: any, action: 'select' | 'preview' | 'map') {
     this.router.navigate(['/enviar'], {
       queryParams: {
         punto: point.id_destino || point.id,
-        accion: action
+        accion: action,
+        vista: action === 'map' ? 'mapa' : null
       }
     });
   }
+
 }

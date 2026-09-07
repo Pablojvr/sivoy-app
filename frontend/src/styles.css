@@ -123,7 +123,11 @@ html, body {
   color: #fff;
   cursor: pointer;
   filter: drop-shadow(0 7px 10px rgba(24, 25, 23, 0.24));
-  transition: opacity 180ms ease, transform 180ms ease, filter 180ms ease;
+  /* Mapbox/MapLibre writes the geographic screen position to transform on every
+     frame. Never animate or override that property here: doing so makes pins
+     visually lag behind their coordinates while zooming. */
+  transition: opacity 180ms ease, filter 180ms ease;
+  will-change: opacity, filter;
 }
 
 .sivoy-pin-core {
@@ -203,7 +207,12 @@ html, body {
 .sivoy-map-marker.marker-highlighted {
   z-index: 10;
   filter: drop-shadow(0 9px 14px rgba(24, 25, 23, 0.36));
-  transform: scale(1.2) translateY(-3px);
+}
+
+.sivoy-map-marker.is-selected .sivoy-pin-core,
+.sivoy-map-marker.marker-selected .sivoy-pin-core,
+.sivoy-map-marker.marker-highlighted .sivoy-pin-core {
+  box-shadow: 0 0 0 4px rgba(244, 91, 120, 0.22);
 }
 
 .sivoy-map-marker.marker-dimmed {
@@ -669,9 +678,9 @@ html, body {
 
 .point-result-actions {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 92px;
+  grid-template-columns: minmax(0, 1fr) minmax(118px, 0.55fr);
   gap: 8px;
-  padding: 4px 12px 11px;
+  padding: 0 12px 12px;
 }
 
 .point-result-actions button {
@@ -715,71 +724,378 @@ html, body {
   background: #fff;
 }
 
-.point-hours-toggle {
-  width: 100%;
-  min-height: 44px;
+.point-hours-panel {
+  --availability-accent: var(--signal-blue);
+  --availability-ink: #285b71;
+  margin: 0 12px 10px;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--availability-accent) 48%, #fff);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--availability-accent) 16%, #fff);
+}
+
+.point-hours-panel.state-green {
+  --availability-accent: var(--signal-lime);
+  --availability-ink: #3d5d12;
+}
+
+.point-hours-panel.state-orange {
+  --availability-accent: var(--signal-amber);
+  --availability-ink: #7b5314;
+}
+
+.point-hours-panel.state-red {
+  --availability-accent: var(--primary);
+  --availability-ink: #963048;
+}
+
+.point-hours-heading {
+  min-height: 61px;
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 10px;
+  border-bottom: 1px solid rgba(29, 30, 28, 0.07);
+}
+
+.point-hours-icon {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 11px;
+  background: var(--availability-accent);
+  color: var(--availability-ink);
+}
+
+.point-hours-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.point-hours-status {
+  min-width: 0;
+  display: grid;
+  gap: 1px;
+}
+
+.point-hours-status small {
+  color: var(--availability-ink);
+  font-size: 8px;
+  font-weight: 850;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.point-hours-status strong {
+  overflow: hidden;
+  color: #242723;
+  font-size: 12px;
+  font-weight: 850;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.point-hours-status > span {
+  overflow: hidden;
+  color: #61685f;
+  font-size: 10px;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.point-hours-count {
+  padding: 5px 7px;
+  border: 1px solid rgba(29, 30, 28, 0.07);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.78);
+  color: #545b51;
+  font-size: 9px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.point-hours-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1px;
+  background: rgba(29, 30, 28, 0.06);
+}
+
+.point-hours-grid > div {
+  min-width: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 0 14px;
+  gap: 6px;
+  min-height: 34px;
+  padding: 6px 8px;
+  background: rgba(255, 255, 255, 0.88);
+}
+
+.point-hours-grid span {
+  overflow: hidden;
+  color: #687066;
+  font-size: 10px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+
+.point-hours-grid strong {
+  color: #2f332e;
+  font-size: 10px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.point-hours-empty {
+  margin: 0;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.78);
+  color: #636a61;
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.point-result-summary {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) 34px;
   border: 0;
-  border-top: 1px solid rgba(29, 30, 28, 0.07);
-  background: rgba(255, 255, 255, 0.54);
-  color: #596057;
+  background: transparent;
+  color: inherit;
   font: inherit;
-  font-size: 11px;
-  font-weight: 750;
+  text-align: left;
   cursor: pointer;
 }
 
-.point-hours-toggle > span {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
+.point-result-summary:hover,
+.point-result-summary:focus-visible {
+  background: rgba(255, 255, 255, 0.46);
 }
 
-.point-hours-toggle svg {
-  width: 16px;
-  height: 16px;
-  transition: transform 180ms ease;
+.point-result-summary:focus-visible {
+  outline: 3px solid rgba(244, 91, 120, 0.2);
+  outline-offset: -3px;
 }
 
-.point-hours-toggle svg.rotated {
+.point-result-disclosure {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(29, 30, 28, 0.09);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.78);
+  color: #60665e;
+}
+
+.point-result-disclosure svg {
+  width: 17px;
+  height: 17px;
+  transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.point-result-summary[aria-expanded='true'] .point-result-disclosure {
+  background: #1d1e1c;
+  color: #fff;
+}
+
+.point-result-summary[aria-expanded='true'] .point-result-disclosure svg {
   transform: rotate(180deg);
 }
 
-.point-hours-preview {
-  display: grid;
-  gap: 5px;
-  padding: 10px 14px 13px;
-  border-top: 1px solid rgba(29, 30, 28, 0.06);
-  background: rgba(255, 255, 255, 0.78);
-  animation: point-details-enter 180ms ease-out;
+.point-card-expandable {
+  animation: point-card-reveal 220ms cubic-bezier(0.22, 1, 0.36, 1);
+  transform-origin: top;
 }
 
-.point-hours-preview > div {
+.cards-list .point-result-card:not(.is-expanded) .point-result-provider {
+  min-height: 43px;
+  padding-block: 6px;
+}
+
+.cards-list .point-result-card:not(.is-expanded) .point-provider-mark {
+  width: 30px;
+  height: 30px;
+}
+
+.cards-list .point-result-card:not(.is-expanded) .point-result-main {
+  min-height: 66px;
+  padding-block: 8px;
+}
+
+.cards-list .point-result-card:not(.is-expanded) .point-result-pin {
+  width: 36px;
+  height: 36px;
+  flex-basis: 36px;
+}
+
+.cards-list .point-result-card:not(.is-expanded) .point-hours-panel {
+  margin-bottom: 7px;
+}
+
+.cards-list .point-result-card:not(.is-expanded) .point-hours-heading {
+  min-height: 52px;
+  padding-block: 6px;
+}
+
+.cards-list .point-result-card:not(.is-expanded) .point-hours-icon {
+  width: 31px;
+  height: 31px;
+}
+
+.cards-list .point-result-card:not(.is-expanded) .point-options-label {
+  display: none;
+}
+
+.cards-list .point-result-card:not(.is-expanded) .point-result-actions {
+  padding: 0 10px 10px;
+}
+
+.cards-list .point-result-card:not(.is-expanded) .point-result-actions button {
+  min-height: 40px;
+}
+
+@keyframes point-card-reveal {
+  from { opacity: 0; transform: translateY(-5px) scaleY(0.97); }
+  to { opacity: 1; transform: translateY(0) scaleY(1); }
+}
+
+.point-reference-media {
+  position: relative;
+  min-height: 142px;
+  margin: 0 12px 10px;
+  overflow: hidden;
+  border: 1px solid rgba(29, 30, 28, 0.09);
+  border-radius: 16px;
+  background: #e9ece7;
+}
+
+.point-reference-media > img {
+  width: 100%;
+  height: 142px;
+  display: block;
+  object-fit: cover;
+}
+
+.point-reference-media::after {
+  content: '';
+  position: absolute;
+  inset: 44% 0 0;
+  background: linear-gradient(180deg, transparent, rgba(18, 19, 17, 0.86));
+  pointer-events: none;
+}
+
+.point-reference-media figcaption {
+  position: absolute;
+  z-index: 1;
+  right: 9px;
+  bottom: 9px;
+  left: 11px;
   display: flex;
-  align-items: center;
+  align-items: end;
   justify-content: space-between;
-  gap: 12px;
-  color: #626960;
-  font-size: 11px;
+  gap: 10px;
+  color: #fff;
 }
 
-.point-hours-preview > div span {
-  text-transform: capitalize;
+.point-reference-media figcaption > span {
+  min-width: 0;
+  display: grid;
+  gap: 1px;
 }
 
-.point-hours-preview > div strong {
-  color: #30342e;
-  font-weight: 750;
+.point-reference-media figcaption small {
+  color: rgba(255, 255, 255, 0.74);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
-.point-hours-preview p {
-  margin: 0;
-  color: #6f766c;
-  font-size: 11px;
+.point-reference-media figcaption strong {
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.point-reference-media figcaption button {
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 11px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.94);
+  color: #262824;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.point-reference-media figcaption svg {
+  width: 15px;
+  height: 15px;
+}
+
+.point-result-actions {
+  grid-template-columns: minmax(0, 1.35fr) minmax(76px, 0.78fr) minmax(70px, 0.7fr);
+}
+
+.point-share-action {
+  border: 1px solid rgba(244, 91, 120, 0.24);
+  background: #fff0f3;
+  color: #b33451;
+}
+
+.point-share-action:hover {
+  border-color: rgba(244, 91, 120, 0.5);
+  background: #ffe4ea;
+}
+
+.point-share-action:focus-visible,
+.point-map-action:focus-visible,
+.point-use-action:focus-visible,
+.point-reference-media figcaption button:focus-visible {
+  outline: 3px solid rgba(244, 91, 120, 0.24);
+  outline-offset: 2px;
+}
+
+@media (max-width: 390px) {
+  .point-result-actions {
+    grid-template-columns: minmax(0, 1.35fr) minmax(72px, 0.78fr) minmax(68px, 0.7fr);
+  }
+
+  .point-share-action,
+  .point-map-action {
+    gap: 5px;
+    padding-inline: 6px;
+    font-size: 10px;
+  }
+
+  .point-share-action svg,
+  .point-map-action svg {
+    color: #b33451;
+  }
+
+  .point-map-action svg {
+    color: #454b42;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .point-result-disclosure svg,
+  .point-card-expandable {
+    animation: none;
+    transition: none;
+  }
 }
 
 /* Point detail: route action remains visible before secondary information. */
@@ -794,6 +1110,18 @@ html, body {
   border-radius: 24px;
   background: #fbfcfa;
   box-shadow: 0 26px 70px rgba(29, 30, 28, 0.24);
+  transition: max-height 260ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 180ms ease;
+}
+
+.pin-details-card.pin-point-card.is-collapsed {
+  max-height: 126px;
+  box-shadow: 0 18px 45px rgba(29, 30, 28, 0.22);
+}
+
+.pin-card-expanded-content {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .pin-card-hero {
@@ -807,6 +1135,7 @@ html, body {
   background-position: center;
   background-size: cover;
   color: #fff;
+  touch-action: pan-x;
 }
 
 .pin-card-hero::after {
@@ -815,6 +1144,44 @@ html, body {
   inset: 0;
   background: linear-gradient(180deg, rgba(16, 17, 15, 0.06) 10%, rgba(16, 17, 15, 0.86) 100%);
   pointer-events: none;
+}
+
+.pin-card-sheet-toggle {
+  position: absolute;
+  z-index: 4;
+  top: 7px;
+  left: 50%;
+  width: 64px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(20, 21, 19, 0.56);
+  color: #fff;
+  backdrop-filter: blur(10px);
+  cursor: ns-resize;
+  touch-action: manipulation;
+}
+
+.pin-card-sheet-toggle > span {
+  width: 24px;
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.pin-card-sheet-toggle svg {
+  position: absolute;
+  right: 5px;
+  width: 13px;
+  height: 13px;
+  transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.pin-point-card:not(.is-collapsed) .pin-card-sheet-toggle svg {
+  transform: rotate(180deg);
 }
 
 .pin-image-preview {
@@ -1218,7 +1585,6 @@ html, body {
 }
 
 .point-result-actions button:focus-visible,
-.point-hours-toggle:focus-visible,
 .pin-card-hero-actions button:focus-visible,
 .pin-route-action:focus-visible,
 .pin-map-action:focus-visible,
@@ -1228,14 +1594,15 @@ html, body {
   outline-offset: 2px;
 }
 
-@keyframes point-details-enter {
-  from { opacity: 0; transform: translateY(-4px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
 @media (max-width: 380px) {
   .point-result-actions {
-    grid-template-columns: minmax(0, 1fr) 84px;
+    grid-template-columns: minmax(0, 1.35fr) minmax(70px, 0.78fr) minmax(66px, 0.7fr);
+  }
+
+  .point-result-actions button {
+    gap: 4px;
+    padding-inline: 6px;
+    font-size: 10px;
   }
 
   .pin-details-card.pin-point-card {
@@ -1251,10 +1618,10 @@ html, body {
 @media (prefers-reduced-motion: reduce) {
   .point-result-card,
   .point-result-actions button,
-  .point-hours-preview,
-  .point-hours-toggle svg,
   .pin-card-hero-actions button,
-  .pin-route-action {
+  .pin-route-action,
+  .pin-details-card.pin-point-card,
+  .pin-card-sheet-toggle svg {
     animation: none;
     transition: none;
   }

@@ -1,5 +1,5 @@
     <!-- BACKGROUND MAP -->
-    <div class="map-wrapper">
+    <div class="map-wrapper" [attr.aria-hidden]="!mapResourceMode">
     <div id="map" class="map-container"></div>
     
     <!-- FIXED CENTER PIN (Removed as per design changes, using blue dot marker for user location instead) -->
@@ -41,31 +41,52 @@
     </div>
   </div>
 
+  <div class="list-first-canvas" *ngIf="!mapResourceMode" aria-hidden="true">
+    <span class="list-canvas-orb list-canvas-orb-one"></span>
+    <span class="list-canvas-orb list-canvas-orb-two"></span>
+  </div>
+
+  <section class="list-first-intro" *ngIf="!mapResourceMode && !hasListContent && !isSearchExpanded" aria-labelledby="list-first-title">
+    <span class="list-intro-mark" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 5.5-8 11-8 11S4 15.5 4 10a8 8 0 1 1 16 0Z"></path><circle cx="12" cy="10" r="2.5"></circle></svg>
+    </span>
+    <h1 id="list-first-title">¿Adónde lo envías?</h1>
+    <p>Busca un punto, revisa el horario y compártelo.</p>
+    <button type="button" (click)="openLocationSelector('destino')">Buscar destino</button>
+  </section>
+
+  <button type="button" class="map-resource-exit" *ngIf="mapResourceMode" (click)="exitMapResource(); $event.stopPropagation()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"></path></svg>
+    {{ hasListContent ? 'Volver a resultados' : 'Volver al inicio' }}
+  </button>
+
   <!-- DYNAMIC SEARCH PANEL -->
   <div class="search-panel-overlay fade-in" *ngIf="isSearchExpanded" (click)="closeLocationSelector()"></div>
   
   <div class="search-panel-container" [class.expanded]="isSearchExpanded">
     <!-- Primary intent: search by destination -->
-    <div class="search-pill" *ngIf="!isSearchExpanded">
+    <div class="search-pill" [class.is-empty]="!destino" *ngIf="!isSearchExpanded">
       <button
         type="button"
         class="destination-search-trigger"
         (click)="openLocationSelector('destino')"
         [attr.aria-label]="destino ? 'Cambiar municipio de destino' : 'Buscar municipio de destino'">
         <span class="destination-search-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg *ngIf="destino" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M20 10c0 5.5-8 11-8 11S4 15.5 4 10a8 8 0 1 1 16 0Z"></path>
             <circle cx="12" cy="10" r="2.5"></circle>
           </svg>
+          <svg *ngIf="!destino" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="7"></circle>
+            <path d="m20 20-4-4"></path>
+          </svg>
         </span>
         <span class="destination-search-copy">
-          <span class="destination-search-label">{{ destino ? 'Destino seleccionado' : 'Buscar destino' }}</span>
+          <span class="destination-search-label" *ngIf="destino">Destino seleccionado</span>
           <span class="destination-search-value" [class.placeholder]="!destino">
             {{ destinoInputValue || '¿Adónde deseas enviar?' }}
           </span>
-          <span class="destination-search-hint">
-            {{ destino ? 'Toca para cambiar de municipio' : 'Encuentra todos los puntos de entrega' }}
-          </span>
+          <span class="destination-search-hint" *ngIf="destino">Toca para cambiar</span>
         </span>
         <span class="destination-search-arrow" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25">
@@ -104,8 +125,8 @@
           </h2>
           <p>
             {{ activeInput === 'origen'
-              ? 'Elige el punto donde entregarás tu paquete.'
-              : 'Selecciona un municipio para ver todos sus puntos de entrega.' }}
+              ? 'Elige municipio o punto.'
+              : 'Busca municipio o punto de entrega.' }}
           </p>
         </div>
         <div class="panel-header-actions">
@@ -316,11 +337,31 @@
 
   <!-- PIN DETAILS MODAL -->
   <div class="pin-modal-overlay fade-in" *ngIf="selectedPin" (click)="closePinDetails()"></div>
-  <article class="pin-details-card pin-point-card card-style slide-up" *ngIf="selectedPin" role="dialog" aria-modal="true" aria-labelledby="pin-point-title">
-    <header class="pin-card-hero" [style.backgroundImage]="selectedPin.imagen_referencia ? 'url(' + apiUrl + selectedPin.imagen_referencia + ')' : 'linear-gradient(145deg, #f45b78 0%, #7d2438 58%, #1d1e1c 100%)'">
-      <button *ngIf="selectedPin.imagen_referencia" type="button" class="pin-image-preview" (click)="previewImage(selectedPin.imagen_referencia)" aria-label="Ver imagen completa"></button>
+  <article
+    class="pin-details-card pin-point-card card-style slide-up"
+    [class.is-collapsed]="!isPinCardExpanded"
+    *ngIf="selectedPin"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="pin-point-title">
+    <header
+      class="pin-card-hero"
+      [style.backgroundImage]="selectedPin.imagen_referencia ? 'url(' + resolveImageUrl(selectedPin.imagen_referencia) + ')' : 'linear-gradient(145deg, #f45b78 0%, #7d2438 58%, #1d1e1c 100%)'"
+      (touchstart)="onPinCardTouchStart($event)"
+      (touchend)="onPinCardTouchEnd($event)">
+      <button *ngIf="selectedPin.imagen_referencia" type="button" class="pin-image-preview" (click)="openPinImagePreview(selectedPin.imagen_referencia)" aria-label="Ver imagen completa"></button>
+      <button
+        type="button"
+        class="pin-card-sheet-toggle"
+        (click)="togglePinCard($event)"
+        [attr.aria-expanded]="isPinCardExpanded"
+        aria-controls="pin-card-expanded-content"
+        [attr.aria-label]="isPinCardExpanded ? 'Contraer información del punto' : 'Expandir información del punto'">
+        <span aria-hidden="true"></span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="m6 15 6-6 6 6"></path></svg>
+      </button>
       <div class="pin-card-hero-actions">
-        <button type="button" (click)="shareLocation(selectedPin); $event.stopPropagation()" aria-label="Compartir punto">
+        <button type="button" (click)="shareLocation(selectedPin); $event.stopPropagation()" aria-label="Compartir información del punto">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"></path></svg>
         </button>
         <button type="button" (click)="closePinDetails(); $event.stopPropagation()" aria-label="Cerrar detalle">
@@ -334,7 +375,8 @@
       </div>
     </header>
 
-    <div class="pin-card-quick-actions" [class.single-action]="highlightedRoute || (origen && destino)">
+    <div id="pin-card-expanded-content" class="pin-card-expanded-content point-card-expandable" *ngIf="isPinCardExpanded">
+      <div class="pin-card-quick-actions" [class.single-action]="highlightedRoute || (origen && destino)">
       <button
         *ngIf="!highlightedRoute && !(origen && destino) && selectedPin.markerType === 'destination'"
         type="button"
@@ -356,18 +398,18 @@
       </button>
 
       <button type="button" class="pin-map-action" (click)="openInGoogleMaps()" aria-label="Abrir punto en Google Maps">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3V6Z"></path><path d="M9 3v15M15 6v15"></path></svg>
-        <span>Mapa</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 5.5-8 11-8 11S4 15.5 4 10a8 8 0 1 1 16 0Z"></path><circle cx="12" cy="10" r="2.5"></circle></svg>
+        <span>Ver mapa</span>
       </button>
-    </div>
+      </div>
 
-    <nav class="pin-card-tabs" aria-label="Información del punto">
-      <button type="button" [class.active]="activePinTab === 'info'" (click)="activePinTab = 'info'">Información</button>
-      <button type="button" [class.active]="activePinTab === 'horarios'" (click)="activePinTab = 'horarios'">Horarios</button>
-    </nav>
+      <nav class="pin-card-tabs" aria-label="Información del punto">
+        <button type="button" [class.active]="activePinTab === 'info'" (click)="activePinTab = 'info'">Información</button>
+        <button type="button" [class.active]="activePinTab === 'horarios'" (click)="activePinTab = 'horarios'">Horarios</button>
+      </nav>
 
-    <div class="pin-card-content">
-      <section *ngIf="activePinTab === 'info'" class="pin-info-panel">
+      <div class="pin-card-content">
+        <section *ngIf="activePinTab === 'info'" class="pin-info-panel">
         <div *ngIf="selectedPin._status as status" class="pin-availability" [ngClass]="status.color">
           <span class="pin-availability-icon" aria-hidden="true">
             <svg *ngIf="status.iconType === 'clock'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
@@ -389,9 +431,9 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M15 9V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h4"></path></svg>
           </button>
         </div>
-      </section>
+        </section>
 
-      <section *ngIf="activePinTab === 'horarios'" class="pin-hours-panel">
+        <section *ngIf="activePinTab === 'horarios'" class="pin-hours-panel">
         <div class="pin-hours-heading"><span><small>Atención al público</small><strong>Horarios semanales</strong></span></div>
         <div class="pin-hours-list" *ngIf="selectedPin.horarios_operativos && selectedPin.horarios_operativos.length > 0">
           <div *ngFor="let g of getGroupedSchedules(selectedPin.horarios_operativos)">
@@ -400,7 +442,8 @@
           </div>
         </div>
         <div class="pin-hours-empty" *ngIf="!selectedPin.horarios_operativos || selectedPin.horarios_operativos.length === 0">Horarios no definidos</div>
-      </section>
+        </section>
+      </div>
     </div>
   </article>
 
@@ -409,8 +452,9 @@
        [ngClass]="[bottomSheetState, highlightedRoute ? 'has-highlight' : '']"
        [class.dragging]="isSheetDragging"
        [class.choosing-origin]="isOriginChoiceMode"
+       [class.list-first-sheet]="!mapResourceMode && hasListContent"
        [style.--sheet-drag-offset]="sheetDragOffset + 'px'"
-       *ngIf="!isPickingLocation && !selectingLocation && !isSearchExpanded" (click)="$event.stopPropagation()">
+       *ngIf="!isPickingLocation && !selectingLocation && !isSearchExpanded && (mapResourceMode || hasListContent)" (click)="$event.stopPropagation()">
     <header
       class="persistent-sheet-header"
       (pointerdown)="onSheetPointerDown($event)"
@@ -648,6 +692,7 @@
         <article
           class="point-result-card"
           [class.is-selected]="lastSelectedLocationId === (res.id_destino || res.id_origen || res.id)"
+          [class.is-expanded]="isPointCardExpanded(res)"
           [id]="'card-' + (res.id_destino || res.id_origen || res.id)"
           *ngFor="let res of displayedResults">
           <header class="point-result-provider">
@@ -660,7 +705,12 @@
             </span>
           </header>
 
-          <div class="point-result-main">
+          <button
+            type="button"
+            class="point-result-main point-result-summary"
+            (click)="togglePointCard(res)"
+            [attr.aria-expanded]="isPointCardExpanded(res)"
+            [attr.aria-controls]="'point-details-' + (res.id_destino || res.id_origen || res.id)">
             <span class="point-result-pin" aria-hidden="true">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 5.5-8 11-8 11S4 15.5 4 10a8 8 0 1 1 16 0Z"></path><circle cx="12" cy="10" r="2.5"></circle></svg>
             </span>
@@ -669,34 +719,73 @@
               <strong>{{ res.destino_nombre || res.nombre_destino }}</strong>
               <span>{{ res.ubicacion?.municipio }}<ng-container *ngIf="res.ubicacion?.departamento">, {{ res.ubicacion.departamento }}</ng-container></span>
             </span>
-          </div>
-
-          <div class="point-result-actions">
-            <button type="button" class="point-use-action" (click)="selectPointFromList(res)">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 5.5-8 11-8 11S4 15.5 4 10a8 8 0 1 1 16 0Z"></path><circle cx="12" cy="10" r="2.5"></circle></svg>
-              {{ isOriginDiscoveryMode ? 'Enviar desde aquí' : 'Enviar aquí' }}
-            </button>
-            <button type="button" class="point-map-action" (click)="viewPointOnMap(res)">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3V6Z"></path><path d="M9 3v15M15 6v15"></path></svg>
-              Mapa
-            </button>
-          </div>
-
-          <button
-            type="button"
-            class="point-hours-toggle"
-            (click)="togglePointSchedule(res)"
-            [attr.aria-expanded]="expandedResultCard === res">
-            <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg> Horarios</span>
-            <span>{{ res.horarios_operativos?.length || 0 }} días <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" [class.rotated]="expandedResultCard === res"><path d="m6 9 6 6 6-6"></path></svg></span>
+            <span class="point-result-disclosure" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m6 9 6 6 6-6"></path></svg>
+            </span>
           </button>
 
-          <div class="point-hours-preview" *ngIf="expandedResultCard === res">
-            <div *ngFor="let h of res.horarios_operativos">
-              <span>{{ h.dia_semana }}</span>
-              <strong>{{ formatTime(h.hora_apertura) }} – {{ formatTime(h.hora_cierre) }}</strong>
-            </div>
-            <p *ngIf="!res.horarios_operativos || res.horarios_operativos.length === 0">Horarios no definidos</p>
+          <figure
+            class="point-reference-media point-card-expandable"
+            *ngIf="hasPointImage(res) && isPointCardExpanded(res)">
+            <img [src]="resolveImageUrl(res.imagen_referencia)" [alt]="'Referencia visual de ' + (res.destino_nombre || res.nombre_destino)" loading="lazy" (error)="markPointImageUnavailable(res)">
+            <figcaption>
+              <span><small>Para tu cliente</small><strong>Referencia del punto</strong></span>
+              <button type="button" (click)="copyPointResource(res); $event.stopPropagation()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M15 9V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h4"></path></svg>
+                Copiar imagen
+              </button>
+            </figcaption>
+          </figure>
+
+          <section
+            class="point-hours-panel"
+            [id]="'point-details-' + (res.id_destino || res.id_origen || res.id)"
+            [class.state-green]="res._status?.color === 'green'"
+            [class.state-orange]="res._status?.color === 'orange'"
+            [class.state-red]="res._status?.color === 'red'"
+            [class.state-gray]="!res._status || res._status?.color === 'gray'"
+            aria-label="Horarios de atención">
+            <header class="point-hours-heading">
+              <span class="point-hours-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
+              </span>
+              <span class="point-hours-status">
+                <small>Disponibilidad</small>
+                <strong>{{ res._status?.mainText || 'Consulta sus horarios' }}</strong>
+                <span *ngIf="res._status?.timeText">{{ res._status.timeText }}</span>
+              </span>
+              <span class="point-hours-count">
+                {{ getGroupedSchedules(res.horarios_operativos).length }}
+                {{ getGroupedSchedules(res.horarios_operativos).length === 1 ? 'horario' : 'horarios' }}
+              </span>
+            </header>
+
+            <ng-container *ngIf="isPointCardExpanded(res)">
+              <div class="point-hours-grid point-card-expandable" *ngIf="res.horarios_operativos?.length; else noPointHours">
+                <div *ngFor="let h of getGroupedSchedules(res.horarios_operativos)">
+                  <span>{{ h.dias }}</span>
+                  <strong>{{ formatTime(h.apertura) }} – {{ formatTime(h.cierre) }}</strong>
+                </div>
+              </div>
+              <ng-template #noPointHours>
+                <p class="point-hours-empty point-card-expandable">Esta agencia todavía no ha publicado sus horarios.</p>
+              </ng-template>
+            </ng-container>
+          </section>
+
+          <div class="point-result-actions">
+            <button type="button" class="point-use-action" (click)="selectPointFromList(res)" [attr.aria-label]="isOriginDiscoveryMode ? 'Usar este punto como origen' : 'Elegir desde dónde enviar hacia este punto'">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5" cy="12" r="2.5"></circle><path d="M8 12h11M15 8l4 4-4 4"></path></svg>
+              {{ isOriginDiscoveryMode ? 'Usar como origen' : 'Desde dónde enviar' }}
+            </button>
+            <button type="button" class="point-share-action" (click)="sharePointResource(res)" [attr.aria-label]="'Compartir ' + (res.destino_nombre || res.nombre_destino)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"></path></svg>
+              Compartir
+            </button>
+            <button type="button" class="point-map-action" (click)="viewPointOnMap(res)" [attr.aria-label]="'Ver ' + (res.destino_nombre || res.nombre_destino) + ' en el mapa'">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 5.5-8 11-8 11S4 15.5 4 10a8 8 0 1 1 16 0Z"></path><circle cx="12" cy="10" r="2.5"></circle></svg>
+              Ver mapa
+            </button>
           </div>
         </article>
       </div>

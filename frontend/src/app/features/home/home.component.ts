@@ -1,5 +1,5 @@
 import { environment } from '../../../environments/environment';
-import { ChangeDetectorRef, Component, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChanges, HostListener, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChanges, HostBinding, HostListener, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RutasService } from '../../core/services/rutas.service';
@@ -18,14 +18,30 @@ export class HomeComponent implements OnInit, OnChanges {
   @Input() locations: any[] = [];
   @Input() userLocation: any = null;
   @Input() initialIntent: Record<string, string> = {};
+  @Input() mapResourceMode = false;
+  @HostBinding('class.map-resource-mode') get isMapResourceHost() { return this.mapResourceMode; }
+  @HostBinding('class.list-first-mode') get isListFirstHost() { return !this.mapResourceMode; }
   private appliedIntentKey = '';
   private _selectedPin: any = null;
   activePinTab: 'info' | 'horarios' = 'info';
+  isPinCardExpanded = true;
+  private pinCardTouchStartY = 0;
+  private suppressPinImagePreview = false;
+  private pinCardStateLocked = false;
 
   @Input() set selectedPin(value: any) {
+    const previousPinIdentity = this._selectedPin
+      ? String(this._selectedPin.id_destino || this._selectedPin.id_origen || this._selectedPin.id || this.getLocationName(this._selectedPin))
+      : '';
+    const nextPinIdentity = value
+      ? String(value.id_destino || value.id_origen || value.id || this.getLocationName(value))
+      : '';
     this._selectedPin = value;
     if (value) {
-      this.activePinTab = 'info';
+      if (nextPinIdentity !== previousPinIdentity && !this.pinCardStateLocked) {
+        this.activePinTab = 'info';
+        this.isPinCardExpanded = !window.matchMedia('(max-width: 640px)').matches;
+      }
       this.bottomSheetState = 'hidden';
       this.lastSelectedLocationId = value.id_destino || value.id_origen || value.id;
       
@@ -69,6 +85,7 @@ export class HomeComponent implements OnInit, OnChanges {
         }
       }, 150);
     } else {
+      this.pinCardStateLocked = false;
       if (this.bottomSheetState === 'hidden') {
          this.bottomSheetState = 'collapsed'; // Restaura a estado contraido como esperaba el usuario
       }
@@ -90,7 +107,7 @@ export class HomeComponent implements OnInit, OnChanges {
   @Output() resetMapMarkersEvent = new EventEmitter<void>();
   @Output() showNearbyPointsEvent = new EventEmitter<void>();
   @Output() previewImageEvent = new EventEmitter<string>();
-  @Output() homeRequested = new EventEmitter<void>();
+  @Output() mapResourceModeChange = new EventEmitter<boolean>();
 
   origen: string = '';
   destino: string = '';
@@ -142,6 +159,8 @@ export class HomeComponent implements OnInit, OnChanges {
   displayedResults: any[] = [];
   expandedResultCard: any = null;
   activeDetailedCard: any = null;
+  private unavailablePointImages = new Set<string>();
+  private groupedScheduleCache = new WeakMap<any[], { dias: string, apertura: string, cierre: string }[]>();
   searchRadius: number = 1.0;
   
   // Autocomplete logic properties
@@ -165,6 +184,22 @@ export class HomeComponent implements OnInit, OnChanges {
     private mapasService: MapasService,
     private cdr: ChangeDetectorRef
   ) {}
+
+  get hasListContent(): boolean {
+    return this.isOriginChoiceMode || this.loading || Boolean(this.errorMsg) ||
+      this.municipalityResults.length > 0 || this.flightResults.length > 0;
+  }
+
+  exitMapResource() {
+    if (this.hasListContent) {
+      if (this.selectedPin) this.closePinDetails();
+      this.bottomSheetState = 'half';
+      this.mapResourceMode = false;
+      this.mapResourceModeChange.emit(false);
+      return;
+    }
+    this.returnToHome();
+  }
 
   ngOnInit() {
     const today = new Date();
@@ -233,7 +268,7 @@ export class HomeComponent implements OnInit, OnChanges {
 
   returnToHome() {
     this.closeLocationSelector();
-    this.homeRequested.emit();
+    window.location.hash = '/';
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -265,6 +300,7 @@ export class HomeComponent implements OnInit, OnChanges {
         );
         if (point) {
           if (intent['accion'] === 'select') this.selectPointFromDiscovery(point);
+          else if (intent['accion'] === 'map') this.viewPointOnMap(point);
           else this.previewPointFromDiscovery(point);
         }
       }
@@ -273,6 +309,8 @@ export class HomeComponent implements OnInit, OnChanges {
   }
 
   exploreMapFromDiscovery() {
+    this.mapResourceMode = true;
+    this.mapResourceModeChange.emit(true);
     this.bottomSheetState = 'collapsed';
     this.resetMapMarkersEvent.emit();
   }
@@ -308,10 +346,17 @@ export class HomeComponent implements OnInit, OnChanges {
 
   previewPointFromDiscovery(point: any) {
     this.isDiscoveryMode = true;
+    this.isOriginDiscoveryMode = false;
+    this.isOriginChoiceMode = false;
     this.activeEmpresa = point.empresa || '';
     this.municipalityResults = [{ ...point, destino_nombre: point.nombre_destino }];
     this.displayedResults = [...this.municipalityResults];
-    this.viewPointOnMap(point);
+    this.expandedResultCard = this.municipalityResults[0];
+    this.destinoMunicipio = point.ubicacion?.municipio || '';
+    this.destinoDepartamento = point.ubicacion?.departamento || '';
+    this.destino = this.destinoMunicipio || this.getLocationName(point);
+    this.destinoInputValue = this.getLocationName(point);
+    this.bottomSheetState = 'half';
   }
 
   onSearchLocation(query: string) {
@@ -806,6 +851,7 @@ export class HomeComponent implements OnInit, OnChanges {
     this.flightResults = [];
     this.municipalityResults = [];
     this.activeDetailedCard = null;
+    this.expandedResultCard = null;
     this.bottomSheetState = 'half';
     this.isOriginDiscoveryMode = true; 
     this.isDiscoveryMode = false;
@@ -844,6 +890,7 @@ export class HomeComponent implements OnInit, OnChanges {
     this.flightResults = [];
     this.municipalityResults = [];
     this.activeDetailedCard = null;
+    this.expandedResultCard = null;
     this.bottomSheetState = 'half';
     this.isDiscoveryMode = true;
     this.isOriginDiscoveryMode = false;
@@ -943,6 +990,8 @@ export class HomeComponent implements OnInit, OnChanges {
 
   getGroupedSchedules(horarios: any[]): { dias: string, apertura: string, cierre: string }[] {
     if (!horarios || horarios.length === 0) return [];
+    const cachedGroups = this.groupedScheduleCache.get(horarios);
+    if (cachedGroups) return cachedGroups;
     
     const dayOrder = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
     
@@ -1014,6 +1063,7 @@ export class HomeComponent implements OnInit, OnChanges {
        return getFirstDay(a.dias) - getFirstDay(b.dias);
     });
     
+    this.groupedScheduleCache.set(horarios, result);
     return result;
   }
 
@@ -1069,22 +1119,168 @@ export class HomeComponent implements OnInit, OnChanges {
 
   previewImage(url: string | null) {
     if (!url) return;
-    this.previewImageEvent.emit(environment.apiUrl + url);
+    this.previewImageEvent.emit(this.resolveImageUrl(url));
   }
 
-  shareLocation(loc: any) {
+  isPointCardExpanded(point: any): boolean {
+    return this.expandedResultCard === point;
+  }
+
+  togglePointCard(point: any) {
+    this.expandedResultCard = this.isPointCardExpanded(point) ? null : point;
+  }
+
+  resolveImageUrl(url: string | null | undefined): string {
+    if (!url) return '';
+    if (/^(https?:|data:|blob:)/i.test(url)) return url;
+    return `${environment.apiUrl}${url.startsWith('/') ? '' : '/'}${url}`;
+  }
+
+  hasPointImage(point: any): boolean {
+    const url = this.resolveImageUrl(point?.imagen_referencia);
+    return Boolean(url) && !this.unavailablePointImages.has(url);
+  }
+
+  markPointImageUnavailable(point: any) {
+    const url = this.resolveImageUrl(point?.imagen_referencia);
+    if (url) this.unavailablePointImages.add(url);
+  }
+
+  async shareLocation(loc: any) {
+    await this.sharePointResource(loc);
+  }
+
+  async sharePointResource(loc: any) {
+    const title = this.getLocationName(loc);
+    const text = this.buildPointShareText(loc);
+    const mapUrl = loc?.maps_url || this.buildGoogleMapsUrl(loc);
+    const imageUrl = this.hasPointImage(loc) ? this.resolveImageUrl(loc?.imagen_referencia) : '';
+
     if (navigator.share) {
-      navigator.share({
-        title: loc.nombre_destino,
-        text: `📍 *${loc.nombre_destino}*\n🏢 ${loc.empresa}\n🗺️ ${loc.ubicacion?.municipio || 'SV'}\nConsulta más detalles en SiVoy.`,
-        url: window.location.href,
-      }).catch((error) => console.log('Error sharing', error));
-    } else {
-      const text = `📍 *${loc.nombre_destino}*\n🏢 ${loc.empresa}\n🗺️ ${loc.ubicacion?.municipio || 'SV'}`;
-      navigator.clipboard.writeText(text).then(() => {
-        alert('Información copiada al portapapeles');
-      });
+      try {
+        if (imageUrl) {
+          try {
+            const pngBlob = await this.loadImageAsPng(imageUrl);
+            const imageFile = new File([pngBlob], `${this.safeFileName(title)}.png`, { type: 'image/png' });
+            const imageShareData: ShareData = { files: [imageFile], title, text };
+            if (!navigator.canShare || navigator.canShare(imageShareData)) {
+              await navigator.share(imageShareData);
+              return;
+            }
+          } catch (error: any) {
+            if (error?.name === 'AbortError') return;
+            console.warn('No se pudo adjuntar la imagen; se compartirá la información del punto.', error);
+          }
+        }
+
+        await navigator.share({ title, text, url: mapUrl });
+        return;
+      } catch (error: any) {
+        if (error?.name === 'AbortError') return;
+        console.warn('No se pudo abrir el menú para compartir; se copiarán las indicaciones.', error);
+      }
     }
+
+    try {
+      await this.copyText(text);
+      this.toastService.showSuccess('Tu navegador no abrió el menú de compartir; copiamos la información para que puedas pegarla.', 'Información copiada');
+    } catch (error) {
+      console.error('No se pudo compartir la información del punto.', error);
+      this.toastService.showError('Tu navegador bloqueó la acción. Intenta de nuevo desde HTTPS.', 'No se pudo compartir');
+    }
+  }
+
+  async copyPointResource(loc: any) {
+    const imageUrl = this.resolveImageUrl(loc?.imagen_referencia);
+
+    if (imageUrl) {
+      try {
+        const pngBlob = await this.loadImageAsPng(imageUrl);
+        const ClipboardItemConstructor = (window as any).ClipboardItem;
+        if (navigator.clipboard?.write && ClipboardItemConstructor) {
+          await navigator.clipboard.write([
+            new ClipboardItemConstructor({ 'image/png': pngBlob })
+          ]);
+          this.toastService.showSuccess('La imagen del punto está lista para pegar en tu chat.', 'Imagen copiada');
+          return;
+        }
+
+        const shareFile = new File([pngBlob], `${this.safeFileName(this.getLocationName(loc))}.png`, { type: 'image/png' });
+        const shareData: ShareData = { files: [shareFile], title: this.getLocationName(loc), text: this.buildPointShareText(loc) };
+        if (navigator.share && (!navigator.canShare || navigator.canShare(shareData))) {
+          await navigator.share(shareData);
+          this.toastService.showSuccess('Selecciona dónde enviar la imagen del punto.', 'Imagen lista');
+          return;
+        }
+      } catch (error: any) {
+        if (error?.name === 'AbortError') return;
+        console.warn('No se pudo copiar la imagen; se copiarán las indicaciones.', error);
+      }
+    }
+
+    try {
+      await this.copyText(this.buildPointShareText(loc));
+      this.toastService.showSuccess(
+        imageUrl ? 'No fue posible copiar la imagen; copiamos las indicaciones y el enlace.' : 'Copiamos las indicaciones y el enlace del mapa.',
+        'Información copiada'
+      );
+    } catch (error) {
+      console.error('No se pudo copiar la información del punto.', error);
+      this.toastService.showError('Tu navegador bloqueó el portapapeles. Intenta de nuevo desde HTTPS.', 'No se pudo copiar');
+    }
+  }
+
+  private async loadImageAsPng(url: string): Promise<Blob> {
+    const response = await fetch(url, { mode: 'cors' });
+    if (!response.ok) throw new Error(`No se pudo cargar la imagen (${response.status})`);
+    const sourceBlob = await response.blob();
+    const imageBitmap = await createImageBitmap(sourceBlob);
+    const maximumSide = 1800;
+    const scale = Math.min(1, maximumSide / Math.max(imageBitmap.width, imageBitmap.height));
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.max(1, Math.round(imageBitmap.width * scale));
+    canvas.height = Math.max(1, Math.round(imageBitmap.height * scale));
+    const context = canvas.getContext('2d');
+    if (!context) throw new Error('El navegador no pudo preparar la imagen');
+    context.drawImage(imageBitmap, 0, 0, canvas.width, canvas.height);
+    imageBitmap.close();
+    return await new Promise<Blob>((resolve, reject) => {
+      canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('No se pudo convertir la imagen')), 'image/png');
+    });
+  }
+
+  private buildPointShareText(loc: any): string {
+    const place = [loc?.ubicacion?.municipio, loc?.ubicacion?.departamento].filter(Boolean).join(', ');
+    const address = loc?.direccion_referencia ? `\nDirección: ${loc.direccion_referencia}` : '';
+    const mapUrl = loc?.maps_url || this.buildGoogleMapsUrl(loc);
+    return `${this.getLocationName(loc)}\n${loc?.empresa || 'Punto de entrega'}\n${place || 'El Salvador'}${address}\nMapa: ${mapUrl}`;
+  }
+
+  private buildGoogleMapsUrl(loc: any): string {
+    const lat = loc?.ubicacion?.lat;
+    const lng = loc?.ubicacion?.lng;
+    if (lat && lng) return `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${this.getLocationName(loc)} ${loc?.ubicacion?.municipio || ''} El Salvador`)}`;
+  }
+
+  private safeFileName(value: string): string {
+    return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '').toLowerCase() || 'punto-sivoy';
+  }
+
+  private async copyText(text: string): Promise<void> {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+      return;
+    }
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.select();
+    const copied = document.execCommand('copy');
+    textarea.remove();
+    if (!copied) throw new Error('El portapapeles no está disponible');
   }
 
   resetMapMarkers() {
@@ -1093,6 +1289,35 @@ export class HomeComponent implements OnInit, OnChanges {
 
   showNearbyPoints() {
     this.showNearbyPointsEvent.emit();
+  }
+
+  onPinCardTouchStart(event: TouchEvent) {
+    this.pinCardTouchStartY = event.touches[0]?.clientY || 0;
+    this.suppressPinImagePreview = false;
+  }
+
+  onPinCardTouchEnd(event: TouchEvent) {
+    const offset = (event.changedTouches[0]?.clientY || this.pinCardTouchStartY) - this.pinCardTouchStartY;
+    if (Math.abs(offset) >= 34) {
+      this.isPinCardExpanded = offset < 0;
+      this.pinCardStateLocked = true;
+      this.suppressPinImagePreview = true;
+      event.preventDefault();
+    }
+  }
+
+  togglePinCard(event: MouseEvent) {
+    event.stopPropagation();
+    this.isPinCardExpanded = !this.isPinCardExpanded;
+    this.pinCardStateLocked = true;
+  }
+
+  openPinImagePreview(url: string) {
+    if (this.suppressPinImagePreview) {
+      this.suppressPinImagePreview = false;
+      return;
+    }
+    this.previewImage(url);
   }
 
   onSheetPointerDown(event: PointerEvent) {
@@ -1223,14 +1448,12 @@ export class HomeComponent implements OnInit, OnChanges {
 
   viewPointOnMap(point: any) {
     this.lastSelectedLocationId = point.id_destino || point.id_origen || point.id;
+    this.mapResourceMode = true;
+    this.mapResourceModeChange.emit(true);
     this.showPinDetails.emit({
       location: point,
       type: this.isOriginDiscoveryMode ? 'origen' : 'destino'
     });
-  }
-
-  togglePointSchedule(point: any) {
-    this.expandedResultCard = this.expandedResultCard === point ? null : point;
   }
 
   selectPointFromList(point: any) {

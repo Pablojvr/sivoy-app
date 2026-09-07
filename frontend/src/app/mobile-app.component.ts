@@ -46,6 +46,7 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
   // Navigation State
   activeMainTab: 'inicio' | 'puntos' | 'perfil' | 'registro' = 'inicio';
   isMapForcedVisible: boolean = false;
+  isMapResourceMode: boolean = false;
   
   // Admin Panel State
   adminSubTab: 'empresas' | 'puntos' = 'puntos'; // Default to puntos
@@ -137,6 +138,9 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
   ngOnInit() {
     this.routeParamsSubscription = this.route.queryParams.subscribe(params => {
       this.navigationIntent = { ...params };
+      this.isMapResourceMode = params['vista'] === 'mapa';
+      const requestedTab = params['tab'];
+      this.activeMainTab = requestedTab === 'puntos' || requestedTab === 'perfil' ? requestedTab : 'inicio';
       this.cdr.detectChanges();
     });
     const today = new Date();
@@ -219,16 +223,11 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
     this.initMap();
   }
 
-  onMainTabChange(tab: 'inicio' | 'puntos' | 'perfil') {
-    if (tab === 'inicio') {
-      this.router.navigate(['/']);
-      return;
+  setMapResourceMode(enabled: boolean) {
+    this.isMapResourceMode = enabled;
+    if (enabled) {
+      setTimeout(() => this.map?.resize(), 40);
     }
-    this.activeMainTab = tab;
-  }
-
-  goHome() {
-    this.router.navigate(['/']);
   }
 
   initMap() {
@@ -1950,6 +1949,7 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
 
   viewOnMap(loc: any, pointRole?: string) {
     this.activeMainTab = 'inicio';
+    this.setMapResourceMode(true);
     
     // Borrar la selección de los filtros y búsqueda anterior
     this.origen = '';

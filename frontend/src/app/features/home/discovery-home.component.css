@@ -36,7 +36,7 @@ button {
   width: min(100%, 760px);
   min-height: 100%;
   margin: 0 auto;
-  padding: max(22px, env(safe-area-inset-top)) 20px calc(132px + env(safe-area-inset-bottom));
+  padding: max(18px, env(safe-area-inset-top)) 20px calc(96px + env(safe-area-inset-bottom));
 }
 
 .ambient-orb {
@@ -78,7 +78,7 @@ button {
 
 .discovery-header {
   justify-content: space-between;
-  margin-bottom: 36px;
+  margin-bottom: 24px;
 }
 
 .brand-lockup {
@@ -128,12 +128,12 @@ button {
 }
 
 .hero-section {
-  margin-bottom: 22px;
+  margin-bottom: 18px;
 }
 
 .hero-copy {
   max-width: 620px;
-  margin-bottom: 24px;
+  margin-bottom: 17px;
 }
 
 .eyebrow,
@@ -151,7 +151,7 @@ button {
 .hero-copy h1 {
   max-width: 630px;
   margin: 0;
-  font-size: clamp(35px, 8.8vw, 62px);
+  font-size: clamp(31px, 7.8vw, 52px);
   font-weight: 750;
   letter-spacing: -0.065em;
   line-height: 0.98;
@@ -159,7 +159,7 @@ button {
 
 .hero-copy p {
   max-width: 530px;
-  margin: 16px 0 0;
+  margin: 9px 0 0;
   color: var(--text-muted);
   font-size: 15px;
   line-height: 1.55;
@@ -167,14 +167,14 @@ button {
 
 .destination-command {
   width: 100%;
-  min-height: 84px;
+  min-height: 64px;
   display: grid;
-  grid-template-columns: 52px minmax(0, 1fr) 44px;
-  gap: 13px;
+  grid-template-columns: 42px minmax(0, 1fr) 40px;
+  gap: 11px;
   align-items: center;
   padding: 10px 11px;
   border: 1px solid rgba(29, 30, 28, 0.1);
-  border-radius: 25px;
+  border-radius: 20px;
   background: #fff;
   color: var(--text-main);
   text-align: left;
@@ -211,16 +211,26 @@ button {
 }
 
 .command-icon {
-  width: 52px;
-  height: 52px;
-  border-radius: 18px;
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
   background: #fff0f3;
   color: var(--primary);
 }
 
 .command-icon svg {
-  width: 25px;
-  height: 25px;
+  width: 21px;
+  height: 21px;
+}
+
+.command-placeholder {
+  overflow: hidden;
+  color: #252825;
+  font-size: clamp(15px, 4vw, 18px);
+  font-weight: 720;
+  letter-spacing: -0.025em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .command-copy {
@@ -255,8 +265,8 @@ button {
 }
 
 .command-go {
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   background: #191919;
   color: #fff;
@@ -270,7 +280,7 @@ button {
 .quick-destinations {
   overflow-x: auto;
   gap: 8px;
-  margin: 13px -20px 0;
+  margin: 10px -20px 0;
   padding: 2px 20px 8px;
   scrollbar-width: none;
 }
@@ -428,8 +438,83 @@ button {
   font-weight: 600;
 }
 
+.coverage-strip {
+  min-height: 66px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 27px;
+  padding: 7px 8px 7px 14px;
+  border: 1px solid rgba(29, 30, 28, 0.09);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 8px 24px rgba(29, 30, 28, 0.06);
+  backdrop-filter: blur(14px);
+}
+
+.coverage-strip .coverage-metrics {
+  position: static;
+  min-height: 48px;
+  justify-content: flex-start;
+  gap: clamp(12px, 5vw, 28px);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  backdrop-filter: none;
+}
+
+.coverage-strip .coverage-metrics span {
+  min-width: 0;
+  align-items: flex-start;
+  justify-content: center;
+  flex-direction: column;
+  gap: 0;
+}
+
+.coverage-strip .coverage-metrics strong {
+  color: #1d1e1c;
+  font-size: 16px;
+  line-height: 1.1;
+}
+
+.coverage-strip .coverage-metrics small {
+  margin-top: 3px;
+  color: #6a7069;
+  font-size: 9px;
+}
+
+.coverage-map-action {
+  min-width: 62px;
+  min-height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px 8px;
+  border: 0;
+  border-radius: 15px;
+  background: #1d1e1c;
+  color: #fff;
+  font: inherit;
+  font-size: 9px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.coverage-map-action svg {
+  width: 20px;
+  height: 20px;
+}
+
+.coverage-map-action:focus-visible {
+  outline: 3px solid rgba(244, 91, 120, 0.32);
+  outline-offset: 2px;
+}
+
 .content-section {
-  margin-bottom: 36px;
+  margin-bottom: 26px;
 }
 
 .section-heading {
@@ -444,7 +529,7 @@ button {
 
 .section-heading h2 {
   margin: 0;
-  font-size: 22px;
+  font-size: 19px;
   font-weight: 750;
   letter-spacing: -0.045em;
 }
@@ -700,7 +785,7 @@ button {
   }
 
   .discovery-header {
-    margin-bottom: 46px;
+    margin-bottom: 28px;
   }
 
   .signal-card {

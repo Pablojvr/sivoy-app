@@ -123,7 +123,11 @@ html, body {
   color: #fff;
   cursor: pointer;
   filter: drop-shadow(0 7px 10px rgba(24, 25, 23, 0.24));
-  transition: opacity 180ms ease, transform 180ms ease, filter 180ms ease;
+  /* Mapbox/MapLibre writes the geographic screen position to transform on every
+     frame. Never animate or override that property here: doing so makes pins
+     visually lag behind their coordinates while zooming. */
+  transition: opacity 180ms ease, filter 180ms ease;
+  will-change: opacity, filter;
 }
 
 .sivoy-pin-core {
@@ -203,7 +207,12 @@ html, body {
 .sivoy-map-marker.marker-highlighted {
   z-index: 10;
   filter: drop-shadow(0 9px 14px rgba(24, 25, 23, 0.36));
-  transform: scale(1.2) translateY(-3px);
+}
+
+.sivoy-map-marker.is-selected .sivoy-pin-core,
+.sivoy-map-marker.marker-selected .sivoy-pin-core,
+.sivoy-map-marker.marker-highlighted .sivoy-pin-core {
+  box-shadow: 0 0 0 4px rgba(244, 91, 120, 0.22);
 }
 
 .sivoy-map-marker.marker-dimmed {

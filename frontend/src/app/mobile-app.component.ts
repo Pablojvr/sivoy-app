@@ -139,6 +139,8 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
     this.routeParamsSubscription = this.route.queryParams.subscribe(params => {
       this.navigationIntent = { ...params };
       this.isMapResourceMode = params['vista'] === 'mapa';
+      const requestedTab = params['tab'];
+      this.activeMainTab = requestedTab === 'puntos' || requestedTab === 'perfil' ? requestedTab : 'inicio';
       this.cdr.detectChanges();
     });
     const today = new Date();
@@ -219,14 +221,6 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngAfterViewInit() {
     this.initMap();
-  }
-
-  onMainTabChange(tab: 'inicio' | 'puntos' | 'perfil') {
-    if (tab === 'inicio') {
-      window.location.hash = '/';
-      return;
-    }
-    this.activeMainTab = tab;
   }
 
   setMapResourceMode(enabled: boolean) {

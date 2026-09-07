@@ -1531,52 +1531,6 @@ input:checked + .slider:before { transform: translateX(20px); }
   width: 100%;
 }
 
-/* FLOATING BOTTOM NAV (Purple App Style) */
-.floating-bottom-nav {
-  position: absolute;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 90%;
-  max-width: 360px;
-  background: white;
-  border-radius: 100px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.1);
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  padding: 10px 8px;
-  z-index: 1000;
-  border: 1px solid var(--border);
-}
-
-.nav-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  color: var(--text-muted);
-  cursor: pointer;
-  padding: 6px 16px;
-  border-radius: 20px;
-  transition: all 0.2s;
-}
-
-.nav-item svg {
-  width: 24px;
-  height: 24px;
-}
-
-.nav-item span {
-  font-size: 10px;
-  font-weight: 600;
-}
-
-.nav-item.active {
-  color: var(--primary);
-  background: rgba(255, 90, 95, 0.08);
-}
-
 /* TOP FLOATING SEARCH / FILTERS (Airbnb Style) */
 .top-floating-bar {
   position: absolute;
@@ -3449,67 +3403,6 @@ app-home, app-admin { display: block; width: 100%; height: 100%; position: relat
   box-shadow: 0 12px 28px rgba(23, 23, 23, 0.16);
 }
 
-.floating-bottom-nav {
-  bottom: max(16px, env(safe-area-inset-bottom));
-  width: min(88%, 390px);
-  min-height: 76px;
-  justify-content: space-between;
-  gap: 5px;
-  padding: 7px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 999px;
-  background: #191919;
-  box-shadow: 0 20px 48px rgba(23, 23, 23, 0.28);
-}
-
-.floating-bottom-nav .nav-item {
-  min-width: 0;
-  min-height: 60px;
-  flex: 1 1 0;
-  gap: 3px;
-  padding: 6px 10px;
-  border: 0;
-  border-radius: 999px;
-  background: transparent;
-  color: #a9a9a9;
-  font: inherit;
-  cursor: pointer;
-  transition: background-color 180ms ease, color 180ms ease;
-}
-
-.floating-bottom-nav .nav-item:hover {
-  background: rgba(255, 255, 255, 0.08);
-  color: #fff;
-}
-
-.floating-bottom-nav .nav-item:focus-visible {
-  outline: 3px solid rgba(255, 101, 79, 0.5);
-  outline-offset: 2px;
-}
-
-.floating-bottom-nav .nav-item.active {
-  background: #fff;
-  color: var(--primary-dark);
-}
-
-.floating-bottom-nav .nav-icon {
-  width: 27px;
-  height: 27px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.floating-bottom-nav .nav-item svg {
-  width: 23px;
-  height: 23px;
-}
-
-.floating-bottom-nav .nav-item span:last-child {
-  font-size: 10px;
-  font-weight: 650;
-}
-
 @media (max-width: 480px) {
   .search-panel-container {
     width: calc(100% - 24px);
@@ -3541,12 +3434,6 @@ app-home, app-admin { display: block; width: 100%; height: 100%; position: relat
     border-radius: 27px;
   }
 
-  .floating-bottom-nav {
-    bottom: max(12px, env(safe-area-inset-bottom));
-    width: calc(100% - 64px);
-    min-height: 72px;
-  }
-
   .nearby-fab {
     top: 188px;
     bottom: auto !important;
@@ -3565,20 +3452,12 @@ app-home, app-admin { display: block; width: 100%; height: 100%; position: relat
     width: 430px;
   }
 
-  .floating-bottom-nav {
-    right: 24px;
-    bottom: 24px;
-    left: auto;
-    transform: none;
-    width: 340px;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .bottom-sheet,
   .ticket-card,
   .location-card,
-  .floating-bottom-nav .nav-item,
   .destination-search-trigger {
     transition-duration: 0.01ms !important;
   }
@@ -5456,4 +5335,35 @@ app-home.list-first-mode .map-wrapper {
   .map-resource-exit {
     transition: none;
   }
+}
+
+/* Search-first mode: the empty state behaves like one concise search field. */
+.search-pill.is-empty {
+  min-height: 68px;
+  padding: 6px;
+  border-radius: 22px;
+}
+
+.search-pill.is-empty .destination-search-trigger {
+  min-height: 56px;
+  gap: 11px;
+  padding: 7px 10px 7px 8px;
+  border-radius: 17px;
+}
+
+.search-pill.is-empty .destination-search-icon {
+  width: 42px;
+  height: 42px;
+  flex-basis: 42px;
+  border-radius: 14px;
+}
+
+.search-pill.is-empty .destination-search-value {
+  font-size: clamp(15px, 4.2vw, 18px);
+}
+
+.search-pill.is-empty .destination-search-arrow {
+  width: 40px;
+  height: 40px;
+  flex-basis: 40px;
 }

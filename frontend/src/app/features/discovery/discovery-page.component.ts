@@ -3,12 +3,13 @@ import { HttpClient } from '@angular/common/http';
 import { ChangeDetectorRef, Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { environment } from '../../../environments/environment';
+import { BottomNavComponent } from '../../shared/components/bottom-nav/bottom-nav.component';
 import { DiscoveryHomeComponent } from '../home/discovery-home.component';
 
 @Component({
   selector: 'app-discovery-page',
   standalone: true,
-  imports: [CommonModule, DiscoveryHomeComponent],
+  imports: [CommonModule, DiscoveryHomeComponent, BottomNavComponent],
   template: `
     <app-discovery-home
       [locations]="locations"
@@ -20,6 +21,7 @@ import { DiscoveryHomeComponent } from '../home/discovery-home.component';
       (pointPreview)="openPoint($event, 'preview')"
       (pointMap)="openPoint($event, 'map')">
     </app-discovery-home>
+    <app-bottom-nav activeTab="inicio"></app-bottom-nav>
   `,
   styles: [`
     :host {
@@ -77,4 +79,5 @@ export class DiscoveryPageComponent {
       }
     });
   }
+
 }

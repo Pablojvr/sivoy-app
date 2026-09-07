@@ -50,10 +50,9 @@
     <span class="list-intro-mark" aria-hidden="true">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 5.5-8 11-8 11S4 15.5 4 10a8 8 0 1 1 16 0Z"></path><circle cx="12" cy="10" r="2.5"></circle></svg>
     </span>
-    <span class="panel-step-label">Destino primero</span>
-    <h1 id="list-first-title">Encuentra dónde recibirán tu paquete.</h1>
-    <p>Busca un municipio, compara puntos y comparte con tu cliente el lugar y sus horarios.</p>
-    <button type="button" (click)="openLocationSelector('destino')">Buscar un destino</button>
+    <h1 id="list-first-title">¿Adónde lo envías?</h1>
+    <p>Busca un punto, revisa el horario y compártelo.</p>
+    <button type="button" (click)="openLocationSelector('destino')">Buscar destino</button>
   </section>
 
   <button type="button" class="map-resource-exit" *ngIf="mapResourceMode" (click)="exitMapResource(); $event.stopPropagation()">
@@ -66,26 +65,28 @@
   
   <div class="search-panel-container" [class.expanded]="isSearchExpanded">
     <!-- Primary intent: search by destination -->
-    <div class="search-pill" *ngIf="!isSearchExpanded">
+    <div class="search-pill" [class.is-empty]="!destino" *ngIf="!isSearchExpanded">
       <button
         type="button"
         class="destination-search-trigger"
         (click)="openLocationSelector('destino')"
         [attr.aria-label]="destino ? 'Cambiar municipio de destino' : 'Buscar municipio de destino'">
         <span class="destination-search-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg *ngIf="destino" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M20 10c0 5.5-8 11-8 11S4 15.5 4 10a8 8 0 1 1 16 0Z"></path>
             <circle cx="12" cy="10" r="2.5"></circle>
           </svg>
+          <svg *ngIf="!destino" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="7"></circle>
+            <path d="m20 20-4-4"></path>
+          </svg>
         </span>
         <span class="destination-search-copy">
-          <span class="destination-search-label">{{ destino ? 'Destino seleccionado' : 'Buscar destino' }}</span>
+          <span class="destination-search-label" *ngIf="destino">Destino seleccionado</span>
           <span class="destination-search-value" [class.placeholder]="!destino">
             {{ destinoInputValue || '¿Adónde deseas enviar?' }}
           </span>
-          <span class="destination-search-hint">
-            {{ destino ? 'Toca para cambiar de municipio' : 'Encuentra todos los puntos de entrega' }}
-          </span>
+          <span class="destination-search-hint" *ngIf="destino">Toca para cambiar</span>
         </span>
         <span class="destination-search-arrow" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25">
@@ -124,8 +125,8 @@
           </h2>
           <p>
             {{ activeInput === 'origen'
-              ? 'Elige el punto donde entregarás tu paquete.'
-              : 'Selecciona un municipio para ver todos sus puntos de entrega.' }}
+              ? 'Elige municipio o punto.'
+              : 'Busca municipio o punto de entrega.' }}
           </p>
         </div>
         <div class="panel-header-actions">

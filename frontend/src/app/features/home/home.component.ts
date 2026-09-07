@@ -29,10 +29,18 @@ export class HomeComponent implements OnInit, OnChanges {
   private suppressPinImagePreview = false;
 
   @Input() set selectedPin(value: any) {
+    const previousPinIdentity = this._selectedPin
+      ? String(this._selectedPin.id_destino || this._selectedPin.id_origen || this._selectedPin.id || this.getLocationName(this._selectedPin))
+      : '';
+    const nextPinIdentity = value
+      ? String(value.id_destino || value.id_origen || value.id || this.getLocationName(value))
+      : '';
     this._selectedPin = value;
     if (value) {
-      this.activePinTab = 'info';
-      this.isPinCardExpanded = !window.matchMedia('(max-width: 640px)').matches;
+      if (nextPinIdentity !== previousPinIdentity) {
+        this.activePinTab = 'info';
+        this.isPinCardExpanded = !window.matchMedia('(max-width: 640px)').matches;
+      }
       this.bottomSheetState = 'hidden';
       this.lastSelectedLocationId = value.id_destino || value.id_origen || value.id;
       

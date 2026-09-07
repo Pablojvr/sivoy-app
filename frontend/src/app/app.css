@@ -591,6 +591,49 @@ input:checked + .slider:before { transform: translateX(20px); }
   box-shadow: 0 10px 40px rgba(0,0,0,0.2);
 }
 
+/* Keep the point detail modal inside the usable viewport above persistent navigation. */
+.admin-modal-overlay:has(> .view-details-modal) {
+  bottom: calc(72px + env(safe-area-inset-bottom));
+  padding:
+    max(12px, env(safe-area-inset-top))
+    12px
+    12px;
+}
+
+.view-details-modal {
+  min-height: 0;
+  max-height: calc(100dvh - 96px - env(safe-area-inset-top) - env(safe-area-inset-bottom)) !important;
+}
+
+.view-details-modal > .modal-hero {
+  min-height: clamp(160px, 25dvh, 200px) !important;
+  height: clamp(160px, 25dvh, 200px);
+  flex: 0 0 clamp(160px, 25dvh, 200px);
+}
+
+.view-details-modal > .modal-body {
+  min-height: 0;
+  flex: 1 1 auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
+@media (max-width: 480px) {
+  .admin-modal-overlay:has(> .view-details-modal) {
+    align-items: flex-start;
+    padding-top: max(10px, env(safe-area-inset-top));
+  }
+
+  .view-details-modal {
+    border-radius: 20px !important;
+  }
+
+  .view-details-modal > .modal-body {
+    padding: 18px !important;
+    scroll-padding-bottom: 18px;
+  }
+}
+
 .admin-modal h3 {
   margin: 0 0 20px 0;
   color: var(--text-main);

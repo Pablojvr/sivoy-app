@@ -24,11 +24,15 @@ export class HomeComponent implements OnInit, OnChanges {
   private appliedIntentKey = '';
   private _selectedPin: any = null;
   activePinTab: 'info' | 'horarios' = 'info';
+  isPinCardExpanded = true;
+  private pinCardTouchStartY = 0;
+  private suppressPinImagePreview = false;
 
   @Input() set selectedPin(value: any) {
     this._selectedPin = value;
     if (value) {
       this.activePinTab = 'info';
+      this.isPinCardExpanded = !window.matchMedia('(max-width: 640px)').matches;
       this.bottomSheetState = 'hidden';
       this.lastSelectedLocationId = value.id_destino || value.id_origen || value.id;
       
@@ -146,6 +150,7 @@ export class HomeComponent implements OnInit, OnChanges {
   expandedResultCard: any = null;
   activeDetailedCard: any = null;
   private unavailablePointImages = new Set<string>();
+  private groupedScheduleCache = new WeakMap<any[], { dias: string, apertura: string, cierre: string }[]>();
   searchRadius: number = 1.0;
   
   // Autocomplete logic properties
@@ -975,6 +980,8 @@ export class HomeComponent implements OnInit, OnChanges {
 
   getGroupedSchedules(horarios: any[]): { dias: string, apertura: string, cierre: string }[] {
     if (!horarios || horarios.length === 0) return [];
+    const cachedGroups = this.groupedScheduleCache.get(horarios);
+    if (cachedGroups) return cachedGroups;
     
     const dayOrder = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
     
@@ -1046,6 +1053,7 @@ export class HomeComponent implements OnInit, OnChanges {
        return getFirstDay(a.dias) - getFirstDay(b.dias);
     });
     
+    this.groupedScheduleCache.set(horarios, result);
     return result;
   }
 
@@ -1129,7 +1137,47 @@ export class HomeComponent implements OnInit, OnChanges {
   }
 
   async shareLocation(loc: any) {
-    await this.copyPointResource(loc);
+    await this.sharePointResource(loc);
+  }
+
+  async sharePointResource(loc: any) {
+    const title = this.getLocationName(loc);
+    const text = this.buildPointShareText(loc);
+    const mapUrl = loc?.maps_url || this.buildGoogleMapsUrl(loc);
+    const imageUrl = this.hasPointImage(loc) ? this.resolveImageUrl(loc?.imagen_referencia) : '';
+
+    if (navigator.share) {
+      try {
+        if (imageUrl) {
+          try {
+            const pngBlob = await this.loadImageAsPng(imageUrl);
+            const imageFile = new File([pngBlob], `${this.safeFileName(title)}.png`, { type: 'image/png' });
+            const imageShareData: ShareData = { files: [imageFile], title, text };
+            if (!navigator.canShare || navigator.canShare(imageShareData)) {
+              await navigator.share(imageShareData);
+              return;
+            }
+          } catch (error: any) {
+            if (error?.name === 'AbortError') return;
+            console.warn('No se pudo adjuntar la imagen; se compartirá la información del punto.', error);
+          }
+        }
+
+        await navigator.share({ title, text, url: mapUrl });
+        return;
+      } catch (error: any) {
+        if (error?.name === 'AbortError') return;
+        console.warn('No se pudo abrir el menú para compartir; se copiarán las indicaciones.', error);
+      }
+    }
+
+    try {
+      await this.copyText(text);
+      this.toastService.showSuccess('Tu navegador no abrió el menú de compartir; copiamos la información para que puedas pegarla.', 'Información copiada');
+    } catch (error) {
+      console.error('No se pudo compartir la información del punto.', error);
+      this.toastService.showError('Tu navegador bloqueó la acción. Intenta de nuevo desde HTTPS.', 'No se pudo compartir');
+    }
   }
 
   async copyPointResource(loc: any) {
@@ -1231,6 +1279,33 @@ export class HomeComponent implements OnInit, OnChanges {
 
   showNearbyPoints() {
     this.showNearbyPointsEvent.emit();
+  }
+
+  onPinCardTouchStart(event: TouchEvent) {
+    this.pinCardTouchStartY = event.touches[0]?.clientY || 0;
+    this.suppressPinImagePreview = false;
+  }
+
+  onPinCardTouchEnd(event: TouchEvent) {
+    const offset = (event.changedTouches[0]?.clientY || this.pinCardTouchStartY) - this.pinCardTouchStartY;
+    if (Math.abs(offset) >= 34) {
+      this.isPinCardExpanded = offset < 0;
+      this.suppressPinImagePreview = true;
+      event.preventDefault();
+    }
+  }
+
+  togglePinCard(event: MouseEvent) {
+    event.stopPropagation();
+    this.isPinCardExpanded = !this.isPinCardExpanded;
+  }
+
+  openPinImagePreview(url: string) {
+    if (this.suppressPinImagePreview) {
+      this.suppressPinImagePreview = false;
+      return;
+    }
+    this.previewImage(url);
   }
 
   onSheetPointerDown(event: PointerEvent) {

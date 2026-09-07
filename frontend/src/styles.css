@@ -820,7 +820,7 @@ html, body {
 
 .point-hours-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: 1fr;
   gap: 1px;
   background: rgba(29, 30, 28, 0.06);
 }
@@ -839,7 +839,7 @@ html, body {
 .point-hours-grid span {
   overflow: hidden;
   color: #687066;
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 700;
   text-overflow: ellipsis;
   text-transform: capitalize;
@@ -848,7 +848,7 @@ html, body {
 
 .point-hours-grid strong {
   color: #2f332e;
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 800;
   white-space: nowrap;
 }
@@ -860,15 +860,6 @@ html, body {
   color: #636a61;
   font-size: 10px;
   line-height: 1.4;
-}
-
-.point-options-label {
-  padding: 0 14px 6px;
-  color: #7a8077;
-  font-size: 8px;
-  font-weight: 850;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
 }
 
 .point-result-summary {
@@ -1055,7 +1046,7 @@ html, body {
 }
 
 .point-result-actions {
-  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-columns: minmax(0, 1.35fr) minmax(76px, 0.78fr) minmax(70px, 0.7fr);
 }
 
 .point-share-action {
@@ -1079,15 +1070,14 @@ html, body {
 
 @media (max-width: 390px) {
   .point-result-actions {
-    grid-template-columns: minmax(0, 1fr) 46px 46px;
+    grid-template-columns: minmax(0, 1.35fr) minmax(72px, 0.78fr) minmax(68px, 0.7fr);
   }
 
   .point-share-action,
   .point-map-action {
-    gap: 0 !important;
-    overflow: hidden;
-    color: transparent;
-    font-size: 0 !important;
+    gap: 5px;
+    padding-inline: 6px;
+    font-size: 10px;
   }
 
   .point-share-action svg,
@@ -1120,6 +1110,18 @@ html, body {
   border-radius: 24px;
   background: #fbfcfa;
   box-shadow: 0 26px 70px rgba(29, 30, 28, 0.24);
+  transition: max-height 260ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 180ms ease;
+}
+
+.pin-details-card.pin-point-card.is-collapsed {
+  max-height: 126px;
+  box-shadow: 0 18px 45px rgba(29, 30, 28, 0.22);
+}
+
+.pin-card-expanded-content {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .pin-card-hero {
@@ -1133,6 +1135,7 @@ html, body {
   background-position: center;
   background-size: cover;
   color: #fff;
+  touch-action: pan-x;
 }
 
 .pin-card-hero::after {
@@ -1141,6 +1144,44 @@ html, body {
   inset: 0;
   background: linear-gradient(180deg, rgba(16, 17, 15, 0.06) 10%, rgba(16, 17, 15, 0.86) 100%);
   pointer-events: none;
+}
+
+.pin-card-sheet-toggle {
+  position: absolute;
+  z-index: 4;
+  top: 7px;
+  left: 50%;
+  width: 64px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(20, 21, 19, 0.56);
+  color: #fff;
+  backdrop-filter: blur(10px);
+  cursor: ns-resize;
+  touch-action: manipulation;
+}
+
+.pin-card-sheet-toggle > span {
+  width: 24px;
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.pin-card-sheet-toggle svg {
+  position: absolute;
+  right: 5px;
+  width: 13px;
+  height: 13px;
+  transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.pin-point-card:not(.is-collapsed) .pin-card-sheet-toggle svg {
+  transform: rotate(180deg);
 }
 
 .pin-image-preview {
@@ -1555,7 +1596,13 @@ html, body {
 
 @media (max-width: 380px) {
   .point-result-actions {
-    grid-template-columns: minmax(0, 1fr) 108px;
+    grid-template-columns: minmax(0, 1.35fr) minmax(70px, 0.78fr) minmax(66px, 0.7fr);
+  }
+
+  .point-result-actions button {
+    gap: 4px;
+    padding-inline: 6px;
+    font-size: 10px;
   }
 
   .pin-details-card.pin-point-card {
@@ -1572,7 +1619,9 @@ html, body {
   .point-result-card,
   .point-result-actions button,
   .pin-card-hero-actions button,
-  .pin-route-action {
+  .pin-route-action,
+  .pin-details-card.pin-point-card,
+  .pin-card-sheet-toggle svg {
     animation: none;
     transition: none;
   }

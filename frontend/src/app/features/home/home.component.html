@@ -374,7 +374,7 @@
             <svg *ngIf="status.iconType === 'calendar'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M16 3v4M8 3v4M3 10h18"></path></svg>
             <svg *ngIf="status.iconType === 'close'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"></circle><path d="m9 9 6 6M15 9l-6 6"></path></svg>
           </span>
-          <span><small>Disponibilidad</small><strong>{{ status.mainText }}</strong></span>
+          <span><strong>{{ status.mainText }}</strong></span>
           <b *ngIf="status.timeText">{{ status.timeText }}</b>
         </div>
 
@@ -777,7 +777,7 @@
             </div>
 
             <label class="route-date-selector" *ngIf="flight.opciones_entrega && flight.opciones_entrega.length > 0">
-              <span>Día para entregar en origen</span>
+              <span>Día para entregar en {{flight.origen_nombre }} </span>
               <select class="flight-day-select" (change)="onDeliveryDayChange(flight, $event)" [value]="flight.selected_opcion_idx || 0">
                 <option *ngFor="let opt of flight.opciones_entrega; let optionIndex = index" [value]="optionIndex">
                   {{ formatFriendlyDate(opt.dropoff_date) }}

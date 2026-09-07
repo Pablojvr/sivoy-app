@@ -156,82 +156,115 @@
         </button>
       </div>
       <div (click)="previewImage(viewingLocation.imagen_referencia)" style="position: absolute; inset: 0; z-index: 5; cursor: pointer;" title="Ver imagen completa"></div>
-      
       <div class="hero-overlay" style="z-index: 6; pointer-events: none;">
         <span class="hero-badge">{{ viewingLocation.empresa || 'Agencia' }}</span>
         <h2 class="hero-title">{{ viewingLocation.nombre_destino }}</h2>
       </div>
     </div>
       
+    <!-- VIEW TABS -->
+    <div style="padding: 16px 24px 0 24px; border-bottom: 1px solid #e2e8f0; background: white; z-index: 10;">
+      <div class="modal-tabs" style="margin-bottom: 0; display: flex; gap: 16px;">
+        <button class="tab-btn" [class.active]="viewingTab === 'info'" (click)="viewingTab = 'info'">Información</button>
+        <button class="tab-btn" *ngIf="viewingLocation.ubicacion?.lat && viewingLocation.ubicacion?.lng" [class.active]="viewingTab === 'mapa'" (click)="viewingTab = 'mapa'">Mapa</button>
+        <button class="tab-btn" [class.active]="viewingTab === 'horarios'" (click)="viewingTab = 'horarios'">Horarios</button>
+      </div>
+    </div>
+
       <!-- MODAL BODY -->
-      <div class="modal-body" style="padding: 24px; overflow-y: auto;">
+      <div class="modal-body" style="padding: 24px; overflow-y: auto; background: #f8fafc;">
         
-        <!-- SECCIÓN: UBICACIÓN -->
-        <h4 class="section-title" style="margin: 0 0 12px 0; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted);">Ubicación</h4>
-        <div class="info-card" style="background: white; padding: 0; border-radius: 12px; margin-bottom: 24px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
-          
-          <!-- Dirección -->
-          <div style="display: flex; gap: 12px; padding: 16px;">
-            <div style="background: #fff1f2; color: var(--primary); padding: 8px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; height: 36px;">
-              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-            </div>
-            <div style="flex: 1; min-width: 0;">
-              <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px;">
-                <h5 style="margin: 0; font-size: 14px; color: var(--text-main); font-weight: 600;">Dirección</h5>
-                <a *ngIf="viewingLocation.ubicacion?.lat" [href]="viewingLocation.maps_url || 'https://www.google.com/maps/search/?api=1&query=' + viewingLocation.ubicacion.lat + ',' + viewingLocation.ubicacion.lng" target="_blank" style="display: inline-flex; align-items: center; justify-content: center; background: #eef2ff; color: #4f46e5; padding: 4px 8px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 12px; gap: 4px; border: 1px solid #c7d2fe; transition: all 0.2s ease; flex-shrink: 0; box-shadow: 0 1px 2px rgba(79,70,229,0.1);" title="Abrir en Google Maps">
-                  <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-                  Maps
-                </a>
+        <!-- TAB: INFO -->
+        <div *ngIf="viewingTab === 'info'" class="fade-in">
+          <h4 class="section-title" style="margin: 0 0 12px 0; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted);">Ubicación</h4>
+          <div class="info-card" style="background: white; padding: 0; border-radius: 12px; margin-bottom: 24px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+            
+            <div style="display: flex; gap: 12px; padding: 16px;">
+              <div style="background: #fff1f2; color: var(--primary); padding: 8px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; height: 36px;">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
               </div>
-              <p style="margin: 0; font-size: 14px; color: var(--text-muted); line-height: 1.4;">{{ viewingLocation.ubicacion?.municipio || 'N/A' }}, {{ viewingLocation.ubicacion?.departamento || 'N/A' }}</p>
-              <p *ngIf="viewingLocation.ubicacion?.direccion_referencia" style="margin: 6px 0 0 0; font-size: 13px; color: #64748b; line-height: 1.4; display: flex; gap: 6px; align-items: flex-start;">
-                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" style="margin-top: 2px; flex-shrink: 0;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-                <span>{{ viewingLocation.ubicacion.direccion_referencia }}</span>
-              </p>
+              <div style="flex: 1; min-width: 0;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px;">
+                  <h5 style="margin: 0; font-size: 14px; color: var(--text-main); font-weight: 600;">Dirección</h5>
+                  <a *ngIf="viewingLocation.ubicacion?.lat" [href]="viewingLocation.maps_url || 'https://www.google.com/maps/search/?api=1&query=' + viewingLocation.ubicacion.lat + ',' + viewingLocation.ubicacion.lng" target="_blank" style="display: inline-flex; align-items: center; justify-content: center; background: #eef2ff; color: #4f46e5; padding: 4px 8px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 12px; gap: 4px; border: 1px solid #c7d2fe; transition: all 0.2s ease; flex-shrink: 0; box-shadow: 0 1px 2px rgba(79,70,229,0.1);" title="Abrir en Google Maps">
+                    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                    Maps
+                  </a>
+                </div>
+                <p style="margin: 0; font-size: 14px; color: var(--text-muted); line-height: 1.4;">{{ viewingLocation.ubicacion?.municipio || 'N/A' }}, {{ viewingLocation.ubicacion?.departamento || 'N/A' }}</p>
+                <p *ngIf="viewingLocation.ubicacion?.direccion_referencia" style="margin: 6px 0 0 0; font-size: 13px; color: #64748b; line-height: 1.4; display: flex; gap: 6px; align-items: flex-start;">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" style="margin-top: 2px; flex-shrink: 0;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                  <span style="text-transform: capitalize;">{{ viewingLocation.ubicacion.direccion_referencia.toLowerCase() }}</span>
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          <h4 class="section-title" style="margin: 0 0 12px 0; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted);">Acciones</h4>
+          <div class="action-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px;">
+             <button class="secondary-btn w-100" (click)="viewOnMap(viewingLocation); viewingLocation = null" style="justify-content: center; display: flex; align-items: center; gap: 8px; flex-direction: column; padding: 16px 8px;">
+               <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="var(--primary)" stroke-width="2"><path d="M1 6v16l7-4 8 4 7-4V2l-7 4-8-4-7 4z"></path><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg>
+               <span style="font-size: 13px; font-weight: 600;"></span>
+             </button>
+             <button class="secondary-btn w-100" (click)="shareLocation(viewingLocation)" style="justify-content: center; display: flex; align-items: center; gap: 8px; flex-direction: column; padding: 16px 8px;">
+               <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="var(--primary)" stroke-width="2"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+               <span style="font-size: 13px; font-weight: 600;"></span>
+             </button>
+          </div>
+          
+          <button class="primary-btn w-100" style="padding: 14px; font-size: 15px; display: flex; justify-content: center; align-items: center; gap: 8px;" (click)="openEditFromView()">
+             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+             Editar Información
+          </button>
+        </div>
+
+        <!-- TAB: MAPA -->
+        <div *ngIf="viewingTab === 'mapa' && viewingLocation.ubicacion?.lat && viewingLocation.ubicacion?.lng" class="fade-in">
+          <div style="background: white; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+            <div style="padding: 12px 16px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center;">
+               <span style="font-size: 13px; font-weight: 600; color: var(--text-main);">Mapa de Ubicación</span>
+               <span style="font-size: 11px; color: var(--text-muted); background: #f8fafc; padding: 4px 8px; border-radius: 6px; border: 1px solid #e2e8f0;">{{ viewingLocation.ubicacion.lat | number:'1.5-5' }}, {{ viewingLocation.ubicacion.lng | number:'1.5-5' }}</span>
+            </div>
+            <iframe 
+              width="100%" 
+              height="250" 
+              style="border:0; display: block;" 
+              [src]="getSafeMapUrl(viewingLocation.ubicacion.lat, viewingLocation.ubicacion.lng)"
+              loading="lazy">
+            </iframe>
+            <div style="padding: 12px 16px; background: #f8fafc; display: flex; justify-content: flex-end;">
+               <button class="primary-btn small" (click)="viewOnMap(viewingLocation); viewingLocation = null" style="font-size: 12px; padding: 6px 12px; display: flex; align-items: center; gap: 6px;">
+                 <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 6v16l7-4 8 4 7-4V2l-7 4-8-4-7 4z"></path><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg>
+                 Abrir en el mapa completo
+               </button>
             </div>
           </div>
         </div>
 
-        <!-- SECCIÓN: HORARIOS -->
-        <h4 class="section-title" style="margin: 0 0 12px 0; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted);">Horarios de Atención</h4>
-        <div class="info-card" style="background: white; border-radius: 12px; margin-bottom: 24px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
-          
-          <div *ngIf="viewingLocation.horarios_operativos?.length > 0; else noHorarios">
-            <div *ngFor="let g of getGroupedSchedules(viewingLocation.horarios_operativos); let last = last" [style.border-bottom]="last ? 'none' : '1px solid #f1f5f9'" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px;">
-              <span style="font-size: 14px; font-weight: 600; color: var(--text-main);">{{ g.dias }}</span>
-              <div style="display: flex; gap: 8px; align-items: center;">
-                <span style="font-size: 13px; color: var(--text-muted); background: #f8fafc; padding: 4px 8px; border-radius: 6px; border: 1px solid #e2e8f0; font-weight: 500;">{{ formatTime(g.apertura) }}</span>
-                <span style="font-size: 13px; color: #94a3b8; font-weight: 600;">a</span>
-                <span style="font-size: 13px; color: var(--text-muted); background: #f8fafc; padding: 4px 8px; border-radius: 6px; border: 1px solid #e2e8f0; font-weight: 500;">{{ formatTime(g.cierre) }}</span>
+        <!-- TAB: HORARIOS -->
+        <div *ngIf="viewingTab === 'horarios'" class="fade-in">
+          <h4 class="section-title" style="margin: 0 0 12px 0; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted);">Horarios de Atención</h4>
+          <div class="info-card" style="background: white; border-radius: 12px; margin-bottom: 24px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+            
+            <div *ngIf="viewingLocation.horarios_operativos?.length > 0; else noHorarios">
+              <div *ngFor="let g of getGroupedSchedules(viewingLocation.horarios_operativos); let last = last" [style.border-bottom]="last ? 'none' : '1px solid #f1f5f9'" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px;">
+                <span style="font-size: 14px; font-weight: 600; color: var(--text-main);">{{ g.dias }}</span>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                  <span style="font-size: 13px; color: var(--text-muted); background: #f8fafc; padding: 4px 8px; border-radius: 6px; border: 1px solid #e2e8f0; font-weight: 500;">{{ formatTime(g.apertura) }}</span>
+                  <span style="font-size: 13px; color: #94a3b8; font-weight: 600;">a</span>
+                  <span style="font-size: 13px; color: var(--text-muted); background: #f8fafc; padding: 4px 8px; border-radius: 6px; border: 1px solid #e2e8f0; font-weight: 500;">{{ formatTime(g.cierre) }}</span>
+                </div>
               </div>
             </div>
+            <ng-template #noHorarios>
+              <div style="padding: 24px 16px; text-align: center; color: var(--text-muted);">
+                <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom: 8px; opacity: 0.5;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                <p style="margin: 0; font-size: 14px;">No hay horarios registrados</p>
+              </div>
+            </ng-template>
           </div>
-          <ng-template #noHorarios>
-            <div style="padding: 24px 16px; text-align: center; color: var(--text-muted);">
-              <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom: 8px; opacity: 0.5;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-              <p style="margin: 0; font-size: 14px;">No hay horarios registrados</p>
-            </div>
-          </ng-template>
         </div>
 
-        <!-- SECCIÓN: ACCIONES -->
-        <h4 class="section-title" style="margin: 0 0 12px 0; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted);">Acciones</h4>
-        <div class="action-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px;">
-           <button class="secondary-btn w-100" (click)="viewOnMap(viewingLocation); viewingLocation = null" style="justify-content: center; display: flex; align-items: center; gap: 8px; flex-direction: column; padding: 16px 8px;">
-              <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" style="margin-bottom: 4px; color: var(--primary);"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg>
-              Ver en Mapa
-           </button>
-           <button class="secondary-btn w-100" (click)="shareLocation(viewingLocation)" style="justify-content: center; display: flex; align-items: center; gap: 8px; flex-direction: column; padding: 16px 8px;">
-              <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" style="margin-bottom: 4px; color: var(--primary);"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
-              Compartir
-           </button>
-        </div>
-        
-        <!-- MAIN ACTION -->
-        <button class="primary-btn w-100" style="padding: 14px; font-size: 15px; display: flex; justify-content: center; align-items: center; gap: 8px;" (click)="openEditFromView()">
-           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-           Editar Información
-        </button>
       </div>
     </div>
   </div>
@@ -461,4 +494,4 @@
           </button>
         </div>
       </div>
-    </div>
+    </div>

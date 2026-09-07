@@ -27,6 +27,7 @@ export class HomeComponent implements OnInit, OnChanges {
   isPinCardExpanded = true;
   private pinCardTouchStartY = 0;
   private suppressPinImagePreview = false;
+  private pinCardStateLocked = false;
 
   @Input() set selectedPin(value: any) {
     const previousPinIdentity = this._selectedPin
@@ -37,7 +38,7 @@ export class HomeComponent implements OnInit, OnChanges {
       : '';
     this._selectedPin = value;
     if (value) {
-      if (nextPinIdentity !== previousPinIdentity) {
+      if (nextPinIdentity !== previousPinIdentity && !this.pinCardStateLocked) {
         this.activePinTab = 'info';
         this.isPinCardExpanded = !window.matchMedia('(max-width: 640px)').matches;
       }
@@ -84,6 +85,7 @@ export class HomeComponent implements OnInit, OnChanges {
         }
       }, 150);
     } else {
+      this.pinCardStateLocked = false;
       if (this.bottomSheetState === 'hidden') {
          this.bottomSheetState = 'collapsed'; // Restaura a estado contraido como esperaba el usuario
       }
@@ -1298,6 +1300,7 @@ export class HomeComponent implements OnInit, OnChanges {
     const offset = (event.changedTouches[0]?.clientY || this.pinCardTouchStartY) - this.pinCardTouchStartY;
     if (Math.abs(offset) >= 34) {
       this.isPinCardExpanded = offset < 0;
+      this.pinCardStateLocked = true;
       this.suppressPinImagePreview = true;
       event.preventDefault();
     }
@@ -1306,6 +1309,7 @@ export class HomeComponent implements OnInit, OnChanges {
   togglePinCard(event: MouseEvent) {
     event.stopPropagation();
     this.isPinCardExpanded = !this.isPinCardExpanded;
+    this.pinCardStateLocked = true;
   }
 
   openPinImagePreview(url: string) {

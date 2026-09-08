@@ -1,9 +1,9 @@
 <!-- MAIN ADMIN PANEL (Hidden when minimized) -->
 <div *ngIf="!isMinimized">
     <div class="admin-header">
-      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 12px;">
-        <h2 style="margin: 0;">Panel de Administración</h2>
-        <button (click)="checkB2BPassword()" style="border: none; cursor: pointer; text-decoration: none; font-size: 13px; font-weight: 600; color: white; background: var(--primary); padding: 8px 16px; border-radius: 20px; white-space: nowrap;">Acceso Empresas B2B →</button>
+      <div class="admin-header-toolbar">
+        <h2 class="admin-header-title">Panel de Administración</h2>
+        <button (click)="checkB2BPassword()" class="admin-b2b-btn">Acceso Empresas B2B →</button>
       </div>
       
       <!-- Tabs -->
@@ -20,7 +20,7 @@
     <!-- SUBTAB: EMPRESAS -->
     <div class="admin-subtab fade-in" *ngIf="adminSubTab === 'empresas'">
       <div class="admin-list grid-list">
-        <div class="admin-card empresa-card-dashboard" *ngFor="let emp of adminEmpresasList" style="position: relative; cursor: pointer;" (click)="toggleEmpresaMenu(emp.id, $event)">
+        <div class="admin-card empresa-card-dashboard admin-empresa-card-interactive" *ngFor="let emp of adminEmpresasList" (click)="toggleEmpresaMenu(emp.id, $event)">
           
           <!-- Botón de Menú 3 Puntos -->
           <button class="empresa-menu-btn" (click)="toggleEmpresaMenu(emp.id, $event)">
@@ -50,7 +50,7 @@
           <img class="emp-logo-dashboard" *ngIf="emp.logo_url" [src]="apiUrl + emp.logo_url" alt="Logo">
           <div class="emp-logo-dashboard placeholder" *ngIf="!emp.logo_url">{{ emp.nombre.charAt(0) }}</div>
           
-          <div class="admin-card-info" style="text-align: center; margin-top: 10px;">
+          <div class="admin-card-info admin-empresa-info">
             <h4>{{ emp.nombre }}</h4>
             <p class="admin-loc">{{ emp.puntos_count || 0 }} Puntos</p>
           </div>
@@ -61,25 +61,25 @@
     <!-- SUBTAB: PUNTOS -->
     <div class="admin-subtab fade-in" *ngIf="adminSubTab === 'puntos'">
       <!-- Cabecera Inteligente / Sticky Header -->
-      <div class="admin-sticky-header" [class.is-scrolled]="isScrolled" style="position: sticky; top: -20px; z-index: 10; background: var(--bg-color); padding-top: 20px; padding-bottom: 15px; margin: 0 -20px 20px -20px; padding-left: 20px; padding-right: 20px; transition: all 0.3s ease; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+      <div class="admin-sticky-header" [class.is-scrolled]="isScrolled">
         
         <!-- Mini-header oculto por defecto, se muestra on scroll -->
-        <div class="mini-header" [style.max-height]="isScrolled ? '40px' : '0'" [style.opacity]="isScrolled ? '1' : '0'" [style.overflow]="'hidden'" [style.transition]="'all 0.3s ease'" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: isScrolled ? '10px' : '0';">
-           <h3 style="margin:0; font-size: 15px;">Puntos ({{ adminFilteredLocations.length }})</h3>
+        <div class="mini-header admin-mini-header">
+           <h3 class="admin-mini-header-title">Puntos ({{ adminFilteredLocations.length }})</h3>
         </div>
 
-        <div class="admin-filters" style="margin-bottom: 0;">
+        <div class="admin-filters admin-filters-compact">
           <div class="admin-search-wrapper">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" class="admin-search-icon"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
             <input type="text" [(ngModel)]="adminSearchTerm" (input)="applyAdminFilter()" placeholder="Buscar por nombre, municipio..." class="admin-input admin-search-input">
           </div>
 
           <!-- Paginadores Inline en Cabecera -->
-          <div class="paginator-container" *ngIf="adminFilteredLocations.length > rows" style="margin-top: 15px; transition: all 0.3s ease;">
+          <div class="paginator-container admin-paginator-wrapper" *ngIf="adminFilteredLocations.length > rows">
               
               <!-- FULL PAGINATOR (Shown when NOT scrolled) -->
-              <div *ngIf="!isScrolled" class="full-paginator fade-in" style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
-                  <div style="display: flex; align-items: center; gap: 8px;">
+              <div *ngIf="!isScrolled" class="full-paginator fade-in admin-full-paginator">
+                  <div class="admin-paginator-controls">
                     <button class="paginator-btn" [disabled]="first === 0" (click)="onPageChange({first: 0, rows: rows})">
                       <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="11 17 6 12 11 7"></polyline><polyline points="18 17 13 12 18 7"></polyline></svg>
                     </button>
@@ -98,7 +98,7 @@
                       <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="13 17 18 12 13 7"></polyline><polyline points="6 17 11 12 6 7"></polyline></svg>
                     </button>
                   </div>
-                  <div style="font-size: 13px; color: var(--text-muted); font-weight: 500; text-align: center;">Mostrando {{ first + 1 }} a {{ Math.min(first + rows, adminFilteredLocations.length) }} de {{ adminFilteredLocations.length }} puntos</div>
+                  <div class="admin-paginator-info">Mostrando {{ first + 1 }} a {{ Math.min(first + rows, adminFilteredLocations.length) }} de {{ adminFilteredLocations.length }} puntos</div>
               </div>
 
               <!-- COMPACT PAGINATOR (Shown when IS scrolled) -->
@@ -116,7 +116,7 @@
       </div>
       
       <!-- Listado con Paginación -->
-      <div class="admin-list" style="padding-bottom: 130px;">
+      <div class="admin-list admin-list-padded">
 
 
         <div class="admin-card clickable-card" *ngFor="let loc of adminFilteredLocations | slice:first:(first+rows)" (click)="viewLocation(loc)">
@@ -239,12 +239,12 @@
 
   <!-- ADMIN EDIT EMPRESA MODAL -->
   <div class="admin-modal-overlay" *ngIf="isEditingEmpresa">
-    <div class="admin-modal fade-in" style="padding: 0; max-width: 400px; display: flex; flex-direction: column; max-height: 90vh; overflow: hidden;">
-      <div style="padding: 24px 24px 0 24px; flex-shrink: 0;">
+    <div class="admin-modal fade-in admin-empresa-modal-layout">
+      <div class="admin-empresa-modal-header">
         <h3>{{ editingEmpresaData.id ? 'Editar Empresa' : 'Nueva Empresa' }}</h3>
       </div>
       
-      <div class="modal-body" style="padding: 24px; overflow-y: auto; flex: 1;">
+      <div class="modal-body admin-empresa-modal-body">
       
       <div class="form-group">
         <label>Nombre de la Empresa</label>
@@ -253,20 +253,20 @@
 
       <div class="form-group">
         <label>Logo</label>
-        <div style="margin-bottom: 10px;" *ngIf="editingEmpresaData.logoUrl">
-          <img [src]="apiUrl + editingEmpresaData.logoUrl" style="max-width: 80px; border-radius: 8px;">
+        <div class="admin-empresa-logo-preview-container" *ngIf="editingEmpresaData.logoUrl">
+          <img [src]="apiUrl + editingEmpresaData.logoUrl" class="admin-empresa-logo-preview">
         </div>
         <input type="file" (change)="onEmpresaLogoSelected($event)" accept="image/*" class="admin-input" [disabled]="isSavingEmpresa">
       </div>
       
       </div>
       
-      <div style="padding: 16px 24px 24px 24px; flex-shrink: 0; background: var(--surface-solid); border-top: 1px solid #e2e8f0;">
-        <div class="admin-modal-actions" style="margin-top: 0;">
+      <div class="admin-empresa-modal-footer">
+        <div class="admin-modal-actions admin-empresa-modal-actions">
           <button class="secondary-btn" (click)="isEditingEmpresa = false" [disabled]="isSavingEmpresa">Cancelar</button>
           <button class="primary-btn" (click)="saveEmpresa()" [disabled]="isSavingEmpresa">
             <span *ngIf="!isSavingEmpresa">Guardar</span>
-            <span *ngIf="isSavingEmpresa" style="display:flex; align-items:center; gap:6px;">
+            <span *ngIf="isSavingEmpresa" class="admin-btn-saving-content">
               <svg class="spin-icon" viewBox="0 0 24 24" width="14" height="14"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" fill="none" stroke-dasharray="60" stroke-dashoffset="15"/></svg>
               Guardando...
             </span>

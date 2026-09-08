@@ -2,7 +2,7 @@ const crypto = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
 
-const MIGRATION_PATTERN = /^(\d{4})_([a-z0-9_]+)\.sql$/;
+const MIGRATION_PATTERN = /^(\d{4})_([a-z0-9_]+)(\.notx)?\.sql$/;
 const LOCK_KEY = 'sivoy_schema_migrations';
 
 function sha256(value) {
@@ -15,11 +15,11 @@ function discoverMigrations(directory = path.join(__dirname, 'migrations')) {
     .filter((fileName) => MIGRATION_PATTERN.test(fileName))
     .sort()
     .map((fileName) => {
-      const [, version, name] = fileName.match(MIGRATION_PATTERN);
+      const [, version, name, nonTransactional] = fileName.match(MIGRATION_PATTERN);
       if (seenVersions.has(version)) throw new Error(`Duplicate migration version: ${version}`);
       seenVersions.add(version);
       const sql = fs.readFileSync(path.join(directory, fileName), 'utf8');
-      return { version, name, fileName, sql, checksum: sha256(sql) };
+      return { version, name, fileName, sql, checksum: sha256(sql), transactional: !nonTransactional };
     });
 }
 
@@ -53,17 +53,17 @@ async function runMigrations(pool, { directory, dryRun = false } = {}) {
         appliedNow.push({ ...migration, status: 'pending' });
         continue;
       }
-      await client.query('BEGIN');
+      if (migration.transactional) await client.query('BEGIN');
       try {
         await client.query(migration.sql);
         await client.query(
           'INSERT INTO schema_migrations (version, name, checksum) VALUES ($1, $2, $3)',
           [migration.version, migration.name, migration.checksum]
         );
-        await client.query('COMMIT');
+        if (migration.transactional) await client.query('COMMIT');
         appliedNow.push({ ...migration, status: 'applied' });
       } catch (error) {
-        await client.query('ROLLBACK');
+        if (migration.transactional) await client.query('ROLLBACK');
         throw error;
       }
     }

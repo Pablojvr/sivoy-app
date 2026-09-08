@@ -53,7 +53,7 @@ máximo cinco archivos. Un paquete no es autorización para modificar código.
 - [ ] T13 Resolver y migrar contrato `id`/`id_destino`.
 - [ ] T14 Optimizar búsquedas después de medir consultas.
 - [x] T38 Versionar baseline y ledger de migraciones reproducibles.
-- [ ] T39 Añadir constraints e índices de FK de forma no bloqueante.
+- [x] T39 Añadir constraints e índices de FK con validación previa (pendiente ventana de aplicación).
 - [x] T40 Crear calendarios con múltiples intervalos y excepciones (modelo aditivo; pendiente backfill/cutover).
 - [x] T41 Crear políticas de promesa, alcances y reglas de precedencia (modelo aditivo; pendiente backfill/cutover).
 - [ ] T42 Implementar escritura dual y backfill idempotente.

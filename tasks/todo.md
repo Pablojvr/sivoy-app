@@ -74,7 +74,7 @@ aceptación y comandos exactos de prueba. T13 requiere aprobación explícita.
 ## Fase 4 — Sistema visual
 
 - [x] T15 Extraer tokens, tipografía y movimiento.
-- [ ] T16 Crear primitivas Button/IconButton/Input/Chip.
+- [x] T16 Crear primitivas Button/IconButton/Input/Chip.
 - [ ] T17 Crear primitivas Card/Sheet/Modal.
 - [ ] T18 Migrar tarjetas de resultados.
 - [ ] T19 Migrar detalle de punto y horarios.

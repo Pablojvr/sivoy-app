@@ -58,6 +58,120 @@ html, body {
   color: var(--text-main, #222222);
 }
 
+/* SiVoy UI primitives: behavioral classes are attached by standalone directives. */
+.si-button,
+.si-icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  border: 1px solid transparent;
+  background: var(--text-main);
+  color: var(--white);
+  font: inherit;
+  font-weight: 800;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color var(--motion-fast) ease, border-color var(--motion-fast) ease,
+    color var(--motion-fast) ease, transform var(--motion-fast) ease;
+}
+
+.si-button {
+  gap: 8px;
+  padding: 0 18px;
+  border-radius: var(--radius-pill);
+}
+
+.si-icon-button {
+  width: 44px;
+  padding: 0;
+  border-radius: 50%;
+}
+
+.si-button[data-size='sm'] { padding-inline: 14px; }
+.si-button[data-size='lg'],
+.si-icon-button[data-size='lg'] { min-height: 52px; }
+.si-icon-button[data-size='lg'] { width: 52px; }
+
+.si-button--secondary,
+.si-icon-button--secondary {
+  border-color: var(--border);
+  background: var(--surface-solid);
+  color: var(--text-main);
+}
+
+.si-button--ghost,
+.si-icon-button--ghost {
+  background: transparent;
+  color: var(--text-main);
+}
+
+.si-button:hover:not(.si-control--disabled),
+.si-icon-button:hover:not(.si-control--disabled) {
+  transform: translateY(-1px);
+}
+
+.si-button:focus-visible,
+.si-icon-button:focus-visible,
+.si-input:focus-visible {
+  outline: 0;
+  box-shadow: var(--focus-ring);
+}
+
+.si-control--disabled {
+  opacity: 0.48;
+  pointer-events: none;
+}
+
+.si-input {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-solid);
+  color: var(--text-main);
+  font: inherit;
+  transition: border-color var(--motion-fast) ease, box-shadow var(--motion-fast) ease;
+}
+
+textarea.si-input {
+  min-height: 96px;
+  padding-block: 12px;
+  resize: vertical;
+}
+
+.si-input::placeholder { color: var(--text-muted); }
+.si-input:hover { border-color: color-mix(in srgb, var(--text-main) 24%, transparent); }
+.si-input--invalid { border-color: var(--danger); }
+
+.si-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: var(--surface-solid);
+  color: var(--text-main);
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.si-chip[data-tone='accent'] { background: color-mix(in srgb, var(--primary) 12%, var(--white)); color: var(--primary-dark); }
+.si-chip[data-tone='success'] { background: color-mix(in srgb, var(--signal-lime) 24%, var(--white)); color: var(--text-main); }
+.si-chip[data-tone='info'] { background: color-mix(in srgb, var(--signal-blue) 24%, var(--white)); color: var(--text-main); }
+.si-chip[data-tone='warning'] { background: color-mix(in srgb, var(--signal-amber) 30%, var(--white)); color: var(--text-main); }
+
+@media (prefers-reduced-motion: reduce) {
+  .si-button,
+  .si-icon-button,
+  .si-input {
+    transition: none;
+  }
+}
+
 /* Custom Origin & Destination Markers for Map */
 .admin-modal-actions {
   display: flex;

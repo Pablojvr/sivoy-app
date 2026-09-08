@@ -43,6 +43,8 @@ por cortes pequeños.
 
 Objetivo: capturar qué hace hoy la aplicación antes de mover responsabilidades.
 
+- Rotar las credenciales PostgreSQL expuestas y activar detección de secretos.
+- Inventariar esquema, constraints, índices, tamaños y calidad de datos.
 - Registrar comandos reproducibles de build, arranque y pruebas.
 - Crear fixtures mínimos para agencias, horarios, reglas y combinaciones de rutas.
 - Añadir pruebas de caracterización del motor ETA y contratos HTTP críticos.
@@ -61,6 +63,8 @@ Objetivo: eliminar la ambigüedad causada por `any` en las fronteras importantes
 - Añadir validación de payload en la frontera HTTP.
 - Centralizar transformación entre filas PostgreSQL, dominio y DTO público.
 - Mantener adaptadores temporales para respuestas legacy.
+- Adoptar envelope uniforme de datos/errores y timestamps ISO 8601 con offset.
+- Separar IDs públicos estables de claves internas y prohibir búsquedas por nombre.
 
 Salida: compilación estricta en módulos migrados y pruebas de contrato verdes.
 
@@ -73,6 +77,10 @@ Objetivo: hacer que el motor sea puro, determinista y portable.
 - Inyectar reloj y zona horaria para eliminar dependencia del tiempo del sistema.
 - Cubrir bordes: cierre exacto, siguiente día hábil, consecutivos y sin ruta.
 - Mantener una fachada compatible con los endpoints actuales.
+- Separar `submittedAt` y `availableFrom/Until`; cualquier operación intermedia
+  de la empresa permanece opaca para SiVoy.
+- Definir precedencia determinista para reglas generales y punto a punto.
+- Modelar anticipación mínima, promesas semanales y excepciones de calendario.
 
 Salida: suite de regresión demuestra equivalencia con el motor vigente.
 
@@ -85,8 +93,19 @@ Objetivo: aislar empresas, puntos, municipios y horarios.
 - Normalizar el uso de `id` e `id_destino` mediante una decisión documentada.
 - Evitar lecturas completas y consultas repetidas en búsquedas de rutas.
 - Añadir índices después de medir planes de consulta reales.
+- Sustituir día/hora textual por `smallint`/`time` y múltiples intervalos diarios.
+- Añadir calendarios de excepción, vigencia, timestamps y auditoría de reglas.
+- Introducir políticas de promesa con alcance origen/destino sin eliminar tablas
+  legacy al inicio.
+- Endurecer el resolvedor de URLs contra SSRF y validar respuestas externas.
+- Separar APIs públicas de lectura y operaciones de escritura, restringir CORS,
+  tamaños de payload, timeouts y límites de tasa según endpoint.
+- Configurar límites del pool, timeout de consultas y apagado ordenado.
 
 Salida: integración PostgreSQL verde y rollback transaccional comprobado.
+
+El diseño detallado, precedencia y estrategia de backfill están en
+`docs/DATABASE_AND_CONTRACT_AUDIT.md`.
 
 ## Fase 4 — Design system y saneamiento CSS
 
@@ -218,12 +237,17 @@ prueba, introduce `any` en código nuevo, amplía alcance o carece de evidencia.
 | Agentes modifican fuera de alcance | Alto | Lista cerrada de archivos y auditoría |
 | Añadir infraestructura prematura | Medio | Métricas y ADR antes de dependencias |
 | Panel sin autenticación | Alto futuro | Mantener alcance MVP y documentar riesgo |
+| Credenciales versionadas | Crítico | Rotación inmediata, limpieza de historial y secret scanning |
+| Reglas específicas se vuelven condicionales | Alto | Catálogo de promesas y precedencia por datos |
+| Zona horaria altera resultados | Alto | Zona declarada, reloj inyectable y timestamps con offset |
+| Backfill corrompe relaciones | Crítico | Escritura dual, checksums, ejecución paralela y rollback |
+| API pública expone escrituras operativas | Crítico al crecer | Separar superficies y aplicar autorización antes del onboarding real |
 
 ## Puntos de aprobación humana
 
 - Aprobar `CAPABILITY-MAP.md` antes de escribir specs por módulo.
 - Aprobar contratos públicos antes de Fase 1.
 - Aprobar estrategia `id`/`id_destino` antes de Fase 3.
+- Aprobar el modelo de promesas, calendarios y precedencia antes del backfill.
 - Aprobar cada eliminación de implementación legacy.
 - Aprobar cualquier dependencia, migración o despliegue.
-

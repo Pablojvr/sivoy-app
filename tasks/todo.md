@@ -9,6 +9,10 @@ máximo cinco archivos. Un paquete no es autorización para modificar código.
 
 ## Fase 0 — Línea base
 
+- [ ] T00 Rotar y revocar las credenciales PostgreSQL expuestas.
+  - Aceptación: credencial antigua inválida y scripts sin secretos embebidos.
+  - Verificación: secret scan del árbol e historial; conexión solo mediante entorno.
+  - Dependencias: ninguna; bloquea cualquier migración.
 - [ ] T01 Documentar comandos y Definition of Done.
   - Aceptación: comandos ejecutables y matriz de auditoría versionados.
   - Verificación: ejecutar cada comando documentado.
@@ -47,6 +51,15 @@ máximo cinco archivos. Un paquete no es autorización para modificar código.
 - [ ] T12 Transaccionar actualización de punto y horarios.
 - [ ] T13 Resolver y migrar contrato `id`/`id_destino`.
 - [ ] T14 Optimizar búsquedas después de medir consultas.
+- [ ] T38 Versionar baseline y ledger de migraciones reproducibles.
+- [ ] T39 Añadir constraints e índices de FK de forma no bloqueante.
+- [ ] T40 Crear calendarios con múltiples intervalos y excepciones.
+- [ ] T41 Crear políticas de promesa, alcances y reglas de precedencia.
+- [ ] T42 Implementar escritura dual y backfill idempotente.
+- [ ] T43 Ejecutar ETA antiguo/nuevo en paralelo y comparar resultados.
+- [ ] T44 Uniformar envelopes, errores, IDs y timestamps del API.
+- [ ] T45 Endurecer resolución de URLs y respuestas externas.
+- [ ] T46 Separar superficie pública y operativa; endurecer HTTP y pool.
 
 Cada tarea debe incluir al abrirse: máximo cinco archivos, hasta tres criterios de
 aceptación y comandos exactos de prueba. T13 requiere aprobación explícita.

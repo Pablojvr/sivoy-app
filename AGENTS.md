@@ -21,6 +21,23 @@ los datos ni cambios locales de otras personas.
 - El informe de entrega debe limitarse a: archivos modificados, resultado,
   validaciones ejecutadas y bloqueos reales.
 
+## Skills de ingeniería
+
+El paquete `addyosmani/agent-skills` está disponible para estructurar el ciclo de
+trabajo. Se carga bajo demanda: no se deben abrir todos sus skills en cada tarea.
+
+- Descubrimiento y selección: `using-agent-skills`.
+- Requisitos grandes o ambiguos: `spec-driven-development`.
+- Implementación en varias piezas: `incremental-implementation`.
+- Cambios de interfaz: `frontend-ui-engineering`.
+- Errores: `debugging-and-error-recovery`.
+- Antes de integrar: `code-review-and-quality`.
+- Antes de producción: `shipping-and-launch`.
+
+Las reglas de este archivo y las instrucciones explícitas del usuario prevalecen
+sobre cualquier recomendación genérica del paquete. Un skill nunca concede por sí
+solo permiso para instalar dependencias, modificar Git o desplegar.
+
 ## Qué puede delegarse a Antigravity
 
 Codex puede delegar una tarea cuando sea reversible, tenga criterios de aceptación
@@ -62,4 +79,3 @@ explicar el bloqueo. Codex decide el siguiente paso y revisa siempre el diff.
 2. Antigravity modifica solamente los archivos autorizados.
 3. Codex inspecciona el diff y ejecuta la validación pertinente.
 4. Solo Codex integra, publica o despliega, cuando el usuario lo haya solicitado.
-

@@ -64,24 +64,28 @@ function calcularIngresoOficial(origen, fechaDropoffStr, horaDropoff) {
     
     let diaStr = getDiaFromDate(currentDate);
     const normalize = (s) => s ? s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase() : '';
-    let horarioHoy = origen.horarios_operativos?.find(h => normalize(h.dia_semana) === normalize(diaStr));
+    const horariosHoy = (origen.horarios_operativos || [])
+        .filter(h => normalize(h.dia_semana) === normalize(diaStr))
+        .sort((a, b) => a.hora_apertura.localeCompare(b.hora_apertura));
+    const horarioActivo = horariosHoy.find(h =>
+        horaDropoff >= h.hora_apertura && horaDropoff <= h.hora_cierre
+    );
+    const proximoHorario = horariosHoy.find(h => horaDropoff < h.hora_apertura);
     
-    if (horarioHoy) {
-        if (horaDropoff < horarioHoy.hora_apertura) {
-            let tipoOrigen = origen.tipo?.toLowerCase() === 'agencia' ? 'La agencia abre' : 'El personal llega';
-            return {
-                date: currentDate,
-                msg: `${tipoOrigen} en el horario de ${formatTime12(horarioHoy.hora_apertura)} a ${formatTime12(horarioHoy.hora_cierre)}`
-            };
-        }
-        
-        if (horaDropoff <= horarioHoy.hora_cierre) {
-            let isToday = currentDate.toDateString() === new Date().toDateString();
-            return { 
-                date: currentDate, 
-                msg: isToday ? `Abierto el día de hoy, ${formatFriendlyDate(currentDate)}` : `A tiempo el ${formatFriendlyDate(currentDate)}` 
-            };
-        }
+    if (horarioActivo) {
+        let isToday = currentDate.toDateString() === new Date().toDateString();
+        return {
+            date: currentDate,
+            msg: isToday ? `Abierto el día de hoy, ${formatFriendlyDate(currentDate)}` : `A tiempo el ${formatFriendlyDate(currentDate)}`
+        };
+    }
+
+    if (proximoHorario) {
+        let tipoOrigen = origen.tipo?.toLowerCase() === 'agencia' ? 'La agencia abre' : 'El personal llega';
+        return {
+            date: currentDate,
+            msg: `${tipoOrigen} en el horario de ${formatTime12(proximoHorario.hora_apertura)} a ${formatTime12(proximoHorario.hora_cierre)}`
+        };
     }
     
     let tipoOrigenCerrado = origen.tipo?.toLowerCase() === 'agencia' ? 'la agencia ya cerró este día' : 'las personas ya se retiraron del punto fijo';
@@ -175,9 +179,11 @@ function proyectarProximasRutas(destino, ingresoOficialDate, limite = 3) {
         if (result.esPosible) {
             const diaStr = getDiaFromDate(evalDate);
             const normalize = (s) => s ? s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase() : '';
-            let horario = destino.horarios_operativos?.find(h => normalize(h.dia_semana) === normalize(diaStr));
+            const horarios = (destino.horarios_operativos || [])
+                .filter(h => normalize(h.dia_semana) === normalize(diaStr))
+                .sort((a, b) => a.hora_apertura.localeCompare(b.hora_apertura));
             
-            if (!horario || !horario.hora_apertura || !horario.hora_cierre) {
+            if (horarios.length === 0 || horarios.some(h => !h.hora_apertura || !h.hora_cierre)) {
                 // If there's no operating hours, the location is closed on this day.
                 // We should NOT project this day as an arrival option. Move to the next day.
                 evalDate = addDays(evalDate, 1);
@@ -199,7 +205,9 @@ function proyectarProximasRutas(destino, ingresoOficialDate, limite = 3) {
                 const h12 = h % 12 || 12;
                 return `${h12}:${m.toString().padStart(2, '0')} ${ampm}`;
             };
-            const horarioStr = `${formatTime(horario.hora_apertura)} a ${formatTime(horario.hora_cierre)}`;
+            const horarioStr = horarios
+                .map(horario => `${formatTime(horario.hora_apertura)} a ${formatTime(horario.hora_cierre)}`)
+                .join(' / ');
 
             opciones.push({
                 fecha_llegada: formatFriendlyDate(evalDate),

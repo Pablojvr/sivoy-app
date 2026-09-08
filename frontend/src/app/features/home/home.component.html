@@ -10,8 +10,8 @@
     </button>
     
     <!-- RESTORE MAP BUTTON -->
-    <button class="nearby-fab" (click)="resetMapMarkers()" *ngIf="highlightedRoute" style="bottom: 90px; background: white; color: var(--text-main);">
-      <i class="pi pi-undo" style="margin-right: 6px;"></i>
+    <button class="nearby-fab restore-map-btn" (click)="resetMapMarkers()" *ngIf="highlightedRoute">
+      <i class="pi pi-undo restore-map-icon"></i>
       Ver todas las rutas
     </button>
     
@@ -28,9 +28,9 @@
     <div class="map-picker-overlay" *ngIf="isPickingLocation">
       <div class="picker-crosshair"></div>
       <div class="picker-instruction">
-        <div style="font-size: 12px; opacity: 0.8; margin-bottom: 2px;">Ubicando:</div>
-        <div style="font-size: 15px; font-weight: 700; color: var(--primary);">{{ editFormData?.nombre || 'Agencia' }}</div>
-        <div class="picked-coords" style="font-size: 11px; color: var(--text-muted); margin-top: 4px; text-align: center;">
+        <div class="picker-status-label">Ubicando:</div>
+        <div class="picker-name-label">{{ editFormData?.nombre || 'Agencia' }}</div>
+        <div class="picked-coords">
           {{ tempPickedLat }}, {{ tempPickedLng }}
         </div>
       </div>
@@ -484,7 +484,7 @@
 
         <div *ngIf="destino && municipalityResults.length > 0" class="sheet-summary">
           <h3>{{ displayedResults.length }} {{ displayedResults.length === 1 ? 'Resultado' : 'Resultados' }} en {{ destino.split(',')[0] }}</h3>
-          <p class="slide-hint" style="color: var(--text-muted); font-size: 12px; margin-top: 4px; display: flex; align-items: center; gap: 4px; margin-bottom: 0;">
+          <p class="slide-hint">
             <svg *ngIf="bottomSheetState === 'collapsed'" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>
             <svg *ngIf="bottomSheetState !== 'collapsed'" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
             {{ bottomSheetState === 'collapsed' ? 'Desliza hacia arriba para ver' : 'Desliza hacia abajo para esconder' }}
@@ -507,7 +507,7 @@
               <span>Cambiar origen</span>
             </button>
           </div>
-          <p class="slide-hint" style="color: var(--text-muted); font-size: 12px; margin-top: 4px; display: flex; align-items: center; gap: 4px; margin-bottom: 0;">
+          <p class="slide-hint">
             <svg *ngIf="bottomSheetState === 'collapsed'" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>
             <svg *ngIf="bottomSheetState !== 'collapsed'" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
             {{ bottomSheetState === 'collapsed' ? 'Desliza hacia arriba para ver' : 'Desliza hacia abajo para esconder' }}
@@ -577,7 +577,7 @@
           <h3 *ngIf="isDiscoveryMode">{{ activeEmpresa ? displayedResults.length + ' puntos de ' + activeEmpresa : displayedResults.length + ' destinos principales' }}</h3>
           <h3 *ngIf="isOriginDiscoveryMode">{{ displayedResults.length }} Orígenes disponibles</h3>
           <h3 *ngIf="!isDiscoveryMode && !isOriginDiscoveryMode">Explorar mapa</h3>
-          <p class="slide-hint" style="color: var(--text-muted); font-size: 12px; margin-top: 4px; display: flex; align-items: center; gap: 4px; margin-bottom: 0;">
+          <p class="slide-hint">
             <svg *ngIf="bottomSheetState === 'collapsed'" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>
             <svg *ngIf="bottomSheetState !== 'collapsed'" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
             {{ bottomSheetState === 'collapsed' ? 'Desliza hacia arriba para explorar' : 'Desliza hacia abajo para esconder' }}
@@ -680,7 +680,7 @@
 
       <div class="sheet-header-sticky" [class.is-scrolled]="isSheetScrolled" *ngIf="(destino || isDiscoveryMode || isOriginDiscoveryMode) && municipalityResults.length > 0 && flightResults.length === 0">
          <div class="sheet-handle"></div>
-         <h3 style="margin: 0; font-size: 16px; color: var(--text-main);">{{ isOriginDiscoveryMode ? 'Orígenes en ' + origenMunicipio : (isDiscoveryMode ? (activeEmpresa ? 'Puntos de ' + activeEmpresa : 'Destinos en ' + destinoMunicipio) : 'Opciones para ' + destino) }}</h3>
+         <h3 class="sheet-header-title">{{ isOriginDiscoveryMode ? 'Orígenes en ' + origenMunicipio : (isDiscoveryMode ? (activeEmpresa ? 'Puntos de ' + activeEmpresa : 'Destinos en ' + destinoMunicipio) : 'Opciones para ' + destino) }}</h3>
  
       </div>
       
@@ -917,11 +917,11 @@
 
       <!-- EMPTY STATE: No Routes Found -->
       <div class="empty-state-sheet" *ngIf="destino && municipalityResults.length === 0 && flightResults.length === 0 && !loading && !errorMsg">
-         <div class="empty-icon-box" style="background-color: #fee2e2; color: #ef4444;">
+         <div class="empty-icon-box is-error">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
          </div>
-         <h3 style="color:#4b5563; margin:10px 0 5px;">No hay rutas disponibles</h3>
-         <p style="color:#6b7280; font-size:0.9rem; text-align:center; max-width:80%; margin:0 auto;">
+         <h3 class="empty-state-title">No hay rutas disponibles</h3>
+         <p class="empty-state-text">
            Actualmente no hemos encontrado agencias o rutas disponibles para el destino "{{ destino }}". Intenta con otro municipio.
          </p>
       </div>
@@ -931,8 +931,8 @@
          <div class="empty-icon-box">
             <svg viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
          </div>
-         <h3 style="color:#4b5563; margin:10px 0 5px;">Sin destino seleccionado</h3>
-         <p style="color:#6b7280; font-size:0.9rem; text-align:center; max-width:80%; margin:0 auto;">
+         <h3 class="empty-state-title">Sin destino seleccionado</h3>
+         <p class="empty-state-text">
            Toca en la barra superior para buscar hacia dónde deseas enviar tu paquete y ver las rutas disponibles.
          </p>
       </div>

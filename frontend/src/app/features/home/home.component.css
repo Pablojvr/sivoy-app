@@ -1,0 +1,64 @@
+/* home.component.css - Encapsulation ViewEncapsulation.None */
+
+app-home .nearby-fab.restore-map-btn {
+    bottom: 90px;
+    background: var(--white);
+    color: var(--text-main);
+}
+
+app-home .restore-map-icon {
+    margin-right: 6px;
+}
+
+app-home .picker-status-label {
+    font-size: 12px;
+    opacity: 0.8;
+    margin-bottom: 2px;
+}
+
+app-home .picker-name-label {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+app-home .picked-coords {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 4px;
+    text-align: center;
+}
+
+app-home p.slide-hint {
+    color: var(--text-muted);
+    font-size: 12px;
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 0;
+}
+
+app-home .sheet-header-title {
+    margin: 0;
+    font-size: 16px;
+    color: var(--text-main);
+}
+
+app-home .empty-icon-box.is-error {
+    background-color: color-mix(in srgb, var(--danger) 15%, transparent);
+    color: var(--danger);
+}
+
+app-home .empty-state-title {
+    color: var(--text-main);
+    margin: 10px 0 5px;
+}
+
+app-home .empty-state-text {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    text-align: center;
+    max-width: 80%;
+    margin: 0 auto;
+}

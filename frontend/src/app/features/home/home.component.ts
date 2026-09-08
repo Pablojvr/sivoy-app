@@ -12,6 +12,7 @@ import { SiCardDirective, SiButtonDirective, SiIconButtonDirective, SiChipCompon
   standalone: true,
   imports: [CommonModule, FormsModule, SiCardDirective, SiButtonDirective, SiIconButtonDirective, SiChipComponent],
   templateUrl: './home.component.html',
+  styleUrl: './home.component.css',
   encapsulation: ViewEncapsulation.None
 })
 export class HomeComponent implements OnInit, OnChanges {

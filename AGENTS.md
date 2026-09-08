@@ -48,6 +48,8 @@ concretos y afecte como máximo tres archivos conocidos. Son candidatas:
 - espaciado, tipografía, color, bordes, sombras y estados visuales;
 - adaptación responsive y correcciones de superposición;
 - cambios menores de marcado HTML exclusivamente presentacionales;
+- componentes y directivas TypeScript exclusivamente presentacionales, sin
+  servicios, estado de negocio, navegación, RxJS ni efectos de infraestructura;
 - revisión visual o identificación de selectores, sin modificar lógica.
 
 Cada encargo debe indicar: objetivo, archivos permitidos, archivos prohibidos,
@@ -57,9 +59,9 @@ debe devolver un resumen breve y el resultado de las validaciones.
 ## Qué no se delega
 
 - lógica ETA, SQL, migraciones, seeds o contratos HTTP;
-- TypeScript con estado, navegación, servicios o modelos de dominio;
+- TypeScript con estado de negocio, navegación, servicios o modelos de dominio;
 - dependencias, secretos, credenciales o configuración de producción;
-- operaciones Git destructivas, commits, push, merge o despliegues;
+- operaciones Git destructivas, merge o despliegues;
 - refactorizaciones transversales o cambios fuera de los archivos autorizados.
 
 Si una tarea visual exige alguno de estos cambios, Antigravity debe detenerse y
@@ -80,4 +82,8 @@ explicar el bloqueo. Codex decide el siguiente paso y revisa siempre el diff.
 1. Codex define y delimita el encargo.
 2. Antigravity modifica solamente los archivos autorizados.
 3. Codex inspecciona el diff y ejecuta la validación pertinente.
-4. Solo Codex integra, publica o despliega, cuando el usuario lo haya solicitado.
+4. Tras aprobación explícita de Codex, Antigravity puede preparar un commit
+   atómico y hacer push de ese commit a la rama de trabajo indicada. No puede
+   ampliar el diff, reescribir historia, hacer merge ni desplegar.
+5. Codex verifica el commit y el remoto después del push. Solo Codex integra o
+   despliega, cuando el usuario lo haya solicitado.

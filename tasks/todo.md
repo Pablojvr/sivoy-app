@@ -26,7 +26,7 @@ máximo cinco archivos. Un paquete no es autorización para modificar código.
   - Aceptación: casos antes, durante y después del cierre protegidos.
   - Verificación: suite unitaria verde.
   - Dependencias: T02.
-- [ ] T04 Caracterizar proyección y endpoints de rutas.
+- [x] T04 Caracterizar proyección y endpoints de rutas.
   - Aceptación: punto-punto y municipio-municipio preservan respuestas.
   - Verificación: unitarias y contrato HTTP verdes.
   - Dependencias: T02.

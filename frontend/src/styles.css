@@ -1851,3 +1851,19 @@ textarea.si-input {
   }
 }
 
+/* Contextual overrides for T18 UI Primitives Migration */
+.cards-list .point-result-card.si-card {
+  padding: 0;
+}
+
+.point-hours-status si-chip.si-chip {
+  padding: 2px 6px;
+  min-height: 20px;
+  font-size: 12px;
+  font-weight: 850;
+  line-height: 1.25;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: block;
+}

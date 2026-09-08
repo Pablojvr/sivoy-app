@@ -690,6 +690,7 @@
       <!-- Multiple Results from mass routing (Proximity Logic / Discovery) -->
       <div *ngIf="(destino || isDiscoveryMode || isOriginDiscoveryMode) && municipalityResults.length > 0 && flightResults.length === 0 && !loading" class="cards-list">
         <article
+          siCard
           class="point-result-card"
           [class.is-selected]="lastSelectedLocationId === (res.id_destino || res.id_origen || res.id)"
           [class.is-expanded]="isPointCardExpanded(res)"
@@ -751,7 +752,7 @@
               </span>
               <span class="point-hours-status">
                 <small>Disponibilidad</small>
-                <strong>{{ res._status?.mainText || 'Consulta sus horarios' }}</strong>
+                <si-chip [tone]="res._status?.color === 'green' ? 'success' : (res._status?.color === 'orange' ? 'warning' : (res._status?.color === 'red' ? 'accent' : 'neutral'))">{{ res._status?.mainText || 'Consulta sus horarios' }}</si-chip>
                 <span *ngIf="res._status?.timeText">{{ res._status.timeText }}</span>
               </span>
               <span class="point-hours-count">
@@ -774,15 +775,15 @@
           </section>
 
           <div class="point-result-actions">
-            <button type="button" class="point-use-action" (click)="selectPointFromList(res)" [attr.aria-label]="isOriginDiscoveryMode ? 'Usar este punto como origen' : 'Elegir desde dónde enviar hacia este punto'">
+            <button type="button" siButton variant="primary" class="point-use-action" (click)="selectPointFromList(res)" [attr.aria-label]="isOriginDiscoveryMode ? 'Usar este punto como origen' : 'Elegir desde dónde enviar hacia este punto'">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5" cy="12" r="2.5"></circle><path d="M8 12h11M15 8l4 4-4 4"></path></svg>
               {{ isOriginDiscoveryMode ? 'Usar como origen' : 'Desde dónde enviar' }}
             </button>
-            <button type="button" class="point-share-action" (click)="sharePointResource(res)" [attr.aria-label]="'Compartir ' + (res.destino_nombre || res.nombre_destino)">
+            <button type="button" siButton variant="secondary" class="point-share-action" (click)="sharePointResource(res)" [attr.aria-label]="'Compartir ' + (res.destino_nombre || res.nombre_destino)">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"></path></svg>
               Compartir
             </button>
-            <button type="button" class="point-map-action" (click)="viewPointOnMap(res)" [attr.aria-label]="'Ver ' + (res.destino_nombre || res.nombre_destino) + ' en el mapa'">
+            <button type="button" siButton variant="secondary" class="point-map-action" (click)="viewPointOnMap(res)" [attr.aria-label]="'Ver ' + (res.destino_nombre || res.nombre_destino) + ' en el mapa'">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 5.5-8 11-8 11S4 15.5 4 10a8 8 0 1 1 16 0Z"></path><circle cx="12" cy="10" r="2.5"></circle></svg>
               Ver mapa
             </button>

@@ -76,7 +76,7 @@ aceptación y comandos exactos de prueba. T13 requiere aprobación explícita.
 - [x] T15 Extraer tokens, tipografía y movimiento.
 - [x] T16 Crear primitivas Button/IconButton/Input/Chip.
 - [x] T17 Crear primitivas Card/Sheet/Modal.
-- [ ] T18 Migrar tarjetas de resultados.
+- [x] T18 Migrar tarjetas de resultados.
 - [ ] T19 Migrar detalle de punto y horarios.
 - [ ] T20 Migrar navegación y overlays.
 - [ ] T21 Reducir estilos inline y `!important` con métricas comparativas.

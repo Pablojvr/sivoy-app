@@ -6,6 +6,8 @@
   "scripts": {
     "start": "node server.js",
     "init:pg": "node scripts/pg_init.js",
+    "migrate": "node migration-runner.js",
+    "migrate:status": "node migration-runner.js --dry-run",
     "test": "node --test"
   },
   "keywords": [],

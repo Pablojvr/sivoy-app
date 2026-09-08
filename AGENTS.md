@@ -10,6 +10,7 @@ los datos ni cambios locales de otras personas.
 - Backend: Express y PostgreSQL en `backend/`.
 - La lógica ETA y sus contratos son críticos.
 - La dirección visual vigente está en `docs/UI_REDESIGN_DIRECTION.md`.
+- La barra permanente de calidad está en `docs/DEFINITION_OF_DONE.md`.
 - Antes de editar, revisar `git status` y conservar todo cambio preexistente.
 
 ## Uso eficiente del contexto
@@ -72,6 +73,7 @@ explicar el bloqueo. Codex decide el siguiente paso y revisa siempre el diff.
 - No ocultar contenido para corregir una superposición salvo que el flujo lo exija.
 - No cambiar nombres de clases usados por TypeScript sin autorización explícita.
 - Para frontend, validar al menos con `npm run build` desde `frontend/`.
+- Para backend, validar al menos con `npm test` desde `backend/`.
 
 ## Flujo de revisión
 

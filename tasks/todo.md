@@ -13,15 +13,16 @@ máximo cinco archivos. Un paquete no es autorización para modificar código.
   - Aceptación: credencial antigua inválida y scripts sin secretos embebidos.
   - Verificación: secret scan del árbol e historial; conexión solo mediante entorno.
   - Dependencias: ninguna; bloquea cualquier migración.
-- [ ] T01 Documentar comandos y Definition of Done.
+  - Avance: secreto eliminado del árbol actual; rotación y limpieza histórica pendientes.
+- [x] T01 Documentar comandos y Definition of Done.
   - Aceptación: comandos ejecutables y matriz de auditoría versionados.
   - Verificación: ejecutar cada comando documentado.
   - Dependencias: ninguna.
-- [ ] T02 Crear fixtures del dominio ETA.
+- [x] T02 Crear fixtures del dominio ETA.
   - Aceptación: cubren horarios, cortes, días hábiles y ausencia de ruta.
   - Verificación: fixtures cargan sin red ni base de datos.
   - Dependencias: T01.
-- [ ] T03 Caracterizar `calcularIngresoOficial`.
+- [x] T03 Caracterizar `calcularIngresoOficial`.
   - Aceptación: casos antes, durante y después del cierre protegidos.
   - Verificación: suite unitaria verde.
   - Dependencias: T02.

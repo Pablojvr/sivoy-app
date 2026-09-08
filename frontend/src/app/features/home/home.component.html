@@ -338,7 +338,8 @@
   <!-- PIN DETAILS MODAL -->
   <div class="pin-modal-overlay fade-in" *ngIf="selectedPin" (click)="closePinDetails()"></div>
   <article
-    class="pin-details-card pin-point-card card-style slide-up"
+    siCard
+    class="pin-details-card pin-point-card slide-up"
     [class.is-collapsed]="!isPinCardExpanded"
     *ngIf="selectedPin"
     role="dialog"
@@ -352,24 +353,26 @@
       <button *ngIf="selectedPin.imagen_referencia" type="button" class="pin-image-preview" (click)="openPinImagePreview(selectedPin.imagen_referencia)" aria-label="Ver imagen completa"></button>
       <button
         type="button"
+        siIconButton
+        variant="ghost"
         class="pin-card-sheet-toggle"
         (click)="togglePinCard($event)"
         [attr.aria-expanded]="isPinCardExpanded"
         aria-controls="pin-card-expanded-content"
-        [attr.aria-label]="isPinCardExpanded ? 'Contraer información del punto' : 'Expandir información del punto'">
+        [aria-label]="isPinCardExpanded ? 'Contraer información del punto' : 'Expandir información del punto'">
         <span aria-hidden="true"></span>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="m6 15 6-6 6 6"></path></svg>
       </button>
       <div class="pin-card-hero-actions">
-        <button type="button" (click)="shareLocation(selectedPin); $event.stopPropagation()" aria-label="Compartir información del punto">
+        <button siIconButton variant="secondary" type="button" (click)="shareLocation(selectedPin); $event.stopPropagation()" aria-label="Compartir información del punto">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"></path></svg>
         </button>
-        <button type="button" (click)="closePinDetails(); $event.stopPropagation()" aria-label="Cerrar detalle">
+        <button siIconButton variant="secondary" type="button" (click)="closePinDetails(); $event.stopPropagation()" aria-label="Cerrar detalle">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 6 12 12M18 6 6 18"></path></svg>
         </button>
       </div>
       <div class="pin-card-identity">
-        <span class="pin-provider-badge">{{ selectedPin.empresa || 'Agencia' }}</span>
+        <si-chip tone="neutral" class="pin-provider-badge">{{ selectedPin.empresa || 'Agencia' }}</si-chip>
         <h2 id="pin-point-title">{{ selectedPin.nombre_destino || selectedPin.destino_nombre }}</h2>
         <p>{{ selectedPin.ubicacion?.municipio || 'El Salvador' }}<ng-container *ngIf="selectedPin.ubicacion?.departamento">, {{ selectedPin.ubicacion.departamento }}</ng-container></p>
       </div>
@@ -380,6 +383,7 @@
       <button
         *ngIf="!highlightedRoute && !(origen && destino) && selectedPin.markerType === 'destination'"
         type="button"
+        siButton
         class="pin-route-action"
         (click)="setPinAsDestinationAndPromptOrigin()">
         <span class="pin-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 5.5-8 11-8 11S4 15.5 4 10a8 8 0 1 1 16 0Z"></path><circle cx="12" cy="10" r="2.5"></circle></svg></span>
@@ -390,6 +394,7 @@
       <button
         *ngIf="!highlightedRoute && !(origen && destino) && selectedPin.markerType === 'origin'"
         type="button"
+        siButton
         class="pin-route-action"
         (click)="setPinAsOriginAndPromptDestination()">
         <span class="pin-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 21V8l8-5 8 5v13"></path><path d="M9 21v-6h6v6"></path></svg></span>
@@ -397,7 +402,7 @@
         <svg class="pin-action-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"></path></svg>
       </button>
 
-      <button type="button" class="pin-map-action" (click)="openInGoogleMaps()" aria-label="Abrir punto en Google Maps">
+      <button type="button" siButton class="pin-map-action" (click)="openInGoogleMaps()" aria-label="Abrir punto en Google Maps">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 5.5-8 11-8 11S4 15.5 4 10a8 8 0 1 1 16 0Z"></path><circle cx="12" cy="10" r="2.5"></circle></svg>
         <span>Ver mapa</span>
       </button>
@@ -427,7 +432,7 @@
             <strong *ngIf="selectedPin.direccion_referencia">{{ selectedPin.direccion_referencia }}</strong>
             <span>{{ selectedPin.ubicacion?.municipio || 'El Salvador' }}<ng-container *ngIf="selectedPin.ubicacion?.departamento">, {{ selectedPin.ubicacion.departamento }}</ng-container></span>
           </span>
-          <button type="button" class="pin-copy-action" (click)="copyPinDetails()" aria-label="Copiar detalles del punto">
+          <button type="button" siIconButton variant="ghost" class="pin-copy-action" (click)="copyPinDetails()" aria-label="Copiar detalles del punto">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M15 9V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h4"></path></svg>
           </button>
         </div>

@@ -1377,6 +1377,7 @@ textarea.si-input {
   left: 50%;
   width: 64px;
   height: 34px;
+  min-height: 34px;
   display: grid;
   place-items: center;
   padding: 0;
@@ -1464,6 +1465,8 @@ textarea.si-input {
   display: inline-flex;
   margin-bottom: 5px;
   padding: 4px 7px;
+  height: auto;
+  min-height: 0;
   border-radius: var(--radius-full);
   background: #ef4f70;
   color: #fff;
@@ -1578,6 +1581,7 @@ textarea.si-input {
   place-items: center;
   align-content: center;
   gap: 3px;
+  padding: 0;
   border: 1px solid rgba(29, 30, 28, 0.11);
   background: #f1f3f0;
   color: #3d423b;

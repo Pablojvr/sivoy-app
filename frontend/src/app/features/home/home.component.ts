@@ -5,12 +5,12 @@ import { FormsModule } from '@angular/forms';
 import { RutasService } from '../../core/services/rutas.service';
 import { ToastService } from '../../core/services/toast.service';
 import { MapasService } from '../../core/services/mapas.service';
-import { SiCardDirective, SiButtonDirective, SiChipComponent } from '../../shared/ui/ui-primitives';
+import { SiCardDirective, SiButtonDirective, SiIconButtonDirective, SiChipComponent } from '../../shared/ui/ui-primitives';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, FormsModule, SiCardDirective, SiButtonDirective, SiChipComponent],
+  imports: [CommonModule, FormsModule, SiCardDirective, SiButtonDirective, SiIconButtonDirective, SiChipComponent],
   templateUrl: './home.component.html',
   encapsulation: ViewEncapsulation.None
 })

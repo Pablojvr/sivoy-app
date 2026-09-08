@@ -69,3 +69,48 @@ export class SiInputDirective {
 export class SiChipComponent {
   readonly tone = input<SiChipTone>('neutral');
 }
+
+export type SiCardTone = 'neutral' | 'accent' | 'success' | 'info' | 'warning' | 'contrast';
+export type SiSheetState = 'collapsed' | 'half' | 'expanded';
+export type SiModalSize = 'sm' | 'md' | 'lg';
+
+@Directive({
+  selector: 'article[siCard], section[siCard]',
+  standalone: true,
+  host: {
+    class: 'si-card',
+    '[class.si-card--elevated]': 'elevated()',
+    '[attr.data-tone]': 'tone()'
+  }
+})
+export class SiCardDirective {
+  readonly tone = input<SiCardTone>('neutral');
+  readonly elevated = input(false, { transform: booleanAttribute });
+}
+
+@Directive({
+  selector: 'section[siSheet]',
+  standalone: true,
+  host: {
+    class: 'si-sheet',
+    '[attr.data-state]': 'state()',
+    '[attr.aria-label]': 'ariaLabel()'
+  }
+})
+export class SiSheetDirective {
+  readonly state = input<SiSheetState>('collapsed');
+  readonly ariaLabel = input.required<string>({ alias: 'aria-label' });
+}
+
+@Directive({
+  selector: 'dialog[siModal]',
+  standalone: true,
+  host: {
+    class: 'si-modal',
+    '[attr.data-size]': 'size()',
+    '[attr.aria-modal]': '"true"'
+  }
+})
+export class SiModalDirective {
+  readonly size = input<SiModalSize>('md');
+}

@@ -164,10 +164,112 @@ textarea.si-input {
 .si-chip[data-tone='info'] { background: color-mix(in srgb, var(--signal-blue) 24%, var(--white)); color: var(--text-main); }
 .si-chip[data-tone='warning'] { background: color-mix(in srgb, var(--signal-amber) 30%, var(--white)); color: var(--text-main); }
 
+.si-card {
+  display: block;
+  padding: 24px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  background: var(--surface-solid);
+  color: var(--text-main);
+  transition: box-shadow var(--motion-standard) var(--ease-out),
+              background-color var(--motion-standard) var(--ease-out),
+              border-color var(--motion-standard) var(--ease-out);
+}
+
+.si-card--elevated {
+  box-shadow: var(--shadow-md);
+  border-color: transparent;
+}
+
+.si-card[data-tone='accent'] {
+  background: color-mix(in srgb, var(--primary) 6%, var(--surface-solid));
+  border-color: color-mix(in srgb, var(--primary) 20%, transparent);
+}
+
+.si-card[data-tone='success'] {
+  background: color-mix(in srgb, var(--signal-lime) 12%, var(--surface-solid));
+  border-color: color-mix(in srgb, var(--signal-lime) 40%, transparent);
+}
+
+.si-card[data-tone='info'] {
+  background: color-mix(in srgb, var(--signal-blue) 12%, var(--surface-solid));
+  border-color: color-mix(in srgb, var(--signal-blue) 40%, transparent);
+}
+
+.si-card[data-tone='warning'] {
+  background: color-mix(in srgb, var(--signal-amber) 16%, var(--surface-solid));
+  border-color: color-mix(in srgb, var(--signal-amber) 40%, transparent);
+}
+
+.si-card[data-tone='contrast'] {
+  background: var(--text-main);
+  color: var(--white);
+  border-width: 2px;
+  border-color: var(--text-main);
+}
+
+.si-sheet {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  background: var(--surface-solid);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  box-shadow: var(--shadow-lg);
+  transition: height var(--motion-sheet) var(--ease-out);
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-bottom: env(safe-area-inset-bottom, 24px);
+  z-index: 50;
+  will-change: height;
+  display: flex;
+  flex-direction: column;
+}
+
+.si-sheet[data-state='collapsed'] {
+  height: 104px;
+}
+
+.si-sheet[data-state='half'] {
+  height: 52dvh;
+}
+
+.si-sheet[data-state='expanded'] {
+  height: min(76dvh, calc(100dvh - 24px));
+}
+
+.si-modal {
+  margin: auto;
+  padding: 24px;
+  border: none;
+  border-radius: var(--radius-lg);
+  background: var(--surface-solid);
+  color: var(--text-main);
+  box-shadow: var(--shadow-lg);
+  width: calc(100% - 48px);
+  max-width: 480px;
+  max-height: calc(100dvh - env(safe-area-inset-top, 24px) - env(safe-area-inset-bottom, 24px));
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.si-modal[data-size='sm'] { max-width: 320px; }
+.si-modal[data-size='md'] { max-width: 480px; }
+.si-modal[data-size='lg'] { max-width: 720px; }
+
+.si-modal::backdrop {
+  background: color-mix(in srgb, var(--text-main) 40%, transparent);
+  backdrop-filter: blur(4px);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .si-button,
   .si-icon-button,
-  .si-input {
+  .si-input,
+  .si-card,
+  .si-sheet,
+  .si-modal {
     transition: none;
   }
 }

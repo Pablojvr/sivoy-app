@@ -3497,14 +3497,6 @@ app-home, app-admin { display: block; width: 100%; height: 100%; position: relat
 
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .bottom-sheet,
-  .ticket-card,
-  .location-card,
-  .destination-search-trigger {
-    transition-duration: 0.01ms !important;
-  }
-}
 
 /* Admin, forms and data navigation share the same SiVoy Signal grammar. */
 .admin-tab-content {
@@ -5137,13 +5129,6 @@ textarea {
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .bottom-sheet:not(.dragging),
-  .bottom-sheet .sheet-content,
-  .drag-handle::after {
-    transition-duration: 0.01ms !important;
-  }
-}
 
 /* ================================================================
    LIST-FIRST DELIVERY FLOW
@@ -5459,4 +5444,19 @@ app-home.list-first-mode .map-wrapper {
   border-radius: 12px;
   object-fit: contain;
   box-shadow: 0 10px 40px color-mix(in srgb, var(--text-main) 50%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bottom-sheet,
+  .ticket-card,
+  .location-card,
+  .destination-search-trigger {
+    transition: none;
+  }
+
+  .bottom-sheet:not(.dragging),
+  .bottom-sheet .sheet-content,
+  .drag-handle::after {
+    transition: none;
+  }
 }

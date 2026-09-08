@@ -115,12 +115,6 @@
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .slide-in,
-  .fade-out {
-    animation-duration: 0.01ms !important;
-  }
-}
 
 @keyframes slideInRight {
   from {
@@ -150,4 +144,11 @@
 
 .fade-out {
   animation: fadeOutUp 0.3s ease-in forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slide-in,
+  .fade-out {
+    animation: none;
+  }
 }

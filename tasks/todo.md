@@ -78,7 +78,7 @@ aceptación y comandos exactos de prueba. T13 requiere aprobación explícita.
 - [x] T17 Crear primitivas Card/Sheet/Modal.
 - [x] T18 Migrar tarjetas de resultados.
 - [x] T19 Migrar detalle de punto y horarios.
-- [ ] T20 Migrar navegación y overlays.
+- [x] T20 Migrar navegación y overlays.
 - [ ] T21 Reducir estilos inline y `!important` con métricas comparativas.
 
 T15–T21 pueden delegarse parcialmente a Antigravity en encargos de máximo tres

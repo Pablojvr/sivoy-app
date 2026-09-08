@@ -5410,3 +5410,53 @@ app-home.list-first-mode .map-wrapper {
   height: 40px;
   flex-basis: 40px;
 }
+
+/* FULLSCREEN IMAGE PREVIEW OVERLAY */
+.image-preview-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  background: color-mix(in srgb, var(--text-main) 85%, transparent);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-bottom: calc(72px + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.image-preview-close {
+  position: absolute;
+  top: max(20px, env(safe-area-inset-top));
+  right: max(20px, env(safe-area-inset-right));
+  background: color-mix(in srgb, var(--white) 20%, transparent);
+  border: none;
+  color: var(--white);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  font-size: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10000;
+  transition: background-color var(--motion-fast) ease;
+}
+
+.image-preview-close:hover {
+  background: color-mix(in srgb, var(--white) 30%, transparent);
+}
+
+.image-preview-content {
+  max-width: 90%;
+  max-height: 90%;
+  border-radius: 12px;
+  object-fit: contain;
+  box-shadow: 0 10px 40px color-mix(in srgb, var(--text-main) 50%, transparent);
+}

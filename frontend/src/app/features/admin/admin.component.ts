@@ -13,6 +13,7 @@ import { EL_SALVADOR_LOCATIONS, DEPARTAMENTOS_EL_SALVADOR } from '../../core/con
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './admin.component.html',
+  styleUrl: './admin.component.css',
   encapsulation: ViewEncapsulation.None
 })
 export class AdminComponent implements OnInit {

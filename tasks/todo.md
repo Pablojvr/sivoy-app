@@ -49,7 +49,7 @@ máximo cinco archivos. Un paquete no es autorización para modificar código.
 - [ ] T09 Extraer fechas y horarios al núcleo ETA puro.
 - [ ] T10 Extraer casos de uso de rutas y adaptador legacy.
 - [ ] T11 Añadir repositorios por interfaz.
-- [ ] T12 Transaccionar actualización de punto y horarios.
+- [x] T12 Transaccionar actualización de punto y horarios.
 - [ ] T13 Resolver y migrar contrato `id`/`id_destino`.
 - [ ] T14 Optimizar búsquedas después de medir consultas.
 - [x] T38 Versionar baseline y ledger de migraciones reproducibles.

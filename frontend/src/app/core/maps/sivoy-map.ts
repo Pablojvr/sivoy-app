@@ -1,5 +1,5 @@
 import mapboxgl, { StyleSpecification } from 'mapbox-gl';
-import maplibregl from 'maplibre-gl';
+import * as maplibregl from 'maplibre-gl';
 
 export type SiVoyCoordinate = [longitude: number, latitude: number];
 export type SiVoyMap = any;

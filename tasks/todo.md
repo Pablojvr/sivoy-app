@@ -61,9 +61,10 @@ máximo cinco archivos. Un paquete no es autorización para modificar código.
 - [ ] T44 Uniformar envelopes, errores, IDs y timestamps del API.
 - [ ] T45 Endurecer resolución de URLs y respuestas externas.
 - [ ] T46 Separar superficie pública y operativa; endurecer HTTP y pool.
-- [ ] T47 Actualizar MapLibre a v6 segura y validar el adaptador compartido.
-  - Bloquea seguridad: `maplibre-gl@5.24.0` está afectado por GHSA-jrc7-96c5-q579.
-  - Spec aprobado requerido: `tasks/specs/T47-maplibre-v6-security-upgrade.md`.
+- [x] T47 Actualizar MapLibre a v6 segura y validar el adaptador compartido.
+  - Resultado auditado: `maplibre-gl@6.8.0`, 0 vulnerabilidades en `npm audit --omit=dev`, 17 pruebas frontend y build de producción verdes.
+  - Validación local: fallback MapLibre cargado sin errores de consola o worker; pin restaurado a la misma posición tras zoom in/out.
+  - Spec ejecutado: `tasks/specs/T47-maplibre-v6-security-upgrade.md`.
 
 Cada tarea debe incluir al abrirse: máximo cinco archivos, hasta tres criterios de
 aceptación y comandos exactos de prueba. T13 requiere aprobación explícita.
@@ -105,6 +106,7 @@ archivos. Codex debe revisar cada diff y ejecutar build y auditoría visual.
 - [ ] T25 Extraer resultados, horarios y compartir.
 - [ ] T26 Centralizar data-access y errores del flujo.
 - [ ] T27 Crear puerto y adaptador del mapa.
+  - Incluir detección de WebGL2 y continuidad list-first con mensaje recuperable cuando el mapa no esté disponible.
 - [ ] T28 Encapsular ciclo de vida de marcadores y listeners.
 - [ ] T29 Separar operaciones de empresas en ruta propia.
 - [ ] T30 Reducir `MobileAppComponent` al shell.

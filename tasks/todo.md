@@ -79,7 +79,9 @@ aceptación y comandos exactos de prueba. T13 requiere aprobación explícita.
 - [x] T18 Migrar tarjetas de resultados.
 - [x] T19 Migrar detalle de punto y horarios.
 - [x] T20 Migrar navegación y overlays.
-- [ ] T21 Reducir estilos inline y `!important` con métricas comparativas.
+- [x] T21 Reducir estilos inline y `!important` con métricas comparativas.
+  - Resultado auditado: `style="` 139 -> 0; `!important` 73 -> 67; hex CSS 496 -> 496.
+  - Se conservan únicamente bindings `[style.*]` calculados para contenido dinámico.
 
 T15–T21 pueden delegarse parcialmente a Antigravity en encargos de máximo tres
 archivos. Codex debe revisar cada diff y ejecutar build y auditoría visual.

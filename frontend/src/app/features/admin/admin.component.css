@@ -383,3 +383,312 @@
   align-items: center;
   gap: 6px;
 }
+
+/* Admin location editor modal. */
+.admin-edit-modal-layout {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  max-width: 400px;
+  max-height: 90vh;
+}
+
+.admin-edit-minimized-view {
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--surface-solid);
+  border-radius: 12px;
+  box-shadow: 0 10px 25px color-mix(in srgb, var(--text-main) 10%, transparent);
+  border: 2px solid var(--primary);
+}
+
+.admin-edit-minimized-title {
+  margin: 0;
+  font-size: 14px;
+}
+
+.admin-edit-minimized-subtitle {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.admin-edit-minimized-btn {
+  padding: 6px 12px;
+  font-size: 12px;
+}
+
+.admin-edit-modal-header {
+  padding: 24px 24px 0 24px;
+  flex-shrink: 0;
+}
+
+.admin-edit-header-title-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.admin-edit-back-btn {
+  padding: 6px;
+  border-radius: 50%;
+  color: var(--text-muted);
+  background: var(--surface-hover);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.admin-edit-title {
+  margin: 0;
+}
+
+.admin-edit-modal-body {
+  padding: 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.admin-edit-upload-area {
+  margin-bottom: 20px;
+}
+
+.admin-edit-upload-label {
+  display: inline-block;
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+}
+
+.admin-edit-processing {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.admin-edit-processing-icon {
+  color: var(--primary);
+  margin-bottom: 10px;
+}
+
+.admin-edit-processing-text {
+  color: var(--primary);
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.admin-edit-image-preview-wrapper {
+  position: relative;
+}
+
+.admin-edit-image-preview {
+  max-height: 150px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.admin-edit-image-saving-overlay {
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, var(--surface-solid) 70%, transparent);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  z-index: 10;
+}
+
+.admin-edit-saving-icon {
+  color: var(--primary);
+  margin-bottom: 8px;
+}
+
+.admin-edit-saving-text {
+  color: var(--primary);
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.admin-edit-image-change-container {
+  margin-top: 10px;
+}
+
+.admin-edit-image-change-label {
+  cursor: pointer;
+  color: var(--primary);
+}
+
+.admin-edit-map-status-container {
+  margin-top: 12px;
+  margin-bottom: 20px;
+}
+
+.admin-edit-map-status-ready {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px;
+  background: color-mix(in srgb, var(--success) 10%, var(--surface-solid));
+  border: 1px solid color-mix(in srgb, var(--success) 30%, var(--surface-solid));
+  border-radius: 8px;
+}
+
+.admin-edit-map-status-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-edit-map-status-text {
+  color: color-mix(in srgb, var(--success) 80%, var(--text-main));
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.admin-edit-map-btn {
+  color: color-mix(in srgb, var(--success) 90%, var(--text-main));
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 8px;
+  background: color-mix(in srgb, var(--success) 20%, var(--surface-solid));
+  border-radius: 6px;
+  cursor: pointer;
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.admin-edit-map-status-missing {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  background: color-mix(in srgb, var(--signal-amber) 10%, var(--surface-solid));
+  border: 1px solid color-mix(in srgb, var(--signal-amber) 30%, var(--surface-solid));
+  border-radius: 8px;
+  gap: 8px;
+}
+
+.admin-edit-map-status-missing-text {
+  color: color-mix(in srgb, var(--signal-amber) 80%, var(--text-main));
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.admin-edit-map-pick-btn {
+  width: 100%;
+  padding: 8px;
+  font-size: 13px;
+  border-color: var(--primary);
+  color: var(--primary);
+  margin-top: 8px;
+}
+
+.admin-edit-required {
+  color: var(--signal-red);
+}
+
+.admin-edit-textarea {
+  resize: vertical;
+  min-height: 80px;
+  font-family: inherit;
+}
+
+.admin-edit-dia-row {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: var(--surface-hover);
+  border: 1px solid var(--border-color);
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--text-main) 2%, transparent);
+}
+
+.admin-edit-dia-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.admin-edit-dia-toggle-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.admin-edit-dia-label {
+  font-weight: 600;
+  color: var(--text-main);
+  font-size: 15px;
+}
+
+.admin-edit-dia-closed {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.admin-edit-horario-inputs {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 12px;
+  align-items: center;
+  width: 100%;
+  border-top: 1px solid var(--border-color);
+  padding-top: 12px;
+  margin-top: 4px;
+}
+
+.admin-edit-time-input {
+  padding: 10px;
+  border-radius: 8px;
+  width: 100%;
+  text-align: center;
+  font-size: 14px;
+  background: var(--surface-solid);
+  border: 1px solid var(--border-color);
+}
+
+.admin-edit-time-separator {
+  color: var(--text-muted);
+  font-weight: 600;
+  font-size: 13px;
+  text-transform: uppercase;
+}
+
+.admin-edit-modal-footer {
+  padding: 16px 24px 24px 24px;
+  flex-shrink: 0;
+  background: var(--surface-solid);
+  border-top: 1px solid var(--border-color);
+}
+
+.admin-edit-modal-actions {
+  margin-top: 0;
+}
+
+.admin-edit-saving-content {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.admin-edit-modal-actions .primary-btn.is-success {
+  background: var(--success);
+  border-color: var(--success);
+}

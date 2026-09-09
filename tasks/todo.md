@@ -109,16 +109,16 @@ archivos. Codex debe revisar cada diff y ejecutar build y auditoría visual.
   - Resultado auditado: selector presentacional tipado para municipio, punto, ubicación actual y ayuda de lugares; 35 pruebas frontend y build verdes.
   - Recorrido local aprobado: destino específico → municipio origen → ruta → cambiar origen → reabrir municipio/Google Places, sin errores.
   - Spec ejecutado: `tasks/specs/T24-origin-search-component.md`.
-- [ ] T25 Extraer resultados, horarios y compartir.
+- [x] T25 Extraer resultados, horarios y compartir.
   - Ejecución incremental: `tasks/specs/T25-results-schedules-sharing.md` (T25a1–T25c).
   - [x] T25a1: agrupación y formato de horarios extraídos a dominio puro; 46 pruebas frontend y build verdes.
   - [x] T25a2: presentación reutilizable de horarios; 50 pruebas y DOM/CSS de pin y tarjeta auditados en local.
   - [x] T25b: tarjeta presentacional de punto; 59 pruebas, build y DOM/ARIA colapsable auditados en local.
-  - [ ] T25c: rutas, detalle y compartir.
+  - [x] T25c: rutas, detalle y compartir.
     - [x] T25c1: Web Share, PNG y portapapeles extraídos tras auditoría; 73 pruebas y build verdes.
-    - [ ] T25c2: tarjetas de rutas y detalle de pin.
+    - [x] T25c2: tarjetas de rutas y detalle de pin.
       - [x] T25c2a: tarjeta de ruta presentacional; 80 pruebas y flujo real de expansión/cambio de día auditados.
-      - [ ] T25c2b: detalle de pin.
+      - [x] T25c2b: detalle de pin; 92 pruebas, build y estados móvil/ARIA auditados.
 - [ ] T26 Centralizar data-access y errores del flujo.
 - [ ] T27 Crear puerto y adaptador del mapa.
   - Incluir detección de WebGL2 y continuidad list-first con mensaje recuperable cuando el mapa no esté disponible.

@@ -5,20 +5,20 @@ import { FormsModule } from '@angular/forms';
 import { RutasService } from '../../core/services/rutas.service';
 import { ToastService } from '../../core/services/toast.service';
 import { MapasService } from '../../core/services/mapas.service';
-import { SiCardDirective, SiButtonDirective, SiIconButtonDirective, SiChipComponent } from '../../shared/ui/ui-primitives';
+import { SiCardDirective } from '../../shared/ui/ui-primitives';
 import { DestinationSearchComponent, MunicipalityOption } from './destination-search/destination-search.component';
 import { OriginSearchComponent } from './origin-search/origin-search.component';
 import { ShipmentSearchFacade } from './shipment-search.facade';
 import { formatScheduleTime, groupConsecutiveSchedules, GroupedSchedule } from './results/schedule-utils';
-import { ScheduleDisplayComponent } from './results/schedule-display.component';
 import { PointResultCardComponent } from './results/point-result-card.component';
 import { PointShareService } from './results/point-share.service';
 import { RouteResultCardComponent, RouteResultViewModel, RouteDeliveryDayChange, formatLocationName as rtFormatLoc, formatFriendlyDate as rtFormatDate } from './results/route-result-card.component';
+import { PinDetailCardComponent } from './results/pin-detail-card.component';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, FormsModule, SiCardDirective, SiButtonDirective, SiIconButtonDirective, SiChipComponent, DestinationSearchComponent, OriginSearchComponent, ScheduleDisplayComponent, PointResultCardComponent, RouteResultCardComponent],
+  imports: [CommonModule, FormsModule, SiCardDirective, DestinationSearchComponent, OriginSearchComponent, PointResultCardComponent, RouteResultCardComponent, PinDetailCardComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.css',
   encapsulation: ViewEncapsulation.None
@@ -1145,8 +1145,7 @@ export class HomeComponent implements OnInit, OnChanges {
     }
   }
 
-  togglePinCard(event: MouseEvent) {
-    event.stopPropagation();
+  togglePinCard() {
     this.isPinCardExpanded = !this.isPinCardExpanded;
     this.pinCardStateLocked = true;
   }

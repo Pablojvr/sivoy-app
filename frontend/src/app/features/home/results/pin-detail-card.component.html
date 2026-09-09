@@ -1,0 +1,103 @@
+    <header
+      class="pin-card-hero"
+      [style.backgroundImage]="heroImageUrl ? 'url(' + heroImageUrl + ')' : 'linear-gradient(145deg, #f45b78 0%, #7d2438 58%, #1d1e1c 100%)'"
+      (touchstart)="onTouchStart($event)"
+      (touchend)="onTouchEnd($event)">
+      <button *ngIf="pin.imagen_referencia" type="button" class="pin-image-preview" (click)="onPreview()" aria-label="Ver imagen completa"></button>
+      <button
+        type="button"
+        siIconButton
+        variant="ghost"
+        class="pin-card-sheet-toggle"
+        (click)="onToggle($event)"
+        [attr.aria-expanded]="expanded"
+        aria-controls="pin-card-expanded-content"
+        [aria-label]="expanded ? 'Contraer información del punto' : 'Expandir información del punto'">
+        <span aria-hidden="true"></span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="m6 15 6-6 6 6"></path></svg>
+      </button>
+      <div class="pin-card-hero-actions">
+        <button siIconButton variant="secondary" type="button" (click)="onShare($event)" aria-label="Compartir información del punto">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"></path></svg>
+        </button>
+        <button siIconButton variant="secondary" type="button" (click)="onClose($event)" aria-label="Cerrar detalle">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 6 12 12M18 6 6 18"></path></svg>
+        </button>
+      </div>
+      <div class="pin-card-identity">
+        <si-chip tone="neutral" class="pin-provider-badge">{{ pin.empresa || 'Agencia' }}</si-chip>
+        <h2 id="pin-point-title">{{ pin.nombre_destino || pin.destino_nombre }}</h2>
+        <p>{{ pin.ubicacion?.municipio || 'El Salvador' }}<ng-container *ngIf="pin.ubicacion?.departamento">, {{ pin.ubicacion?.departamento }}</ng-container></p>
+      </div>
+    </header>
+
+    <div id="pin-card-expanded-content" class="pin-card-expanded-content point-card-expandable" *ngIf="expanded">
+      <div class="pin-card-quick-actions" [class.single-action]="routeSelectionBlocked">
+      <button
+        *ngIf="!routeSelectionBlocked && pin.markerType === 'destination'"
+        type="button"
+        siButton
+        class="pin-route-action"
+        (click)="onSelectDestination()">
+        <span class="pin-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 5.5-8 11-8 11S4 15.5 4 10a8 8 0 1 1 16 0Z"></path><circle cx="12" cy="10" r="2.5"></circle></svg></span>
+        <span><small>{{ hasOrigin ? 'Ruta lista para calcular' : 'Después eliges el origen' }}</small><strong>{{ hasOrigin ? 'Calcular hacia aquí' : 'Usar como destino' }}</strong></span>
+        <svg class="pin-action-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"></path></svg>
+      </button>
+
+      <button
+        *ngIf="!routeSelectionBlocked && pin.markerType === 'origin'"
+        type="button"
+        siButton
+        class="pin-route-action"
+        (click)="onSelectOrigin()">
+        <span class="pin-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 21V8l8-5 8 5v13"></path><path d="M9 21v-6h6v6"></path></svg></span>
+        <span><small>{{ hasDestination ? 'Ruta lista para calcular' : 'Después eliges el destino' }}</small><strong>{{ hasDestination ? 'Calcular desde aquí' : 'Usar como origen' }}</strong></span>
+        <svg class="pin-action-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"></path></svg>
+      </button>
+
+      <button type="button" siButton class="pin-map-action" (click)="onOpenMap()" aria-label="Abrir punto en Google Maps">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 5.5-8 11-8 11S4 15.5 4 10a8 8 0 1 1 16 0Z"></path><circle cx="12" cy="10" r="2.5"></circle></svg>
+        <span>Ver mapa</span>
+      </button>
+      </div>
+
+      <nav class="pin-card-tabs" aria-label="Información del punto">
+        <button type="button" [class.active]="activeTab === 'info'" (click)="onTabChange('info')">Información</button>
+        <button type="button" [class.active]="activeTab === 'horarios'" (click)="onTabChange('horarios')">Horarios</button>
+      </nav>
+
+      <div class="pin-card-content">
+        <section *ngIf="activeTab === 'info'" class="pin-info-panel">
+        <div *ngIf="pin._status as status" class="pin-availability" [ngClass]="status.color">
+          <span class="pin-availability-icon" aria-hidden="true">
+            <svg *ngIf="status.iconType === 'clock'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
+            <svg *ngIf="status.iconType === 'calendar'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M16 3v4M8 3v4M3 10h18"></path></svg>
+            <svg *ngIf="status.iconType === 'close'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"></circle><path d="m9 9 6 6M15 9l-6 6"></path></svg>
+          </span>
+          <span><small>Disponibilidad</small><strong>{{ status.mainText }}</strong></span>
+          <b *ngIf="status.timeText">{{ status.timeText }}</b>
+        </div>
+
+        <div class="pin-address-card">
+          <span class="pin-address-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 5.5-8 11-8 11S4 15.5 4 10a8 8 0 1 1 16 0Z"></path><circle cx="12" cy="10" r="2.5"></circle></svg></span>
+          <span class="pin-address-copy">
+            <small>Dirección</small>
+            <strong *ngIf="pin.direccion_referencia">{{ pin.direccion_referencia }}</strong>
+            <span>{{ pin.ubicacion?.municipio || 'El Salvador' }}<ng-container *ngIf="pin.ubicacion?.departamento">, {{ pin.ubicacion?.departamento }}</ng-container></span>
+          </span>
+          <button type="button" siIconButton variant="ghost" class="pin-copy-action" (click)="onCopy()" aria-label="Copiar detalles del punto">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M15 9V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h4"></path></svg>
+          </button>
+        </div>
+        </section>
+
+        <section *ngIf="activeTab === 'horarios'" class="pin-hours-panel">
+        <div class="pin-hours-heading"><span><small>Atención al público</small><strong>Horarios semanales</strong></span></div>
+        <app-schedule-display class="pin-hours-list"
+          *ngIf="pin.horarios_operativos && pin.horarios_operativos.length > 0"
+          [schedules]="pin.horarios_operativos">
+        </app-schedule-display>
+        <div class="pin-hours-empty" *ngIf="!pin.horarios_operativos || pin.horarios_operativos.length === 0">Horarios no definidos</div>
+        </section>
+      </div>
+    </div>

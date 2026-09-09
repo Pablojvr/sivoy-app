@@ -294,12 +294,10 @@
 
         <section *ngIf="activePinTab === 'horarios'" class="pin-hours-panel">
         <div class="pin-hours-heading"><span><small>Atención al público</small><strong>Horarios semanales</strong></span></div>
-        <div class="pin-hours-list" *ngIf="selectedPin.horarios_operativos && selectedPin.horarios_operativos.length > 0">
-          <div *ngFor="let g of getGroupedSchedules(selectedPin.horarios_operativos)">
-            <span>{{ g.dias }}</span>
-            <strong>{{ formatTime(g.apertura) }} – {{ formatTime(g.cierre) }}</strong>
-          </div>
-        </div>
+        <app-schedule-display class="pin-hours-list"
+          *ngIf="selectedPin.horarios_operativos && selectedPin.horarios_operativos.length > 0"
+          [schedules]="selectedPin.horarios_operativos">
+        </app-schedule-display>
         <div class="pin-hours-empty" *ngIf="!selectedPin.horarios_operativos || selectedPin.horarios_operativos.length === 0">Horarios no definidos</div>
         </section>
       </div>
@@ -621,12 +619,10 @@
             </header>
 
             <ng-container *ngIf="isPointCardExpanded(res)">
-              <div class="point-hours-grid point-card-expandable" *ngIf="res.horarios_operativos?.length; else noPointHours">
-                <div *ngFor="let h of getGroupedSchedules(res.horarios_operativos)">
-                  <span>{{ h.dias }}</span>
-                  <strong>{{ formatTime(h.apertura) }} – {{ formatTime(h.cierre) }}</strong>
-                </div>
-              </div>
+              <app-schedule-display class="point-hours-grid point-card-expandable"
+                *ngIf="res.horarios_operativos?.length; else noPointHours"
+                [schedules]="res.horarios_operativos">
+              </app-schedule-display>
               <ng-template #noPointHours>
                 <p class="point-hours-empty point-card-expandable">Esta agencia todavía no ha publicado sus horarios.</p>
               </ng-template>

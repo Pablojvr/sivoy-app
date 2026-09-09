@@ -1,0 +1,4 @@
+<div *ngFor="let g of groupedSchedules">
+  <span>{{ g.dias }}</span>
+  <strong>{{ formatTime(g.apertura) }} – {{ formatTime(g.cierre) }}</strong>
+</div>

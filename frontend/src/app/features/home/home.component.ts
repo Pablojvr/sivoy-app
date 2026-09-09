@@ -7,12 +7,13 @@ import { ToastService } from '../../core/services/toast.service';
 import { MapasService } from '../../core/services/mapas.service';
 import { SiCardDirective, SiButtonDirective, SiIconButtonDirective, SiChipComponent } from '../../shared/ui/ui-primitives';
 import { DestinationSearchComponent, MunicipalityOption } from './destination-search/destination-search.component';
+import { OriginSearchComponent } from './origin-search/origin-search.component';
 import { ShipmentSearchFacade } from './shipment-search.facade';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, FormsModule, SiCardDirective, SiButtonDirective, SiIconButtonDirective, SiChipComponent, DestinationSearchComponent],
+  imports: [CommonModule, FormsModule, SiCardDirective, SiButtonDirective, SiIconButtonDirective, SiChipComponent, DestinationSearchComponent, OriginSearchComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.css',
   encapsulation: ViewEncapsulation.None
@@ -399,6 +400,29 @@ export class HomeComponent implements OnInit, OnChanges {
       this.origen = locationName;
       this.origenMunicipio = loc.ubicacion?.municipio;
       this.origenDepartamento = loc.ubicacion?.departamento;
+
+      const rawLat = loc.ubicacion?.lat;
+      const rawLng = loc.ubicacion?.lng;
+      const lat = rawLat != null && rawLat !== '' ? parseFloat(String(rawLat)) : NaN;
+      const lng = rawLng != null && rawLng !== '' ? parseFloat(String(rawLng)) : NaN;
+      const validCoords = !isNaN(lat) && !isNaN(lng) && isFinite(lat) && isFinite(lng) ? { lat, lng } : null;
+
+      this.facade.setOrigin({
+        point: {
+          id: this.getLocationIdentity(loc),
+          name: locationName,
+          company: loc.empresa,
+          type: loc.tipo,
+          coordinates: validCoords,
+          municipality: {
+            municipio: loc.ubicacion?.municipio || '',
+            departamento: loc.ubicacion?.departamento || ''
+          }
+        },
+        inputValue: locationName,
+        municipality: loc.ubicacion?.municipio || '',
+        department: loc.ubicacion?.departamento || ''
+      });
     } else {
       this.selectedDestinationPoint = loc;
       this.destinoInputValue = locationName;
@@ -635,6 +659,7 @@ export class HomeComponent implements OnInit, OnChanges {
       this.origen = '';
       this.origenMunicipio = '';
       this.origenDepartamento = '';
+      this.facade.setOrigin({ point: null, inputValue: '', municipality: '', department: '' });
     } else {
       this.selectedDestinationPoint = null;
       this.destinoInputValue = '';
@@ -714,6 +739,12 @@ export class HomeComponent implements OnInit, OnChanges {
     this.origenInputValue = 'Mi Ubicación';
     this.origen = 'Mi Ubicación';
     this.origenMunicipio = this.userMunicipalityName || '';
+    this.facade.setOrigin({
+      point: null,
+      inputValue: 'Mi Ubicación',
+      municipality: this.userMunicipalityName || '',
+      department: ''
+    });
     this.handleSelectionHandoff('origen');
     if (this.destino) {
       this.executeSearch();
@@ -726,10 +757,16 @@ export class HomeComponent implements OnInit, OnChanges {
 
   selectOriginMunicipality(mun: any) {
     this.selectedOriginPoint = null;
-    this.origen = mun.nombre_display;
-    this.origenInputValue = mun.nombre_display;
+    this.origen = mun.nombre_display || mun.municipio;
+    this.origenInputValue = mun.nombre_display || mun.municipio;
     this.origenMunicipio = mun.municipio;
     this.origenDepartamento = mun.departamento;
+    this.facade.setOrigin({
+      point: null,
+      inputValue: mun.nombre_display || mun.municipio,
+      municipality: mun.municipio,
+      department: mun.departamento || ''
+    });
     this.handleSelectionHandoff('origen');
     if (this.destino) {
       this.executeSearch();

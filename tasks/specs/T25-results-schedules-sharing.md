@@ -103,10 +103,36 @@ Criterios:
 3. Home sólo adapta y delega; servicio sin mapa, fachada, Router o estado visual;
    pruebas, build, diff y navegador local pasan sin cambios en Partners.
 
-## T25c2 — Rutas y detalle
+## T25c2a — Tarjeta de ruta
 
-Separar tarjetas de ruta y detalle de pin en cortes presentacionales posteriores.
-Home conservará intents, búsqueda, selección y navegación hasta T26.
+Archivos de implementación (máximo cinco):
+
+1. `frontend/src/app/features/home/results/route-result-card.component.ts` (nuevo)
+2. `frontend/src/app/features/home/results/route-result-card.component.html` (nuevo)
+3. `frontend/src/app/features/home/results/route-result-card.component.spec.ts` (nuevo)
+4. `frontend/src/app/features/home/home.component.ts`
+5. `frontend/src/app/features/home/home.component.html`
+
+Extraer cada `article.sivoy-route-card` mediante selector de atributo y un modelo
+estricto limitado a la ruta y sus opciones. Home conserva y muta `isExpanded` y
+`selected_opcion_idx`; el hijo emite ruta para alternar, `{ route, index }` para
+cambiar día, reinicio de origen y ruta para mostrar mapa. Los formateadores puros
+pueden exportarse desde el archivo TypeScript del componente y Home delegar en
+ellos para evitar duplicación sin añadir archivos.
+
+Criterios:
+
+1. Host `article`, clases, SVG, copy, fallback ETA, select, alertas y ARIA se
+   mantienen; colapsado/expandido producen el mismo DOM observable.
+2. Cada acción emite exactamente una vez payload tipado; el hijo no muta la ruta,
+   usa servicios, navegador, fachada, Router ni mapa.
+3. Home mantiene todo el estado y side effects; pruebas, build, diff y flujo local
+   pasan sin CSS, cambios visuales o modificaciones en Partners.
+
+## T25c2b — Detalle de pin
+
+Extraer el panel de detalle de pin en un corte posterior, conservando en Home la
+física táctil, selección, navegación, APIs y estado de expansión.
 
 ## Límites comunes
 

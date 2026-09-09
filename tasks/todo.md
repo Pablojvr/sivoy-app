@@ -61,6 +61,9 @@ máximo cinco archivos. Un paquete no es autorización para modificar código.
 - [ ] T44 Uniformar envelopes, errores, IDs y timestamps del API.
 - [ ] T45 Endurecer resolución de URLs y respuestas externas.
 - [ ] T46 Separar superficie pública y operativa; endurecer HTTP y pool.
+- [ ] T47 Actualizar MapLibre a v6 segura y validar el adaptador compartido.
+  - Bloquea seguridad: `maplibre-gl@5.24.0` está afectado por GHSA-jrc7-96c5-q579.
+  - Spec aprobado requerido: `tasks/specs/T47-maplibre-v6-security-upgrade.md`.
 
 Cada tarea debe incluir al abrirse: máximo cinco archivos, hasta tres criterios de
 aceptación y comandos exactos de prueba. T13 requiere aprobación explícita.

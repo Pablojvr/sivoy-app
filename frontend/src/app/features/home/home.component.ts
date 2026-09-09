@@ -12,6 +12,7 @@ import { ShipmentSearchFacade } from './shipment-search.facade';
 import { formatScheduleTime, groupConsecutiveSchedules, GroupedSchedule } from './results/schedule-utils';
 import { ScheduleDisplayComponent } from './results/schedule-display.component';
 import { PointResultCardComponent } from './results/point-result-card.component';
+import { PointShareService } from './results/point-share.service';
 
 @Component({
   selector: 'app-home',
@@ -191,7 +192,8 @@ export class HomeComponent implements OnInit, OnChanges {
     private toastService: ToastService,
     private mapasService: MapasService,
     private cdr: ChangeDetectorRef,
-    private readonly facade: ShipmentSearchFacade
+    private readonly facade: ShipmentSearchFacade,
+    private pointShareService: PointShareService
   ) {}
 
   get hasListContent(): boolean {
@@ -1144,136 +1146,13 @@ export class HomeComponent implements OnInit, OnChanges {
   }
 
   async sharePointResource(loc: any) {
-    const title = this.getLocationName(loc);
-    const text = this.buildPointShareText(loc);
-    const mapUrl = loc?.maps_url || this.buildGoogleMapsUrl(loc);
-    const imageUrl = this.hasPointImage(loc) ? this.resolveImageUrl(loc?.imagen_referencia) : '';
-
-    if (navigator.share) {
-      try {
-        if (imageUrl) {
-          try {
-            const pngBlob = await this.loadImageAsPng(imageUrl);
-            const imageFile = new File([pngBlob], `${this.safeFileName(title)}.png`, { type: 'image/png' });
-            const imageShareData: ShareData = { files: [imageFile], title, text };
-            if (!navigator.canShare || navigator.canShare(imageShareData)) {
-              await navigator.share(imageShareData);
-              return;
-            }
-          } catch (error: any) {
-            if (error?.name === 'AbortError') return;
-            console.warn('No se pudo adjuntar la imagen; se compartirá la información del punto.', error);
-          }
-        }
-
-        await navigator.share({ title, text, url: mapUrl });
-        return;
-      } catch (error: any) {
-        if (error?.name === 'AbortError') return;
-        console.warn('No se pudo abrir el menú para compartir; se copiarán las indicaciones.', error);
-      }
-    }
-
-    try {
-      await this.copyText(text);
-      this.toastService.showSuccess('Tu navegador no abrió el menú de compartir; copiamos la información para que puedas pegarla.', 'Información copiada');
-    } catch (error) {
-      console.error('No se pudo compartir la información del punto.', error);
-      this.toastService.showError('Tu navegador bloqueó la acción. Intenta de nuevo desde HTTPS.', 'No se pudo compartir');
-    }
+    const imageUrl = this.hasPointImage(loc) ? this.resolveImageUrl(loc?.imagen_referencia) : undefined;
+    await this.pointShareService.sharePoint(loc, imageUrl);
   }
 
   async copyPointResource(loc: any) {
     const imageUrl = this.resolveImageUrl(loc?.imagen_referencia);
-
-    if (imageUrl) {
-      try {
-        const pngBlob = await this.loadImageAsPng(imageUrl);
-        const ClipboardItemConstructor = (window as any).ClipboardItem;
-        if (navigator.clipboard?.write && ClipboardItemConstructor) {
-          await navigator.clipboard.write([
-            new ClipboardItemConstructor({ 'image/png': pngBlob })
-          ]);
-          this.toastService.showSuccess('La imagen del punto está lista para pegar en tu chat.', 'Imagen copiada');
-          return;
-        }
-
-        const shareFile = new File([pngBlob], `${this.safeFileName(this.getLocationName(loc))}.png`, { type: 'image/png' });
-        const shareData: ShareData = { files: [shareFile], title: this.getLocationName(loc), text: this.buildPointShareText(loc) };
-        if (navigator.share && (!navigator.canShare || navigator.canShare(shareData))) {
-          await navigator.share(shareData);
-          this.toastService.showSuccess('Selecciona dónde enviar la imagen del punto.', 'Imagen lista');
-          return;
-        }
-      } catch (error: any) {
-        if (error?.name === 'AbortError') return;
-        console.warn('No se pudo copiar la imagen; se copiarán las indicaciones.', error);
-      }
-    }
-
-    try {
-      await this.copyText(this.buildPointShareText(loc));
-      this.toastService.showSuccess(
-        imageUrl ? 'No fue posible copiar la imagen; copiamos las indicaciones y el enlace.' : 'Copiamos las indicaciones y el enlace del mapa.',
-        'Información copiada'
-      );
-    } catch (error) {
-      console.error('No se pudo copiar la información del punto.', error);
-      this.toastService.showError('Tu navegador bloqueó el portapapeles. Intenta de nuevo desde HTTPS.', 'No se pudo copiar');
-    }
-  }
-
-  private async loadImageAsPng(url: string): Promise<Blob> {
-    const response = await fetch(url, { mode: 'cors' });
-    if (!response.ok) throw new Error(`No se pudo cargar la imagen (${response.status})`);
-    const sourceBlob = await response.blob();
-    const imageBitmap = await createImageBitmap(sourceBlob);
-    const maximumSide = 1800;
-    const scale = Math.min(1, maximumSide / Math.max(imageBitmap.width, imageBitmap.height));
-    const canvas = document.createElement('canvas');
-    canvas.width = Math.max(1, Math.round(imageBitmap.width * scale));
-    canvas.height = Math.max(1, Math.round(imageBitmap.height * scale));
-    const context = canvas.getContext('2d');
-    if (!context) throw new Error('El navegador no pudo preparar la imagen');
-    context.drawImage(imageBitmap, 0, 0, canvas.width, canvas.height);
-    imageBitmap.close();
-    return await new Promise<Blob>((resolve, reject) => {
-      canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('No se pudo convertir la imagen')), 'image/png');
-    });
-  }
-
-  private buildPointShareText(loc: any): string {
-    const place = [loc?.ubicacion?.municipio, loc?.ubicacion?.departamento].filter(Boolean).join(', ');
-    const address = loc?.direccion_referencia ? `\nDirección: ${loc.direccion_referencia}` : '';
-    const mapUrl = loc?.maps_url || this.buildGoogleMapsUrl(loc);
-    return `${this.getLocationName(loc)}\n${loc?.empresa || 'Punto de entrega'}\n${place || 'El Salvador'}${address}\nMapa: ${mapUrl}`;
-  }
-
-  private buildGoogleMapsUrl(loc: any): string {
-    const lat = loc?.ubicacion?.lat;
-    const lng = loc?.ubicacion?.lng;
-    if (lat && lng) return `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
-    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${this.getLocationName(loc)} ${loc?.ubicacion?.municipio || ''} El Salvador`)}`;
-  }
-
-  private safeFileName(value: string): string {
-    return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '').toLowerCase() || 'punto-sivoy';
-  }
-
-  private async copyText(text: string): Promise<void> {
-    if (navigator.clipboard?.writeText) {
-      await navigator.clipboard.writeText(text);
-      return;
-    }
-    const textarea = document.createElement('textarea');
-    textarea.value = text;
-    textarea.style.position = 'fixed';
-    textarea.style.opacity = '0';
-    document.body.appendChild(textarea);
-    textarea.select();
-    const copied = document.execCommand('copy');
-    textarea.remove();
-    if (!copied) throw new Error('El portapapeles no está disponible');
+    await this.pointShareService.copyPoint(loc, imageUrl || undefined);
   }
 
   resetMapMarkers() {

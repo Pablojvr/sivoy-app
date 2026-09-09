@@ -115,6 +115,8 @@ archivos. Codex debe revisar cada diff y ejecutar build y auditoría visual.
   - [x] T25a2: presentación reutilizable de horarios; 50 pruebas y DOM/CSS de pin y tarjeta auditados en local.
   - [x] T25b: tarjeta presentacional de punto; 59 pruebas, build y DOM/ARIA colapsable auditados en local.
   - [ ] T25c: rutas, detalle y compartir.
+    - [x] T25c1: Web Share, PNG y portapapeles extraídos tras auditoría; 73 pruebas y build verdes.
+    - [ ] T25c2: tarjetas de rutas y detalle de pin.
 - [ ] T26 Centralizar data-access y errores del flujo.
 - [ ] T27 Crear puerto y adaptador del mapa.
   - Incluir detección de WebGL2 y continuidad list-first con mensaje recuperable cuando el mapa no esté disponible.

@@ -14,7 +14,7 @@ Migrar el acceso a datos hacia interfaces estrictamente tipadas (T26a), sin alte
 - Uso de `HttpClient` generics y tests de transporte.
 
 ### Status
-T26a accepted after independent audit; T26b-T26c remain in progress.
+T26a-T26b accepted after independent audit; T26c remains in progress.
 
 ### Tabla de Endpoints y Contratos
 
@@ -25,3 +25,11 @@ T26a accepted after independent audit; T26b-T26c remain in progress.
 | `/get-upcoming-routes` | `GetUpcomingRoutesPayload` | `results[]` o Escalar destapado | Escalar con `origen_msg` | Array si origen es array, escalar si no |
 
 **Nota sobre Validación:** Las respuestas se han modelado exactamente según lo que devuelve el backend. Es importante aclarar que los generics de `HttpClient` proporcionan verificación estática en tiempo de diseño y compilación, NO validación en tiempo de ejecución (runtime validation). El servicio se limita a transportar la red.
+
+### T26b: orquestación del flujo
+
+- El facade cancela búsquedas obsoletas con `switchMap`, incluso entre modos distintos.
+- Los adaptadores validan el JSON en runtime y separan respuestas vacías de respuestas inválidas.
+- El modelo de ruta normalizado conserva empresa, puntos, coordenadas, horarios y opciones; el estado visual se mantiene en una estructura separada.
+- Los errores se exponen mediante códigos y mensajes seguros, sin propagar detalles técnicos del backend.
+- La lógica dependiente del reloj local permanece fuera del facade y se integrará como función pura en T26c.

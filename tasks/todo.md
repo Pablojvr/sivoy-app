@@ -121,7 +121,7 @@ archivos. Codex debe revisar cada diff y ejecutar build y auditoría visual.
       - [x] T25c2b: detalle de pin; 92 pruebas, build y estados móvil/ARIA auditados.
 - [ ] T26 Centralizar data-access y errores del flujo.
   - [x] T26a: tipar contratos HTTP de rutas por endpoint; 100 pruebas y build auditados.
-  - [ ] T26b: orquestar búsquedas cancelables preservando el modelo completo de UI.
+  - [x] T26b: orquestar búsquedas cancelables preservando el modelo completo de UI; 113 pruebas, build y runtime auditados.
   - [ ] T26c: integrar el orquestador en Home y unificar estados/copy de error.
 - [ ] T27 Crear puerto y adaptador del mapa.
   - Incluir detección de WebGL2 y continuidad list-first con mensaje recuperable cuando el mapa no esté disponible.

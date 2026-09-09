@@ -102,6 +102,7 @@ archivos. Codex debe revisar cada diff y ejecutar build y auditoría visual.
   - Resultado auditado: infraestructura Vitest Angular 21 activa; 15 pruebas de fachada y 17 pruebas frontend verdes.
   - La fachada es aditiva y aún no tiene consumidores de producción; la integración se realiza en T23-T25.
 - [ ] T23 Extraer búsqueda de destino.
+  - Spec aprobado: `tasks/specs/T23-destination-search-component.md`.
 - [ ] T24 Extraer selección de origen.
 - [ ] T25 Extraer resultados, horarios y compartir.
 - [ ] T26 Centralizar data-access y errores del flujo.

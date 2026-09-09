@@ -6,11 +6,13 @@ import { RutasService } from '../../core/services/rutas.service';
 import { ToastService } from '../../core/services/toast.service';
 import { MapasService } from '../../core/services/mapas.service';
 import { SiCardDirective, SiButtonDirective, SiIconButtonDirective, SiChipComponent } from '../../shared/ui/ui-primitives';
+import { DestinationSearchComponent, MunicipalityOption } from './destination-search/destination-search.component';
+import { ShipmentSearchFacade } from './shipment-search.facade';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, FormsModule, SiCardDirective, SiButtonDirective, SiIconButtonDirective, SiChipComponent],
+  imports: [CommonModule, FormsModule, SiCardDirective, SiButtonDirective, SiIconButtonDirective, SiChipComponent, DestinationSearchComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.css',
   encapsulation: ViewEncapsulation.None
@@ -184,7 +186,8 @@ export class HomeComponent implements OnInit, OnChanges {
     private rutasService: RutasService,
     private toastService: ToastService,
     private mapasService: MapasService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private readonly facade: ShipmentSearchFacade
   ) {}
 
   get hasListContent(): boolean {
@@ -427,6 +430,27 @@ export class HomeComponent implements OnInit, OnChanges {
     if (type === 'destino') {
       this.executeSearch();
     }
+  }
+
+  onDestinationMunicipalitySelected(mun: MunicipalityOption) {
+    this.facade.setDestination({
+      point: null,
+      inputValue: mun.municipio,
+      municipality: mun.municipio,
+      department: mun.departamento || ''
+    });
+
+    this.selectMunicipality(mun, 'destino');
+  }
+
+  onDestinationClear() {
+    this.clearInput('destino');
+    this.facade.setDestination({
+      point: null,
+      inputValue: '',
+      municipality: '',
+      department: ''
+    });
   }
 
   onOrigenInput(event: any) {

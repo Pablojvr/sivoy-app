@@ -66,4 +66,3 @@ En Vitest/Angular:
 - No duplicar llamadas de red al sincronizar la fachada.
 - Los intents por URL permanecen coordinados por Home; su comportamiento debe
   comprobarse manualmente en el recorrido local.
-

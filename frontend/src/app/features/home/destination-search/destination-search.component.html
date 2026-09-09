@@ -1,0 +1,64 @@
+<label class="destination-input-label" for="destination-municipality">Municipio de destino</label>
+<div class="destination-input-shell">
+  <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <circle cx="11" cy="11" r="7"></circle>
+    <path d="m20 20-4-4"></path>
+  </svg>
+  <input
+    id="destination-municipality"
+    type="text"
+    inputmode="search"
+    autocomplete="off"
+    placeholder="Escribe un municipio"
+    [value]="visibleValue"
+    (input)="onInput($event)"
+    (focus)="onFocus()"
+    (keydown.enter)="onEnter()"
+    aria-controls="destination-options"
+    aria-autocomplete="list">
+  <button
+    type="button"
+    class="input-clear-btn"
+    *ngIf="visibleValue"
+    (click)="onClear($event)"
+    aria-label="Borrar destino">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 6 12 12M18 6 6 18"></path></svg>
+  </button>
+</div>
+
+<div class="destination-results-heading">
+  <span>Municipios disponibles</span>
+  <span>{{ options.length }}</span>
+</div>
+
+<div id="destination-options" class="destination-options-list" role="listbox" *ngIf="isListVisible && options.length > 0">
+  <button
+    type="button"
+    class="destination-option"
+    role="option"
+    *ngFor="let mun of options"
+    (click)="onSelect(mun)">
+    <span class="destination-option-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M20 10c0 5.5-8 11-8 11S4 15.5 4 10a8 8 0 1 1 16 0Z"></path>
+        <circle cx="12" cy="10" r="2.5"></circle>
+      </svg>
+    </span>
+    <span class="destination-option-copy">
+      <strong>{{ mun.municipio }}</strong>
+      <span>{{ mun.departamento }}</span>
+    </span>
+    <span class="destination-point-count">
+      {{ mun.pointCount }} {{ mun.pointCount === 1 ? 'punto' : 'puntos' }}
+    </span>
+  </button>
+</div>
+
+<div class="destination-empty-state" *ngIf="isListVisible && options.length === 0">
+  <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+    <circle cx="11" cy="11" r="7"></circle>
+    <path d="m20 20-4-4"></path>
+  </svg>
+  <strong>No encontramos ese municipio</strong>
+  <span>Prueba con otro nombre o departamento.</span>
+</div>

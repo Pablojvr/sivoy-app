@@ -14,7 +14,7 @@ Migrar el acceso a datos hacia interfaces estrictamente tipadas (T26a), sin alte
 - Uso de `HttpClient` generics y tests de transporte.
 
 ### Status
-T26a-T26b accepted after independent audit; T26c remains in progress.
+T26a-T26c1 accepted after independent audit; T26c2 remains in progress.
 
 ### Tabla de Endpoints y Contratos
 
@@ -33,3 +33,9 @@ T26a-T26b accepted after independent audit; T26c remains in progress.
 - El modelo de ruta normalizado conserva empresa, puntos, coordenadas, horarios y opciones; el estado visual se mantiene en una estructura separada.
 - Los errores se exponen mediante códigos y mensajes seguros, sin propagar detalles técnicos del backend.
 - La lógica dependiente del reloj local permanece fuera del facade y se integrará como función pura en T26c.
+
+### T26c1: reglas temporales y estado de presentación
+
+- El filtro de horarios cerrados replica el patrón legacy con una fecha inyectada y sin mutar resultados.
+- La selección conserva la identidad de la opción cuando cambia su índice tras el filtrado.
+- La expansión y selección de opciones se actualizan de forma inmutable desde el facade.

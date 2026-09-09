@@ -203,6 +203,45 @@ export class ShipmentSearchFacade {
     this.request$.next({ type: 'point', command });
   }
 
+  toggleRouteExpansion(routeIndex: number): void {
+    this._state.update(state => {
+      if (routeIndex < 0 || routeIndex >= state.results.length) return state;
+
+      const results = [...state.results];
+      const target = results[routeIndex];
+      results[routeIndex] = {
+        ...target,
+        presentation: {
+          ...target.presentation,
+          isExpanded: !target.presentation.isExpanded
+        }
+      };
+      return { ...state, results };
+    });
+  }
+
+  selectRouteOption(routeIndex: number, optionIndex: number): void {
+    this._state.update(state => {
+      if (routeIndex < 0 || routeIndex >= state.results.length) return state;
+
+      const target = state.results[routeIndex];
+      if (optionIndex < 0 || optionIndex >= target.route.options.length) return state;
+
+      if (optionIndex === target.presentation.selectedOptionIndex) return state;
+
+      const results = [...state.results];
+      results[routeIndex] = {
+        ...target,
+        presentation: {
+          ...target.presentation,
+          selectedOptionIndex: optionIndex,
+          selectedOption: target.route.options[optionIndex]
+        }
+      };
+      return { ...state, results };
+    });
+  }
+
   reset(): void {
     this.request$.next({ type: 'reset' });
     this._state.set(initialState);

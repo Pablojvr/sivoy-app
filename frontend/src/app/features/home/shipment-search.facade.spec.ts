@@ -180,4 +180,87 @@ describe('ShipmentSearchFacade (T26b)', () => {
       expect(pointSubject.observed).toBe(true);
     });
   });
+
+  describe('UI State Modifiers', () => {
+    it('toggles route expansion immutably', () => {
+      const validPayload = {
+        success: true,
+        results: [{
+          empresa: 'E', origen_nombre: 'O', destino_nombre_destino: 'D',
+          opciones_entrega: [{ fecha_llegada: 'A', horario_recoleccion: 'B', dropoff_date: 'C', dropoff_msg: 'D' }]
+        }]
+      };
+      mockService.searchFlights.mockReturnValue(of(validPayload));
+      facade.searchMunicipalityRoutes(dummyCommandMunicipality);
+
+      expect(facade.state().results[0].presentation.isExpanded).toBe(false);
+      facade.toggleRouteExpansion(0);
+      expect(facade.state().results[0].presentation.isExpanded).toBe(true);
+      facade.toggleRouteExpansion(0);
+      expect(facade.state().results[0].presentation.isExpanded).toBe(false);
+    });
+
+    it('ignores toggle expansion if index is out of bounds', () => {
+      const validPayload = {
+        success: true,
+        results: [{
+          empresa: 'E', origen_nombre: 'O', destino_nombre_destino: 'D',
+          opciones_entrega: [{ fecha_llegada: 'A', horario_recoleccion: 'B', dropoff_date: 'C', dropoff_msg: 'D' }]
+        }]
+      };
+      mockService.searchFlights.mockReturnValue(of(validPayload));
+      facade.searchMunicipalityRoutes(dummyCommandMunicipality);
+
+      const prevState = facade.state();
+      facade.toggleRouteExpansion(1);
+      facade.toggleRouteExpansion(-1);
+      expect(facade.state()).toBe(prevState);
+    });
+
+    it('selects route option immutably and syncs selectedOption', () => {
+      const validPayload = {
+        success: true,
+        results: [{
+          empresa: 'E', origen_nombre: 'O', destino_nombre_destino: 'D',
+          opciones_entrega: [
+             { fecha_llegada: 'A', horario_recoleccion: 'B', dropoff_date: 'C', dropoff_msg: 'D' },
+             { fecha_llegada: 'E', horario_recoleccion: 'F', dropoff_date: 'G', dropoff_msg: 'H' }
+          ]
+        }]
+      };
+      mockService.searchFlights.mockReturnValue(of(validPayload));
+      facade.searchMunicipalityRoutes(dummyCommandMunicipality);
+
+      expect(facade.state().results[0].presentation.selectedOptionIndex).toBe(0);
+      expect(facade.state().results[0].presentation.selectedOption?.arrivalDate).toBe('A');
+
+      facade.selectRouteOption(0, 1);
+
+      expect(facade.state().results[0].presentation.selectedOptionIndex).toBe(1);
+      expect(facade.state().results[0].presentation.selectedOption?.arrivalDate).toBe('E');
+    });
+
+    it('ignores select option if route or option index is out of bounds or unchanged', () => {
+      const validPayload = {
+        success: true,
+        results: [{
+          empresa: 'E', origen_nombre: 'O', destino_nombre_destino: 'D',
+          opciones_entrega: [{ fecha_llegada: 'A', horario_recoleccion: 'B', dropoff_date: 'C', dropoff_msg: 'D' }]
+        }]
+      };
+      mockService.searchFlights.mockReturnValue(of(validPayload));
+      facade.searchMunicipalityRoutes(dummyCommandMunicipality);
+
+      const prevState = facade.state();
+
+      facade.selectRouteOption(1, 0);
+      expect(facade.state()).toBe(prevState);
+
+      facade.selectRouteOption(0, 1);
+      expect(facade.state()).toBe(prevState);
+
+      facade.selectRouteOption(0, 0);
+      expect(facade.state()).toBe(prevState);
+    });
+  });
 });

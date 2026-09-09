@@ -77,11 +77,36 @@ Criterios:
 3. Home conserva una única tarjeta expandida y delega cada evento al método actual;
    pruebas, build, diff y verificación móvil pasan sin CSS ni cambios en Partners.
 
-## T25c — Rutas, detalle y compartir
+## T25c1 — Servicio de compartir y copiar
 
-Separar tarjetas de ruta y detalle de pin. La API Web Share, generación de imagen
-y fallback de portapapeles se moverán a un servicio probado; Home conservará
-intents, búsqueda y navegación hasta T26.
+Archivos de implementación (máximo cuatro):
+
+1. `frontend/src/app/features/home/results/point-share.service.ts` (nuevo)
+2. `frontend/src/app/features/home/results/point-share.service.spec.ts` (nuevo)
+3. `frontend/src/app/features/home/home.component.ts`
+4. `frontend/src/app/features/home/results/point-result-card.component.ts` sólo si
+   un contrato compartido estrictamente requiere reutilización.
+
+El servicio pertenece al flujo Home, no a `core`: recibe un `ShareablePoint`
+estructural y la URL de imagen ya resuelta. Encapsula Web Share, conversión PNG,
+portapapeles y sus fallbacks, además del texto y URL de Maps actuales. Las APIs de
+navegador y DOM se acceden mediante puertos o tokens inyectables definidos junto
+al servicio; las pruebas no sustituyen globals. Home conserva disponibilidad de
+imagen, resolución de URLs, intents, navegación y estado visual.
+
+Criterios:
+
+1. Texto, URL, nombre PNG, prioridad imagen → share → copia y todos los mensajes
+   de éxito/error permanecen idénticos, incluido `AbortError` sin toast.
+2. Pruebas deterministas cubren compartir con archivo, fallback sólo texto,
+   copiar imagen, fallos CORS/conversión y fallback de portapapeles sin globals.
+3. Home sólo adapta y delega; servicio sin mapa, fachada, Router o estado visual;
+   pruebas, build, diff y navegador local pasan sin cambios en Partners.
+
+## T25c2 — Rutas y detalle
+
+Separar tarjetas de ruta y detalle de pin en cortes presentacionales posteriores.
+Home conservará intents, búsqueda, selección y navegación hasta T26.
 
 ## Límites comunes
 

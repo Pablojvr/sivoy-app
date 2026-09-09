@@ -163,11 +163,11 @@ temporary adapter types to `data-access/contracts`.
 ## Decomposition Slices
 
 ### Slice 0: Test Infrastructure Prerequisite
-- **Files:** `frontend/angular.json`, `frontend/tsconfig.spec.json`, `frontend/package.json`, `frontend/package-lock.json`
+- **Files:** `frontend/angular.json`, `frontend/tsconfig.spec.json`, `frontend/package.json`, `frontend/package-lock.json`, `frontend/src/test-harness.spec.ts`
 - **Criteria:** 
   1. Add `@angular/build:unit-test` with Vitest and jsdom support.
   2. The `package-lock.json` is updated and mandatory.
-  3. Add script `"test:ci": "ng test --watch=false"` to `package.json`.
+  3. Add script `"test:ci": "ng test --watch=false"` and a minimal smoke test proving the harness executes.
 - **Verification:** `cd frontend; npm run test:ci` and `npm run build`
 - **Dependencies:** None.
 - **Rollback:** Revert the slice commit.

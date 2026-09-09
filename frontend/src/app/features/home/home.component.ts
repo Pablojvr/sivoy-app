@@ -13,11 +13,12 @@ import { formatScheduleTime, groupConsecutiveSchedules, GroupedSchedule } from '
 import { ScheduleDisplayComponent } from './results/schedule-display.component';
 import { PointResultCardComponent } from './results/point-result-card.component';
 import { PointShareService } from './results/point-share.service';
+import { RouteResultCardComponent, RouteResultViewModel, RouteDeliveryDayChange, formatLocationName as rtFormatLoc, formatFriendlyDate as rtFormatDate } from './results/route-result-card.component';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, FormsModule, SiCardDirective, SiButtonDirective, SiIconButtonDirective, SiChipComponent, DestinationSearchComponent, OriginSearchComponent, ScheduleDisplayComponent, PointResultCardComponent],
+  imports: [CommonModule, FormsModule, SiCardDirective, SiButtonDirective, SiIconButtonDirective, SiChipComponent, DestinationSearchComponent, OriginSearchComponent, ScheduleDisplayComponent, PointResultCardComponent, RouteResultCardComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.css',
   encapsulation: ViewEncapsulation.None
@@ -998,8 +999,12 @@ export class HomeComponent implements OnInit, OnChanges {
     }
   }
 
-  onDeliveryDayChange(flight: any, event: any) {
-    flight.selected_opcion_idx = parseInt(event.target.value);
+  toggleRouteCard(flight: RouteResultViewModel) {
+    flight.isExpanded = !flight.isExpanded;
+  }
+
+  onDeliveryDayChange(payload: RouteDeliveryDayChange) {
+    payload.route.selected_opcion_idx = payload.index;
   }
 
   highlightRouteOnMap(flight: any) {
@@ -1063,49 +1068,11 @@ export class HomeComponent implements OnInit, OnChanges {
   }
 
   formatLocationName(name: string, type?: string): string {
-    if (!name) return '';
-    const upperName = name.toUpperCase();
-    
-    // Check if it's already an agency or defined as an agency
-    if (type === 'Agencia' || upperName.includes('AGENCIA')) {
-      return upperName.includes('AGENCIA') ? upperName : `AGENCIA ${upperName}`;
-    }
-    
-    // Check if it's a Domicilio
-    if (type === 'Cobertura Domicilio' || upperName.includes('DOMICILIO')) {
-      return upperName.includes('DOMICILIO') ? upperName : `DOMICILIO ${upperName}`;
-    }
-    
-    // Default fallback: if it's not an agency and doesn't explicitly have a prefix, treat it as a Punto Fijo
-    if (!upperName.includes('PUNTO FIJO') && !upperName.includes('PUNTO')) {
-      return `PUNTO FIJO ${upperName}`;
-    }
-    
-    return upperName;
+    return rtFormatLoc(name, type);
   }
 
   formatFriendlyDate(dateStr: string): string {
-    if (!dateStr) return '';
-    const parts = dateStr.split('-');
-    let date = new Date(dateStr);
-    if (parts.length === 3) {
-      date = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
-    }
-    const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-    const diaNombre = dias[date.getDay()];
-    
-    const today = new Date();
-    const isToday = today.getDate() === date.getDate() && today.getMonth() === date.getMonth() && today.getFullYear() === date.getFullYear();
-    
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const isTomorrow = tomorrow.getDate() === date.getDate() && tomorrow.getMonth() === date.getMonth() && tomorrow.getFullYear() === date.getFullYear();
-    
-    let suffix = '';
-    if (isToday) suffix = ' (Hoy)';
-    else if (isTomorrow) suffix = ' (Mañana)';
-    
-    return `${diaNombre} ${date.getDate()}${suffix}`;
+    return rtFormatDate(dateStr);
   }
 
   recenterMap() {

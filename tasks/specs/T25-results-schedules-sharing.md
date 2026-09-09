@@ -131,8 +131,28 @@ Criterios:
 
 ## T25c2b — Detalle de pin
 
-Extraer el panel de detalle de pin en un corte posterior, conservando en Home la
-física táctil, selección, navegación, APIs y estado de expansión.
+Archivos de implementación (máximo cinco):
+
+1. `frontend/src/app/features/home/results/pin-detail-card.component.ts` (nuevo)
+2. `frontend/src/app/features/home/results/pin-detail-card.component.html` (nuevo)
+3. `frontend/src/app/features/home/results/pin-detail-card.component.spec.ts` (nuevo)
+4. `frontend/src/app/features/home/home.component.ts`
+5. `frontend/src/app/features/home/home.component.html`
+
+Extraer `article.pin-details-card` mediante selector de atributo y un modelo de pin
+estricto. Home conserva `isPinCardExpanded`, `activePinTab`, bloqueo manual, física
+de swipe, selección origen/destino, navegación y efectos. El hijo recibe imagen ya
+resuelta y flags derivados; emite toggle, touch start/end, preview, share, close,
+tab, copiar, abrir mapa y las dos selecciones sin mutar inputs.
+
+Criterios:
+
+1. Host dialog, clases, fondo hero, copy, SVG, ARIA, tabs, horarios, disponibilidad
+   y acciones condicionales conservan el mismo DOM observable en ambos estados.
+2. Eventos se emiten una vez con payload estricto; swipe y estados sólo cambian en
+   Home y el hijo no usa servicios, globals, fachada, Router o mapa.
+3. Pruebas, build, diff y gesto/botones en navegador móvil pasan sin CSS, cambios
+   visuales ni modificaciones en Partners.
 
 ## Límites comunes
 

@@ -106,6 +106,7 @@ archivos. Codex debe revisar cada diff y ejecutar build y auditoría visual.
   - Recorrido local aprobado: abrir, limpiar, filtrar, seleccionar municipio, cargar resultados, cerrar y volver a Inicio sin errores.
   - Spec ejecutado: `tasks/specs/T23-destination-search-component.md`.
 - [ ] T24 Extraer selección de origen.
+  - Spec aprobado: `tasks/specs/T24-origin-search-component.md`.
 - [ ] T25 Extraer resultados, horarios y compartir.
 - [ ] T26 Centralizar data-access y errores del flujo.
 - [ ] T27 Crear puerto y adaptador del mapa.

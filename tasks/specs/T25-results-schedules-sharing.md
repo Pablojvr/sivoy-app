@@ -47,9 +47,35 @@ Criterios:
 
 ## T25b — Tarjeta de punto
 
-Extraer una tarjeta presentacional controlada por Home. La expansión sigue siendo
-exclusiva en el padre; seleccionar origen, compartir, copiar imagen y ver mapa son
-eventos tipados sin efectos dentro del hijo.
+Archivos de implementación (máximo cinco):
+
+1. `frontend/src/app/features/home/results/point-result-card.component.ts` (nuevo)
+2. `frontend/src/app/features/home/results/point-result-card.component.html` (nuevo)
+3. `frontend/src/app/features/home/results/point-result-card.component.spec.ts` (nuevo)
+4. `frontend/src/app/features/home/home.component.ts`
+5. `frontend/src/app/features/home/home.component.html`
+
+Extraer una tarjeta presentacional controlada por Home mediante un componente con
+selector de atributo sobre `article`. Así el host continúa siendo el mismo nodo
+semántico, conserva `siCard`, las clases e identificadores actuales y no introduce
+un wrapper que altere el layout. El hijo recibe un modelo estricto con únicamente
+los campos renderizados (`id*`, empresa, distancia, nombres, ubicación, imagen,
+estado y horarios), además del estado derivado de selección, expansión e imagen.
+
+La expansión sigue siendo exclusiva en el padre. Alternar expansión, seleccionar
+origen o destino, compartir, copiar imagen, informar error de imagen y ver mapa se
+emiten como eventos tipados con el punto como payload. El hijo no usa servicios,
+fachada, APIs del navegador, navegación ni dependencias del mapa.
+
+Criterios:
+
+1. El host sigue siendo `article.point-result-card`; IDs, ARIA, copy, SVG, clases,
+   distancia y estados visuales producen el mismo DOM observable.
+2. Colapsado oculta imagen y filas; expandido muestra imagen y horarios o el estado
+   vacío. Cada acción emite exactamente una vez el punto recibido y no ejecuta
+   efectos secundarios.
+3. Home conserva una única tarjeta expandida y delega cada evento al método actual;
+   pruebas, build, diff y verificación móvil pasan sin CSS ni cambios en Partners.
 
 ## T25c — Rutas, detalle y compartir
 

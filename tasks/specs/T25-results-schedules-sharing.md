@@ -24,8 +24,26 @@ Criterios:
 
 ## T25a2 — Presentación reutilizable de horarios
 
-Extraer en un corte posterior el markup duplicado del pin y las tarjetas de punto,
-con DOM/clases compatibles y estados vacío/compacto explícitos.
+Archivos de implementación (máximo cinco):
+
+1. `frontend/src/app/features/home/results/schedule-display.component.ts` (nuevo)
+2. `frontend/src/app/features/home/results/schedule-display.component.html` (nuevo)
+3. `frontend/src/app/features/home/results/schedule-display.component.spec.ts` (nuevo)
+4. `frontend/src/app/features/home/home.component.ts`
+5. `frontend/src/app/features/home/home.component.html`
+
+El componente recibe horarios crudos, calcula grupos al cambiar el input mediante
+las utilidades de T25a1 y sólo renderiza filas. Home sustituye los dos iteradores
+duplicados, pero conserva headings, contador, estado vacío y wrappers semánticos.
+Las clases `pin-hours-list` y `point-hours-grid` se aplican al host del componente,
+de modo que sus hijos continúan cumpliendo los selectores CSS `> div` existentes.
+
+Criterios:
+
+1. Mismas etiquetas agrupadas y horas formateadas en pin y tarjeta de punto.
+2. Cambio de input recalcula filas; input vacío no renderiza filas ni inventa el
+   mensaje vacío, que sigue siendo responsabilidad de Home.
+3. DOM visual, pruebas, build y diff aprobados sin CSS ni efectos secundarios.
 
 ## T25b — Tarjeta de punto
 

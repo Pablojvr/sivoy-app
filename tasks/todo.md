@@ -94,7 +94,9 @@ archivos. Codex debe revisar cada diff y ejecutar build y auditoría visual.
 
 ## Fases 5–8 — Frontend modular
 
-- [ ] T22 Crear `ShipmentSearchFacade` y pruebas de estados.
+- [x] T22 Crear `ShipmentSearchFacade` y pruebas de estados.
+  - Resultado auditado: infraestructura Vitest Angular 21 activa; 15 pruebas de fachada y 17 pruebas frontend verdes.
+  - La fachada es aditiva y aún no tiene consumidores de producción; la integración se realiza en T23-T25.
 - [ ] T23 Extraer búsqueda de destino.
 - [ ] T24 Extraer selección de origen.
 - [ ] T25 Extraer resultados, horarios y compartir.

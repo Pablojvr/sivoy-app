@@ -110,6 +110,7 @@ archivos. Codex debe revisar cada diff y ejecutar build y auditoría visual.
   - Recorrido local aprobado: destino específico → municipio origen → ruta → cambiar origen → reabrir municipio/Google Places, sin errores.
   - Spec ejecutado: `tasks/specs/T24-origin-search-component.md`.
 - [ ] T25 Extraer resultados, horarios y compartir.
+  - Ejecución incremental: `tasks/specs/T25-results-schedules-sharing.md` (T25a1–T25c).
 - [ ] T26 Centralizar data-access y errores del flujo.
 - [ ] T27 Crear puerto y adaptador del mapa.
   - Incluir detección de WebGL2 y continuidad list-first con mensaje recuperable cuando el mapa no esté disponible.

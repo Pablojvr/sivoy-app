@@ -505,9 +505,6 @@
         </article>
       </div>
       <!-- Error state -->
-      <div *ngIf="result && !result.success && !loading" class="route-result-card error">
-        <p>{{ result.origen_msg }}</p>
-      </div>
       <div *ngIf="errorMsg && !loading" class="route-result-card error">
         <p>{{ errorMsg }}</p>
       </div>

@@ -14,7 +14,7 @@ Migrar el acceso a datos hacia interfaces estrictamente tipadas (T26a), sin alte
 - Uso de `HttpClient` generics y tests de transporte.
 
 ### Status
-T26a-T26c1 accepted after independent audit; T26c2 remains in progress.
+Accepted. T26a-T26c2 were verified independently in tests, production build and the local public flow.
 
 ### Tabla de Endpoints y Contratos
 
@@ -39,3 +39,11 @@ T26a-T26c1 accepted after independent audit; T26c2 remains in progress.
 - El filtro de horarios cerrados replica el patrón legacy con una fecha inyectada y sin mutar resultados.
 - La selección conserva la identidad de la opción cuando cambia su índice tras el filtrado.
 - La expansión y selección de opciones se actualizan de forma inmutable desde el facade.
+
+### T26c2: integración en Home
+
+- `HomeComponent` despacha búsquedas municipales y punto-a-punto mediante el facade; ya no se suscribe directamente a `RutasService`.
+- Un presentador aislado mantiene el contrato plano requerido temporalmente por la tarjeta y el adaptador de mapa.
+- Los estados `loading`, `empty` y `error` limpian resultados y marcadores obsoletos de forma coherente.
+- La selección visible conserva su índice de origen después de filtrar horarios cerrados.
+- La auditoría local cubrió búsqueda, cálculo real, expansión, cambio de opción y visualización cartográfica.

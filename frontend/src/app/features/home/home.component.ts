@@ -1,8 +1,7 @@
 import { environment } from '../../../environments/environment';
-import { ChangeDetectorRef, Component, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChanges, HostBinding, HostListener, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChanges, HostBinding, HostListener, ViewEncapsulation, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RutasService } from '../../core/services/rutas.service';
 import { ToastService } from '../../core/services/toast.service';
 import { MapasService } from '../../core/services/mapas.service';
 import { SiCardDirective } from '../../shared/ui/ui-primitives';
@@ -14,6 +13,9 @@ import { PointResultCardComponent } from './results/point-result-card.component'
 import { PointShareService } from './results/point-share.service';
 import { RouteResultCardComponent, RouteResultViewModel, RouteDeliveryDayChange, formatLocationName as rtFormatLoc, formatFriendlyDate as rtFormatDate } from './results/route-result-card.component';
 import { PinDetailCardComponent } from './results/pin-detail-card.component';
+import { applyClosedDropoffFilter } from './shipment-route.filters';
+import { presentSearchRoute, pointRefFromLocation } from './results/route-result.presenter';
+import { PointRef, SEARCH_ERROR_MESSAGES } from './shipment-search.models';
 
 @Component({
   selector: 'app-home',
@@ -28,6 +30,10 @@ export class HomeComponent implements OnInit, OnChanges {
   @Input() locations: any[] = [];
   @Input() userLocation: any = null;
   @Input() initialIntent: Record<string, string> = {};
+
+
+
+  flightResults: RouteResultViewModel[] = [];
   @Input() mapResourceMode = false;
   @HostBinding('class.map-resource-mode') get isMapResourceHost() { return this.mapResourceMode; }
   @HostBinding('class.list-first-mode') get isListFirstHost() { return !this.mapResourceMode; }
@@ -54,7 +60,7 @@ export class HomeComponent implements OnInit, OnChanges {
       }
       this.bottomSheetState = 'hidden';
       this.lastSelectedLocationId = value.id_destino || value.id_origen || value.id;
-      
+
       // Auto-scroll the list to the selected card
       setTimeout(() => {
         const cardId = 'card-' + this.lastSelectedLocationId;
@@ -64,30 +70,30 @@ export class HomeComponent implements OnInit, OnChanges {
           if (container) {
             const elRect = el.getBoundingClientRect();
             const containerRect = container.getBoundingClientRect();
-            
+
             // Calculate element's absolute top relative to the container's scroll content
             const absoluteElTop = container.scrollTop + (elRect.top - containerRect.top);
-            
+
             // Buscar el header sticky si existe, para restar su altura del area visible
             const stickyHeader = container.querySelector('.sheet-header-sticky') as HTMLElement;
             const stickyHeight = stickyHeader ? stickyHeader.offsetHeight : 0;
             const visibleHeight = containerRect.height - stickyHeight;
-            
+
             // Calculate target scroll to center the element within the VISIBLE area
             let targetScrollTop = absoluteElTop - stickyHeight - (visibleHeight / 2) + (elRect.height / 2);
-            
+
             // Prevent the top of the card from hiding under the sticky header
             // If centering pushes the top too far up, clamp it so the top is visible
             const minSafeScroll = absoluteElTop - stickyHeight - 16; // 16px de margen
             if (targetScrollTop > minSafeScroll) {
               targetScrollTop = minSafeScroll;
             }
-            
+
             // Clamp the scroll value to prevent scrolling past bounds (prevents white gaps)
             const maxScroll = container.scrollHeight - container.clientHeight;
             if (targetScrollTop < 0) targetScrollTop = 0;
             if (targetScrollTop > maxScroll) targetScrollTop = maxScroll;
-            
+
             container.scrollTo({ top: targetScrollTop, behavior: 'smooth' });
           } else {
             el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -107,7 +113,7 @@ export class HomeComponent implements OnInit, OnChanges {
   @Output() viewOnMapEvent = new EventEmitter<any>();
   @Input() isPickingLocation: boolean = false;
   @Input() highlightedRoute: any = null;
-  
+
   @Output() updateMapMarkers = new EventEmitter<void>();
   @Output() mapHighlightRoute = new EventEmitter<any>();
   @Output() focusLocation = new EventEmitter<any>();
@@ -163,16 +169,16 @@ export class HomeComponent implements OnInit, OnChanges {
   arrivalDate: string = '';
   selectedPinDayFilter: string = '';
   lastSelectedLocationId: any = null;
-  
+
   municipalityResults: any[] = [];
-  flightResults: any[] = [];
+
   displayedResults: any[] = [];
   expandedResultCard: any = null;
   activeDetailedCard: any = null;
   private unavailablePointImages = new Set<string>();
   private groupedScheduleCache = new WeakMap<any[], GroupedSchedule[]>();
   searchRadius: number = 1.0;
-  
+
   // Autocomplete logic properties
   showAutocomplete: boolean = false;
   filteredModalLocations: any[] = [];
@@ -189,13 +195,52 @@ export class HomeComponent implements OnInit, OnChanges {
   confirmPickedLocation() { this.isPickingLocation = false; }
 
   constructor(
-    private rutasService: RutasService,
     private toastService: ToastService,
     private mapasService: MapasService,
     private cdr: ChangeDetectorRef,
     private readonly facade: ShipmentSearchFacade,
     private pointShareService: PointShareService
-  ) {}
+  ) {
+    effect(() => {
+      const state = this.facade.state();
+
+      if (state.mode !== 'municipality-routes' && state.mode !== 'point-routes') {
+        return;
+      }
+
+      if (state.status === 'loading') {
+        this.loading = true;
+        this.bottomSheetState = 'half';
+        this.flightResults = [];
+        this.errorMsg = '';
+        this.result = null;
+        this.updateMapMarkers.emit();
+      } else if (state.status === 'success') {
+        this.loading = false;
+        this.errorMsg = '';
+
+        const filteredResults = applyClosedDropoffFilter(state.results, new Date());
+        this.flightResults = filteredResults.map((item, i) => presentSearchRoute(item, i, state.results[i]));
+
+        this.bottomSheetState = 'expanded';
+        this.updateMapMarkers.emit();
+      } else if (state.status === 'empty') {
+        this.loading = false;
+        this.flightResults = [];
+        this.errorMsg = '';
+        this.result = null;
+        this.bottomSheetState = 'half';
+        this.updateMapMarkers.emit();
+      } else if (state.status === 'error') {
+        this.loading = false;
+        this.flightResults = [];
+        this.errorMsg = state.error?.message ?? SEARCH_ERROR_MESSAGES.SERVER;
+        this.result = null;
+        this.bottomSheetState = 'half';
+        this.updateMapMarkers.emit();
+      }
+    });
+  }
 
   get hasListContent(): boolean {
     return this.isOriginChoiceMode || this.loading || Boolean(this.errorMsg) ||
@@ -219,7 +264,7 @@ export class HomeComponent implements OnInit, OnChanges {
     const localISODate = new Date(today.getTime() - tzOffset).toISOString().split('T')[0];
     this.dropoffDate = localISODate;
     this.minDate = localISODate;
-    
+
     const hours = String(today.getHours()).padStart(2, '0');
     const minutes = String(today.getMinutes()).padStart(2, '0');
     this.dropoffTime = `${hours}:${minutes}`;
@@ -248,7 +293,7 @@ export class HomeComponent implements OnInit, OnChanges {
   clickout(event: any) {
     const clickedInsideSearchBox = event.target.closest('.search-box');
     const clickedInsideList = event.target.closest('.autocomplete-list');
-    
+
     if (!clickedInsideSearchBox && !clickedInsideList) {
       this.showAutocomplete = false;
       this.activeInput = null;
@@ -380,9 +425,9 @@ export class HomeComponent implements OnInit, OnChanges {
     const query = this.locationSearchQuery.toLowerCase();
     const normalize = (str: string) => str ? str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase() : '';
     const normQuery = normalize(query);
-    
+
     const matchingLocations = this.locations.filter(l =>
-      normalize(l.nombre_destino).includes(normQuery) || 
+      normalize(l.nombre_destino).includes(normQuery) ||
       normalize(l.ubicacion?.municipio).includes(normQuery) ||
       normalize(l.ubicacion?.departamento).includes(normQuery)
     );
@@ -683,7 +728,7 @@ export class HomeComponent implements OnInit, OnChanges {
     const query = this.locationSearchQuery ? this.locationSearchQuery.toLowerCase() : '';
     const normalize = (str: string) => str ? str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase() : '';
     const normQuery = normalize(query);
-    
+
     const muns = new Map<string, any>();
     this.locations.forEach(loc => {
       if (loc.ubicacion && loc.ubicacion.municipio) {
@@ -783,7 +828,7 @@ export class HomeComponent implements OnInit, OnChanges {
     const tempIn = this.origenInputValue;
     this.origenInputValue = this.destinoInputValue;
     this.destinoInputValue = tempIn;
-    
+
     const temp = this.origen;
     this.origen = this.destino;
     this.destino = temp;
@@ -799,7 +844,7 @@ export class HomeComponent implements OnInit, OnChanges {
     const tempPoint = this.selectedOriginPoint;
     this.selectedOriginPoint = this.selectedDestinationPoint;
     this.selectedDestinationPoint = tempPoint;
-    
+
     this.executeSearch();
   }
 
@@ -825,90 +870,32 @@ export class HomeComponent implements OnInit, OnChanges {
         return;
       }
 
-      this.loading = true;
-      this.bottomSheetState = 'half';
-      this.errorMsg = '';
-      this.flightResults = [];
       this.activeDetailedCard = null;
-      
+
       this.isOriginDiscoveryMode = false;
       this.isDiscoveryMode = false;
       this.municipalityResults = [];
       this.displayedResults = [];
-      
-      const params: any = {
-        origen: this.origen,
-        destino: this.destino,
-        origenIsPin: this.origen.includes('(Pin en Mapa)'),
-        dropoffDate: this.dropoffDate,
-        dropoffTime: this.dropoffTime,
-        // Parámetros específicos para searchFlights
-        origen_municipio: this.origenMunicipio || this.origen.split(',')[0]?.trim(),
-        origen_departamento: this.origenDepartamento || this.origen.split(',')[1]?.trim() || '',
-        destino_municipio: this.destinoMunicipio || this.destino.split(',')[0]?.trim(),
-        destino_departamento: this.destinoDepartamento || this.destino.split(',')[1]?.trim() || '',
-        dropoff_date: this.dropoffDate,
-        dropoff_time: this.dropoffTime
-      };
+      this.expandedResultCard = null;
 
-      this.rutasService.searchFlights(params).subscribe({
-        next: (res: any) => {
-          this.loading = false;
-          this.result = res;
-          if (res.success) {
-            let vuelos = res.flights || res.results || [];
-            
-            // Filtrar agencias cerradas por hora hoy
-            const now = new Date();
-            const todayStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
-            const currentHour = now.getHours();
-            const currentMinute = now.getMinutes();
+      const origen_municipio = this.origenMunicipio || this.origen.split(',')[0]?.trim() || '';
+      const origen_departamento = this.origenDepartamento || this.origen.split(',')[1]?.trim() || '';
+      const destino_municipio = this.destinoMunicipio || this.destino.split(',')[0]?.trim() || '';
+      const destino_departamento = this.destinoDepartamento || this.destino.split(',')[1]?.trim() || '';
 
-            vuelos.forEach((vuelo: any) => {
-              if (vuelo.opciones_entrega && vuelo.opciones_entrega.length > 0) {
-                 vuelo.opciones_entrega = vuelo.opciones_entrega.filter((op: any) => {
-                    if (op.dropoff_date === todayStr && op.dropoff_msg) {
-                       const match = op.dropoff_msg.match(/a\s*(\d{1,2}):(\d{2})\s*(AM|PM)/i);
-                       if (match) {
-                          let endHour = parseInt(match[1], 10);
-                          const endMinute = parseInt(match[2], 10);
-                          const ampm = match[3].toUpperCase();
-                          if (ampm === 'PM' && endHour < 12) endHour += 12;
-                          if (ampm === 'AM' && endHour === 12) endHour = 0;
-                          
-                          if (currentHour > endHour || (currentHour === endHour && currentMinute > endMinute)) {
-                             vuelo.hasClosedAlert = true;
-                             return false; 
-                          }
-                       }
-                    }
-                    return true;
-                 });
-                 if (vuelo.opciones_entrega.length > 0) {
-                    vuelo.selectedOption = vuelo.opciones_entrega[0];
-                    if (vuelo.selected_opcion_idx === undefined || vuelo.selected_opcion_idx >= vuelo.opciones_entrega.length) {
-                       vuelo.selected_opcion_idx = 0;
-                    }
-                 }
-              }
-            });
-
-            this.flightResults = vuelos;
-            this.bottomSheetState = 'expanded';
-            this.updateMapMarkers.emit();
-          } else {
-            this.errorMsg = res.message || 'No se encontraron rutas.';
-          }
-        },
-        error: (err: any) => {
-          this.loading = false;
-          this.errorMsg = 'Error de conexión al buscar rutas.';
-        }
+      this.facade.searchMunicipalityRoutes({
+        origin: { municipio: origen_municipio, departamento: origen_departamento },
+        destination: { municipio: destino_municipio, departamento: destino_departamento },
+        filters: { dropoffDate: this.dropoffDate, dropoffTime: this.dropoffTime }
       });
-    } else if (this.origenMunicipio && !this.destinoInputValue) {
-      this.discoveryModeForOriginMunicipality(this.origenMunicipio, this.origenDepartamento);
-    } else if (this.destinoMunicipio && !this.origenInputValue) {
-      this.discoveryModeForMunicipality(this.destinoMunicipio, this.destinoDepartamento);
+    } else {
+      this.facade.reset();
+
+      if (this.origenMunicipio && !this.destinoInputValue) {
+        this.discoveryModeForOriginMunicipality(this.origenMunicipio, this.origenDepartamento);
+      } else if (this.destinoMunicipio && !this.origenInputValue) {
+        this.discoveryModeForMunicipality(this.destinoMunicipio, this.destinoDepartamento);
+      }
     }
   }
 
@@ -922,11 +909,11 @@ export class HomeComponent implements OnInit, OnChanges {
     this.activeDetailedCard = null;
     this.expandedResultCard = null;
     this.bottomSheetState = 'half';
-    this.isOriginDiscoveryMode = true; 
+    this.isOriginDiscoveryMode = true;
     this.isDiscoveryMode = false;
 
-    const targets = this.locations.filter(l => 
-      l.ubicacion?.municipio === municipio && 
+    const targets = this.locations.filter(l =>
+      l.ubicacion?.municipio === municipio &&
       l.ubicacion?.departamento === departamento
     );
 
@@ -964,8 +951,8 @@ export class HomeComponent implements OnInit, OnChanges {
     this.isDiscoveryMode = true;
     this.isOriginDiscoveryMode = false;
 
-    const targets = this.locations.filter(l => 
-      l.ubicacion?.municipio === municipio && 
+    const targets = this.locations.filter(l =>
+      l.ubicacion?.municipio === municipio &&
       l.ubicacion?.departamento === departamento
     );
 
@@ -1000,11 +987,13 @@ export class HomeComponent implements OnInit, OnChanges {
   }
 
   toggleRouteCard(flight: RouteResultViewModel) {
-    flight.isExpanded = !flight.isExpanded;
+    this.facade.toggleRouteExpansion(flight.sourceRouteIndex);
   }
 
   onDeliveryDayChange(payload: RouteDeliveryDayChange) {
-    payload.route.selected_opcion_idx = payload.index;
+    const sourceOptionIndex = payload.route.opciones_entrega?.[payload.index]?.sourceOptionIndex;
+    if (sourceOptionIndex == null || sourceOptionIndex === -1) return;
+    this.facade.selectRouteOption(payload.route.sourceRouteIndex, sourceOptionIndex);
   }
 
   highlightRouteOnMap(flight: any) {
@@ -1060,9 +1049,9 @@ export class HomeComponent implements OnInit, OnChanges {
     if (!horarios || horarios.length === 0) return [];
     const cachedGroups = this.groupedScheduleCache.get(horarios);
     if (cachedGroups) return cachedGroups;
-    
+
     const result = groupConsecutiveSchedules(horarios);
-    
+
     this.groupedScheduleCache.set(horarios, result);
     return result;
   }
@@ -1468,16 +1457,16 @@ export class HomeComponent implements OnInit, OnChanges {
   }
 
   private searchRoutesWithPointConstraints() {
-    this.loading = true;
-    this.bottomSheetState = 'half';
-    this.errorMsg = '';
+    this.isOriginChoiceMode = false;
+    this.isOriginDiscoveryMode = false;
+    this.isDiscoveryMode = false;
+    this.expandedResultCard = null;
+    this.activeDetailedCard = null;
     this.result = null;
     this.flightResults = [];
     this.municipalityResults = [];
     this.displayedResults = [];
-    this.isOriginChoiceMode = false;
-    this.isOriginDiscoveryMode = false;
-    this.isDiscoveryMode = false;
+    this.errorMsg = '';
 
     const originLocations = this.selectedOriginPoint
       ? [this.selectedOriginPoint]
@@ -1486,61 +1475,20 @@ export class HomeComponent implements OnInit, OnChanges {
       ? [this.selectedDestinationPoint]
       : this.getMunicipalityLocations(this.destinoMunicipio, this.destinoDepartamento);
 
-    const originNames = [...new Set<string>(originLocations.map(location => this.getLocationName(location)).filter(Boolean))];
-    const destinationNames = [...new Set<string>(destinationLocations.map(location => this.getLocationName(location)).filter(Boolean))];
+    const originPoints = originLocations.map(pointRefFromLocation).filter((p): p is PointRef => p !== null);
+    const destinationPoints = destinationLocations.map(pointRefFromLocation).filter((p): p is PointRef => p !== null);
 
-    if (originNames.length === 0 || destinationNames.length === 0) {
+    if (originPoints.length === 0 || destinationPoints.length === 0) {
+      this.facade.reset();
       this.loading = false;
       this.errorMsg = 'No encontramos puntos operativos para completar esta combinación.';
       return;
     }
 
-    this.rutasService.getUpcomingRoutes({
-      origen: originNames,
-      destino: destinationNames,
-      dropoff_date: this.dropoffDate,
-      dropoff_time: this.dropoffTime
-    }).subscribe({
-      next: (response: any) => {
-        this.loading = false;
-        this.result = response;
-
-        const routes = response.results || [];
-        this.flightResults = routes.map((route: any) => {
-          const originLocation = originLocations.find(location => this.getLocationName(location) === route.origen_nombre);
-          const destinationLocation = destinationLocations.find(location => this.getLocationName(location) === route.destino_nombre);
-          const firstOption = route.opciones_entrega?.[0] || route.opciones?.[0] || null;
-
-          return {
-            ...route,
-            origen_tipo: originLocation?.tipo,
-            origen_lat: originLocation?.ubicacion?.lat,
-            origen_lng: originLocation?.ubicacion?.lng,
-            destino_nombre_destino: route.destino_nombre,
-            destino_tipo: destinationLocation?.tipo,
-            destino_lat: destinationLocation?.ubicacion?.lat,
-            destino_lng: destinationLocation?.ubicacion?.lng,
-            fecha_llegada: route.fecha_llegada || firstOption?.fecha_llegada,
-            horario_recoleccion: route.horario_recoleccion || firstOption?.horario_recoleccion,
-            selectedOption: firstOption,
-            selected_opcion_idx: 0,
-            distance: 0
-          };
-        });
-
-        if (this.flightResults.length === 0) {
-          this.errorMsg = response.origen_msg || 'No hay rutas disponibles para esta combinación.';
-          this.bottomSheetState = 'half';
-          return;
-        }
-
-        this.bottomSheetState = 'expanded';
-        this.updateMapMarkers.emit();
-      },
-      error: () => {
-        this.loading = false;
-        this.errorMsg = 'Error de conexión al buscar la ruta punto a punto.';
-      }
+    this.facade.searchPointRoutes({
+      originPoints,
+      destinationPoints,
+      filters: { dropoffDate: this.dropoffDate, dropoffTime: this.dropoffTime }
     });
   }
 
@@ -1559,7 +1507,7 @@ export class HomeComponent implements OnInit, OnChanges {
 
   openInGoogleMaps() {
     if (!this.selectedPin) return;
-    
+
     if (this.selectedPin.maps_url && this.selectedPin.maps_url.trim() !== '') {
       window.open(this.selectedPin.maps_url, '_blank');
       return;

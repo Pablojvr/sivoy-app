@@ -14,7 +14,8 @@ class TestHostComponent {
     empresa: 'Test Logistics',
     origen_nombre: 'San Salvador',
     destino_nombre: 'Santa Ana',
-    isExpanded: false
+    isExpanded: false,
+    sourceRouteIndex: 0
   };
   
   onToggle(r: RouteResultViewModel) {
@@ -77,8 +78,8 @@ describe('RouteResultCardComponent', () => {
         isExpanded: false,
         hasClosedAlert: true,
         opciones_entrega: [
-          { dropoff_date: '2026-10-10', fecha_llegada: '2026-10-11', horario_recoleccion: 'Morning' },
-          { dropoff_date: '2026-10-11', fecha_llegada: '2026-10-12', horario_recoleccion: 'Afternoon' }
+          { dropoff_date: '2026-10-10', fecha_llegada: '2026-10-11', horario_recoleccion: 'Morning', sourceOptionIndex: 0 },
+          { dropoff_date: '2026-10-11', fecha_llegada: '2026-10-12', horario_recoleccion: 'Afternoon', sourceOptionIndex: 1 }
         ],
         selected_opcion_idx: 0
       };

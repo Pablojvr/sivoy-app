@@ -119,12 +119,12 @@ archivos. Codex debe revisar cada diff y ejecutar build y auditoría visual.
     - [x] T25c2: tarjetas de rutas y detalle de pin.
       - [x] T25c2a: tarjeta de ruta presentacional; 80 pruebas y flujo real de expansión/cambio de día auditados.
       - [x] T25c2b: detalle de pin; 92 pruebas, build y estados móvil/ARIA auditados.
-- [ ] T26 Centralizar data-access y errores del flujo.
+- [x] T26 Centralizar data-access y errores del flujo.
   - [x] T26a: tipar contratos HTTP de rutas por endpoint; 100 pruebas y build auditados.
   - [x] T26b: orquestar búsquedas cancelables preservando el modelo completo de UI; 113 pruebas, build y runtime auditados.
-  - [ ] T26c: integrar el orquestador en Home y unificar estados/copy de error.
+  - [x] T26c: integrar el orquestador en Home y unificar estados/copy de error.
     - [x] T26c1: aislar filtro temporal y mutaciones de presentación; 126 pruebas y build auditados.
-    - [ ] T26c2: conectar Home y retirar las suscripciones HTTP directas.
+    - [x] T26c2: conectar Home y retirar suscripciones HTTP directas; 133 pruebas, build y flujo real auditados.
 - [ ] T27 Crear puerto y adaptador del mapa.
   - Incluir detección de WebGL2 y continuidad list-first con mensaje recuperable cuando el mapa no esté disponible.
 - [ ] T28 Encapsular ciclo de vida de marcadores y listeners.

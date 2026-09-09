@@ -1,34 +1,8 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouteResultViewModel, RouteDeliveryDayChange, RouteDeliveryOption } from './route-result.presenter';
 
-export interface RouteDeliveryOption {
-  fecha_llegada?: string;
-  horario_recoleccion?: string;
-  dropoff_date?: string;
-  dropoff_msg?: string;
-}
-
-export interface RouteResultViewModel {
-  empresa?: string;
-  origen_nombre: string;
-  origen_tipo?: string;
-  destino_nombre_destino?: string;
-  destino_nombre?: string;
-  destino_tipo?: string;
-  opciones_entrega?: RouteDeliveryOption[];
-  opciones?: RouteDeliveryOption[];
-  selected_opcion_idx?: number;
-  fecha_llegada?: string;
-  horario_recoleccion?: string;
-  isExpanded?: boolean;
-  hasClosedAlert?: boolean;
-  origen_msg?: string;
-}
-
-export interface RouteDeliveryDayChange {
-  route: RouteResultViewModel;
-  index: number;
-}
+export type { RouteResultViewModel, RouteDeliveryDayChange, RouteDeliveryOption };
 
 export function formatLocationName(name?: string | null, type?: string | null): string {
   if (!name) return '';

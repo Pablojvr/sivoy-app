@@ -11,11 +11,12 @@ import { OriginSearchComponent } from './origin-search/origin-search.component';
 import { ShipmentSearchFacade } from './shipment-search.facade';
 import { formatScheduleTime, groupConsecutiveSchedules, GroupedSchedule } from './results/schedule-utils';
 import { ScheduleDisplayComponent } from './results/schedule-display.component';
+import { PointResultCardComponent } from './results/point-result-card.component';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, FormsModule, SiCardDirective, SiButtonDirective, SiIconButtonDirective, SiChipComponent, DestinationSearchComponent, OriginSearchComponent, ScheduleDisplayComponent],
+  imports: [CommonModule, FormsModule, SiCardDirective, SiButtonDirective, SiIconButtonDirective, SiChipComponent, DestinationSearchComponent, OriginSearchComponent, ScheduleDisplayComponent, PointResultCardComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.css',
   encapsulation: ViewEncapsulation.None

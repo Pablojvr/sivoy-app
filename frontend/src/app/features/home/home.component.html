@@ -548,101 +548,25 @@
       <div *ngIf="(destino || isDiscoveryMode || isOriginDiscoveryMode) && municipalityResults.length > 0 && flightResults.length === 0 && !loading" class="cards-list">
         <article
           siCard
+          siPointResultCard
           class="point-result-card"
           [class.is-selected]="lastSelectedLocationId === (res.id_destino || res.id_origen || res.id)"
           [class.is-expanded]="isPointCardExpanded(res)"
           [id]="'card-' + (res.id_destino || res.id_origen || res.id)"
-          *ngFor="let res of displayedResults">
-          <header class="point-result-provider">
-            <span class="point-provider-mark" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z"></path><path d="m4.5 7.8 7.5 4.3 7.5-4.3M12 21v-8.9"></path></svg>
-            </span>
-            <span><small>Operado por</small><strong>{{ res.empresa }}</strong></span>
-            <span class="point-distance" *ngIf="res.distance !== undefined && res.distance !== 9999">
-              {{ res.distance < 1 ? (res.distance * 1000).toFixed(0) + ' m' : res.distance.toFixed(1) + ' km' }}
-            </span>
-          </header>
-
-          <button
-            type="button"
-            class="point-result-main point-result-summary"
-            (click)="togglePointCard(res)"
-            [attr.aria-expanded]="isPointCardExpanded(res)"
-            [attr.aria-controls]="'point-details-' + (res.id_destino || res.id_origen || res.id)">
-            <span class="point-result-pin" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 5.5-8 11-8 11S4 15.5 4 10a8 8 0 1 1 16 0Z"></path><circle cx="12" cy="10" r="2.5"></circle></svg>
-            </span>
-            <span class="point-result-copy">
-              <small>{{ isOriginDiscoveryMode ? 'Punto de origen' : 'Punto de entrega' }}</small>
-              <strong>{{ res.destino_nombre || res.nombre_destino }}</strong>
-              <span>{{ res.ubicacion?.municipio }}<ng-container *ngIf="res.ubicacion?.departamento">, {{ res.ubicacion.departamento }}</ng-container></span>
-            </span>
-            <span class="point-result-disclosure" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m6 9 6 6 6-6"></path></svg>
-            </span>
-          </button>
-
-          <figure
-            class="point-reference-media point-card-expandable"
-            *ngIf="hasPointImage(res) && isPointCardExpanded(res)">
-            <img [src]="resolveImageUrl(res.imagen_referencia)" [alt]="'Referencia visual de ' + (res.destino_nombre || res.nombre_destino)" loading="lazy" (error)="markPointImageUnavailable(res)">
-            <figcaption>
-              <span><small>Para tu cliente</small><strong>Referencia del punto</strong></span>
-              <button type="button" (click)="copyPointResource(res); $event.stopPropagation()">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M15 9V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h4"></path></svg>
-                Copiar imagen
-              </button>
-            </figcaption>
-          </figure>
-
-          <section
-            class="point-hours-panel"
-            [id]="'point-details-' + (res.id_destino || res.id_origen || res.id)"
-            [class.state-green]="res._status?.color === 'green'"
-            [class.state-orange]="res._status?.color === 'orange'"
-            [class.state-red]="res._status?.color === 'red'"
-            [class.state-gray]="!res._status || res._status?.color === 'gray'"
-            aria-label="Horarios de atención">
-            <header class="point-hours-heading">
-              <span class="point-hours-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
-              </span>
-              <span class="point-hours-status">
-                <small>Disponibilidad</small>
-                <si-chip [tone]="res._status?.color === 'green' ? 'success' : (res._status?.color === 'orange' ? 'warning' : (res._status?.color === 'red' ? 'accent' : 'neutral'))">{{ res._status?.mainText || 'Consulta sus horarios' }}</si-chip>
-                <span *ngIf="res._status?.timeText">{{ res._status.timeText }}</span>
-              </span>
-              <span class="point-hours-count">
-                {{ getGroupedSchedules(res.horarios_operativos).length }}
-                {{ getGroupedSchedules(res.horarios_operativos).length === 1 ? 'horario' : 'horarios' }}
-              </span>
-            </header>
-
-            <ng-container *ngIf="isPointCardExpanded(res)">
-              <app-schedule-display class="point-hours-grid point-card-expandable"
-                *ngIf="res.horarios_operativos?.length; else noPointHours"
-                [schedules]="res.horarios_operativos">
-              </app-schedule-display>
-              <ng-template #noPointHours>
-                <p class="point-hours-empty point-card-expandable">Esta agencia todavía no ha publicado sus horarios.</p>
-              </ng-template>
-            </ng-container>
-          </section>
-
-          <div class="point-result-actions">
-            <button type="button" siButton variant="primary" class="point-use-action" (click)="selectPointFromList(res)" [attr.aria-label]="isOriginDiscoveryMode ? 'Usar este punto como origen' : 'Elegir desde dónde enviar hacia este punto'">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5" cy="12" r="2.5"></circle><path d="M8 12h11M15 8l4 4-4 4"></path></svg>
-              {{ isOriginDiscoveryMode ? 'Usar como origen' : 'Desde dónde enviar' }}
-            </button>
-            <button type="button" siButton variant="secondary" class="point-share-action" (click)="sharePointResource(res)" [attr.aria-label]="'Compartir ' + (res.destino_nombre || res.nombre_destino)">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"></path></svg>
-              Compartir
-            </button>
-            <button type="button" siButton variant="secondary" class="point-map-action" (click)="viewPointOnMap(res)" [attr.aria-label]="'Ver ' + (res.destino_nombre || res.nombre_destino) + ' en el mapa'">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 5.5-8 11-8 11S4 15.5 4 10a8 8 0 1 1 16 0Z"></path><circle cx="12" cy="10" r="2.5"></circle></svg>
-              Ver mapa
-            </button>
-          </div>
+          *ngFor="let res of displayedResults"
+          [point]="res"
+          [computedId]="(res.id_destino || res.id_origen || res.id)"
+          [expanded]="isPointCardExpanded(res)"
+          [originDiscoveryMode]="isOriginDiscoveryMode"
+          [imageAvailable]="hasPointImage(res)"
+          [imageUrl]="resolveImageUrl(res.imagen_referencia)"
+          [scheduleCount]="getGroupedSchedules(res.horarios_operativos).length"
+          (toggle)="togglePointCard($event)"
+          (copyImage)="copyPointResource($event)"
+          (imageUnavailable)="markPointImageUnavailable($event)"
+          (use)="selectPointFromList($event)"
+          (share)="sharePointResource($event)"
+          (map)="viewPointOnMap($event)">
         </article>
       </div>
 

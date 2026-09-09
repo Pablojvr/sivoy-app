@@ -113,7 +113,7 @@ archivos. Codex debe revisar cada diff y ejecutar build y auditoría visual.
   - Ejecución incremental: `tasks/specs/T25-results-schedules-sharing.md` (T25a1–T25c).
   - [x] T25a1: agrupación y formato de horarios extraídos a dominio puro; 46 pruebas frontend y build verdes.
   - [x] T25a2: presentación reutilizable de horarios; 50 pruebas y DOM/CSS de pin y tarjeta auditados en local.
-  - [ ] T25b: tarjeta presentacional de punto.
+  - [x] T25b: tarjeta presentacional de punto; 59 pruebas, build y DOM/ARIA colapsable auditados en local.
   - [ ] T25c: rutas, detalle y compartir.
 - [ ] T26 Centralizar data-access y errores del flujo.
 - [ ] T27 Crear puerto y adaptador del mapa.

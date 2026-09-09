@@ -9,6 +9,7 @@ import { SiCardDirective, SiButtonDirective, SiIconButtonDirective, SiChipCompon
 import { DestinationSearchComponent, MunicipalityOption } from './destination-search/destination-search.component';
 import { OriginSearchComponent } from './origin-search/origin-search.component';
 import { ShipmentSearchFacade } from './shipment-search.facade';
+import { formatScheduleTime, groupConsecutiveSchedules, GroupedSchedule } from './results/schedule-utils';
 
 @Component({
   selector: 'app-home',
@@ -165,7 +166,7 @@ export class HomeComponent implements OnInit, OnChanges {
   expandedResultCard: any = null;
   activeDetailedCard: any = null;
   private unavailablePointImages = new Set<string>();
-  private groupedScheduleCache = new WeakMap<any[], { dias: string, apertura: string, cierre: string }[]>();
+  private groupedScheduleCache = new WeakMap<any[], GroupedSchedule[]>();
   searchRadius: number = 1.0;
   
   // Autocomplete logic properties
@@ -1043,88 +1044,15 @@ export class HomeComponent implements OnInit, OnChanges {
   }
 
   formatTime(timeStr: string): string {
-    if (!timeStr) return '';
-    const [hours, minutes] = timeStr.split(':');
-    let h = parseInt(hours, 10);
-    const ampm = h >= 12 ? 'PM' : 'AM';
-    h = h % 12 || 12;
-    return `${h < 10 ? '0' + h : h}:${minutes} ${ampm}`;
+    return formatScheduleTime(timeStr);
   }
 
-  getGroupedSchedules(horarios: any[]): { dias: string, apertura: string, cierre: string }[] {
+  getGroupedSchedules(horarios: any[]): GroupedSchedule[] {
     if (!horarios || horarios.length === 0) return [];
     const cachedGroups = this.groupedScheduleCache.get(horarios);
     if (cachedGroups) return cachedGroups;
     
-    const dayOrder = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
-    
-    // 1. Group by time
-    const timeGroups: { [key: string]: { apertura: string, cierre: string, days: number[] } } = {};
-    
-    for (const h of horarios) {
-      if (!h.hora_apertura || !h.hora_cierre) continue;
-      const key = `${h.hora_apertura}-${h.hora_cierre}`;
-      const dayIndex = dayOrder.indexOf(h.dia_semana);
-      if (dayIndex === -1) continue;
-      
-      if (!timeGroups[key]) {
-        timeGroups[key] = { apertura: h.hora_apertura, cierre: h.hora_cierre, days: [] };
-      }
-      timeGroups[key].days.push(dayIndex);
-    }
-    
-    const result: { dias: string, apertura: string, cierre: string }[] = [];
-    
-    // 2. For each time group, find consecutive ranges
-    for (const key in timeGroups) {
-      const group = timeGroups[key];
-      // Sort days
-      group.days.sort((a, b) => a - b);
-      
-      const ranges: string[] = [];
-      let rangeStart = group.days[0];
-      let rangeEnd = group.days[0];
-      
-      for (let i = 1; i < group.days.length; i++) {
-        if (group.days[i] === rangeEnd + 1) {
-          rangeEnd = group.days[i];
-        } else {
-          if (rangeStart === rangeEnd) {
-            ranges.push(dayOrder[rangeStart]);
-          } else if (rangeEnd === rangeStart + 1) {
-            ranges.push(`${dayOrder[rangeStart]} y ${dayOrder[rangeEnd]}`);
-          } else {
-            ranges.push(`${dayOrder[rangeStart]} a ${dayOrder[rangeEnd]}`);
-          }
-          rangeStart = group.days[i];
-          rangeEnd = group.days[i];
-        }
-      }
-      
-      if (rangeStart === rangeEnd) {
-        ranges.push(dayOrder[rangeStart]);
-      } else if (rangeEnd === rangeStart + 1) {
-        ranges.push(`${dayOrder[rangeStart]} y ${dayOrder[rangeEnd]}`);
-      } else {
-        ranges.push(`${dayOrder[rangeStart]} a ${dayOrder[rangeEnd]}`);
-      }
-      
-      // Join ranges with commas
-      let diasLabel = ranges.join(', ');
-      
-      result.push({ dias: diasLabel, apertura: group.apertura, cierre: group.cierre });
-    }
-    
-    // Sort result by the first day of the group (optional, but good for UX)
-    result.sort((a, b) => {
-       const getFirstDay = (label: string) => {
-          for (let i=0; i<dayOrder.length; i++) {
-            if (label.includes(dayOrder[i])) return i;
-          }
-          return 99;
-       };
-       return getFirstDay(a.dias) - getFirstDay(b.dias);
-    });
+    const result = groupConsecutiveSchedules(horarios);
     
     this.groupedScheduleCache.set(horarios, result);
     return result;

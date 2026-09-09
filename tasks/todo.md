@@ -111,6 +111,10 @@ archivos. Codex debe revisar cada diff y ejecutar build y auditoría visual.
   - Spec ejecutado: `tasks/specs/T24-origin-search-component.md`.
 - [ ] T25 Extraer resultados, horarios y compartir.
   - Ejecución incremental: `tasks/specs/T25-results-schedules-sharing.md` (T25a1–T25c).
+  - [x] T25a1: agrupación y formato de horarios extraídos a dominio puro; 46 pruebas frontend y build verdes.
+  - [ ] T25a2: presentación reutilizable de horarios.
+  - [ ] T25b: tarjeta presentacional de punto.
+  - [ ] T25c: rutas, detalle y compartir.
 - [ ] T26 Centralizar data-access y errores del flujo.
 - [ ] T27 Crear puerto y adaptador del mapa.
   - Incluir detección de WebGL2 y continuidad list-first con mensaje recuperable cuando el mapa no esté disponible.

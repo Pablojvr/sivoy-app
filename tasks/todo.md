@@ -140,7 +140,12 @@ archivos. Codex debe revisar cada diff y ejecutar build y auditoría visual.
     - [x] T28c: marcadores auxiliares y listeners de arrastre migrados; 211 pruebas y build auditados.
     - [x] T28d: eventos, disposer temporal y teardown final migrados; 211 pruebas, build y runtime auditados.
 - [ ] T29 Separar operaciones de empresas en ruta propia.
-- [ ] T30 Reducir `MobileAppComponent` al shell.
+- [ ] T30 Reducir `MobileAppComponent` al shell público (wiring empresarial temporalmente excluido).
+    - [ ] T30a: Cobertura de caracterización de inicialización
+    - [ ] T30b: Delegar accesos a UbicacionesService
+    - [ ] T30c: Extraer UserGeolocationService
+    - [ ] T30d: Migrar lógica paralela de búsqueda a ShipmentSearchFacade
+
 - [ ] T31 Eliminar duplicación y legado con búsqueda de consumidores.
 
 ### Checkpoint D

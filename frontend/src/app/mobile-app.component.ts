@@ -7,7 +7,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { ToastService } from './core/services/toast.service';
 import { HttpClient } from '@angular/common/http';
-import { MapPort, MapMarkerPort, MapCoordinate } from './core/maps/map.port';
+import { MapPort, MapCoordinate } from './core/maps/map.port';
 import { MapLibreMapAdapter } from './core/maps/maplibre-map.adapter';
 import { createMapMarkerElement } from './core/maps/map-marker-element';
 import { MapLifecycleManager } from './core/maps/map-lifecycle.manager';
@@ -23,6 +23,12 @@ interface MapMarkerMetadata {
   destinationName: string;
   companyName: string;
 }
+
+const AUX_MARKER_KEYS = {
+  USER: 'user',
+  CUSTOM_DESTINO: 'custom_destino',
+  PREVIEW: 'preview'
+} as const;
 
 @Component({
   selector: 'app-mobile-layout',
@@ -124,13 +130,10 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
   private map: MapPort | null = null;
   private mapLifecycle: MapLifecycleManager<MapMarkerMetadata> | null = null;
   private readonly mapEventDisposers: Array<() => void> = [];
-  private customDestinationDragDisposer: (() => void) | null = null;
-  private previewDragDisposer: (() => void) | null = null;
   private destroyed = false;
   userLocation: MapCoordinate | null = null;
   userMunicipalityName: string | null = null;
   userDepartamento: string | null = null;
-  userMarker: MapMarkerPort | null = null;
   mapResizeObserver: ResizeObserver | null = null;
   
   first: number = 0; // Required by design rules for pagination reset
@@ -241,11 +244,9 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
       this.mapResizeObserver.disconnect();
     }
     this.mapLifecycle?.clearPrimaryMarkers();
-    this.customDestinationDragDisposer?.();
-    this.previewDragDisposer?.();
-    this.userMarker?.remove();
-    this.customDestinoMarker?.remove();
-    this.previewMapMarker?.remove();
+    this.mapLifecycle?.removeAuxiliaryMarker(AUX_MARKER_KEYS.USER);
+    this.mapLifecycle?.removeAuxiliaryMarker(AUX_MARKER_KEYS.CUSTOM_DESTINO);
+    this.mapLifecycle?.removeAuxiliaryMarker(AUX_MARKER_KEYS.PREVIEW);
     this.clearDisposers(this.mapEventDisposers);
     this.mapMoveDisposer?.();
     this.mapMoveDisposer = null;
@@ -412,36 +413,33 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  customDestinoMarker: MapMarkerPort | null = null;
 
   setCustomDestination(lat: number, lng: number) {
-    if (!this.map) return;
-    if (this.customDestinoMarker) {
-      this.customDestinationDragDisposer?.();
-      this.customDestinationDragDisposer = null;
-      this.customDestinoMarker.remove();
-    }
-    const markerElement = this.createMarkerElement('preview', 'Destino elegido en el mapa');
-    this.customDestinoMarker = this.map.createMarker({ lng, lat }, {
-      element: markerElement,
-      draggable: true,
-      anchor: 'bottom'
-    });
-    this.customDestinationDragDisposer = this.customDestinoMarker.onDragEnd((pos) => {
-      this.fetchMunicipalityName(pos.lat, pos.lng, true);
+    if (!this.mapLifecycle) return;
+
+    const markerElement = this.createMarkerElement(AUX_MARKER_KEYS.PREVIEW, 'Destino elegido en el mapa');
+    this.mapLifecycle.setAuxiliaryMarker(AUX_MARKER_KEYS.CUSTOM_DESTINO, {
+      coordinate: { lng, lat },
+      options: { element: markerElement, draggable: true, anchor: 'bottom' },
+      onDragEnd: (pos) => {
+        this.fetchMunicipalityName(pos.lat, pos.lng, true);
+      }
     });
 
     this.fetchMunicipalityName(lat, lng, true);
   }
 
   updateUserMarker() {
-    if (!this.map || !this.userLocation) return;
+    if (!this.map || !this.mapLifecycle || !this.userLocation) return;
     
-    if (this.userMarker) {
-      this.userMarker.setCoordinate(this.userLocation);
+    if (this.mapLifecycle.getAuxiliaryMarker(AUX_MARKER_KEYS.USER)) {
+      this.mapLifecycle.updateAuxiliaryMarker(AUX_MARKER_KEYS.USER, this.userLocation);
     } else {
-      const userElement = this.createMarkerElement('user', 'Tu ubicación');
-      this.userMarker = this.map.createMarker(this.userLocation, { element: userElement, anchor: 'center' });
+      const userElement = this.createMarkerElement(AUX_MARKER_KEYS.USER, 'Tu ubicación');
+      this.mapLifecycle.setAuxiliaryMarker(AUX_MARKER_KEYS.USER, {
+        coordinate: this.userLocation,
+        options: { element: userElement, anchor: 'center' }
+      });
       this.map.jumpTo(this.userLocation, { zoom: 13 });
     }
   }
@@ -2047,7 +2045,6 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
     }, 300); // Wait for the tab to render and the map to be fully visible
   }
 
-  previewMapMarker: MapMarkerPort | null = null;
 
   private removeRouteLine() {
     this.map?.removeRouteLine();
@@ -2064,7 +2061,7 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private createMarkerElement(
-    type: 'origin' | 'destination' | 'nearby' | 'user' | 'preview',
+    type: 'origin' | 'destination' | 'nearby' | typeof AUX_MARKER_KEYS.USER | typeof AUX_MARKER_KEYS.PREVIEW,
     label = '',
     selected = false
   ): HTMLButtonElement {
@@ -2160,19 +2157,14 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
         this.isProgrammaticMove = true;
         this.map.flyTo(coords, { zoom: 18, duration: 750 });
         
-        if (this.previewMapMarker) {
-          this.previewDragDisposer?.();
-          this.previewDragDisposer = null;
-          this.previewMapMarker.remove();
-        }
-        
-        const element = this.createMarkerElement('preview', 'Ubicación de vista previa');
-        this.previewMapMarker = this.map.createMarker(coords, { element, draggable: true, anchor: 'bottom' });
-        
-        // Update coordinates if user drags the pin during preview
-        this.previewDragDisposer = this.previewMapMarker.onDragEnd((pos) => {
-          if (this.adminRef) {
-             this.adminRef.updatePickedLocation(pos.lat.toFixed(6), pos.lng.toFixed(6));
+        const element = this.createMarkerElement(AUX_MARKER_KEYS.PREVIEW, 'Ubicación de vista previa');
+        this.mapLifecycle?.setAuxiliaryMarker(AUX_MARKER_KEYS.PREVIEW, {
+          coordinate: coords,
+          options: { element, draggable: true, anchor: 'bottom' },
+          onDragEnd: (pos) => {
+            if (this.adminRef) {
+               this.adminRef.updatePickedLocation(pos.lat.toFixed(6), pos.lng.toFixed(6));
+            }
           }
         });
         

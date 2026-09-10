@@ -26,3 +26,9 @@ Accepted after independent audit. `MobileAppComponent` delegates creation, metad
 The component currently retains transitional ownership of user, custom-destination and preview auxiliary markers, map-event listeners and the picker listener. Accordingly, component teardown calls `clearPrimaryMarkers()` and still destroys the `MapPort` directly; it must not call the manager's full `destroy()` until T28c and T28d transfer those remaining resources.
 
 Evidence: 211 tests passed, the production build passed, and `git diff --check` found no whitespace errors. The existing CSS budget and legacy Partner `mapbox-gl` CommonJS warnings remain unchanged and outside this slice.
+
+## T28c status
+
+Accepted after independent audit. The `mobile-app.component.ts` delegates auxiliary marker creation and drag listeners to `MapLifecycleManager.setAuxiliaryMarker`, replacing manual references. Teardown remains transitional: the component clears the auxiliary markers in `ngOnDestroy` without calling `mapLifecycle.destroy()`, ensuring map events and picker-scoped disposers remain active until migrated in T28d.
+
+Evidence: 211 tests passed, the production build passed, `git diff --check` found no whitespace errors, and the public shell bundle decreased from 339.72 kB to 339.46 kB.

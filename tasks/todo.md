@@ -125,12 +125,15 @@ archivos. Codex debe revisar cada diff y ejecutar build y auditoría visual.
   - [x] T26c: integrar el orquestador en Home y unificar estados/copy de error.
     - [x] T26c1: aislar filtro temporal y mutaciones de presentación; 126 pruebas y build auditados.
     - [x] T26c2: conectar Home y retirar suscripciones HTTP directas; 133 pruebas, build y flujo real auditados.
-- [ ] T27 Crear puerto y adaptador del mapa.
+- [x] T27 Crear puerto y adaptador del mapa.
     - Incluir detección de WebGL2 y continuidad list-first con mensaje recuperable cuando el mapa no esté disponible.
     - [x] T27a: detector WebGL2 cacheado y seguro para SSR; 140 pruebas y build auditados.
     - [x] T27b: definir puerto estable y adaptador MapLibre; 178 pruebas y build auditados.
     - [x] T27c: integrar fallback list-first en el shell público; 178 pruebas, build y flujo normal en navegador auditados.
-    - [ ] T27d: migrar comandos del shell al puerto sin asumir el ciclo de vida de marcadores.
+    - [x] T27d: migrar comandos del shell al puerto sin asumir el ciclo de vida de marcadores.
+      - [x] T27d1: aislar cálculo geográfico del runtime del mapa.
+      - [x] T27d2: encapsular el render diferido de rutas en el adaptador.
+      - [x] T27d3: shell público migrado al puerto; 201 pruebas, build y runtime list-first/mapa auditados.
 - [ ] T28 Encapsular ciclo de vida de marcadores y listeners.
 - [ ] T29 Separar operaciones de empresas en ruta propia.
 - [ ] T30 Reducir `MobileAppComponent` al shell.

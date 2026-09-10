@@ -15,7 +15,19 @@ Migrate incrementally:
 
 ## Status
 
-T27a-T27c accepted after independent audit; T27d1-T27d2 completed, rest of T27d remains in progress.
+T27a-T27d3 accepted after independent audit. T27 is complete; marker/listener ownership moves to T28.
+
+## T27d3 evidence
+
+- `MobileAppComponent` now talks only to the renderer-neutral `MapPort`, `MapMarkerPort` and `MapCoordinate` contracts for the public map flow.
+- MapLibre construction, markers, popup DOM, viewport fitting and route source/layer ownership remain inside the adapter.
+- Public marker metadata is held in a typed side table instead of being attached to renderer objects.
+- Map, marker, drag and picker listeners expose and execute explicit disposers; component teardown destroys the adapter exactly once.
+- Route previews use the SiVoy pink dashed style through `drawRouteLine`, while map picking and user-location flows use neutral coordinates.
+- Adapter coverage includes rotation/pitch/touch-pitch controls, compact attribution, immutable dash arrays and stale deferred-load callbacks.
+- `pitchEnabled` intentionally controls both rotation-based pitch and two-finger touch pitch so the neutral contract cannot leave a partially enabled tilt gesture.
+- The map canvas retains diagnostic load/error attributes, and delayed initialization cannot recreate the renderer after component destruction.
+- Independent validation: 201 tests and the production build passed. A map-capable local render and a headless list-first render with a selected point were inspected.
 
 ## T27d2 evidence
 

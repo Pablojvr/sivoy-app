@@ -1,4 +1,4 @@
-import { Map as MLMap, Marker, Popup, LngLatBounds, GeoJSONSource, Source, StyleSpecification } from 'maplibre-gl';
+import { Map as MLMap, Marker, Popup, LngLatBounds, GeoJSONSource, Source, StyleSpecification, AttributionControl } from 'maplibre-gl';
 import {
   MapPort,
   MapCoordinate,
@@ -87,6 +87,10 @@ class MapLibreMarkerAdapter implements MapMarkerPort {
     this.marker.setPopup(popup);
   }
 
+  getElement(): HTMLElement {
+    return this.marker.getElement();
+  }
+
   onDragEnd(handler: (coord: MapCoordinate) => void): () => void {
     const listener = () => {
       handler(this.getCoordinate());
@@ -114,14 +118,29 @@ export class MapLibreMapAdapter implements MapPort {
       return;
     }
 
-    this.map = new MLMap({
+    const map = new MLMap({
       container,
       style: options.styleUrl ?? SIVOY_MAPLIBRE_STYLE,
       center: [options.center.lng, options.center.lat],
       zoom: options.zoom,
       minZoom: options.minZoom,
-      maxZoom: options.maxZoom
+      maxZoom: options.maxZoom,
+      attributionControl: options.attributionCompact !== undefined ? false : undefined,
+      dragRotate: options.rotationEnabled ?? true,
+      pitchWithRotate: options.pitchEnabled ?? true,
+      touchPitch: options.pitchEnabled ?? true,
+      cooperativeGestures: options.cooperativeGestures ?? false
     });
+
+    try {
+      if (options.attributionCompact !== undefined) {
+        map.addControl(new AttributionControl({ compact: options.attributionCompact }));
+      }
+    } catch (error: unknown) {
+      map.remove();
+      throw error;
+    }
+    this.map = map;
   }
 
   isInitialized(): boolean {
@@ -260,18 +279,20 @@ export class MapLibreMapAdapter implements MapPort {
     // Save immutable copy of the request
     this.pendingRouteRequest = {
       coordinates: coordinates.map(c => ({ ...c })),
-      style: style ? { ...style } : undefined
+      style: style ? { ...style, dashArray: style.dashArray ? [...style.dashArray] : undefined } : undefined
     };
 
     if (!this.pendingRouteListener) {
-      this.pendingRouteListener = () => {
+      const listener = () => {
+        if (this.map !== m || this.pendingRouteListener !== listener) return;
         const req = this.pendingRouteRequest;
         this.cancelPendingRouteRequest();
         if (req) {
           this.renderRouteLine(req.coordinates, req.style);
         }
       };
-      m.once('load', this.pendingRouteListener);
+      this.pendingRouteListener = listener;
+      m.once('load', listener);
     }
   }
 
@@ -313,6 +334,11 @@ export class MapLibreMapAdapter implements MapPort {
       m.setPaintProperty(this.routeLayerId, 'line-color', style?.color ?? '#3b82f6');
       m.setPaintProperty(this.routeLayerId, 'line-width', style?.width ?? 4);
       m.setPaintProperty(this.routeLayerId, 'line-opacity', style?.opacity ?? 1);
+      if (style?.dashArray) {
+        m.setPaintProperty(this.routeLayerId, 'line-dasharray', [...style.dashArray]);
+      } else {
+        m.setPaintProperty(this.routeLayerId, 'line-dasharray', undefined);
+      }
     } else {
       m.addLayer({
         id: this.routeLayerId,
@@ -325,7 +351,8 @@ export class MapLibreMapAdapter implements MapPort {
         paint: {
           'line-color': style?.color ?? '#3b82f6',
           'line-width': style?.width ?? 4,
-          'line-opacity': style?.opacity ?? 1
+          'line-opacity': style?.opacity ?? 1,
+          ...(style?.dashArray ? { 'line-dasharray': [...style.dashArray] } : {})
         }
       });
     }

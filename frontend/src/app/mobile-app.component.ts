@@ -7,13 +7,21 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { ToastService } from './core/services/toast.service';
 import { HttpClient } from '@angular/common/http';
-import { asCoordinate, createBounds, createMarkerElement, createSiVoyMap, mapRuntime, SiVoyCoordinate, SiVoyLngLat, SiVoyMap, SiVoyMarker } from './core/maps/sivoy-map';
+import { MapPort, MapMarkerPort, MapCoordinate } from './core/maps/map.port';
+import { MapLibreMapAdapter } from './core/maps/maplibre-map.adapter';
+import { createMapMarkerElement } from './core/maps/map-marker-element';
 import { MapCapabilityService } from './core/maps/map-capability.service';
 import { calculateDistanceKm } from './core/maps/geo-distance';
 import { HomeComponent } from './features/home/home.component';
 import { AdminComponent } from './features/admin/admin.component';
 import { BottomNavComponent } from './shared/components/bottom-nav/bottom-nav.component';
 import { PerfilComponent } from './features/perfil/perfil.component';
+
+interface MapMarkerMetadata {
+  source: unknown;
+  destinationName: string;
+  companyName: string;
+}
 
 @Component({
   selector: 'app-mobile-layout',
@@ -87,7 +95,7 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
   uniqueMunicipalities: any[] = [];
   tempPickedLat: string = '';
   tempPickedLng: string = '';
-  mapMoveListener: any;
+  private mapMoveDisposer: (() => void) | null = null;
   
   // Location Selector Modal State
   selectingLocation: 'origen' | 'destino' | null = null;
@@ -112,13 +120,19 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
   mapCenterLat: number = 0;
   mapCenterLng: number = 0;
   
-  map!: SiVoyMap;
-  markers: SiVoyMarker[] = [];
-  userLocation: SiVoyLngLat | null = null;
+  private map: MapPort | null = null;
+  markers: MapMarkerPort[] = [];
+  private readonly markerMetadata = new Map<MapMarkerPort, MapMarkerMetadata>();
+  private readonly mapEventDisposers: Array<() => void> = [];
+  private readonly markerEventDisposers: Array<() => void> = [];
+  private customDestinationDragDisposer: (() => void) | null = null;
+  private previewDragDisposer: (() => void) | null = null;
+  private destroyed = false;
+  userLocation: MapCoordinate | null = null;
   userMunicipalityName: string | null = null;
   userDepartamento: string | null = null;
-  userMarker: SiVoyMarker | null = null;
-  mapResizeObserver!: ResizeObserver;
+  userMarker: MapMarkerPort | null = null;
+  mapResizeObserver: ResizeObserver | null = null;
   
   first: number = 0; // Required by design rules for pagination reset
 
@@ -200,13 +214,13 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
     this.loadAdminEmpresas();
 
     // Default to El Salvador immediately so marker renders even if GPS hangs
-    this.userLocation = new mapRuntime.LngLat(-89.21, 13.69);
+    this.userLocation = { lng: -89.21, lat: 13.69 };
     this.fetchMunicipalityName(13.69, -89.21);
 
     // Attempt to get user location
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition((pos) => {
-        this.userLocation = new mapRuntime.LngLat(pos.coords.longitude, pos.coords.latitude);
+        this.userLocation = { lng: pos.coords.longitude, lat: pos.coords.latitude };
         this.updateUserMarker();
         this.sortLocationsByDistance();
         this.fetchMunicipalityName(pos.coords.latitude, pos.coords.longitude);
@@ -222,13 +236,22 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    this.destroyed = true;
     this.routeParamsSubscription?.unsubscribe();
     if (this.mapResizeObserver) {
       this.mapResizeObserver.disconnect();
     }
-    this.markers.forEach(marker => marker.remove());
+    this.clearMarkers();
+    this.customDestinationDragDisposer?.();
+    this.previewDragDisposer?.();
     this.userMarker?.remove();
-    this.map?.remove();
+    this.customDestinoMarker?.remove();
+    this.previewMapMarker?.remove();
+    this.clearDisposers(this.mapEventDisposers);
+    this.mapMoveDisposer?.();
+    this.mapMoveDisposer = null;
+    this.map?.destroy();
+    this.map = null;
   }
 
   ngAfterViewInit() {
@@ -260,12 +283,24 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     setTimeout(() => {
-      const mapElement = document.getElementById('map');
+      if (this.destroyed) return;
+      if (this.map?.isInitialized()) return;
+      const mapElement = (this.elRef.nativeElement as HTMLElement).querySelector<HTMLElement>('#map');
       if (!mapElement) return;
 
       try {
-        const tempMap = createSiVoyMap(mapElement, [-88.89, 13.79], 8.2);
-        this.map = tempMap;
+        const adapter = new MapLibreMapAdapter();
+        adapter.initialize(mapElement, {
+          center: { lng: -88.89, lat: 13.79 },
+          zoom: 8.2,
+          minZoom: 7,
+          maxZoom: 19,
+          attributionCompact: true,
+          rotationEnabled: false,
+          pitchEnabled: false,
+          cooperativeGestures: false
+        });
+        this.map = adapter;
       } catch {
         this.mapInitializationFailed = true;
         this.isMapResourceMode = false;
@@ -275,9 +310,8 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
       }
   
       // UX: Handle map clicks for destination selection or collapse bottom sheet
-      this.map.on('click', (e: any) => {
+      this.mapEventDisposers.push(this.map.onClick(({ lat, lng }) => {
         if (this.selectingLocation === 'destino' || this.activeInput === 'destino') {
-          const { lat, lng } = e.lngLat;
           this.setCustomDestination(lat, lng);
           return;
         }
@@ -287,58 +321,61 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
         }
         this.expandedResultCard = null;
         this.cdr.detectChanges();
-      });
+      }));
       
-      this.map.on('dragstart', () => {
+      this.mapEventDisposers.push(this.map.onDragStart(() => {
         this.selectedPin = null;
         if (this.bottomSheetState === 'expanded' || this.bottomSheetState === 'half') {
           this.bottomSheetState = 'collapsed';
         }
         this.expandedResultCard = null;
         this.cdr.detectChanges();
-      });
+      }));
       
-      this.map.on('movestart', () => {
+      this.mapEventDisposers.push(this.map.onMoveStart(() => {
         if (!this.isProgrammaticMove && (this.bottomSheetState === 'expanded' || this.bottomSheetState === 'half')) {
           this.bottomSheetState = 'collapsed';
           this.cdr.detectChanges();
         }
-      });
-      this.map.on('moveend', () => {
+      }));
+      this.mapEventDisposers.push(this.map.onMoveEnd(() => {
         this.isProgrammaticMove = false;
-      });
+      }));
 
       // Track map center
-      this.map.on('move', () => {
-        const center = this.map.getCenter();
+      this.mapEventDisposers.push(this.map.onMove((center) => {
         this.mapCenterLat = center.lat;
         this.mapCenterLng = center.lng;
-      });
+      }));
 
       // Update map center on load if not set
       const initCenter = this.map.getCenter();
       this.mapCenterLat = initCenter.lat;
       this.mapCenterLng = initCenter.lng;
 
-      this.map.once('load', () => {
+      this.mapEventDisposers.push(this.map.onLoad(() => {
+        mapElement.setAttribute('data-map-state', 'loaded');
         this.updateMapMarkers();
         this.updateUserMarker();
-      });
+      }));
+      this.mapEventDisposers.push(this.map.onError((message) => {
+        mapElement.setAttribute('data-map-error', message);
+      }));
 
       // Recalculate the WebGL canvas after layout transitions.
       setTimeout(() => {
-        this.map.resize();
+        this.map?.resize();
       }, 200);
 
       // Add ResizeObserver to handle map container size changes permanently
       if (mapElement) {
         this.mapResizeObserver = new ResizeObserver(() => {
-          this.map.resize();
+          this.map?.resize();
         });
         this.mapResizeObserver.observe(mapElement);
       }
       
-      if (this.map.loaded()) this.updateMapMarkers();
+      this.updateMapMarkers();
     }, 50);
 
     // In case location was fetched before map was ready
@@ -375,19 +412,22 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  customDestinoMarker: any = null;
+  customDestinoMarker: MapMarkerPort | null = null;
 
   setCustomDestination(lat: number, lng: number) {
+    if (!this.map) return;
     if (this.customDestinoMarker) {
+      this.customDestinationDragDisposer?.();
+      this.customDestinationDragDisposer = null;
       this.customDestinoMarker.remove();
     }
-    const markerElement = createMarkerElement('preview', 'Destino elegido en el mapa');
-    this.customDestinoMarker = new mapRuntime.Marker({ element: markerElement, draggable: true, anchor: 'bottom' })
-      .setLngLat([lng, lat])
-      .addTo(this.map);
-    
-    this.customDestinoMarker.on('dragend', (e: any) => {
-      const pos = e.target.getLngLat();
+    const markerElement = this.createMarkerElement('preview', 'Destino elegido en el mapa');
+    this.customDestinoMarker = this.map.createMarker({ lng, lat }, {
+      element: markerElement,
+      draggable: true,
+      anchor: 'bottom'
+    });
+    this.customDestinationDragDisposer = this.customDestinoMarker.onDragEnd((pos) => {
       this.fetchMunicipalityName(pos.lat, pos.lng, true);
     });
 
@@ -398,13 +438,11 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!this.map || !this.userLocation) return;
     
     if (this.userMarker) {
-      this.userMarker.setLngLat(this.userLocation);
+      this.userMarker.setCoordinate(this.userLocation);
     } else {
-      const userElement = createMarkerElement('user', 'Tu ubicación');
-      this.userMarker = new mapRuntime.Marker({ element: userElement, anchor: 'center' })
-        .setLngLat(this.userLocation)
-        .addTo(this.map);
-      this.map.jumpTo({ center: this.userLocation, zoom: 13 });
+      const userElement = this.createMarkerElement('user', 'Tu ubicación');
+      this.userMarker = this.map.createMarker(this.userLocation, { element: userElement, anchor: 'center' });
+      this.map.jumpTo(this.userLocation, { zoom: 13 });
     }
   }
 
@@ -427,21 +465,23 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     // Clear existing markers
-    this.markers.forEach(marker => marker.remove());
-    this.markers = [];
+    this.clearMarkers();
 
-    const coordinates: SiVoyCoordinate[] = [[this.userLocation.lng, this.userLocation.lat]];
+    const coordinates: MapCoordinate[] = [{ ...this.userLocation }];
 
     nearby.forEach(loc => {
       if (loc.ubicacion && loc.ubicacion.lat && loc.ubicacion.lng) {
-        const element = createMarkerElement('nearby', loc.nombre_destino);
-        const marker = new mapRuntime.Marker({ element, anchor: 'center' })
-          .setLngLat(asCoordinate(loc.ubicacion.lat, loc.ubicacion.lng))
-          .setPopup(new mapRuntime.Popup({ offset: 18, closeButton: false }).setHTML(`<strong>${loc.empresa}</strong><br>${loc._status?.mainText || loc.nombre_destino}`))
-          .addTo(this.map);
-        coordinates.push(asCoordinate(loc.ubicacion.lat, loc.ubicacion.lng));
+        const coordinate = this.toMapCoordinate(loc.ubicacion.lat, loc.ubicacion.lng);
+        const element = this.createMarkerElement('nearby', loc.nombre_destino);
+        const marker = this.map!.createMarker(coordinate, { element, anchor: 'center' });
+        marker.setPopupContent({
+          title: String(loc.empresa ?? ''),
+          subtitle: String(loc._status?.mainText || loc.nombre_destino || '')
+        });
+        this.setMarkerMetadata(marker, loc, loc.nombre_destino, loc.empresa);
+        coordinates.push(coordinate);
         
-        element.addEventListener('click', event => {
+        this.addMarkerClickListener(element, event => {
           event.stopPropagation();
           this.focusLocation(loc);
           this.selectedPin = loc;
@@ -454,8 +494,7 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
 
     // Zoom map to fit the nearby points
     this.isProgrammaticMove = true;
-    const bounds = createBounds(coordinates);
-    if (bounds) this.map.fitBounds(bounds, { padding: 50, maxZoom: 15, duration: 850 });
+    this.map.fitCoordinates(coordinates, { padding: 50, maxZoom: 15, duration: 850 });
   }
 
   onDeliveryDayChange(res: any, event: any) {
@@ -473,13 +512,10 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
   updateMapMarkers() {
     if (!this.map) return;
     
-    if (this.routePolyline) {
-       this.removeRouteLine();
-    }
+    this.removeRouteLine();
 
     // Clear old markers
-    this.markers.forEach(marker => marker.remove());
-    this.markers = [];
+    this.clearMarkers();
 
     const isInicio = this.activeMainTab === 'inicio' && this.homeCmp;
     const currentFlightResults = isInicio ? this.homeCmp.flightResults : this.flightResults;
@@ -530,14 +566,15 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
     
     if (pointsToPlot.length === 0) return;
 
-    const coordinates: SiVoyCoordinate[] = [];
+    const coordinates: MapCoordinate[] = [];
 
     pointsToPlot.forEach(loc => {
       const lat = loc.lat || loc.ubicacion?.lat;
       const lng = loc.lng || loc.ubicacion?.lng;
 
       if (lat && lng) {
-        coordinates.push(asCoordinate(lat, lng));
+        const coordinate = this.toMapCoordinate(lat, lng);
+        coordinates.push(coordinate);
 
         const isSelected = currentExpandedResultCard === loc || (currentSelectedPin && currentSelectedPin.nombre_destino === loc.nombre_destino);
         
@@ -550,19 +587,15 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
           else markerType = 'destination'; 
         }
 
-        const element = createMarkerElement(
+        const element = this.createMarkerElement(
           markerType === 'origin' ? 'origin' : 'destination',
           loc.nombre_destino || loc.destino_nombre || 'Punto logístico',
           isSelected
         );
-        const marker = new mapRuntime.Marker({ element, anchor: 'bottom' })
-          .setLngLat(asCoordinate(lat, lng))
-          .addTo(this.map);
-        
-        // Save the location object reference to update its class later
-        (marker as any).locData = loc;
+        const marker = this.map!.createMarker(coordinate, { element, anchor: 'bottom' });
+        this.setMarkerMetadata(marker, loc, loc.nombre_destino, loc.empresa);
 
-        element.addEventListener('click', event => {
+        this.addMarkerClickListener(element, event => {
           event.stopPropagation();
           
           this.focusLocation(loc);
@@ -582,11 +615,10 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     });
 
-    const bounds = createBounds(coordinates);
-    if (bounds) {
+    if (coordinates.length > 0) {
       // Avoid zooming in too much if there's only 1 point
       this.isProgrammaticMove = true;
-      this.map.fitBounds(bounds, { padding: 50, maxZoom: 15, duration: 850 });
+      this.map.fitCoordinates(coordinates, { padding: 50, maxZoom: 15, duration: 850 });
     }
     
     // Ensure styles (like highlight/dim) are applied to the newly created markers
@@ -603,14 +635,13 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.map && route) {
       const p1 = this.locations.find((l:any) => l.nombre_destino === route.origen_nombre && l.empresa === route.empresa);
       const p2 = this.locations.find((l:any) => l.nombre_destino === route.destino_nombre && l.empresa === route.empresa);
-      const routeCoordinates: SiVoyCoordinate[] = [];
-      if (p1 && (p1.ubicacion?.lat || p1.lat)) routeCoordinates.push(asCoordinate(p1.ubicacion?.lat || p1.lat, p1.ubicacion?.lng || p1.lng));
-      if (p2 && (p2.ubicacion?.lat || p2.lat)) routeCoordinates.push(asCoordinate(p2.ubicacion?.lat || p2.lat, p2.ubicacion?.lng || p2.lng));
-      const bounds = createBounds(routeCoordinates);
+      const routeCoordinates: MapCoordinate[] = [];
+      if (p1 && (p1.ubicacion?.lat || p1.lat)) routeCoordinates.push(this.toMapCoordinate(p1.ubicacion?.lat || p1.lat, p1.ubicacion?.lng || p1.lng));
+      if (p2 && (p2.ubicacion?.lat || p2.lat)) routeCoordinates.push(this.toMapCoordinate(p2.ubicacion?.lat || p2.lat, p2.ubicacion?.lng || p2.lng));
 
-      if (bounds) {
+      if (routeCoordinates.length > 0) {
         this.isProgrammaticMove = true;
-        this.map.fitBounds(bounds, { padding: 50, maxZoom: 15, duration: 850 });
+        this.map.fitCoordinates(routeCoordinates, { padding: 50, maxZoom: 15, duration: 850 });
       }
       this.bottomSheetState = 'collapsed';
       this.cdr.detectChanges();
@@ -625,20 +656,18 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
     // Re-fit all bounds
     if (this.map && this.markers.length > 0) {
       this.isProgrammaticMove = true;
-      const bounds = createBounds(this.markers.map(marker => {
-        const point = marker.getLngLat();
-        return [point.lng, point.lat] as SiVoyCoordinate;
-      }));
-      if (bounds) this.map.fitBounds(bounds, { padding: 50, maxZoom: 15, duration: 700 });
+      this.map.fitCoordinates(this.markers.map(marker => marker.getCoordinate()), { padding: 50, maxZoom: 15, duration: 700 });
     }
     this.bottomSheetState = 'expanded';
     this.cdr.detectChanges();
   }
 
   updateMarkerStyles() {
-    this.markers.forEach((marker: any) => {
+    this.markers.forEach((marker) => {
       const el = marker.getElement();
       if (!el) return;
+      const metadata = this.markerMetadata.get(marker);
+      if (!metadata) return;
 
       let isDimmed = false;
       let isHighlighted = false;
@@ -646,8 +675,8 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
       if (this.highlightedRoute) {
          // Is this marker part of the highlighted route?
          const r = this.highlightedRoute;
-         const isOrigin = (marker.locData.nombre_destino === r.origen_nombre && marker.locData.empresa === r.empresa);
-         const isDest = (marker.locData.nombre_destino === r.destino_nombre && marker.locData.empresa === r.empresa);
+         const isOrigin = (metadata.destinationName === r.origen_nombre && metadata.companyName === r.empresa);
+         const isDest = (metadata.destinationName === r.destino_nombre && metadata.companyName === r.empresa);
          if (isOrigin || isDest) {
             isHighlighted = true;
          } else {
@@ -655,8 +684,8 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
          }
       }
 
-      const isSelected = this.expandedResultCard === marker.locData || 
-                         (this.selectedPin && this.selectedPin.nombre_destino === marker.locData.nombre_destino);
+      const isSelected = this.expandedResultCard === metadata.source ||
+                         (this.selectedPin && this.selectedPin.nombre_destino === metadata.destinationName);
 
       if (isSelected) {
          el.classList.add('marker-selected');
@@ -749,14 +778,10 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.map) {
       if (this.userLocation) {
         this.isProgrammaticMove = true;
-        this.map.jumpTo({ center: this.userLocation, zoom: 13 });
+        this.map.jumpTo(this.userLocation, { zoom: 13 });
       } else if (this.markers.length > 0) {
         this.isProgrammaticMove = true;
-        const bounds = createBounds(this.markers.map(marker => {
-          const point = marker.getLngLat();
-          return [point.lng, point.lat] as SiVoyCoordinate;
-        }));
-        if (bounds) this.map.fitBounds(bounds, { padding: 50, duration: 700 });
+        this.map.fitCoordinates(this.markers.map(marker => marker.getCoordinate()), { padding: 50, duration: 700 });
       }
     }
     
@@ -828,7 +853,7 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   focusLocation(loc: any) {
-    if (loc.ubicacion && loc.ubicacion.lat && loc.ubicacion.lng) {
+    if (this.map && loc.ubicacion && loc.ubicacion.lat && loc.ubicacion.lng) {
       this.isProgrammaticMove = true;
       const lat = parseFloat(loc.ubicacion.lat);
       const lng = parseFloat(loc.ubicacion.lng);
@@ -836,7 +861,7 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
       // Aplicar un offset para que el pin quede en la mitad superior de la pantalla
       // ya que la tarjeta de detalles cubre la mitad inferior en móviles.
       const latOffset = window.innerWidth < 768 ? 0.005 : 0.002;
-      this.map.flyTo({ center: [lng, lat - latOffset], zoom: 15, duration: 800 });
+      this.map.flyTo({ lng, lat: lat - latOffset }, { zoom: 15, duration: 800 });
       
       // Auto collapse bottom sheet on mobile to show map
       if (window.innerWidth < 768) {
@@ -1370,10 +1395,10 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
     
     // Fit bounds to these locations
     if (targets.length > 0) {
-      const bounds = createBounds(targets.filter(t => t.ubicacion?.lat).map(t => asCoordinate(t.ubicacion.lat, t.ubicacion.lng)));
-      if (bounds) {
+      const coordinates = targets.filter(t => t.ubicacion?.lat).map(t => this.toMapCoordinate(t.ubicacion.lat, t.ubicacion.lng));
+      if (this.map && coordinates.length > 0) {
          this.isProgrammaticMove = true;
-         this.map.fitBounds(bounds, { padding: 64, maxZoom: 15, duration: 750 });
+         this.map.fitCoordinates(coordinates, { padding: 64, maxZoom: 15, duration: 750 });
       }
     }
     
@@ -1425,10 +1450,10 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
     
     // Fit bounds to these locations
     if (targets.length > 0) {
-      const bounds = createBounds(targets.filter(t => t.ubicacion?.lat).map(t => asCoordinate(t.ubicacion.lat, t.ubicacion.lng)));
-      if (bounds) {
+      const coordinates = targets.filter(t => t.ubicacion?.lat).map(t => this.toMapCoordinate(t.ubicacion.lat, t.ubicacion.lng));
+      if (this.map && coordinates.length > 0) {
          this.isProgrammaticMove = true;
-         this.map.fitBounds(bounds, { padding: 64, maxZoom: 15, duration: 750 });
+         this.map.fitCoordinates(coordinates, { padding: 64, maxZoom: 15, duration: 750 });
       }
     }
     
@@ -1496,10 +1521,10 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
       this.toastService.showInfo("Buscando tu ubicación...", "Ubicación");
       navigator.geolocation.getCurrentPosition(
         (pos) => {
-          this.userLocation = new mapRuntime.LngLat(pos.coords.longitude, pos.coords.latitude);
+          this.userLocation = { lng: pos.coords.longitude, lat: pos.coords.latitude };
           this.updateUserMarker();
           this.isProgrammaticMove = true;
-          this.map.flyTo({ center: this.userLocation, zoom: 15, duration: 900 });
+          if (this.userLocation) this.map?.flyTo(this.userLocation, { zoom: 15, duration: 900 });
           this.fetchMunicipalityName(pos.coords.latitude, pos.coords.longitude);
           this.sortLocationsByDistance();
         },
@@ -1507,7 +1532,7 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
           this.toastService.showError("Verifica los permisos de ubicación de tu navegador.", "Sin acceso");
           if (this.userLocation) {
             this.isProgrammaticMove = true;
-            this.map.flyTo({ center: this.userLocation, zoom: 15, duration: 900 });
+            this.map?.flyTo(this.userLocation, { zoom: 15, duration: 900 });
           }
         },
         { timeout: 15000, enableHighAccuracy: true, maximumAge: 0 }
@@ -1515,7 +1540,7 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
     } else {
       if (this.userLocation) {
         this.isProgrammaticMove = true;
-        this.map.flyTo({ center: this.userLocation, zoom: 15, duration: 900 });
+        this.map?.flyTo(this.userLocation, { zoom: 15, duration: 900 });
       }
     }
   }
@@ -1733,9 +1758,9 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
       this.expandedResultCard = null;
     } else {
       this.expandedResultCard = res;
-      if (res.lat && res.lng) {
+      if (this.map && res.lat && res.lng) {
         this.isProgrammaticMove = true;
-        this.map.flyTo({ center: [res.lng, res.lat], zoom: 16, duration: 750 });
+        this.map.flyTo({ lng: res.lng, lat: res.lat }, { zoom: 16, duration: 750 });
       }
     }
     this.updateMarkerStyles();
@@ -2016,98 +2041,114 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
     }, 300); // Wait for the tab to render and the map to be fully visible
   }
 
-  previewMapMarker: any = null;
-  routePolyline: any = null;
+  previewMapMarker: MapMarkerPort | null = null;
 
   private removeRouteLine() {
-    if (!this.map) return;
-    if (this.map.getLayer('sivoy-route-line')) this.map.removeLayer('sivoy-route-line');
-    if (this.map.getSource('sivoy-route')) this.map.removeSource('sivoy-route');
-    this.routePolyline = null;
+    this.map?.removeRouteLine();
   }
 
-  private drawRouteLine(coordinates: SiVoyCoordinate[]) {
+  private drawRouteLine(coordinates: MapCoordinate[]) {
     if (!this.map || coordinates.length < 2) return;
-    this.removeRouteLine();
-    const renderLine = () => {
-      if (this.map.getSource('sivoy-route')) return;
-      this.map.addSource('sivoy-route', {
-        type: 'geojson',
-        data: {
-          type: 'Feature',
-          properties: {},
-          geometry: { type: 'LineString', coordinates }
-        }
-      });
-      this.map.addLayer({
-        id: 'sivoy-route-line',
-        type: 'line',
-        source: 'sivoy-route',
-        layout: { 'line-cap': 'round', 'line-join': 'round' },
-        paint: {
-          'line-color': '#F45B78',
-          'line-width': 4,
-          'line-opacity': 0.9,
-          'line-dasharray': [1.2, 1.4]
-        }
-      });
-      this.routePolyline = 'sivoy-route-line';
-    };
+    this.map.drawRouteLine(coordinates, {
+      color: '#F45B78',
+      width: 4,
+      opacity: 0.9,
+      dashArray: [1.2, 1.4]
+    });
+  }
 
-    if (this.map.isStyleLoaded()) renderLine();
-    else this.map.once('load', renderLine);
+  private createMarkerElement(
+    type: 'origin' | 'destination' | 'nearby' | 'user' | 'preview',
+    label = '',
+    selected = false
+  ): HTMLButtonElement {
+    const ownerDocument = (this.elRef.nativeElement as HTMLElement).ownerDocument;
+    return createMapMarkerElement(ownerDocument, type, label, selected);
+  }
+
+  private toMapCoordinate(lat: number | string, lng: number | string): MapCoordinate {
+    return { lat: Number(lat), lng: Number(lng) };
+  }
+
+  private addMarkerClickListener(element: HTMLElement, handler: (event: Event) => void): void {
+    element.addEventListener('click', handler);
+    this.markerEventDisposers.push(() => element.removeEventListener('click', handler));
+  }
+
+  private setMarkerMetadata(
+    marker: MapMarkerPort,
+    source: unknown,
+    destinationName: unknown,
+    companyName: unknown
+  ): void {
+    this.markerMetadata.set(marker, {
+      source,
+      destinationName: typeof destinationName === 'string' ? destinationName : '',
+      companyName: typeof companyName === 'string' ? companyName : ''
+    });
+  }
+
+  private clearMarkers(): void {
+    this.clearDisposers(this.markerEventDisposers);
+    this.markers.forEach(marker => marker.remove());
+    this.markers = [];
+    this.markerMetadata.clear();
+  }
+
+  private clearDisposers(disposers: Array<() => void>): void {
+    while (disposers.length > 0) {
+      disposers.pop()?.();
+    }
   }
 
   onMapHighlightRoute(flight: any) {
     if (this.map && flight) {
       // Limpiar mapa primero para no dejar punteros fantasma
-      if (this.routePolyline) {
-         this.removeRouteLine();
-      }
-      this.markers.forEach(marker => marker.remove());
-      this.markers = [];
+      this.removeRouteLine();
+      this.clearMarkers();
 
       this.resetMapMarkers();
       this.highlightedRoute = flight;
       
-      const routeCoordinates: SiVoyCoordinate[] = [];
+      const routeCoordinates: MapCoordinate[] = [];
       
       // Añadir origen
       if (flight.origen_lat && flight.origen_lng) {
         const oLat = parseFloat(flight.origen_lat);
         const oLng = parseFloat(flight.origen_lng);
-        const element = createMarkerElement('origin', flight.origen_nombre || 'Origen');
-        const marker = new mapRuntime.Marker({ element, anchor: 'bottom' }).setLngLat([oLng, oLat]).addTo(this.map);
-        element.addEventListener('click', event => {
+        const coordinate = { lng: oLng, lat: oLat };
+        const element = this.createMarkerElement('origin', flight.origen_nombre || 'Origen');
+        const marker = this.map.createMarker(coordinate, { element, anchor: 'bottom' });
+        this.addMarkerClickListener(element, event => {
           event.stopPropagation();
           this.showOriginPinDetails(flight);
         });
-        (marker as any).locData = { nombre_destino: flight.origen_nombre, empresa: flight.empresa };
+        this.setMarkerMetadata(marker, flight, flight.origen_nombre, flight.empresa);
         this.markers.push(marker);
-        routeCoordinates.push([oLng, oLat]);
+        routeCoordinates.push(coordinate);
       }
       
       // Añadir destino
       if (flight.destino_lat && flight.destino_lng) {
         const dLat = parseFloat(flight.destino_lat);
         const dLng = parseFloat(flight.destino_lng);
-        const element = createMarkerElement('destination', flight.destino_nombre || 'Destino');
-        const marker = new mapRuntime.Marker({ element, anchor: 'bottom' }).setLngLat([dLng, dLat]).addTo(this.map);
-        element.addEventListener('click', event => {
+        const coordinate = { lng: dLng, lat: dLat };
+        const element = this.createMarkerElement('destination', flight.destino_nombre || 'Destino');
+        const marker = this.map.createMarker(coordinate, { element, anchor: 'bottom' });
+        this.addMarkerClickListener(element, event => {
           event.stopPropagation();
           this.showDestinoPinDetails(flight);
         });
-        (marker as any).locData = { nombre_destino: flight.destino_nombre, empresa: flight.empresa };
+        this.setMarkerMetadata(marker, flight, flight.destino_nombre, flight.empresa);
         this.markers.push(marker);
-        routeCoordinates.push([dLng, dLat]);
+        routeCoordinates.push(coordinate);
       }
       
       this.drawRouteLine(routeCoordinates);
       
-      const bounds = createBounds(routeCoordinates);
-      if (bounds) {
+      if (routeCoordinates.length > 0) {
         setTimeout(() => {
-          this.map.fitBounds(bounds, { padding: 50, maxZoom: 15, duration: 850 });
+          this.map?.fitCoordinates(routeCoordinates, { padding: 50, maxZoom: 15, duration: 850 });
         }, 100);
       }
       
@@ -2118,21 +2159,21 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
   previewMap(coords: {lat: number, lng: number}) {
     if (this.map && coords && coords.lat && coords.lng) {
       setTimeout(() => {
+        if (!this.map) return;
         this.isProgrammaticMove = true;
-        this.map.flyTo({ center: [coords.lng, coords.lat], zoom: 18, duration: 750 });
+        this.map.flyTo(coords, { zoom: 18, duration: 750 });
         
         if (this.previewMapMarker) {
+          this.previewDragDisposer?.();
+          this.previewDragDisposer = null;
           this.previewMapMarker.remove();
         }
         
-        const element = createMarkerElement('preview', 'Ubicación de vista previa');
-        this.previewMapMarker = new mapRuntime.Marker({ element, draggable: true, anchor: 'bottom' })
-          .setLngLat([coords.lng, coords.lat])
-          .addTo(this.map);
+        const element = this.createMarkerElement('preview', 'Ubicación de vista previa');
+        this.previewMapMarker = this.map.createMarker(coords, { element, draggable: true, anchor: 'bottom' });
         
         // Update coordinates if user drags the pin during preview
-        this.previewMapMarker.on('dragend', (e: any) => {
-          const pos = e.target.getLngLat();
+        this.previewDragDisposer = this.previewMapMarker.onDragEnd((pos) => {
           if (this.adminRef) {
              this.adminRef.updatePickedLocation(pos.lat.toFixed(6), pos.lng.toFixed(6));
           }
@@ -2149,7 +2190,7 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
         this.map.resize();
         if (this.map && this.editFormData.lat && this.editFormData.lng) {
           this.isProgrammaticMove = true;
-          this.map.jumpTo({ center: [this.editFormData.lng, this.editFormData.lat], zoom: 16 });
+          this.map.jumpTo(this.toMapCoordinate(this.editFormData.lat, this.editFormData.lng), { zoom: 16 });
         }
         
         const center = this.map.getCenter();
@@ -2157,20 +2198,20 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
         this.tempPickedLng = center.lng.toFixed(5);
         this.cdr.detectChanges();
 
-        this.mapMoveListener = () => {
-          const c = this.map.getCenter();
+        this.mapMoveDisposer?.();
+        this.mapMoveDisposer = this.map.onMove((c) => {
           this.tempPickedLat = c.lat.toFixed(5);
           this.tempPickedLng = c.lng.toFixed(5);
           this.cdr.detectChanges();
-        };
-        this.map.on('move', this.mapMoveListener);
+        });
       }
     }, 50);
   }
 
   confirmPickedLocation() {
     if (this.map) {
-      if (this.mapMoveListener) this.map.off('move', this.mapMoveListener);
+      this.mapMoveDisposer?.();
+      this.mapMoveDisposer = null;
       const center = this.map.getCenter();
       this.editFormData.lat = center.lat.toFixed(7);
       this.editFormData.lng = center.lng.toFixed(7);
@@ -2179,9 +2220,8 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
   }
   
   cancelPickingLocation() {
-    if (this.map && this.mapMoveListener) {
-      this.map.off('move', this.mapMoveListener);
-    }
+    this.mapMoveDisposer?.();
+    this.mapMoveDisposer = null;
     this.isPickingLocation = false;
   }
 

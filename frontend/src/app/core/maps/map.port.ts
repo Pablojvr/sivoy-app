@@ -18,6 +18,7 @@ export interface MapRouteStyle {
   color?: string;
   width?: number;
   opacity?: number;
+  dashArray?: readonly number[];
 }
 
 export interface MapMarkerOptions {
@@ -36,6 +37,7 @@ export interface MapMarkerPort {
   getCoordinate(): MapCoordinate;
   setPopupContent(content: MapPopupContent): void;
   onDragEnd(handler: (coord: MapCoordinate) => void): () => void;
+  getElement(): HTMLElement;
   remove(): void;
 }
 
@@ -45,6 +47,10 @@ export interface MapInitializeOptions {
   styleUrl?: string;
   minZoom?: number;
   maxZoom?: number;
+  attributionCompact?: boolean;
+  rotationEnabled?: boolean;
+  pitchEnabled?: boolean;
+  cooperativeGestures?: boolean;
 }
 
 export interface MapPort {

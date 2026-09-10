@@ -10,6 +10,7 @@ import { HttpClient } from '@angular/common/http';
 import { MapPort, MapMarkerPort, MapCoordinate } from './core/maps/map.port';
 import { MapLibreMapAdapter } from './core/maps/maplibre-map.adapter';
 import { createMapMarkerElement } from './core/maps/map-marker-element';
+import { MapLifecycleManager } from './core/maps/map-lifecycle.manager';
 import { MapCapabilityService } from './core/maps/map-capability.service';
 import { calculateDistanceKm } from './core/maps/geo-distance';
 import { HomeComponent } from './features/home/home.component';
@@ -121,10 +122,8 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
   mapCenterLng: number = 0;
   
   private map: MapPort | null = null;
-  markers: MapMarkerPort[] = [];
-  private readonly markerMetadata = new Map<MapMarkerPort, MapMarkerMetadata>();
+  private mapLifecycle: MapLifecycleManager<MapMarkerMetadata> | null = null;
   private readonly mapEventDisposers: Array<() => void> = [];
-  private readonly markerEventDisposers: Array<() => void> = [];
   private customDestinationDragDisposer: (() => void) | null = null;
   private previewDragDisposer: (() => void) | null = null;
   private destroyed = false;
@@ -241,7 +240,7 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.mapResizeObserver) {
       this.mapResizeObserver.disconnect();
     }
-    this.clearMarkers();
+    this.mapLifecycle?.clearPrimaryMarkers();
     this.customDestinationDragDisposer?.();
     this.previewDragDisposer?.();
     this.userMarker?.remove();
@@ -301,6 +300,7 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
           cooperativeGestures: false
         });
         this.map = adapter;
+        this.mapLifecycle = new MapLifecycleManager<MapMarkerMetadata>(adapter);
       } catch {
         this.mapInitializationFailed = true;
         this.isMapResourceMode = false;
@@ -447,7 +447,8 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   showNearbyPoints() {
-    if (!this.mapAvailable || !this.map) return;
+    if (!this.mapAvailable || !this.map || !this.mapLifecycle) return;
+    const mapLifecycle = this.mapLifecycle;
     if (!this.userLocation) {
       this.toastService.showError("Por favor, permite el acceso a tu ubicación para ver los puntos cercanos.", "Ubicación Requerida");
       return;
@@ -465,7 +466,7 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     // Clear existing markers
-    this.clearMarkers();
+    mapLifecycle.clearPrimaryMarkers();
 
     const coordinates: MapCoordinate[] = [{ ...this.userLocation }];
 
@@ -473,22 +474,23 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
       if (loc.ubicacion && loc.ubicacion.lat && loc.ubicacion.lng) {
         const coordinate = this.toMapCoordinate(loc.ubicacion.lat, loc.ubicacion.lng);
         const element = this.createMarkerElement('nearby', loc.nombre_destino);
-        const marker = this.map!.createMarker(coordinate, { element, anchor: 'center' });
+        const marker = mapLifecycle.addPrimaryMarker({
+          coordinate,
+          options: { element, anchor: 'center' },
+          metadata: this.toMarkerMetadata(loc, loc.nombre_destino, loc.empresa),
+          onClick: event => {
+            event.stopPropagation();
+            this.focusLocation(loc);
+            this.selectedPin = loc;
+            this.selectedPinDayFilter = '';
+            this.cdr.detectChanges();
+          }
+        });
         marker.setPopupContent({
           title: String(loc.empresa ?? ''),
           subtitle: String(loc._status?.mainText || loc.nombre_destino || '')
         });
-        this.setMarkerMetadata(marker, loc, loc.nombre_destino, loc.empresa);
         coordinates.push(coordinate);
-        
-        this.addMarkerClickListener(element, event => {
-          event.stopPropagation();
-          this.focusLocation(loc);
-          this.selectedPin = loc;
-          this.selectedPinDayFilter = '';
-          this.cdr.detectChanges();
-        });
-        this.markers.push(marker);
       }
     });
 
@@ -510,12 +512,13 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   updateMapMarkers() {
-    if (!this.map) return;
+    if (!this.map || !this.mapLifecycle) return;
+    const mapLifecycle = this.mapLifecycle;
     
     this.removeRouteLine();
 
     // Clear old markers
-    this.clearMarkers();
+    mapLifecycle.clearPrimaryMarkers();
 
     const isInicio = this.activeMainTab === 'inicio' && this.homeCmp;
     const currentFlightResults = isInicio ? this.homeCmp.flightResults : this.flightResults;
@@ -592,26 +595,26 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
           loc.nombre_destino || loc.destino_nombre || 'Punto logístico',
           isSelected
         );
-        const marker = this.map!.createMarker(coordinate, { element, anchor: 'bottom' });
-        this.setMarkerMetadata(marker, loc, loc.nombre_destino, loc.empresa);
+        mapLifecycle.addPrimaryMarker({
+          coordinate,
+          options: { element, anchor: 'bottom' },
+          metadata: this.toMarkerMetadata(loc, loc.nombre_destino, loc.empresa),
+          onClick: event => {
+            event.stopPropagation();
+            this.focusLocation(loc);
 
-        this.addMarkerClickListener(element, event => {
-          event.stopPropagation();
-          
-          this.focusLocation(loc);
-          
-          // Find original location object to get full details like schedule and status
-          const originalLoc = this.locations.find((l: any) => 
-             (l.nombre_destino === loc.destino_nombre || l.nombre_destino === loc.nombre_destino) && 
-             (l.empresa === loc.empresa)
-          ) || loc;
-          
-          this.selectedPin = { ...originalLoc, markerType: markerType };
-          this.selectedPinDayFilter = '';
-          this.expandedResultCard = null; // Collapse list card if open
-          this.cdr.detectChanges();
+            // Find original location object to get full details like schedule and status
+            const originalLoc = this.locations.find((l) =>
+              (l.nombre_destino === loc.destino_nombre || l.nombre_destino === loc.nombre_destino) &&
+              (l.empresa === loc.empresa)
+            ) || loc;
+
+            this.selectedPin = { ...originalLoc, markerType: markerType };
+            this.selectedPinDayFilter = '';
+            this.expandedResultCard = null; // Collapse list card if open
+            this.cdr.detectChanges();
+          }
         });
-        this.markers.push(marker);
       }
     });
 
@@ -654,20 +657,20 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
     this.updateMarkerStyles();
     
     // Re-fit all bounds
-    if (this.map && this.markers.length > 0) {
+    const entries = this.mapLifecycle?.getPrimaryEntries() ?? [];
+    if (this.map && entries.length > 0) {
       this.isProgrammaticMove = true;
-      this.map.fitCoordinates(this.markers.map(marker => marker.getCoordinate()), { padding: 50, maxZoom: 15, duration: 700 });
+      this.map.fitCoordinates(entries.map(entry => entry.marker.getCoordinate()), { padding: 50, maxZoom: 15, duration: 700 });
     }
     this.bottomSheetState = 'expanded';
     this.cdr.detectChanges();
   }
 
   updateMarkerStyles() {
-    this.markers.forEach((marker) => {
+    const entries = this.mapLifecycle?.getPrimaryEntries() ?? [];
+    entries.forEach(({ marker, metadata }) => {
       const el = marker.getElement();
       if (!el) return;
-      const metadata = this.markerMetadata.get(marker);
-      if (!metadata) return;
 
       let isDimmed = false;
       let isHighlighted = false;
@@ -779,9 +782,12 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
       if (this.userLocation) {
         this.isProgrammaticMove = true;
         this.map.jumpTo(this.userLocation, { zoom: 13 });
-      } else if (this.markers.length > 0) {
-        this.isProgrammaticMove = true;
-        this.map.fitCoordinates(this.markers.map(marker => marker.getCoordinate()), { padding: 50, duration: 700 });
+      } else {
+        const entries = this.mapLifecycle?.getPrimaryEntries() ?? [];
+        if (entries.length > 0) {
+          this.isProgrammaticMove = true;
+          this.map.fitCoordinates(entries.map(entry => entry.marker.getCoordinate()), { padding: 50, duration: 700 });
+        }
       }
     }
     
@@ -2070,29 +2076,16 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
     return { lat: Number(lat), lng: Number(lng) };
   }
 
-  private addMarkerClickListener(element: HTMLElement, handler: (event: Event) => void): void {
-    element.addEventListener('click', handler);
-    this.markerEventDisposers.push(() => element.removeEventListener('click', handler));
-  }
-
-  private setMarkerMetadata(
-    marker: MapMarkerPort,
+  private toMarkerMetadata(
     source: unknown,
     destinationName: unknown,
     companyName: unknown
-  ): void {
-    this.markerMetadata.set(marker, {
+  ): MapMarkerMetadata {
+    return {
       source,
       destinationName: typeof destinationName === 'string' ? destinationName : '',
       companyName: typeof companyName === 'string' ? companyName : ''
-    });
-  }
-
-  private clearMarkers(): void {
-    this.clearDisposers(this.markerEventDisposers);
-    this.markers.forEach(marker => marker.remove());
-    this.markers = [];
-    this.markerMetadata.clear();
+    };
   }
 
   private clearDisposers(disposers: Array<() => void>): void {
@@ -2102,10 +2095,10 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   onMapHighlightRoute(flight: any) {
-    if (this.map && flight) {
+    if (this.map && this.mapLifecycle && flight) {
       // Limpiar mapa primero para no dejar punteros fantasma
       this.removeRouteLine();
-      this.clearMarkers();
+      this.mapLifecycle.clearPrimaryMarkers();
 
       this.resetMapMarkers();
       this.highlightedRoute = flight;
@@ -2118,13 +2111,15 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
         const oLng = parseFloat(flight.origen_lng);
         const coordinate = { lng: oLng, lat: oLat };
         const element = this.createMarkerElement('origin', flight.origen_nombre || 'Origen');
-        const marker = this.map.createMarker(coordinate, { element, anchor: 'bottom' });
-        this.addMarkerClickListener(element, event => {
-          event.stopPropagation();
-          this.showOriginPinDetails(flight);
+        this.mapLifecycle.addPrimaryMarker({
+          coordinate,
+          options: { element, anchor: 'bottom' },
+          metadata: this.toMarkerMetadata(flight, flight.origen_nombre, flight.empresa),
+          onClick: event => {
+            event.stopPropagation();
+            this.showOriginPinDetails(flight);
+          }
         });
-        this.setMarkerMetadata(marker, flight, flight.origen_nombre, flight.empresa);
-        this.markers.push(marker);
         routeCoordinates.push(coordinate);
       }
       
@@ -2134,13 +2129,15 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
         const dLng = parseFloat(flight.destino_lng);
         const coordinate = { lng: dLng, lat: dLat };
         const element = this.createMarkerElement('destination', flight.destino_nombre || 'Destino');
-        const marker = this.map.createMarker(coordinate, { element, anchor: 'bottom' });
-        this.addMarkerClickListener(element, event => {
-          event.stopPropagation();
-          this.showDestinoPinDetails(flight);
+        this.mapLifecycle.addPrimaryMarker({
+          coordinate,
+          options: { element, anchor: 'bottom' },
+          metadata: this.toMarkerMetadata(flight, flight.destino_nombre, flight.empresa),
+          onClick: event => {
+            event.stopPropagation();
+            this.showDestinoPinDetails(flight);
+          }
         });
-        this.setMarkerMetadata(marker, flight, flight.destino_nombre, flight.empresa);
-        this.markers.push(marker);
         routeCoordinates.push(coordinate);
       }
       

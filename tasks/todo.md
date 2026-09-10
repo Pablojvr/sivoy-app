@@ -136,6 +136,7 @@ archivos. Codex debe revisar cada diff y ejecutar build y auditoría visual.
       - [x] T27d3: shell público migrado al puerto; 201 pruebas, build y runtime list-first/mapa auditados.
 - [ ] T28 Encapsular ciclo de vida de marcadores y listeners.
     - [x] T28a: manager neutral y teardown resiliente; 211 pruebas y build auditados.
+    - [x] T28b: marcadores primarios, metadata y clicks migrados; 211 pruebas y build auditados.
 - [ ] T29 Separar operaciones de empresas en ruta propia.
 - [ ] T30 Reducir `MobileAppComponent` al shell.
 - [ ] T31 Eliminar duplicación y legado con búsqueda de consumidores.

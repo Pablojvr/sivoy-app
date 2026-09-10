@@ -61,7 +61,7 @@ El shell actualmente abarca los siguientes dominios superpuestos:
 
 **Evidencia:** 217 pruebas pasan; el build de producción compila; los contratos HTTP verifican GET, preservación de datos y PUT con ID `AG_*`; el shell ya no ejecuta un GET directo a `/api/locations`.
 
-### T30c: Extraer `UserGeolocationService` (Slice S)
+### T30c: Extraer `UserGeolocationService` (Slice S) — accepted
 - **Objetivo:** Encapsular el acceso a APIs de geolocalización (`navigator`) y Nominatim, quitando implementaciones crudas del shell.
 - **Archivos (Máximo 5):**
   - `frontend/src/app/core/services/user-geolocation.service.ts` (Nuevo)
@@ -73,6 +73,8 @@ El shell actualmente abarca los siguientes dominios superpuestos:
 - **Verificación:** `npm run test:ci && npm run build && git diff --check`
 - **Dependencias:** T30a.
 - **Rollback:** revertir el commit atómico del slice después de preservar cualquier cambio local ajeno.
+
+**Evidencia:** 225 pruebas pasan; el build de producción y el dev server compilan; ambos flujos GPS preservan sus opciones originales; el shell no referencia `navigator.geolocation` ni construye URLs de Nominatim; una sesión Chrome móvil nueva renderiza Inicio sin overlay.
 
 ### T30d: Migrar Estado de Búsqueda Legado a `ShipmentSearchFacade` (Slice M)
 - **Objetivo:** Eliminar el motor de búsqueda paralelo existente en `MobileAppComponent` y utilizar en su lugar el ecosistema existente de Shipment (Facade, adapters, filters).

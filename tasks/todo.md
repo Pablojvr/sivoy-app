@@ -143,7 +143,7 @@ archivos. Codex debe revisar cada diff y ejecutar build y auditoría visual.
 - [ ] T30 Reducir `MobileAppComponent` al shell público (wiring empresarial temporalmente excluido).
     - [x] T30a: caracterización del shell público; 214 pruebas y build auditados.
     - [x] T30b: lectura tipada delegada a UbicacionesService; 217 pruebas y build auditados.
-    - [ ] T30c: Extraer UserGeolocationService
+    - [x] T30c: geolocalización y reverse geocoding extraídos; 225 pruebas, build y runtime auditados.
     - [ ] T30d: Migrar lógica paralela de búsqueda a ShipmentSearchFacade
 
 - [ ] T31 Eliminar duplicación y legado con búsqueda de consumidores.

@@ -8,6 +8,7 @@ import { Subscription } from 'rxjs';
 import { ToastService } from './core/services/toast.service';
 import { HttpClient } from '@angular/common/http';
 import { UbicacionesService } from './core/services/ubicaciones.service';
+import { UserGeolocationService } from './core/services/user-geolocation.service';
 import { MapPort, MapCoordinate } from './core/maps/map.port';
 import { MapLibreMapAdapter } from './core/maps/maplibre-map.adapter';
 import { createMapMarkerElement } from './core/maps/map-marker-element';
@@ -139,10 +140,13 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
 
   navigationIntent: Record<string, string> = {};
   private routeParamsSubscription?: Subscription;
+  private geoSub?: Subscription;
+  private nomSub?: Subscription;
 
   constructor(
     private http: HttpClient,
     private ubicacionesService: UbicacionesService,
+    private userGeolocationService: UserGeolocationService,
     private cdr: ChangeDetectorRef,
     private elRef: ElementRef,
     private sanitizer: DomSanitizer,
@@ -220,26 +224,29 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
     this.fetchMunicipalityName(13.69, -89.21);
 
     // Attempt to get user location
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition((pos) => {
-        this.userLocation = { lng: pos.coords.longitude, lat: pos.coords.latitude };
+    this.geoSub?.unsubscribe();
+    this.geoSub = this.userGeolocationService.getCurrentPosition().subscribe({
+      next: (coords) => {
+        if (this.destroyed) return;
+        this.userLocation = { lng: coords.lng, lat: coords.lat };
         this.updateUserMarker();
         this.sortLocationsByDistance();
-        this.fetchMunicipalityName(pos.coords.latitude, pos.coords.longitude);
-      }, () => {
+        this.fetchMunicipalityName(coords.lat, coords.lng);
+      },
+      error: () => {
+        if (this.destroyed) return;
         // Mock user location somewhere in El Salvador if denied
         this.updateUserMarker();
         this.sortLocationsByDistance();
-      }, { timeout: 15000, maximumAge: 60000, enableHighAccuracy: false });
-    } else {
-      this.updateUserMarker();
-      this.sortLocationsByDistance();
-    }
+      }
+    });
   }
 
   ngOnDestroy() {
     this.destroyed = true;
     this.routeParamsSubscription?.unsubscribe();
+    this.geoSub?.unsubscribe();
+    this.nomSub?.unsubscribe();
     if (this.mapResizeObserver) {
       this.mapResizeObserver.disconnect();
     }
@@ -379,30 +386,30 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   fetchMunicipalityName(lat: number, lng: number, isDestino: boolean = false) {
-    const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`;
-    this.http.get<any>(url).subscribe({
+    this.nomSub?.unsubscribe();
+    this.nomSub = this.userGeolocationService.reverseGeocode(lat, lng).subscribe({
       next: (data) => {
+        if (this.destroyed) return;
         if (data && data.address) {
-          const name = data.address.suburb || data.address.town || data.address.village || data.address.city_district || data.address.municipality || data.address.city || data.address.county || data.address.state_district;
+          const addr = data.address;
+          const name = addr.suburb || addr.town || addr.village || addr.city_district || addr.municipality || addr.city || addr.county || addr.state_district;
           if (name) {
             if (isDestino) {
               this.destinoInputValue = `${name} (Pin en Mapa)`;
               this.destino = this.destinoInputValue;
               this.destinoMunicipio = name;
-              this.destinoDepartamento = data.address.state || null;
+              this.destinoDepartamento = addr.state || null;
               this.closeLocationSelector();
               this.checkRoute();
             } else {
               this.userMunicipalityName = name;
-              this.userDepartamento = data.address.state || null;
+              this.userDepartamento = addr.state || null;
             }
             this.cdr.detectChanges();
           }
         }
       },
-      error: (err) => {
-        console.error('Error in reverse geocoding:', err);
-      }
+      error: () => {}
     });
   }
 
@@ -1514,32 +1521,27 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
 
   recenterMap() {
     if (!this.mapAvailable || !this.map) return;
-    if (navigator.geolocation) {
-      this.toastService.showInfo("Buscando tu ubicación...", "Ubicación");
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          this.userLocation = { lng: pos.coords.longitude, lat: pos.coords.latitude };
-          this.updateUserMarker();
-          this.isProgrammaticMove = true;
-          if (this.userLocation) this.map?.flyTo(this.userLocation, { zoom: 15, duration: 900 });
-          this.fetchMunicipalityName(pos.coords.latitude, pos.coords.longitude);
-          this.sortLocationsByDistance();
-        },
-        (err) => {
-          this.toastService.showError("Verifica los permisos de ubicación de tu navegador.", "Sin acceso");
-          if (this.userLocation) {
-            this.isProgrammaticMove = true;
-            this.map?.flyTo(this.userLocation, { zoom: 15, duration: 900 });
-          }
-        },
-        { timeout: 15000, enableHighAccuracy: true, maximumAge: 0 }
-      );
-    } else {
-      if (this.userLocation) {
+    this.toastService.showInfo("Buscando tu ubicación...", "Ubicación");
+    this.geoSub?.unsubscribe();
+    this.geoSub = this.userGeolocationService.getCurrentPosition({ timeout: 15000, enableHighAccuracy: true, maximumAge: 0 }).subscribe({
+      next: (coords) => {
+        if (this.destroyed) return;
+        this.userLocation = { lng: coords.lng, lat: coords.lat };
+        this.updateUserMarker();
         this.isProgrammaticMove = true;
-        this.map?.flyTo(this.userLocation, { zoom: 15, duration: 900 });
+        if (this.userLocation) this.map?.flyTo(this.userLocation, { zoom: 15, duration: 900 });
+        this.fetchMunicipalityName(coords.lat, coords.lng);
+        this.sortLocationsByDistance();
+      },
+      error: () => {
+        if (this.destroyed) return;
+        this.toastService.showError("Verifica los permisos de ubicación de tu navegador.", "Sin acceso");
+        if (this.userLocation) {
+          this.isProgrammaticMove = true;
+          this.map?.flyTo(this.userLocation, { zoom: 15, duration: 900 });
+        }
       }
-    }
+    });
   }
 
   getTodaySchedule(loc: any): string {

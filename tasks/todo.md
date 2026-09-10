@@ -142,7 +142,7 @@ archivos. Codex debe revisar cada diff y ejecutar build y auditoría visual.
 - [ ] T29 Separar operaciones de empresas en ruta propia.
 - [ ] T30 Reducir `MobileAppComponent` al shell público (wiring empresarial temporalmente excluido).
     - [x] T30a: caracterización del shell público; 214 pruebas y build auditados.
-    - [ ] T30b: Delegar accesos a UbicacionesService
+    - [x] T30b: lectura tipada delegada a UbicacionesService; 217 pruebas y build auditados.
     - [ ] T30c: Extraer UserGeolocationService
     - [ ] T30d: Migrar lógica paralela de búsqueda a ShipmentSearchFacade
 

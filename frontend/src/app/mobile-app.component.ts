@@ -7,6 +7,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { ToastService } from './core/services/toast.service';
 import { HttpClient } from '@angular/common/http';
+import { UbicacionesService } from './core/services/ubicaciones.service';
 import { MapPort, MapCoordinate } from './core/maps/map.port';
 import { MapLibreMapAdapter } from './core/maps/maplibre-map.adapter';
 import { createMapMarkerElement } from './core/maps/map-marker-element';
@@ -141,6 +142,7 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
 
   constructor(
     private http: HttpClient,
+    private ubicacionesService: UbicacionesService,
     private cdr: ChangeDetectorRef,
     private elRef: ElementRef,
     private sanitizer: DomSanitizer,
@@ -178,7 +180,7 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
       this.dropoffTime = '';
     }
 
-    this.http.get<any[]>(environment.apiUrl + '/api/locations').subscribe(data => {
+    this.ubicacionesService.getLocations().subscribe(data => {
       this.locations = data;
       this.filteredLocations = [...this.locations];
       

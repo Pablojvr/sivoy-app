@@ -57,6 +57,10 @@ El shell actualmente abarca los siguientes dominios superpuestos:
 - **Dependencias:** T30a.
 - **Rollback:** revertir el commit atómico del slice después de preservar cualquier cambio local ajeno.
 
+**Estado:** aceptado tras auditoría Codex. El acceso GET de ubicaciones se delega al servicio existente mediante un contrato de lectura que preserva IDs alfanuméricos y coordenadas mixtas. El polling y el cálculo local de disponibilidad permanecen en el shell por no ser acceso a datos.
+
+**Evidencia:** 217 pruebas pasan; el build de producción compila; los contratos HTTP verifican GET, preservación de datos y PUT con ID `AG_*`; el shell ya no ejecuta un GET directo a `/api/locations`.
+
 ### T30c: Extraer `UserGeolocationService` (Slice S)
 - **Objetivo:** Encapsular el acceso a APIs de geolocalización (`navigator`) y Nominatim, quitando implementaciones crudas del shell.
 - **Archivos (Máximo 5):**

@@ -32,3 +32,9 @@ Evidence: 211 tests passed, the production build passed, and `git diff --check` 
 Accepted after independent audit. The `mobile-app.component.ts` delegates auxiliary marker creation and drag listeners to `MapLifecycleManager.setAuxiliaryMarker`, replacing manual references. Teardown remains transitional: the component clears the auxiliary markers in `ngOnDestroy` without calling `mapLifecycle.destroy()`, ensuring map events and picker-scoped disposers remain active until migrated in T28d.
 
 Evidence: 211 tests passed, the production build passed, `git diff --check` found no whitespace errors, and the public shell bundle decreased from 339.72 kB to 339.46 kB.
+
+## T28d status
+
+Accepted after independent audit. Map event and picker-scoped disposers have been migrated to `MapLifecycleManager`. The `ngOnDestroy` method now relies exclusively on `mapLifecycle.destroy()` for all map-related teardown, eliminating manual clearance of markers, auxiliary elements, and event lists. The legacy `clearDisposers`, `mapEventDisposers`, and `mapMoveDisposer` properties were removed.
+
+Evidence: 211 tests passed, the production build passed, the development server recompiled without TypeScript errors, and a fresh 423x912 Chrome session rendered the public home screen without a compiler overlay. The public shell bundle decreased from 339.46 kB to 339.12 kB.

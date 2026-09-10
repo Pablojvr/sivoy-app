@@ -102,7 +102,6 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
   uniqueMunicipalities: any[] = [];
   tempPickedLat: string = '';
   tempPickedLng: string = '';
-  private mapMoveDisposer: (() => void) | null = null;
   
   // Location Selector Modal State
   selectingLocation: 'origen' | 'destino' | null = null;
@@ -129,7 +128,6 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
   
   private map: MapPort | null = null;
   private mapLifecycle: MapLifecycleManager<MapMarkerMetadata> | null = null;
-  private readonly mapEventDisposers: Array<() => void> = [];
   private destroyed = false;
   userLocation: MapCoordinate | null = null;
   userMunicipalityName: string | null = null;
@@ -243,14 +241,7 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.mapResizeObserver) {
       this.mapResizeObserver.disconnect();
     }
-    this.mapLifecycle?.clearPrimaryMarkers();
-    this.mapLifecycle?.removeAuxiliaryMarker(AUX_MARKER_KEYS.USER);
-    this.mapLifecycle?.removeAuxiliaryMarker(AUX_MARKER_KEYS.CUSTOM_DESTINO);
-    this.mapLifecycle?.removeAuxiliaryMarker(AUX_MARKER_KEYS.PREVIEW);
-    this.clearDisposers(this.mapEventDisposers);
-    this.mapMoveDisposer?.();
-    this.mapMoveDisposer = null;
-    this.map?.destroy();
+    this.mapLifecycle?.destroy();
     this.map = null;
   }
 
@@ -311,7 +302,7 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
       }
   
       // UX: Handle map clicks for destination selection or collapse bottom sheet
-      this.mapEventDisposers.push(this.map.onClick(({ lat, lng }) => {
+      this.mapLifecycle?.trackMapEvent(this.map.onClick(({ lat, lng }) => {
         if (this.selectingLocation === 'destino' || this.activeInput === 'destino') {
           this.setCustomDestination(lat, lng);
           return;
@@ -324,7 +315,7 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
         this.cdr.detectChanges();
       }));
       
-      this.mapEventDisposers.push(this.map.onDragStart(() => {
+      this.mapLifecycle?.trackMapEvent(this.map.onDragStart(() => {
         this.selectedPin = null;
         if (this.bottomSheetState === 'expanded' || this.bottomSheetState === 'half') {
           this.bottomSheetState = 'collapsed';
@@ -333,18 +324,18 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
         this.cdr.detectChanges();
       }));
       
-      this.mapEventDisposers.push(this.map.onMoveStart(() => {
+      this.mapLifecycle?.trackMapEvent(this.map.onMoveStart(() => {
         if (!this.isProgrammaticMove && (this.bottomSheetState === 'expanded' || this.bottomSheetState === 'half')) {
           this.bottomSheetState = 'collapsed';
           this.cdr.detectChanges();
         }
       }));
-      this.mapEventDisposers.push(this.map.onMoveEnd(() => {
+      this.mapLifecycle?.trackMapEvent(this.map.onMoveEnd(() => {
         this.isProgrammaticMove = false;
       }));
 
       // Track map center
-      this.mapEventDisposers.push(this.map.onMove((center) => {
+      this.mapLifecycle?.trackMapEvent(this.map.onMove((center) => {
         this.mapCenterLat = center.lat;
         this.mapCenterLng = center.lng;
       }));
@@ -354,12 +345,12 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
       this.mapCenterLat = initCenter.lat;
       this.mapCenterLng = initCenter.lng;
 
-      this.mapEventDisposers.push(this.map.onLoad(() => {
+      this.mapLifecycle?.trackMapEvent(this.map.onLoad(() => {
         mapElement.setAttribute('data-map-state', 'loaded');
         this.updateMapMarkers();
         this.updateUserMarker();
       }));
-      this.mapEventDisposers.push(this.map.onError((message) => {
+      this.mapLifecycle?.trackMapEvent(this.map.onError((message) => {
         mapElement.setAttribute('data-map-error', message);
       }));
 
@@ -2061,7 +2052,7 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private createMarkerElement(
-    type: 'origin' | 'destination' | 'nearby' | typeof AUX_MARKER_KEYS.USER | typeof AUX_MARKER_KEYS.PREVIEW,
+    type: 'origin' | 'destination' | 'nearby' | 'user' | 'preview',
     label = '',
     selected = false
   ): HTMLButtonElement {
@@ -2083,12 +2074,6 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
       destinationName: typeof destinationName === 'string' ? destinationName : '',
       companyName: typeof companyName === 'string' ? companyName : ''
     };
-  }
-
-  private clearDisposers(disposers: Array<() => void>): void {
-    while (disposers.length > 0) {
-      disposers.pop()?.();
-    }
   }
 
   onMapHighlightRoute(flight: any) {
@@ -2187,20 +2172,18 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
         this.tempPickedLng = center.lng.toFixed(5);
         this.cdr.detectChanges();
 
-        this.mapMoveDisposer?.();
-        this.mapMoveDisposer = this.map.onMove((c) => {
+        this.mapLifecycle?.replaceScopedDisposer('picker', this.map.onMove((c) => {
           this.tempPickedLat = c.lat.toFixed(5);
           this.tempPickedLng = c.lng.toFixed(5);
           this.cdr.detectChanges();
-        });
+        }));
       }
     }, 50);
   }
 
   confirmPickedLocation() {
     if (this.map) {
-      this.mapMoveDisposer?.();
-      this.mapMoveDisposer = null;
+      this.mapLifecycle?.clearScopedDisposer('picker');
       const center = this.map.getCenter();
       this.editFormData.lat = center.lat.toFixed(7);
       this.editFormData.lng = center.lng.toFixed(7);
@@ -2209,8 +2192,7 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
   }
   
   cancelPickingLocation() {
-    this.mapMoveDisposer?.();
-    this.mapMoveDisposer = null;
+    this.mapLifecycle?.clearScopedDisposer('picker');
     this.isPickingLocation = false;
   }
 

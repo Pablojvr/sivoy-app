@@ -134,10 +134,11 @@ archivos. Codex debe revisar cada diff y ejecutar build y auditoría visual.
       - [x] T27d1: aislar cálculo geográfico del runtime del mapa.
       - [x] T27d2: encapsular el render diferido de rutas en el adaptador.
       - [x] T27d3: shell público migrado al puerto; 201 pruebas, build y runtime list-first/mapa auditados.
-- [ ] T28 Encapsular ciclo de vida de marcadores y listeners.
+- [x] T28 Encapsular ciclo de vida de marcadores y listeners.
     - [x] T28a: manager neutral y teardown resiliente; 211 pruebas y build auditados.
     - [x] T28b: marcadores primarios, metadata y clicks migrados; 211 pruebas y build auditados.
     - [x] T28c: marcadores auxiliares y listeners de arrastre migrados; 211 pruebas y build auditados.
+    - [x] T28d: eventos, disposer temporal y teardown final migrados; 211 pruebas, build y runtime auditados.
 - [ ] T29 Separar operaciones de empresas en ruta propia.
 - [ ] T30 Reducir `MobileAppComponent` al shell.
 - [ ] T31 Eliminar duplicación y legado con búsqueda de consumidores.

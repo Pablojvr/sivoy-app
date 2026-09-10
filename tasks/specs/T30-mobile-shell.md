@@ -30,7 +30,7 @@ El shell actualmente abarca los siguientes dominios superpuestos:
 
 ## 4. Plan de Extracción Incremental (Slices)
 
-### T30a: Cobertura de Caracterización (Slice S)
+### T30a: Cobertura de Caracterización (Slice S) — accepted
 - **Objetivo:** Aislar el comportamiento actual del shell en tests antes de mover las implementaciones, verificando su rol como orquestador de componentes hijos (home) sin evaluar la implementación interna de los servicios de Angular que consuma.
 - **Archivos (Máximo 5):**
   - `frontend/src/app/mobile-app.component.spec.ts`
@@ -41,6 +41,8 @@ El shell actualmente abarca los siguientes dominios superpuestos:
 - **Verificación:** `npm run test:ci && npm run build && git diff --check`
 - **Dependencias:** Ninguna.
 - **Rollback:** revertir el commit atómico del slice después de preservar cualquier cambio local ajeno.
+
+**Evidencia:** tres pruebas de caracterización cubren carga explícita de ubicaciones/empresas, geolocalización con geocodificación inversa y handoff real de selección origen→destino. La suite completa pasa con 214 pruebas, el build de producción compila y no se permiten solicitudes HTTP inesperadas.
 
 ### T30b: Delegación a `UbicacionesService` (Slice S)
 - **Objetivo:** Eliminar el uso de `HttpClient` en el shell para las lecturas de ubicaciones.

@@ -9,6 +9,7 @@ import { ToastService } from './core/services/toast.service';
 import { HttpClient } from '@angular/common/http';
 import { asCoordinate, createBounds, createMarkerElement, createSiVoyMap, mapRuntime, SiVoyCoordinate, SiVoyLngLat, SiVoyMap, SiVoyMarker } from './core/maps/sivoy-map';
 import { MapCapabilityService } from './core/maps/map-capability.service';
+import { calculateDistanceKm } from './core/maps/geo-distance';
 import { HomeComponent } from './features/home/home.component';
 import { AdminComponent } from './features/admin/admin.component';
 import { BottomNavComponent } from './shared/components/bottom-nav/bottom-nav.component';
@@ -689,8 +690,10 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
     // Sort and calculate on the main locations array
     this.locations.forEach(loc => {
       if (loc.ubicacion && loc.ubicacion.lat && loc.ubicacion.lng) {
-        const locLatLng = new mapRuntime.LngLat(loc.ubicacion.lng, loc.ubicacion.lat);
-        loc.distance = (this.userLocation!.distanceTo(locLatLng) / 1000); // km
+        loc.distance = calculateDistanceKm(
+          { lat: this.userLocation!.lat, lng: this.userLocation!.lng },
+          { lat: loc.ubicacion.lat, lng: loc.ubicacion.lng }
+        );
       } else {
         loc.distance = 9999;
       }
@@ -698,8 +701,10 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.filteredLocations.forEach(loc => {
       if (loc.ubicacion && loc.ubicacion.lat && loc.ubicacion.lng) {
-        const locLatLng = new mapRuntime.LngLat(loc.ubicacion.lng, loc.ubicacion.lat);
-        loc.distance = (this.userLocation!.distanceTo(locLatLng) / 1000); // km
+        loc.distance = calculateDistanceKm(
+          { lat: this.userLocation!.lat, lng: this.userLocation!.lng },
+          { lat: loc.ubicacion.lat, lng: loc.ubicacion.lng }
+        );
       } else {
         loc.distance = 9999;
       }

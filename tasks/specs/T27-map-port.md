@@ -15,7 +15,13 @@ Migrate incrementally:
 
 ## Status
 
-T27a-T27c accepted after independent audit; T27d remains in progress.
+T27a-T27c accepted after independent audit; T27d1 completed, rest of T27d remains in progress.
+
+## T27d1 evidence
+
+- Introduced standalone geo-distance utility implementing Haversine.
+- Distance calculation validates numeric finiteness and geospatial boundaries.
+- Replaced mapRuntime.LngLat(...).distanceTo in MobileApp with the pure utility function without modifying map initialization.
 
 ## T27a evidence
 

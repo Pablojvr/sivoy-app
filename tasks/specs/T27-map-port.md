@@ -15,7 +15,14 @@ Migrate incrementally:
 
 ## Status
 
-T27a-T27c accepted after independent audit; T27d1 completed, rest of T27d remains in progress.
+T27a-T27c accepted after independent audit; T27d1-T27d2 completed, rest of T27d remains in progress.
+
+## T27d2 evidence
+
+- Internalized asynchronous styling into `MapLibreMapAdapter` instead of exposing a readiness API on the port.
+- `drawRouteLine` safely defers route requests if the style is not loaded, holding only the most recent immutable request and registering at most one `load` listener.
+- `removeRouteLine` and `destroy` cleanly cancel pending style-load listeners and discard pending requests.
+- All edge cases, including mutation isolation, idempotent destruction, and deferred overwrites, are validated with mocked unit tests.
 
 ## T27d1 evidence
 

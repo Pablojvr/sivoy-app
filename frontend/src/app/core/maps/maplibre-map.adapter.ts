@@ -106,6 +106,8 @@ export class MapLibreMapAdapter implements MapPort {
   private map: MLMap | null = null;
   private readonly routeSourceId = 'sivoy-route-source';
   private readonly routeLayerId = 'sivoy-route-layer';
+  private pendingRouteRequest: { coordinates: MapCoordinate[], style?: MapRouteStyle } | null = null;
+  private pendingRouteListener: (() => void) | null = null;
 
   initialize(container: HTMLElement, options: MapInitializeOptions): void {
     if (this.map) {
@@ -249,6 +251,33 @@ export class MapLibreMapAdapter implements MapPort {
 
     const m = this.getMapOrThrow();
 
+    if (m.isStyleLoaded()) {
+      this.cancelPendingRouteRequest();
+      this.renderRouteLine(coordinates, style);
+      return;
+    }
+
+    // Save immutable copy of the request
+    this.pendingRouteRequest = {
+      coordinates: coordinates.map(c => ({ ...c })),
+      style: style ? { ...style } : undefined
+    };
+
+    if (!this.pendingRouteListener) {
+      this.pendingRouteListener = () => {
+        const req = this.pendingRouteRequest;
+        this.cancelPendingRouteRequest();
+        if (req) {
+          this.renderRouteLine(req.coordinates, req.style);
+        }
+      };
+      m.once('load', this.pendingRouteListener);
+    }
+  }
+
+  private renderRouteLine(coordinates: readonly MapCoordinate[], style?: MapRouteStyle): void {
+    const m = this.getMapOrThrow();
+
     const geoJsonData = {
       type: 'FeatureCollection' as const,
       features: [{
@@ -302,7 +331,16 @@ export class MapLibreMapAdapter implements MapPort {
     }
   }
 
+  private cancelPendingRouteRequest(): void {
+    if (this.pendingRouteListener && this.map) {
+      this.map.off('load', this.pendingRouteListener);
+    }
+    this.pendingRouteListener = null;
+    this.pendingRouteRequest = null;
+  }
+
   removeRouteLine(): void {
+    this.cancelPendingRouteRequest();
     if (!this.map) return;
     if (this.map.getLayer(this.routeLayerId)) {
       this.map.removeLayer(this.routeLayerId);
@@ -313,6 +351,7 @@ export class MapLibreMapAdapter implements MapPort {
   }
 
   destroy(): void {
+    this.cancelPendingRouteRequest();
     if (this.map) {
       this.map.remove();
       this.map = null;

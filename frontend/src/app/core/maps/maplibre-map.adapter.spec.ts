@@ -19,6 +19,7 @@ const mockAddLayer = vi.fn();
 const mockRemoveLayer = vi.fn();
 const mockRemoveSource = vi.fn();
 const mockSetPaintProperty = vi.fn();
+const mockIsStyleLoaded = vi.fn().mockReturnValue(true);
 
 const mockMarkerSetLngLat = vi.fn().mockReturnThis();
 const mockMarkerAddTo = vi.fn().mockReturnThis();
@@ -54,7 +55,8 @@ vi.mock('maplibre-gl', () => {
         addLayer: mockAddLayer,
         removeLayer: mockRemoveLayer,
         removeSource: mockRemoveSource,
-        setPaintProperty: mockSetPaintProperty
+        setPaintProperty: mockSetPaintProperty,
+        isStyleLoaded: mockIsStyleLoaded
       };
     }),
     Marker: vi.fn(function() {
@@ -90,6 +92,7 @@ describe('MapLibreMapAdapter', () => {
   const initialCenter: MapCoordinate = { lng: -74, lat: 40 };
 
   beforeEach(() => {
+      mockIsStyleLoaded.mockReturnValue(true);
     vi.clearAllMocks();
     container = document.createElement('div');
     adapter = new MapLibreMapAdapter();
@@ -305,6 +308,128 @@ describe('MapLibreMapAdapter', () => {
       } else {
         throw new Error('Expected HTMLElement');
       }
+    });
+
+
+    describe('drawRouteLine async styling', () => {
+      beforeEach(() => {
+        mockIsStyleLoaded.mockReturnValue(true);
+      });
+
+      it('inmediato si loaded', () => {
+        mockIsStyleLoaded.mockReturnValue(true);
+        adapter.drawRouteLine([{ lng: 1, lat: 1 }, { lng: 2, lat: 2 }]);
+        expect(mockOnce).not.toHaveBeenCalledWith('load', expect.any(Function));
+        expect(mockAddSource).toHaveBeenCalled();
+      });
+
+      it('deferred antes de load', () => {
+        mockIsStyleLoaded.mockReturnValue(false);
+        adapter.drawRouteLine([{ lng: 1, lat: 1 }, { lng: 2, lat: 2 }]);
+
+        expect(mockAddSource).not.toHaveBeenCalled();
+        expect(mockOnce).toHaveBeenCalledWith('load', expect.any(Function));
+
+        const loadCall = mockOnce.mock.calls.find(c => c[0] === 'load');
+        const loadListener = loadCall ? loadCall[1] : undefined;
+        if (loadListener) loadListener();
+
+        expect(mockAddSource).toHaveBeenCalled();
+      });
+
+      it('múltiples deferred => un listener y última solicitud', () => {
+        mockIsStyleLoaded.mockReturnValue(false);
+
+        adapter.drawRouteLine([{ lng: 1, lat: 1 }, { lng: 2, lat: 2 }], { color: 'red', width: 2, opacity: 1 });
+        adapter.drawRouteLine([{ lng: 3, lat: 3 }, { lng: 4, lat: 4 }], { color: 'blue', width: 5, opacity: 1 });
+
+        const loadCalls = mockOnce.mock.calls.filter(c => c[0] === 'load');
+        expect(loadCalls.length).toBe(1);
+
+        const loadCall = mockOnce.mock.calls.find(c => c[0] === 'load');
+        const loadListener = loadCall ? loadCall[1] : undefined;
+        if (loadListener) loadListener();
+
+        expect(mockAddSource).toHaveBeenCalledWith(
+          'sivoy-route-source',
+          expect.objectContaining({
+            data: expect.objectContaining({
+              features: [expect.objectContaining({
+                geometry: expect.objectContaining({
+                  coordinates: [[3, 3], [4, 4]]
+                })
+              })]
+            })
+          })
+        );
+        expect(mockAddLayer).toHaveBeenCalledWith(expect.objectContaining({
+          paint: expect.objectContaining({
+            'line-color': 'blue'
+          })
+        }));
+      });
+
+      it('remove antes de load impide render', () => {
+        mockIsStyleLoaded.mockReturnValue(false);
+        adapter.drawRouteLine([{ lng: 1, lat: 1 }, { lng: 2, lat: 2 }]);
+
+        const loadCall = mockOnce.mock.calls.find(c => c[0] === 'load');
+        const loadListener = loadCall ? loadCall[1] : undefined;
+
+        adapter.removeRouteLine();
+        expect(mockOff).toHaveBeenCalledWith('load', loadListener);
+
+        if (loadListener) loadListener();
+        expect(mockAddSource).not.toHaveBeenCalled();
+      });
+
+      it('destroy antes de load cancela/limpia', () => {
+        mockIsStyleLoaded.mockReturnValue(false);
+        adapter.drawRouteLine([{ lng: 1, lat: 1 }, { lng: 2, lat: 2 }]);
+
+        const loadCall = mockOnce.mock.calls.find(c => c[0] === 'load');
+        const loadListener = loadCall ? loadCall[1] : undefined;
+
+        adapter.destroy();
+        expect(mockOff).toHaveBeenCalledWith('load', loadListener);
+
+        if (loadListener) loadListener();
+        expect(mockAddSource).not.toHaveBeenCalled();
+      });
+
+      it('coordenadas/style caller mutadas después no alteran pending', () => {
+        mockIsStyleLoaded.mockReturnValue(false);
+        const coords = [{ lng: 1, lat: 1 }, { lng: 2, lat: 2 }];
+        const style = { color: 'red', width: 2, opacity: 1 };
+
+        adapter.drawRouteLine(coords, style);
+
+        coords[0].lng = 999;
+        coords.push({ lng: 3, lat: 3 });
+        style.color = 'blue';
+
+        const loadCall = mockOnce.mock.calls.find(c => c[0] === 'load');
+        const loadListener = loadCall ? loadCall[1] : undefined;
+        if (loadListener) loadListener();
+
+        expect(mockAddSource).toHaveBeenCalledWith(
+          'sivoy-route-source',
+          expect.objectContaining({
+            data: expect.objectContaining({
+              features: [expect.objectContaining({
+                geometry: expect.objectContaining({
+                  coordinates: [[1, 1], [2, 2]] // NOT 999
+                })
+              })]
+            })
+          })
+        );
+        expect(mockAddLayer).toHaveBeenCalledWith(expect.objectContaining({
+          paint: expect.objectContaining({
+            'line-color': 'red' // NOT blue
+          })
+        }));
+      });
     });
 
     it('removes route safely if drawRouteLine called with < 2 coordinates', () => {

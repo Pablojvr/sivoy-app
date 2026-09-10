@@ -129,7 +129,7 @@ archivos. Codex debe revisar cada diff y ejecutar build y auditoría visual.
     - Incluir detección de WebGL2 y continuidad list-first con mensaje recuperable cuando el mapa no esté disponible.
     - [x] T27a: detector WebGL2 cacheado y seguro para SSR; 140 pruebas y build auditados.
     - [x] T27b: definir puerto estable y adaptador MapLibre; 178 pruebas y build auditados.
-    - [ ] T27c: integrar fallback list-first en el shell público.
+    - [x] T27c: integrar fallback list-first en el shell público; 178 pruebas, build y flujo normal en navegador auditados.
     - [ ] T27d: migrar comandos del shell al puerto sin asumir el ciclo de vida de marcadores.
 - [ ] T28 Encapsular ciclo de vida de marcadores y listeners.
 - [ ] T29 Separar operaciones de empresas en ruta propia.

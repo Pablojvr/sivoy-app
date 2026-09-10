@@ -2,6 +2,7 @@
   
   <div class="inicio-tab-content" [hidden]="activeMainTab !== 'inicio' && !isPickingLocation && !isMapForcedVisible">
     <app-home
+      [mapAvailable]="mapAvailable"
       [locations]="locations"
       [userLocation]="userLocation"
       [initialIntent]="navigationIntent"
@@ -32,6 +33,14 @@
   </div>
 
   <app-perfil *ngIf="activeMainTab === 'perfil'"></app-perfil>
+
+  <div *ngIf="mapFallbackVisible" role="status" class="map-fallback-banner">
+    <div class="map-fallback-banner-content">
+      <strong>Mapa no disponible</strong>
+      <p>Puedes seguir buscando y compartiendo puntos desde la lista.</p>
+    </div>
+    <button type="button" class="map-fallback-close" (click)="mapFallbackVisible = false; $event.stopPropagation()" aria-label="Cerrar">×</button>
+  </div>
 
   <app-bottom-nav [activeTab]="activeMainTab"></app-bottom-nav>
 

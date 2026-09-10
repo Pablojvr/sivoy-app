@@ -15,7 +15,7 @@ Migrate incrementally:
 
 ## Status
 
-T27a-T27b accepted after independent audit; T27c-T27d remain in progress.
+T27a-T27c accepted after independent audit; T27d remains in progress.
 
 ## T27a evidence
 
@@ -29,3 +29,12 @@ T27a-T27b accepted after independent audit; T27c-T27d remain in progress.
 - The MapLibre adapter retains the SiVoy raster style and safely handles repeated route updates, incompatible source collisions and teardown.
 - Popup content is built with DOM text nodes rather than raw HTML.
 - Event and marker listeners return explicit disposal functions for T28 lifecycle ownership.
+
+## T27c evidence
+
+- The public shell checks WebGL2 capability before rendering or initializing the interactive map.
+- Unsupported browsers and initialization failures remain in the list-first flow with a dismissible status message; searches, result cards and sharing remain available.
+- Map-only controls are absent when the renderer is unavailable, and entry points abort before mutating the active search or selection.
+- The normal interactive-map flow was exercised in the local browser, including its route back to the home screen.
+- The fallback browser path is supported by the detector tests and structural audit. Browser automation could not disable WebGL before Angular bootstrap, so no unsupported-WebGL manual run is claimed.
+- Independent validation: 178 tests passed, production build passed, and the 80 kB component-style error budget remained unchanged.

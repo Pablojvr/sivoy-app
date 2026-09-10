@@ -8,6 +8,7 @@ import { Subscription } from 'rxjs';
 import { ToastService } from './core/services/toast.service';
 import { HttpClient } from '@angular/common/http';
 import { asCoordinate, createBounds, createMarkerElement, createSiVoyMap, mapRuntime, SiVoyCoordinate, SiVoyLngLat, SiVoyMap, SiVoyMarker } from './core/maps/sivoy-map';
+import { MapCapabilityService } from './core/maps/map-capability.service';
 import { HomeComponent } from './features/home/home.component';
 import { AdminComponent } from './features/admin/admin.component';
 import { BottomNavComponent } from './shared/components/bottom-nav/bottom-nav.component';
@@ -21,6 +22,13 @@ import { PerfilComponent } from './features/perfil/perfil.component';
   encapsulation: ViewEncapsulation.None
 })
 export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
+  interactiveMapSupported = false;
+  mapInitializationFailed = false;
+  mapFallbackVisible = false;
+
+  get mapAvailable(): boolean {
+    return this.interactiveMapSupported && !this.mapInitializationFailed;
+  }
   @ViewChild('adminRef') adminRef!: AdminComponent;
   @ViewChild(HomeComponent) homeCmp!: HomeComponent;
   locations: any[] = [];
@@ -123,8 +131,11 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
     private sanitizer: DomSanitizer,
     private toastService: ToastService,
     private route: ActivatedRoute,
-    private router: Router
-  ) {}
+    private router: Router,
+    private mapCapability: MapCapabilityService
+  ) {
+    this.interactiveMapSupported = this.mapCapability.supportsInteractiveMap();
+  }
 
   // onDocumentClick removido para evitar conflictos con los botones que abren el panel.
 
@@ -138,7 +149,7 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
   ngOnInit() {
     this.routeParamsSubscription = this.route.queryParams.subscribe(params => {
       this.navigationIntent = { ...params };
-      this.isMapResourceMode = params['vista'] === 'mapa';
+      this.setMapResourceMode(params['vista'] === 'mapa');
       const requestedTab = params['tab'];
       this.activeMainTab = requestedTab === 'puntos' || requestedTab === 'perfil' ? requestedTab : 'inicio';
       this.cdr.detectChanges();
@@ -223,19 +234,44 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
     this.initMap();
   }
 
-  setMapResourceMode(enabled: boolean) {
+  setMapResourceMode(enabled: boolean): boolean {
+    if (enabled && !this.mapAvailable) {
+      this.isMapResourceMode = false;
+      this.mapFallbackVisible = true;
+      this.toastService.showInfo('Mapa no compatible en este dispositivo.', 'Atención');
+      return false;
+    }
+
     this.isMapResourceMode = enabled;
     if (enabled) {
       setTimeout(() => this.map?.resize(), 40);
     }
+    return true;
   }
 
   initMap() {
+    if (!this.interactiveMapSupported) {
+      this.mapInitializationFailed = true;
+      this.isMapResourceMode = false;
+      this.mapFallbackVisible = true;
+      this.cdr.detectChanges();
+      return;
+    }
+
     setTimeout(() => {
       const mapElement = document.getElementById('map');
       if (!mapElement) return;
 
-      this.map = createSiVoyMap(mapElement, [-88.89, 13.79], 8.2);
+      try {
+        const tempMap = createSiVoyMap(mapElement, [-88.89, 13.79], 8.2);
+        this.map = tempMap;
+      } catch {
+        this.mapInitializationFailed = true;
+        this.isMapResourceMode = false;
+        this.mapFallbackVisible = true;
+        this.cdr.detectChanges();
+        return;
+      }
   
       // UX: Handle map clicks for destination selection or collapse bottom sheet
       this.map.on('click', (e: any) => {
@@ -372,6 +408,7 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   showNearbyPoints() {
+    if (!this.mapAvailable || !this.map) return;
     if (!this.userLocation) {
       this.toastService.showError("Por favor, permite el acceso a tu ubicación para ver los puntos cercanos.", "Ubicación Requerida");
       return;
@@ -1449,6 +1486,7 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
 
 
   recenterMap() {
+    if (!this.mapAvailable || !this.map) return;
     if (navigator.geolocation) {
       this.toastService.showInfo("Buscando tu ubicación...", "Ubicación");
       navigator.geolocation.getCurrentPosition(
@@ -1948,8 +1986,8 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   viewOnMap(loc: any, pointRole?: string) {
+    if (!this.setMapResourceMode(true)) return;
     this.activeMainTab = 'inicio';
-    this.setMapResourceMode(true);
     
     // Borrar la selección de los filtros y búsqueda anterior
     this.origen = '';

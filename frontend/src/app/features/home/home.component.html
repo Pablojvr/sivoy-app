@@ -1,5 +1,9 @@
     <!-- BACKGROUND MAP -->
-    <div class="map-wrapper" [attr.aria-hidden]="!mapResourceMode">
+    <!-- FALLBACK BACKGROUND -->
+    <div class="map-fallback-bg" *ngIf="!mapAvailable" aria-hidden="true">
+      <div class="map-fallback-pattern"></div>
+    </div>
+    <div class="map-wrapper" [attr.aria-hidden]="!mapResourceMode" *ngIf="mapAvailable">
     <div id="map" class="map-container"></div>
     
     <!-- FIXED CENTER PIN (Removed as per design changes, using blue dot marker for user location instead) -->

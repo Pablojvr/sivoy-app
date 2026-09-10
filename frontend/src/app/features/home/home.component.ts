@@ -29,6 +29,7 @@ export class HomeComponent implements OnInit, OnChanges {
   apiUrl = environment.apiUrl;
   @Input() locations: any[] = [];
   @Input() userLocation: any = null;
+  @Input() mapAvailable = true;
   @Input() initialIntent: Record<string, string> = {};
 
 

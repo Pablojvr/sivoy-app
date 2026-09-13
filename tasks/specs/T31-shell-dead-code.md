@@ -29,6 +29,8 @@ Reducir residuos no administrativos de `MobileAppComponent` mediante evidencia d
 - Caracterizar la proyección de una ruta en el mapa sin depender de MapLibre real.
 - No inventar umbrales globales de cobertura; reportar únicamente pruebas y ramas verificadas.
 
+**Estado:** aceptado y completado. Evidencia: estas son pruebas de caracterización del comportamiento existente (no un RED fabricado). 238 pruebas pasan; el build pasa (solo advertencias conocidas de CSS budget/CommonJS) y el diff-check es limpio. Se verificó el contrato actual "Disponible mañana" y la proyección de ruta se probó a través de dobles de puerto independientes del renderizador.
+
 ## Evidencia de auditoría
 
 Antigravity (`gemini-3.1-pro-high`) auditó lifecycle, template, decorators y callbacks MapPort. Codex confirmó los consumidores mediante `rg`: el estado de bottom-sheet no cruza al template real de Home, `mapCenterLat/mapCenterLng` solo reciben escrituras y `highlightRouteOnMap` no tiene llamadas. El intervalo de `updateAgencyStatuses` carece de teardown.

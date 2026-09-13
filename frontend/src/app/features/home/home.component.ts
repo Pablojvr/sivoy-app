@@ -1,5 +1,5 @@
 import { environment } from '../../../environments/environment';
-import { ChangeDetectorRef, Component, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChanges, HostBinding, HostListener, ViewEncapsulation, effect } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, Output, EventEmitter, OnInit, OnChanges, OnDestroy, SimpleChanges, HostBinding, HostListener, ViewEncapsulation, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ToastService } from '../../core/services/toast.service';
@@ -27,7 +27,7 @@ import { PublicMapViewState, projectPublicMapViewState } from './public-map-view
   styleUrl: './home.component.css',
   encapsulation: ViewEncapsulation.None
 })
-export class HomeComponent implements OnInit, OnChanges {
+export class HomeComponent implements OnInit, OnChanges, OnDestroy {
   apiUrl = environment.apiUrl;
   @Input() locations: any[] = [];
   @Input() userLocation: any = null;
@@ -288,6 +288,13 @@ export class HomeComponent implements OnInit, OnChanges {
     const hours = String(today.getHours()).padStart(2, '0');
     const minutes = String(today.getMinutes()).padStart(2, '0');
     this.dropoffTime = `${hours}:${minutes}`;
+  }
+
+  ngOnDestroy() {
+    if (this.placeSearchTimer) {
+      clearTimeout(this.placeSearchTimer);
+      this.placeSearchTimer = null;
+    }
   }
 
   // UI Handlers

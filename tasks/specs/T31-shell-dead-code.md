@@ -31,6 +31,14 @@ Reducir residuos no administrativos de `MobileAppComponent` mediante evidencia d
 
 **Estado:** aceptado y completado. Evidencia: estas son pruebas de caracterización del comportamiento existente (no un RED fabricado). 238 pruebas pasan; el build pasa (solo advertencias conocidas de CSS budget/CommonJS) y el diff-check es limpio. Se verificó el contrato actual "Disponible mañana" y la proyección de ruta se probó a través de dobles de puerto independientes del renderizador.
 
+## T31d — cancelar place-search debounce on destroy
+
+- Home place-search debounce cleared/null on destroy.
+- Evidencia RED genuina: `searchPlaces` fue llamado una vez después del destroy en test aislados.
+- Evidencia GREEN: 239 pruebas, build, y diff-check verdes.
+
+**Estado:** aceptado por Codex.
+
 ## Evidencia de auditoría
 
 Antigravity (`gemini-3.1-pro-high`) auditó lifecycle, template, decorators y callbacks MapPort. Codex confirmó los consumidores mediante `rg`: el estado de bottom-sheet no cruza al template real de Home, `mapCenterLat/mapCenterLng` solo reciben escrituras y `highlightRouteOnMap` no tiene llamadas. El intervalo de `updateAgencyStatuses` carece de teardown.

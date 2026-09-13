@@ -156,6 +156,7 @@ archivos. Codex debe revisar cada diff y ejecutar build y auditoría visual.
     - [x] T31a: estado visual fantasma retirado; 231 pruebas y build auditados.
     - [x] T31b: cerrar el intervalo de disponibilidad al destruir el shell.
     - [x] T31c: caracterizar límites horarios y proyección de rutas.
+    - [x] T31d: cancelar place-search debounce on destroy; 239 pruebas y diff-check verdes.
 
 ### Checkpoint D
 

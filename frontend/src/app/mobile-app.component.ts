@@ -63,7 +63,6 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
   errorMsg: string = '';
 
   bottomSheetState: 'collapsed' | 'half' | 'expanded' = 'collapsed';
-  isSheetScrolled: boolean = false;
   activeEmpresa: string = '';
   isProgrammaticMove: boolean = false;
   isDiscoveryMode: boolean = false;
@@ -159,15 +158,6 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
     private mapCapability: MapCapabilityService
   ) {
     this.interactiveMapSupported = this.mapCapability.supportsInteractiveMap();
-  }
-
-  // onDocumentClick removido para evitar conflictos con los botones que abren el panel.
-
-  onPanelClick(event: Event) {
-    const target = event.target as HTMLElement;
-    if (!target.closest('.search-box') && !target.closest('.autocomplete-list')) {
-      this.showAutocomplete = false;
-    }
   }
 
   ngOnInit() {
@@ -728,10 +718,6 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
     this.cdr.detectChanges();
   }
 
-  onFilterChange() {
-    this.checkRoute();
-  }
-
   clearSearch() {
     this.origen = '';
     this.origenMunicipio = null;
@@ -771,28 +757,6 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     
     this.expandSheetIfNeeded();
-  }
-
-  onDayFilterChange() {
-    this.cdr.detectChanges();
-  }
-
-  toggleFilter(type: string) {
-    // Mock opening date/time pickers
-    // In a real app, this would open a calendar/time bottom sheet
-    if (type === 'date') {
-      const today = new Date();
-      this.dropoffDate = today.toISOString().split('T')[0];
-    }
-    this.checkRoute();
-  }
-
-  toggleSheet() {
-    if (this.bottomSheetState === 'collapsed') {
-      this.bottomSheetState = 'half';
-    }
-    else if (this.bottomSheetState === 'half') this.bottomSheetState = 'expanded';
-    else this.bottomSheetState = 'collapsed';
   }
 
   expandSheetIfNeeded() {
@@ -894,80 +858,7 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
     this.updateMapMarkers(); // Actualizar para que el pin desaparezca si no es parte de una búsqueda activa
   }
 
-  copyPinDetails() {
-    if (!this.selectedPin) return;
-
-    let text = `${this.selectedPin.nombre_destino}\n${this.selectedPin.empresa}\n${this.selectedPin.ubicacion?.municipio || ''}, ${this.selectedPin.ubicacion?.departamento || ''}\n\n`;
-    
-    if (this.origen) {
-      const displayed = this.getDisplayedSchedules(this.selectedPin);
-      if (displayed.length > 0) {
-        text += `Horario Próximo / Seleccionado:\n`;
-        displayed.forEach((h: any) => {
-          text += `- ${h.dia_semana}: ${this.formatTime(h.hora_apertura)} - ${this.formatTime(h.hora_cierre)}\n`;
-        });
-      } else {
-        text += `Horario Próximo: No definido\n`;
-      }
-    } else {
-      text += `Horarios de Atención:\n`;
-      if (this.selectedPin.horarios_operativos && this.selectedPin.horarios_operativos.length > 0) {
-        this.selectedPin.horarios_operativos.forEach((h: any) => {
-          text += `- ${h.dia_semana}: ${this.formatTime(h.hora_apertura)} - ${this.formatTime(h.hora_cierre)}\n`;
-        });
-      } else {
-        text += `No definidos\n`;
-      }
-    }
-
-    // Append Google Maps link if available
-    if (this.selectedPin.maps_url) {
-      text += `\n📍 Ubicación en Google Maps:\n${this.selectedPin.maps_url}\n`;
-    } else if (this.selectedPin.ubicacion?.lat && this.selectedPin.ubicacion?.lng) {
-      text += `\n📍 Coordenadas: ${this.selectedPin.ubicacion.lat}, ${this.selectedPin.ubicacion.lng}\n`;
-    }
-
-    navigator.clipboard.writeText(text).then(() => {
-      console.log('Copiado al portapapeles');
-    }).catch(err => console.error('Error al copiar', err));
-  }
-
-
-  getDisplayedSchedules(loc: any): any[] {
-    if (!loc || !loc.horarios_operativos) return [];
-
-    // If an origin is defined, we show only the selected day or the closest day
-    if (this.origen) {
-      if (this.selectedPinDayFilter) {
-        const found = loc.horarios_operativos.find((h: any) => h.dia_semana === this.selectedPinDayFilter);
-        return found ? [found] : [];
-      } else {
-        // Return the closest schedule (today or next open day)
-        // Similar to calculateAgencyStatus logic
-        const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-        const now = new Date();
-        // If there's a dropoffDate, we could use that, but simple next open is fine
-        const normalize = (str: string) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-        
-        for (let i = 0; i < 7; i++) {
-          const d = new Date(now);
-          d.setDate(d.getDate() + i);
-          const dayName = days[d.getDay()];
-          const schedule = loc.horarios_operativos.find((h: any) => normalize(h.dia_semana) === normalize(dayName));
-          if (schedule) {
-            return [schedule]; // return closest
-          }
-        }
-        return [];
-      }
-    }
-
-    // Otherwise, show all schedules
-    return loc.horarios_operativos;
-  }
-
   // --- Location Selector Logic ---
-  isSearchExpanded: boolean = false;
   activeInput: 'origen' | 'destino' | null = null;
   showAutocomplete: boolean = false;
   origenInputValue: string = '';
@@ -976,20 +867,6 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
   
   destinoMunicipio: string | null = null;
   destinoDepartamento: string | null = null;
-
-  toggleSearchPanel() {
-    this.isSearchExpanded = !this.isSearchExpanded;
-    if (this.isSearchExpanded) {
-      this.activeInput = 'origen';
-      this.showAutocomplete = false;
-      this.activeFilterTab = 'lugar';
-      this.locationSearchQuery = this.origenInputValue;
-      this.filterModalLocations();
-    } else {
-      this.activeInput = null;
-      this.showAutocomplete = false;
-    }
-  }
 
   setPinAsDestinationAndPromptOrigin() {
     if (!this.selectedPin) return;
@@ -1001,7 +878,6 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
     this.destinoDepartamento = null;
     
     this.selectedPin = null;
-    this.isSearchExpanded = true;
     this.handleSelectionHandoff('destino');
     this.cdr.detectChanges();
   }
@@ -1016,7 +892,6 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
     this.origenDepartamento = null;
     
     this.selectedPin = null;
-    this.isSearchExpanded = true;
     this.handleSelectionHandoff('origen');
     this.updateMapMarkers();
     this.cdr.detectChanges();
@@ -1025,7 +900,6 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
   openLocationSelector(type: 'origen' | 'destino', company: string | null = null) {
     this.validationError = '';
     this.companyFilter = company;
-    this.isSearchExpanded = true;
     this.activeInput = type;
     this.showAutocomplete = false;
     this.activeFilterTab = type === 'origen' ? 'lugar' : 'destino';
@@ -1072,17 +946,10 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   closeLocationSelector() {
-    this.isSearchExpanded = false;
     this.activeInput = null;
     this.showAutocomplete = false;
     this.validationError = '';
     this.clearSearch(); // Clear all inputs when closing modal
-  }
-
-  onSearchLocation(event: any) {
-    const query = event.target.value.toLowerCase();
-    this.locationSearchQuery = query;
-    this.filterModalLocations();
   }
 
   filterModalLocations() {
@@ -1322,13 +1189,10 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
   triggerDynamicSearch() {
     if (this.origen && this.destino) {
        this.checkRoute();
-       this.isSearchExpanded = false;
     } else if (this.destinoMunicipio) {
        this.discoveryModeForMunicipality(this.destinoMunicipio, this.destinoDepartamento || '');
-       this.isSearchExpanded = false;
     } else if (this.origenMunicipio) {
        this.discoveryModeForOriginMunicipality(this.origenMunicipio, this.origenDepartamento || '');
-       this.isSearchExpanded = false;
     } else if (this.origen && !this.destino) {
        this.updateMapMarkers();
        this.openLocationSelector('destino');
@@ -1490,12 +1354,6 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.timeSlots.length > 0 && !this.timeSlots.includes(this.dropoffTime)) {
        this.dropoffTime = this.timeSlots[0];
     }
-  }
-
-  selectTimeSlot(time: string) {
-    this.dropoffTime = time;
-    this.validationError = '';
-    this.triggerDynamicSearch();
   }
 
 
@@ -1733,41 +1591,9 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
   municipalityResults: any[] = [];
   expandedResultCard: any = null;
   
-  toggleResultCard(res: any) {
-    if (this.expandedResultCard === res) {
-      this.expandedResultCard = null;
-    } else {
-      this.expandedResultCard = res;
-      if (this.map && res.lat && res.lng) {
-        this.isProgrammaticMove = true;
-        this.map.flyTo({ lng: res.lng, lat: res.lat }, { zoom: 16, duration: 750 });
-      }
-    }
-    this.updateMarkerStyles();
-  }
-  
   startRouteForCompany(empresa: string) {
     this.bottomSheetState = 'collapsed';
     this.openLocationSelector('origen', empresa);
-  }
-  
-
-  // --- New Agent UI logic ---
-
-  onSheetScroll(event: Event) {
-    const target = event.target as HTMLElement;
-    this.isSheetScrolled = target.scrollTop > 10;
-  }
-
-  countResultsByEmpresa(emp: string): number {
-    if (this.municipalityResults && this.municipalityResults.length > 0) {
-      return this.municipalityResults.filter(r => r.empresa === emp).length;
-    }
-    return 0;
-  }
-
-  countByEmpresa(empresa: string) {
-    return this.locations.filter(loc => loc.empresa === empresa).length;
   }
 
   setEmpresaFilter(empresa: string) {
@@ -1800,11 +1626,6 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
     // Scroll list to top when changing filters
     const sheetContent = document.querySelector('.sheet-content');
     if (sheetContent) sheetContent.scrollTop = 0;
-  }
-
-  onFabClick() {
-    this.toastService.showInfo("¡Buscando próxima recolección!", "Próximamente");
-    // You can hook this to recalculate routes or find nearest
   }
 
   // --- ADMIN PANEL LOGIC ---

@@ -76,15 +76,36 @@ El shell actualmente abarca los siguientes dominios superpuestos:
 
 **Evidencia:** 225 pruebas pasan; el build de producción y el dev server compilan; ambos flujos GPS preservan sus opciones originales; el shell no referencia `navigator.geolocation` ni construye URLs de Nominatim; una sesión Chrome móvil nueva renderiza Inicio sin overlay.
 
-### T30d: Migrar Estado de Búsqueda Legado a `ShipmentSearchFacade` (Slice M)
-- **Objetivo:** Eliminar el motor de búsqueda paralelo existente en `MobileAppComponent` y utilizar en su lugar el ecosistema existente de Shipment (Facade, adapters, filters).
-- **Archivos (Máximo 5):**
-  - `frontend/src/app/mobile-app.component.ts`
-  - `frontend/src/app/features/home/shipment-search.facade.ts` (como dependencia importada)
-- **Criterios de Aceptación:**
-  1. Cada campo y método legado tiene búsqueda de consumidores y prueba de caracterización antes de eliminarse.
-  2. Todo consumidor público vivo delega al `ShipmentSearchFacade`; código empresarial queda intacto y documentado.
-  3. Destino → origen → resultados → compartir conserva estado y navegación en pruebas y runtime móvil.
-- **Verificación:** `npm run test:ci && npm run build && git diff --check`
-- **Dependencias:** T30a.
-- **Rollback:** revertir el commit atómico del slice después de preservar cualquier cambio local ajeno.
+
+### T30d1: Auditoría de Consumidores del Shell (Slice S)
+- **Estado:** aceptado tras auditoría Codex.
+- **Baseline LOC:** 2326 líneas físicas autoritativas para `mobile-app.component.ts`.
+- **Análisis de Reachability (Raíces = Template Handlers y Angular Lifecycle):**
+  - **(A) Removible probado (Isla de Métodos Muertos):**
+    - Métodos: `checkRoute()`, `generateTimeSlots()`, `selectTimeSlot()`, `selectLocation()`, `openLocationSelector()`, `closeLocationSelector()`, `setPinAsOriginAndPromptDestination()`, `setPinAsDestinationAndPromptOrigin()`, `setCustomDestination()`, `discoveryModeForMunicipality()`, `handleSelectionHandoff()`, `shareLocation()`.
+    - *Evidencia:* Ninguna de estas lógicas está conectada a eventos del template `mobile-app.component.html`. Su única finalidad era mutar variables de estado interno legadas. Sus puntos de invocación originales fueron migrados, creando una ruta de ejecución inalcanzable desde raíces externas.
+  - **(B) Wiring Público Requerido (Home/Map):**
+    - Métodos: `updateMapMarkers()`, `onMapHighlightRoute()`, `viewOnMap(loc, pointRole)`, `recenterMap()`, `resetMapMarkers()`, `showNearbyPoints()`.
+    - Estado: `selectedPin`, `isMapResourceMode`, `highlightedRoute`.
+    - *Evidencia:* Todos estos están enlazados a outputs explícitos o inputs de `<app-home>`. `updateMapMarkers()` es un consumidor directo de la instancia hija (vía `this.homeCmp`).
+  - **(C) Wiring Admin Intacto (Fuera de alcance):**
+    - `viewOnMap($event)` del Admin, `previewMap()`, `loadAdminEmpresas()`, y estados como `adminFilteredLocations`, `isPickingLocation`. Conectados válidamente a `<app-admin>` o aislados en lógica empresarial.
+  - **(D) Inciertos / Bloqueados por Map Wiring (Candidatos):**
+    - Variables: `origen`, `destino`, `origenMunicipio`, `destinoMunicipio`, `flightResults`, `municipalityResults`, `displayedResults`, `timeSlots`, `dropoffDate`, `dropoffTime`, `activeInput`, `selectingLocation`, `filteredMunicipalities`, `result`.
+    - *Evidencia:* Aunque no se renderizan en el DOM directamente, **son leídas explícitamente por una raíz alcanzable**: `updateMapMarkers()`. Cuando `isInicio=false`, el operador ternario hace un *fallback* a leer este estado obsoleto (`this.flightResults`, `this.origen`, etc.). Por lo tanto, no se pueden remover sin que el compilador TypeScript falle o se altere el flujo del mapa. Deben ser desacoplados antes de purgarse.
+
+**Plan de Eliminación/Migración (Nuevos Slices S/M):**
+1. **T30d2: Desacoplamiento de Datos de Dibujo del Mapa (Proyección):**
+   - **Alcance (<=5 archivos):** `mobile-app.component.ts`, `home.component.ts`, `home.component.html`, nuevo modelo `public-map-view-state.ts`, y `mobile-app.component.spec.ts` u otro test existente si requiere adaptación.
+   - **Criterios de Aceptación:**
+     1. Introducir un contrato *renderer-neutral* tipado (`PublicMapViewState`).
+     2. `<app-home>` emitirá esta proyección de manera explícita a través del Output `(updateMapMarkers)` mediante un payload, erradicando el acceso de `updateMapMarkers()` a `this.homeCmp` o a las variables obsoletas de Categoría D.
+     3. El shell debe conservar intacta la vía de renderizado para el `selectedPin` solicitado desde `AdminComponent`, sin refactorizar Admin ni Partner. El shell no inyectará la fachada de búsqueda.
+2. **T30d3: Purga de Búsqueda Legada (Limpieza Final):**
+   - **Alcance (<=5 archivos):** `mobile-app.component.ts`, `mobile-app.component.spec.ts`.
+   - **Criterios de Aceptación:**
+     1. Tras confirmar mediante una nueva auditoría rápida que `updateMapMarkers()` ya no lee variables de la Categoría D, eliminar definitivamente todo el bloque de propiedades huérfanas de estado.
+     2. Remover en su totalidad los métodos muertos de la Categoría A.
+     3. Refactorizar los flujos inalcanzables restantes (como la llamada a `generateTimeSlots` en `ngOnInit` o las condiciones erróneas en `map.onClick`), actualizando specs para garantizar integridad (test:ci/build/diff-check).
+
+**Evidencia T30d1:** búsqueda de bindings en `mobile-app.component.html`, referencias globales con `rg`, llamadas internas y lecturas dentro de `updateMapMarkers()` auditadas desde las raíces de lifecycle y outputs. El baseline reproducible es 2326 líneas físicas en `471efc2`.

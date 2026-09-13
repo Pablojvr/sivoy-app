@@ -145,7 +145,8 @@ archivos. Codex debe revisar cada diff y ejecutar build y auditoría visual.
     - [x] T30b: lectura tipada delegada a UbicacionesService; 217 pruebas y build auditados.
     - [x] T30c: geolocalización y reverse geocoding extraídos; 225 pruebas, build y runtime auditados.
     - [x] T30d1: consumidores clasificados por alcanzabilidad; baseline de 2326 líneas auditado.
-    - [ ] T30d2: Desacoplamiento de Datos de Dibujo del Mapa (Proyección)
+    - [x] T30d2a: proyección neutral emitida por Home; 232 pruebas y build auditados.
+    - [ ] T30d2b: Consumo de Proyección en el Shell (Desacoplamiento)
     - [ ] T30d3: Purga de Búsqueda Legada (Limpieza Final)
 
 - [ ] T31 Eliminar duplicación y legado con búsqueda de consumidores.

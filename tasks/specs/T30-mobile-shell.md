@@ -95,13 +95,21 @@ El shell actualmente abarca los siguientes dominios superpuestos:
     - *Evidencia:* Aunque no se renderizan en el DOM directamente, **son leídas explícitamente por una raíz alcanzable**: `updateMapMarkers()`. Cuando `isInicio=false`, el operador ternario hace un *fallback* a leer este estado obsoleto (`this.flightResults`, `this.origen`, etc.). Por lo tanto, no se pueden remover sin que el compilador TypeScript falle o se altere el flujo del mapa. Deben ser desacoplados antes de purgarse.
 
 **Plan de Eliminación/Migración (Nuevos Slices S/M):**
-1. **T30d2: Desacoplamiento de Datos de Dibujo del Mapa (Proyección):**
-   - **Alcance (<=5 archivos):** `mobile-app.component.ts`, `home.component.ts`, `home.component.html`, nuevo modelo `public-map-view-state.ts`, y `mobile-app.component.spec.ts` u otro test existente si requiere adaptación.
+1. **T30d2a: Preparación del Contrato de Proyección de Mapa:**
+   - **Estado:** aceptado tras auditoría Codex.
+   - **Alcance (<=5 archivos):** `public-map-view-state.ts`, `public-map-view-state.spec.ts`, `home.component.ts`, `tasks/specs/T30-mobile-shell.md`, `tasks/todo.md`.
    - **Criterios de Aceptación:**
-     1. Introducir un contrato *renderer-neutral* tipado (`PublicMapViewState`).
-     2. `<app-home>` emitirá esta proyección de manera explícita a través del Output `(updateMapMarkers)` mediante un payload, erradicando el acceso de `updateMapMarkers()` a `this.homeCmp` o a las variables obsoletas de Categoría D.
-     3. El shell debe conservar intacta la vía de renderizado para el `selectedPin` solicitado desde `AdminComponent`, sin refactorizar Admin ni Partner. El shell no inyectará la fachada de búsqueda.
-2. **T30d3: Purga de Búsqueda Legada (Limpieza Final):**
+     1. Introducir el contrato tipado `PublicMapViewState` y la función pura de proyección.
+     2. La función de proyección replica exactamente las ramas de precedencia del `updateMapMarkers` original, con tests exhaustivos sin variables `any` nuevas.
+     3. `HomeComponent` cambia el output `updateMapMarkers` para emitir este payload mediante un helper, sin alterar el momento ni la cantidad de emisiones.
+   - **Evidencia:** 232 pruebas pasan, el build compila, las ocho emisiones originales se preservan y las líneas añadidas no incorporan `any`, MapLibre, Mapbox ni `console`.
+2. **T30d2b: Consumo de Proyección en el Shell (Desacoplamiento):**
+   - **Alcance (<=5 archivos):** `mobile-app.component.ts`, `mobile-app.component.html`.
+   - **Criterios de Aceptación:**
+     1. El shell actualiza su binding `(updateMapMarkers)` para recibir el `$event` y pasarlo a su método.
+     2. `updateMapMarkers(state: PublicMapViewState)` en el shell descarta la lectura directa a `this.homeCmp` (erradicando la dependencia sobre variables de Categoría D).
+     3. El shell dibuja lo provisto en el payload sin alterar la funcionalidad del mapa para Admin o Partner.
+3. **T30d3: Purga de Búsqueda Legada (Limpieza Final):**
    - **Alcance (<=5 archivos):** `mobile-app.component.ts`, `mobile-app.component.spec.ts`.
    - **Criterios de Aceptación:**
      1. Tras confirmar mediante una nueva auditoría rápida que `updateMapMarkers()` ya no lee variables de la Categoría D, eliminar definitivamente todo el bloque de propiedades huérfanas de estado.

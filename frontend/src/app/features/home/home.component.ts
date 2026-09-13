@@ -16,6 +16,8 @@ import { PinDetailCardComponent } from './results/pin-detail-card.component';
 import { applyClosedDropoffFilter } from './shipment-route.filters';
 import { presentSearchRoute, pointRefFromLocation } from './results/route-result.presenter';
 import { PointRef, SEARCH_ERROR_MESSAGES } from './shipment-search.models';
+import { PublicMapViewState, projectPublicMapViewState } from './public-map-view-state';
+
 
 @Component({
   selector: 'app-home',
@@ -115,7 +117,7 @@ export class HomeComponent implements OnInit, OnChanges {
   @Input() isPickingLocation: boolean = false;
   @Input() highlightedRoute: any = null;
 
-  @Output() updateMapMarkers = new EventEmitter<void>();
+  @Output() updateMapMarkers = new EventEmitter<PublicMapViewState>();
   @Output() mapHighlightRoute = new EventEmitter<any>();
   @Output() focusLocation = new EventEmitter<any>();
   @Output() showPinDetails = new EventEmitter<{location: any, type: string}>();
@@ -195,6 +197,23 @@ export class HomeComponent implements OnInit, OnChanges {
   cancelPickingLocation() { this.isPickingLocation = false; }
   confirmPickedLocation() { this.isPickingLocation = false; }
 
+
+  private emitMapProjection() {
+    const projection = projectPublicMapViewState({
+      locations: this.locations,
+      selectedPin: this.selectedPin,
+      flightResults: this.flightResults,
+      displayedResults: this.displayedResults,
+      origen: this.origen,
+      destino: this.destino,
+      origenMunicipio: this.origenMunicipio,
+      destinoMunicipio: this.destinoMunicipio,
+      expandedResultCard: this.expandedResultCard,
+      isOriginDiscoveryMode: this.isOriginDiscoveryMode
+    });
+    this.updateMapMarkers.emit(projection);
+  }
+
   constructor(
     private toastService: ToastService,
     private mapasService: MapasService,
@@ -215,7 +234,7 @@ export class HomeComponent implements OnInit, OnChanges {
         this.flightResults = [];
         this.errorMsg = '';
         this.result = null;
-        this.updateMapMarkers.emit();
+        this.emitMapProjection();
       } else if (state.status === 'success') {
         this.loading = false;
         this.errorMsg = '';
@@ -224,21 +243,21 @@ export class HomeComponent implements OnInit, OnChanges {
         this.flightResults = filteredResults.map((item, i) => presentSearchRoute(item, i, state.results[i]));
 
         this.bottomSheetState = 'expanded';
-        this.updateMapMarkers.emit();
+        this.emitMapProjection();
       } else if (state.status === 'empty') {
         this.loading = false;
         this.flightResults = [];
         this.errorMsg = '';
         this.result = null;
         this.bottomSheetState = 'half';
-        this.updateMapMarkers.emit();
+        this.emitMapProjection();
       } else if (state.status === 'error') {
         this.loading = false;
         this.flightResults = [];
         this.errorMsg = state.error?.message ?? SEARCH_ERROR_MESSAGES.SERVER;
         this.result = null;
         this.bottomSheetState = 'half';
-        this.updateMapMarkers.emit();
+        this.emitMapProjection();
       }
     });
   }
@@ -321,7 +340,7 @@ export class HomeComponent implements OnInit, OnChanges {
     this.municipalityResults = [];
     this.displayedResults = [];
     this.clearMap.emit();
-    this.updateMapMarkers.emit();
+    this.emitMapProjection();
   }
 
   returnToHome() {
@@ -395,7 +414,7 @@ export class HomeComponent implements OnInit, OnChanges {
     }));
     this.displayedResults = [...this.municipalityResults];
     this.bottomSheetState = 'half';
-    this.updateMapMarkers.emit();
+    this.emitMapProjection();
   }
 
   selectPointFromDiscovery(point: any) {
@@ -937,7 +956,7 @@ export class HomeComponent implements OnInit, OnChanges {
     }
 
     this.loading = false;
-    this.updateMapMarkers.emit();
+    this.emitMapProjection();
   }
 
   discoveryModeForMunicipality(municipio: string, departamento: string) {
@@ -976,7 +995,7 @@ export class HomeComponent implements OnInit, OnChanges {
     }
 
     this.loading = false;
-    this.updateMapMarkers.emit();
+    this.emitMapProjection();
   }
 
   toggleExpandFlight(flight: any) {

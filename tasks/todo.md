@@ -140,16 +140,17 @@ archivos. Codex debe revisar cada diff y ejecutar build y auditoría visual.
     - [x] T28c: marcadores auxiliares y listeners de arrastre migrados; 211 pruebas y build auditados.
     - [x] T28d: eventos, disposer temporal y teardown final migrados; 211 pruebas, build y runtime auditados.
 - [ ] T29 Separar operaciones de empresas en ruta propia.
-- [ ] T30 Reducir `MobileAppComponent` al shell público (wiring empresarial temporalmente excluido).
+- [x] T30 Reducir `MobileAppComponent` al shell público (wiring empresarial temporalmente excluido).
     - [x] T30a: caracterización del shell público; 214 pruebas y build auditados.
     - [x] T30b: lectura tipada delegada a UbicacionesService; 217 pruebas y build auditados.
     - [x] T30c: geolocalización y reverse geocoding extraídos; 225 pruebas, build y runtime auditados.
     - [x] T30d1: consumidores clasificados por alcanzabilidad; baseline de 2326 líneas auditado.
     - [x] T30d2a: proyección neutral emitida por Home; 232 pruebas y build auditados.
     - [x] T30d2b: Consumo de Proyección en el Shell; 232 pruebas, build y runtime auditados.
-    - [ ] T30d3: Purga de Búsqueda Legada (Limpieza Final)
+    - [x] T30d3: Purga de Búsqueda Legada (Limpieza Final)
         - [x] T30d3a: handlers hoja sin consumidores eliminados; shell en 2128 líneas, 232 pruebas, build y runtime auditados.
         - [x] T30d3b1: selector/modal público duplicado retirado; shell en 1831 líneas, 231 pruebas, build y runtime auditados.
+        - [x] T30d3b2: motor/estado público legado retirado; shell en 1313 líneas y flujo de navegación auditado.
 
 - [ ] T31 Eliminar duplicación y legado con búsqueda de consumidores.
 

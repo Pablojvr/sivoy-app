@@ -52,21 +52,9 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('adminRef') adminRef!: AdminComponent;
   locations: any[] = [];
   filteredLocations: any[] = [];
-  origen: string = '';
-  destino: string = '';
-  dropoffDate: string = '';
-  dropoffTime: string = '';
-  
-  result: any = null;
-  displayedResults: any[] = [];
-  loading: boolean = false;
-  errorMsg: string = '';
 
   bottomSheetState: 'collapsed' | 'half' | 'expanded' = 'collapsed';
-  activeEmpresa: string = '';
   isProgrammaticMove: boolean = false;
-  isDiscoveryMode: boolean = false;
-  companyFilter: string | null = null;
   selectedPin: any = null;
   
   // Navigation State
@@ -97,32 +85,10 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
   editImageFile: File | null = null;
   editImageUrl: string | null = null;
   editHorarios: any[] = [];
-  isOriginDiscoveryMode: boolean = false;
   isPickingLocation: boolean = false;
-  selectedPinDayFilter: string = '';
   
-  uniqueMunicipalities: any[] = [];
   tempPickedLat: string = '';
   tempPickedLng: string = '';
-  
-  // Location Selector Modal State
-  selectingLocation: 'origen' | 'destino' | null = null;
-  activeFilterTab: 'lugar' | 'fecha' | 'destino' = 'lugar'; // Wizard phases
-  locationSearchQuery: string = '';
-  showAdvanced: boolean = false;
-  filteredModalLocations: any[] = [];
-  
-  timeSlots: string[] = [];
-  validationError: string = '';
-  
-  filteredMunicipalities: any[] = [];
-  filteredOriginMunicipalities: any[] = [];
-  origenMunicipio: string | null = null;
-  origenDepartamento: string | null = null;
-  flightResults: any[] = [];
-  
-  // Radius for Pin origin
-  searchRadius: number = 1.0;
   
   // Map Interactivity State
   mapCenterLat: number = 0;
@@ -136,7 +102,6 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
   userDepartamento: string | null = null;
   mapResizeObserver: ResizeObserver | null = null;
   
-  first: number = 0; // Required by design rules for pagination reset
   // Renderer-only cache; public search state remains owned by HomeComponent.
   private latestPublicMapViewState: PublicMapViewState = { markers: [] };
 
@@ -171,23 +136,6 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
     this.ubicacionesService.getLocations().subscribe(data => {
       this.locations = data;
       this.filteredLocations = [...this.locations];
-      
-      // Extract unique municipalities for the Destination phase
-      const muns = new Map();
-      this.locations.forEach(loc => {
-        if (loc.ubicacion && loc.ubicacion.municipio && loc.ubicacion.departamento) {
-          const key = `${loc.ubicacion.municipio}, ${loc.ubicacion.departamento}`;
-          if (!muns.has(key)) {
-            muns.set(key, { 
-              municipio: loc.ubicacion.municipio, 
-              departamento: loc.ubicacion.departamento,
-              nombre_display: key
-            });
-          }
-        }
-      });
-      this.uniqueMunicipalities = Array.from(muns.values()).sort((a,b) => a.municipio.localeCompare(b.municipio));
-      this.filteredMunicipalities = [...this.uniqueMunicipalities];
 
       this.updateAgencyStatuses();
       // Update statuses every minute
@@ -295,16 +243,12 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
       }
   
       // UX: Handle map clicks for destination selection or collapse bottom sheet
-      this.mapLifecycle?.trackMapEvent(this.map.onClick(({ lat, lng }) => {
-        if (this.selectingLocation === 'destino' || this.activeInput === 'destino') {
-          this.setCustomDestination(lat, lng);
-          return;
-        }
+      this.mapLifecycle?.trackMapEvent(this.map.onClick(() => {
+
         this.selectedPin = null;
         if (this.bottomSheetState === 'expanded' || this.bottomSheetState === 'half') {
           this.bottomSheetState = 'collapsed';
         }
-        this.expandedResultCard = null;
         this.updateMarkerStyles();
         this.cdr.detectChanges();
       }));
@@ -314,7 +258,6 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
         if (this.bottomSheetState === 'expanded' || this.bottomSheetState === 'half') {
           this.bottomSheetState = 'collapsed';
         }
-        this.expandedResultCard = null;
         this.cdr.detectChanges();
       }));
       
@@ -370,7 +313,7 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  fetchMunicipalityName(lat: number, lng: number, isDestino: boolean = false) {
+  fetchMunicipalityName(lat: number, lng: number) {
     this.nomSub?.unsubscribe();
     this.nomSub = this.userGeolocationService.reverseGeocode(lat, lng).subscribe({
       next: (data) => {
@@ -379,17 +322,8 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
           const addr = data.address;
           const name = addr.suburb || addr.town || addr.village || addr.city_district || addr.municipality || addr.city || addr.county || addr.state_district;
           if (name) {
-            if (isDestino) {
-              this.destinoInputValue = `${name} (Pin en Mapa)`;
-              this.destino = this.destinoInputValue;
-              this.destinoMunicipio = name;
-              this.destinoDepartamento = addr.state || null;
-              this.closeLocationSelector();
-              this.checkRoute();
-            } else {
-              this.userMunicipalityName = name;
-              this.userDepartamento = addr.state || null;
-            }
+            this.userMunicipalityName = name;
+            this.userDepartamento = addr.state || null;
             this.cdr.detectChanges();
           }
         }
@@ -398,21 +332,6 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-
-  setCustomDestination(lat: number, lng: number) {
-    if (!this.mapLifecycle) return;
-
-    const markerElement = this.createMarkerElement(AUX_MARKER_KEYS.PREVIEW, 'Destino elegido en el mapa');
-    this.mapLifecycle.setAuxiliaryMarker(AUX_MARKER_KEYS.CUSTOM_DESTINO, {
-      coordinate: { lng, lat },
-      options: { element: markerElement, draggable: true, anchor: 'bottom' },
-      onDragEnd: (pos) => {
-        this.fetchMunicipalityName(pos.lat, pos.lng, true);
-      }
-    });
-
-    this.fetchMunicipalityName(lat, lng, true);
-  }
 
   updateUserMarker() {
     if (!this.map || !this.mapLifecycle || !this.userLocation) return;
@@ -465,7 +384,6 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
             event.stopPropagation();
             this.focusLocation(loc);
             this.selectedPin = loc;
-            this.selectedPinDayFilter = '';
             this.cdr.detectChanges();
           }
         });
@@ -480,18 +398,6 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
     // Zoom map to fit the nearby points
     this.isProgrammaticMove = true;
     this.map.fitCoordinates(coordinates, { padding: 50, maxZoom: 15, duration: 850 });
-  }
-
-  onDeliveryDayChange(res: any, event: any) {
-    const selectedIdx = event.target.value;
-    if (res.opciones_entrega && res.opciones_entrega[selectedIdx]) {
-      const opt = res.opciones_entrega[selectedIdx];
-      res.fecha_llegada = opt.fecha_llegada;
-      res.horario_recoleccion = opt.horario_recoleccion;
-      res.origen_msg = opt.dropoff_msg;
-      res.selected_opcion_idx = selectedIdx;
-      this.cdr.detectChanges();
-    }
   }
 
   updateMapMarkers(state?: PublicMapViewState) {
@@ -553,8 +459,6 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
 
             const markerType = marker.role;
             this.selectedPin = { ...originalLoc, markerType };
-            this.selectedPinDayFilter = '';
-            this.expandedResultCard = null;
             this.updateMarkerStyles();
             this.cdr.detectChanges();
           }
@@ -709,46 +613,7 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
     this.cdr.detectChanges();
   }
 
-  clearSearch() {
-    this.origen = '';
-    this.origenMunicipio = null;
-    this.origenDepartamento = null;
-    this.origenInputValue = '';
-    this.destino = '';
-    this.destinoMunicipio = null;
-    this.destinoDepartamento = null;
-    this.destinoInputValue = '';
-    this.flightResults = [];
-    this.municipalityResults = [];
-    this.isDiscoveryMode = false;
-    this.isOriginDiscoveryMode = false;
-    this.selectedPin = null;
-    
-    // Default to show all items (filtered by company if any)
-    if (this.companyFilter) {
-      this.filteredLocations = this.locations.filter(loc => loc.empresa === this.companyFilter);
-    } else {
-      this.filteredLocations = [...this.locations];
-    }
 
-    this.updateMapMarkers();
-    
-    // Reset map view to user location if available, otherwise fit all markers
-    if (this.map) {
-      if (this.userLocation) {
-        this.isProgrammaticMove = true;
-        this.map.jumpTo(this.userLocation, { zoom: 13 });
-      } else {
-        const entries = this.mapLifecycle?.getPrimaryEntries() ?? [];
-        if (entries.length > 0) {
-          this.isProgrammaticMove = true;
-          this.map.fitCoordinates(entries.map(entry => entry.marker.getCoordinate()), { padding: 50, duration: 700 });
-        }
-      }
-    }
-    
-    this.expandSheetIfNeeded();
-  }
 
   expandSheetIfNeeded() {
     if (this.bottomSheetState === 'collapsed') {
@@ -814,8 +679,6 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
     const originLoc = this.locations.find(l => l.nombre_destino === flight.origen_nombre && l.empresa === flight.empresa);
     if (originLoc) {
       this.selectedPin = { ...originLoc, markerType: 'origin' };
-      this.selectedPinDayFilter = '';
-      this.expandedResultCard = null;
       this.focusLocation(originLoc);
       
       // Set bottom sheet state to min or half so the map is visible
@@ -828,11 +691,10 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   showDestinoPinDetails(flight: any) {
-    const destLoc = this.locations.find(l => l.nombre_destino === (flight.destino_nombre_destino || flight.destino_nombre || this.destinoInputValue) && l.empresa === flight.empresa);
+    const destinationName = flight.destino_nombre_destino || flight.destino_nombre;
+    const destLoc = this.locations.find(l => l.nombre_destino === destinationName && l.empresa === flight.empresa);
     if (destLoc) {
       this.selectedPin = { ...destLoc, markerType: 'destination' };
-      this.selectedPinDayFilter = '';
-      this.expandedResultCard = null;
       this.focusLocation(destLoc);
       
       if (window.innerWidth < 768) {
@@ -843,29 +705,7 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  closePinDetails() {
-    this.selectedPin = null;
-    this.selectedPinDayFilter = '';
-    this.updateMapMarkers(); // Actualizar para que el pin desaparezca si no es parte de una búsqueda activa
-  }
 
-  // --- Location Selector Logic ---
-  activeInput: 'origen' | 'destino' | null = null;
-  showAutocomplete: boolean = false;
-  origenInputValue: string = '';
-  destinoInputValue: string = '';
-  arrivalDate: string = '';
-  
-  destinoMunicipio: string | null = null;
-  destinoDepartamento: string | null = null;
-
-
-  closeLocationSelector() {
-    this.activeInput = null;
-    this.showAutocomplete = false;
-    this.validationError = '';
-    this.clearSearch(); // Clear all inputs when closing modal
-  }
 
   updateAgencyStatuses() {
     this.locations.forEach(loc => {
@@ -953,117 +793,7 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
     return { color: 'red', iconType: 'close', mainText: 'No disponible', timeText: '' };
   }
 
-  discoveryModeForOriginMunicipality(municipio: string, departamento: string) {
-    this.loading = true;
-    this.result = null;
-    this.errorMsg = '';
-    this.flightResults = [];
-    this.municipalityResults = [];
-    this.bottomSheetState = 'expanded';
-    this.isOriginDiscoveryMode = true; // Flag for drawing Origin markers
-    this.isDiscoveryMode = false;
 
-    // Show ALL agencies in the municipality
-    const targets = this.locations.filter(l => 
-      l.ubicacion?.municipio === municipio && 
-      l.ubicacion?.departamento === departamento
-    );
-
-    if (targets.length === 0) {
-      this.errorMsg = `No hay agencias de origen registradas en este municipio.`;
-      this.loading = false;
-      this.cdr.detectChanges();
-      return;
-    }
-
-    // Set them in municipalityResults but formatted for Discovery
-    this.municipalityResults = targets.map(loc => ({
-      destino_nombre: loc.nombre_destino, // Re-using card template field
-      empresa: loc.empresa,
-      distance: loc.distance || 9999,
-      lat: loc.ubicacion?.lat,
-      lng: loc.ubicacion?.lng,
-      horarios_operativos: loc.horarios_operativos,
-      _status: loc._status,
-      markerType: 'destination'
-    })).sort((a: any, b: any) => a.distance - b.distance);
-
-    if (this.activeEmpresa) {
-      this.setEmpresaFilter(this.activeEmpresa);
-    } else {
-      this.displayedResults = [...this.municipalityResults];
-    }
-
-    this.loading = false;
-    
-    // Fit bounds to these locations
-    if (targets.length > 0) {
-      const coordinates = targets.filter(t => t.ubicacion?.lat).map(t => this.toMapCoordinate(t.ubicacion.lat, t.ubicacion.lng));
-      if (this.map && coordinates.length > 0) {
-         this.isProgrammaticMove = true;
-         this.map.fitCoordinates(coordinates, { padding: 64, maxZoom: 15, duration: 750 });
-      }
-    }
-    
-    this.updateMapMarkers();
-    this.cdr.detectChanges();
-  }
-
-  discoveryModeForMunicipality(municipio: string, departamento: string) {
-    this.loading = true;
-    this.result = null;
-    this.errorMsg = '';
-    this.flightResults = [];
-    this.municipalityResults = [];
-    this.bottomSheetState = 'expanded';
-    this.isDiscoveryMode = true;
-    this.isOriginDiscoveryMode = false;
-
-    // Show ALL agencies in the municipality
-    const targets = this.locations.filter(l => 
-      l.ubicacion?.municipio === municipio && 
-      l.ubicacion?.departamento === departamento
-    );
-
-    if (targets.length === 0) {
-      this.errorMsg = `No hay agencias registradas en este municipio.`;
-      this.loading = false;
-      this.cdr.detectChanges();
-      return;
-    }
-
-    // Set them in municipalityResults but formatted for Discovery
-    this.municipalityResults = targets.map(loc => ({
-      destino_nombre: loc.nombre_destino,
-      empresa: loc.empresa,
-      distance: loc.distance || 9999,
-      lat: loc.ubicacion?.lat,
-      lng: loc.ubicacion?.lng,
-      horarios_operativos: loc.horarios_operativos,
-      _status: loc._status
-    })).sort((a: any, b: any) => a.distance - b.distance);
-
-    if (this.activeEmpresa) {
-      this.setEmpresaFilter(this.activeEmpresa);
-    } else {
-      this.displayedResults = [...this.municipalityResults];
-    }
-
-    this.loading = false;
-    
-    // Fit bounds to these locations
-    if (targets.length > 0) {
-      const coordinates = targets.filter(t => t.ubicacion?.lat).map(t => this.toMapCoordinate(t.ubicacion.lat, t.ubicacion.lng));
-      if (this.map && coordinates.length > 0) {
-         this.isProgrammaticMove = true;
-         this.map.fitCoordinates(coordinates, { padding: 64, maxZoom: 15, duration: 750 });
-      }
-    }
-    
-    this.updateMapMarkers();
-    this.cdr.detectChanges();
-  }
-  
 
 
   recenterMap() {
@@ -1091,189 +821,9 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  getTodaySchedule(loc: any): string {
-    if (!loc.horarios_operativos || loc.horarios_operativos.length === 0) return 'Horario no disp.';
-    const today = new Date();
-    const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-    const todayName = days[today.getDay()];
-    
-    const todaySchedule = loc.horarios_operativos.find((h: any) => h.dia_semana === todayName);
-    if (todaySchedule) {
-      return `${todaySchedule.hora_apertura} - ${todaySchedule.hora_cierre}`;
-    }
-    
-    return 'Cerrado hoy';
-  }
 
-  checkRoute() {
-    if (!this.destino) {
-      this.result = null;
-      return;
-    }
-    
-    // Si no hay origen seleccionado, obligamos a usar la ubicación del usuario
-    if (!this.origen && !this.userDepartamento) {
-      this.errorMsg = 'Debes otorgar permisos de ubicación para buscar agencias de origen en tu departamento.';
-      this.loading = false;
-      this.cdr.detectChanges();
-      return;
-    }
 
-    this.loading = true;
-    this.result = null;
-    this.errorMsg = '';
-    this.flightResults = [];
-    this.municipalityResults = [];
-    this.isDiscoveryMode = false;
-    this.isOriginDiscoveryMode = false;
-    this.updateMapMarkers();
-    this.cdr.detectChanges();
-    
-    let payloadOrigen: any = this.origen;
-    let payloadDestino: any = this.destino;
-    
-    // Preparar destinos si es municipio
-    if (this.destinoMunicipio) {
-      const destAgencies = this.locations.filter(l => 
-        l.ubicacion?.municipio === this.destinoMunicipio && 
-        l.ubicacion?.departamento === this.destinoDepartamento
-      );
-      payloadDestino = destAgencies.map(a => a.id);
-      if (payloadDestino.length === 0) {
-         this.errorMsg = `No hay agencias registradas en ${this.destinoMunicipio}.`;
-         this.loading = false;
-         this.cdr.detectChanges();
-         return;
-      }
-    }
-    
-    // Preparar orígenes si es municipio
-    if (this.origenMunicipio) {
-      const munAgencies = this.locations.filter(l => 
-        l.ubicacion?.municipio === this.origenMunicipio && 
-        l.ubicacion?.departamento === this.origenDepartamento
-      );
-      payloadOrigen = munAgencies.map(a => a.id);
-      if (payloadOrigen.length === 0) {
-         this.errorMsg = `No hay agencias de envío en el municipio de ${this.origenMunicipio}.`;
-         this.loading = false;
-         this.cdr.detectChanges();
-         return;
-      }
-    } else if (this.origen === 'Mi Ubicación' || !this.origen) {
-      // Si el destino no es un municipio, podemos filtrar por empresa. Si lo es, no tenemos una empresa específica.
-      let destCompany = null;
-      if (!this.destinoMunicipio) {
-         const destLoc = this.locations.find(l => l.id === this.destino || l.nombre_destino === this.destino);
-         destCompany = destLoc ? destLoc.empresa : null;
-      }
 
-      if (destCompany && this.userDepartamento) {
-        const deptAgencies = this.locations.filter(l => 
-          l.empresa === destCompany && 
-          l.ubicacion?.departamento === this.userDepartamento
-        );
-        payloadOrigen = deptAgencies.map(a => a.id);
-      } else if (this.origen === 'Mi Ubicación') {
-        let userMuni = this.userMunicipalityName;
-        let userDept = this.userDepartamento;
-        
-        // Inferir el municipio del usuario basado en la agencia más cercana (más preciso que Nominatim directo)
-        const closestAgencies = [...this.locations].filter(l => l.distance !== undefined).sort((a,b) => (a.distance || 9999) - (b.distance || 9999));
-        if (closestAgencies.length > 0 && closestAgencies[0].distance! <= 20) {
-           userMuni = closestAgencies[0].ubicacion?.municipio || userMuni;
-           userDept = closestAgencies[0].ubicacion?.departamento || userDept;
-        }
-
-        // Si el destino es un municipio, buscar TODOS los puntos de TODAS las empresas en el municipio del usuario
-        if (this.destinoMunicipio && userMuni) {
-           const munAgencies = this.locations.filter(l => 
-               l.ubicacion?.municipio === userMuni && 
-               l.ubicacion?.departamento === userDept && 
-               l.empresa
-           );
-           if (munAgencies.length > 0) {
-               payloadOrigen = munAgencies.map(a => a.id);
-           } else {
-               const nearbyAgencies = this.locations.filter(l => (l.distance || 9999) <= this.searchRadius && l.empresa);
-               payloadOrigen = nearbyAgencies.map(a => a.id);
-           }
-        } else {
-           const nearbyAgencies = this.locations.filter(l => (l.distance || 9999) <= this.searchRadius && l.empresa);
-           payloadOrigen = nearbyAgencies.map(a => a.id);
-        }
-      }
-    }
-    
-    if (Array.isArray(payloadOrigen) && payloadOrigen.length === 0) {
-      const cmp = this.locations.find(l => l.id === this.destino || l.nombre_destino === this.destino)?.empresa;
-      this.errorMsg = `No se encontraron agencias de ${cmp || 'la empresa'} cerca de tu ubicación.`;
-      this.loading = false;
-      this.cdr.detectChanges();
-      return;
-    }
-
-    this.http.post(environment.apiUrl + '/api/get-upcoming-routes', {
-      origen: payloadOrigen,
-      destino: payloadDestino,
-      dropoff_date: this.dropoffDate || null,
-      dropoff_time: this.dropoffTime || null,
-      arrival_date: this.arrivalDate || null
-    }).subscribe({
-      next: (res: any) => {
-        if (res.results) {
-          // Multiple origin options found
-          this.flightResults = res.results.map((r: any) => {
-            const originLoc = this.locations.find(l => l.nombre_destino === r.origen_nombre);
-            
-            if (r.opciones) {
-              r.opciones = r.opciones.filter((op: any) => {
-                const time = op.horario_recoleccion?.toLowerCase() || '';
-                return !time.includes('no disp') && !time.includes('no defin');
-              });
-            }
-
-            return {
-               ...r,
-               fecha_llegada: r.opciones_entrega && r.opciones_entrega.length > 0 ? r.opciones_entrega[0].fecha_llegada : r.fecha_llegada,
-               horario_recoleccion: r.opciones_entrega && r.opciones_entrega.length > 0 ? r.opciones_entrega[0].horario_recoleccion : r.horario_recoleccion,
-               selected_opcion_idx: 0,
-               empresa: r.empresa,
-               distance: originLoc ? originLoc.distance : 9999,
-               lat: originLoc?.ubicacion?.lat,
-               lng: originLoc?.ubicacion?.lng,
-               isExpanded: res.results.length === 1
-            };
-          });
-          console.log("payloadOrigen:", payloadOrigen);
-          console.log("res.results:", res.results);
-          console.log("flightResults after map:", this.flightResults);
-          this.displayedResults = [...this.flightResults];
-          this.result = null;
-          
-          if (this.displayedResults.length > 0) {
-            this.bottomSheetState = 'half';
-          }
-          
-          // La vista del mapa se actualizará en updateMapMarkers()
-          this.updateMapMarkers();
-        } else {
-          this.result = res;
-          
-          // La vista del mapa se actualizará en updateMapMarkers()
-          this.updateMapMarkers();
-        }
-        
-        this.loading = false;
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        this.errorMsg = "Error conectando al servidor backend. Verifica que esté corriendo en el puerto 3000.";
-        this.loading = false;
-        this.cdr.detectChanges();
-      }
-    });
-  }
 
   formatTime(timeStr: string): string {
     if (!timeStr) return '';
@@ -1287,49 +837,11 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
     return `${h < 10 ? '0'+h : h}:${m} ${ampm}`;
   }
 
-  formatFriendlyDate(dateStr: string): string {
-    if (!dateStr) return '';
-    const date = new Date(dateStr + "T00:00:00");
-    const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-    const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-    return `${dias[date.getDay()]}, ${date.getDate()} de ${meses[date.getMonth()]}`;
-  }
+
 
   // --- Proximity Based Logic ---
-  municipalityResults: any[] = [];
-  expandedResultCard: any = null;
 
-  setEmpresaFilter(empresa: string) {
-    this.activeEmpresa = empresa;
-    this.first = 0;
-    
-    if (this.municipalityResults && this.municipalityResults.length > 0) {
-      if (empresa === '') {
-        this.displayedResults = [...this.municipalityResults];
-      } else {
-        this.displayedResults = this.municipalityResults.filter(r => r.empresa === empresa);
-      }
-      this.updateMapMarkers();
-      this.cdr.detectChanges();
-    } 
-    else {
-      if (empresa === '') {
-        this.filteredLocations = [...this.locations];
-      } else {
-        this.filteredLocations = this.locations.filter(loc => (loc.empresa || 'Agencia') === empresa);
-      }
-      if (this.userLocation) {
-        this.sortLocationsByDistance();
-      } else {
-        this.updateMapMarkers();
-        this.cdr.detectChanges();
-      }
-    }
-    
-    // Scroll list to top when changing filters
-    const sheetContent = document.querySelector('.sheet-content');
-    if (sheetContent) sheetContent.scrollTop = 0;
-  }
+
 
   // --- ADMIN PANEL LOGIC ---
   switchToInicio() {
@@ -1346,7 +858,6 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
     this.adminCompanies = Array.from(new Set(this.locations.map(l => l.empresa))).filter(e => e) as string[];
     this.adminSearchTerm = '';
     // Limpiar variables de registro
-    this.selectingLocation = null;
     this.isPickingLocation = false;
     this.loadAdminEmpresas();
     this.applyAdminFilter();
@@ -1411,28 +922,7 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
     this.activeMainTab = 'registro';
   }
 
-  async shareLocation(loc: any) {
-    const textToShare = `📍 ${loc.nombre_destino}\n🏢 Empresa: ${loc.empresa || 'Agencia'}\n🗺️ Ubicación: ${loc.ubicacion?.municipio || 'N/A'}, ${loc.ubicacion?.departamento || 'N/A'}\n📍 Dirección: ${loc.direccion_referencia || 'N/A'}\n🔗 Maps: ${loc.maps_url || 'N/A'}`;
-    
-    // Preparar datos para compartir
-    const shareData: ShareData = {
-      title: `Punto de Envío: ${loc.nombre_destino}`,
-      text: textToShare,
-    };
 
-    try {
-      if (navigator.share) {
-        // Usa la API nativa de compartir (Móvil y navegadores compatibles)
-        await navigator.share(shareData);
-      } else {
-        // Fallback a copiar al portapapeles
-        await navigator.clipboard.writeText(textToShare);
-        this.toastService.showSuccess('¡Información del punto copiada al portapapeles!', 'Copiado');
-      }
-    } catch (err) {
-      console.error('Error al compartir', err);
-    }
-  }
 
   onEmpresaLogoSelected(event: any) {
     const file = event.target.files[0];
@@ -1522,14 +1012,6 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
   viewOnMap(loc: any, pointRole?: string) {
     if (!this.setMapResourceMode(true)) return;
     this.activeMainTab = 'inicio';
-    
-    // Borrar la selección de los filtros y búsqueda anterior
-    this.origen = '';
-    this.destino = '';
-    this.municipalityResults = [];
-    this.displayedResults = [];
-    this.result = null;
-    this.errorMsg = '';
     
     // Select the pin to open its detail modal
     const markerType = pointRole === 'origen'

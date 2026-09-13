@@ -168,15 +168,6 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
       this.activeMainTab = requestedTab === 'puntos' || requestedTab === 'perfil' ? requestedTab : 'inicio';
       this.cdr.detectChanges();
     });
-    const today = new Date();
-    this.dropoffDate = today.toISOString().split('T')[0];
-    this.generateTimeSlots();
-    if (this.timeSlots.length > 0) {
-      this.dropoffTime = this.timeSlots[0];
-    } else {
-      this.dropoffTime = '';
-    }
-
     this.ubicacionesService.getLocations().subscribe(data => {
       this.locations = data;
       this.filteredLocations = [...this.locations];
@@ -868,168 +859,12 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
   destinoMunicipio: string | null = null;
   destinoDepartamento: string | null = null;
 
-  setPinAsDestinationAndPromptOrigin() {
-    if (!this.selectedPin) return;
-    
-    // Set destination to the selected pin
-    this.destino = this.selectedPin.id || this.selectedPin.nombre_destino;
-    this.destinoInputValue = this.selectedPin.nombre_destino;
-    this.destinoMunicipio = null;
-    this.destinoDepartamento = null;
-    
-    this.selectedPin = null;
-    this.handleSelectionHandoff('destino');
-    this.cdr.detectChanges();
-  }
-
-  setPinAsOriginAndPromptDestination() {
-    if (!this.selectedPin) return;
-    
-    // Set origin to the selected pin
-    this.origen = this.selectedPin.id || this.selectedPin.nombre_destino;
-    this.origenInputValue = this.selectedPin.nombre_destino;
-    this.origenMunicipio = null;
-    this.origenDepartamento = null;
-    
-    this.selectedPin = null;
-    this.handleSelectionHandoff('origen');
-    this.updateMapMarkers();
-    this.cdr.detectChanges();
-  }
-
-  openLocationSelector(type: 'origen' | 'destino', company: string | null = null) {
-    this.validationError = '';
-    this.companyFilter = company;
-    this.activeInput = type;
-    this.showAutocomplete = false;
-    this.activeFilterTab = type === 'origen' ? 'lugar' : 'destino';
-    this.locationSearchQuery = type === 'origen' ? this.origenInputValue : this.destinoInputValue;
-    this.filterModalLocations();
-  }
-
-  focusInput(type: 'origen' | 'destino') {
-    this.activeInput = type;
-    this.activeFilterTab = type === 'origen' ? 'lugar' : 'destino';
-    this.locationSearchQuery = type === 'origen' ? this.origenInputValue : this.destinoInputValue;
-    this.filterModalLocations();
-  }
-
-  clearInput(type: 'origen' | 'destino') {
-    if (type === 'origen') {
-      this.origenInputValue = '';
-      this.origen = '';
-      this.origenMunicipio = null;
-      this.origenDepartamento = null;
-      this.onOrigenInput({ target: { value: '' } } as any);
-    } else {
-      this.destinoInputValue = '';
-      this.destino = '';
-      this.destinoMunicipio = null;
-      this.destinoDepartamento = null;
-      this.onDestinoInput({ target: { value: '' } } as any);
-    }
-    this.focusInput(type);
-  }
-
-  onOrigenInput(event: any) {
-    this.origenInputValue = event.target.value;
-    this.locationSearchQuery = this.origenInputValue;
-    this.showAutocomplete = true;
-    this.filterModalLocations();
-  }
-
-  onDestinoInput(event: any) {
-    this.destinoInputValue = event.target.value;
-    this.locationSearchQuery = this.destinoInputValue;
-    this.showAutocomplete = true;
-    this.filterModalLocations();
-  }
 
   closeLocationSelector() {
     this.activeInput = null;
     this.showAutocomplete = false;
     this.validationError = '';
     this.clearSearch(); // Clear all inputs when closing modal
-  }
-
-  filterModalLocations() {
-    if (this.activeFilterTab === 'lugar') {
-      let filtered = [...this.locations];
-      
-      // Filtrar por la empresa del destino si ya hay uno seleccionado y es específico
-      let destCompany = this.companyFilter;
-      if (!destCompany && this.destino && !this.destinoMunicipio) {
-        const destLoc = this.locations.find(l => l.id === this.destino || l.nombre_destino === this.destino);
-        if (destLoc) destCompany = destLoc.empresa;
-      }
-      
-      if (destCompany) {
-        filtered = filtered.filter(l => l.empresa === destCompany);
-      }
-      
-      const lowerQuery = this.locationSearchQuery ? this.locationSearchQuery.toLowerCase() : '';
-      const isMyLoc = lowerQuery === 'mi ubicación' || lowerQuery === 'mi ubicacion';
-      const effectiveQuery = isMyLoc ? '' : lowerQuery;
-
-      if (effectiveQuery) {
-        // Búsqueda a nivel nacional por texto
-        filtered = filtered.filter(l => 
-          l.nombre_destino.toLowerCase().includes(effectiveQuery) || 
-          (l.ubicacion?.municipio || '').toLowerCase().includes(effectiveQuery) ||
-          (l.ubicacion?.departamento || '').toLowerCase().includes(effectiveQuery) ||
-          (l.empresa || '').toLowerCase().includes(effectiveQuery)
-        );
-        if (this.userLocation) {
-          filtered.sort((a, b) => (a.distance || 9999) - (b.distance || 9999));
-        }
-        this.filteredModalLocations = filtered.slice(0, 15);
-      } else {
-        // Si no hay query, mostrar pocas agencias cercanas primero y no agobiar
-        if (this.userLocation) {
-           this.filteredModalLocations = [...filtered].sort((a, b) => (a.distance || 9999) - (b.distance || 9999)).slice(0, 3);
-        } else {
-           this.filteredModalLocations = filtered.slice(0, 3); 
-        }
-      }
-  
-      if (!effectiveQuery) {
-        // UX: No mostrar todos los municipios si no han escrito nada
-        this.filteredOriginMunicipalities = [];
-      } else {
-        this.filteredOriginMunicipalities = this.uniqueMunicipalities.filter(m => 
-          m.nombre_display.toLowerCase().includes(effectiveQuery)
-        );
-      }
-    } else if (this.activeFilterTab === 'destino') {
-      const lowerQuery = this.locationSearchQuery ? this.locationSearchQuery.toLowerCase() : '';
-      if (!lowerQuery) {
-        // UX: No mostrar todos los municipios si no han escrito nada
-        this.filteredMunicipalities = [];
-        let locs = [...this.locations];
-        if (this.userLocation) {
-           locs.sort((a, b) => (a.distance || 9999) - (b.distance || 9999));
-        }
-        this.filteredModalLocations = locs.slice(0, 3);
-      } else {
-        this.filteredMunicipalities = this.uniqueMunicipalities.filter(m => 
-          m.nombre_display.toLowerCase().includes(lowerQuery)
-        );
-        let locs = this.locations.filter(l => 
-          l.nombre_destino.toLowerCase().includes(lowerQuery) || 
-          (l.ubicacion?.municipio || '').toLowerCase().includes(lowerQuery) ||
-          (l.ubicacion?.departamento || '').toLowerCase().includes(lowerQuery) ||
-          (l.empresa || '').toLowerCase().includes(lowerQuery)
-        );
-        if (this.userLocation) {
-           locs.sort((a, b) => (a.distance || 9999) - (b.distance || 9999));
-        }
-        this.filteredModalLocations = locs.slice(0, 15);
-      }
-    }
-  }
-
-  onRadiusChange() {
-    this.filterModalLocations();
   }
 
   updateAgencyStatuses() {
@@ -1116,87 +951,6 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     return { color: 'red', iconType: 'close', mainText: 'No disponible', timeText: '' };
-  }
-
-  selectLocation(loc: any, forceType?: 'origen' | 'destino') {
-    const type = forceType || this.activeInput;
-    if (type === 'origen') {
-      this.origen = loc.id || loc.nombre_destino;
-      this.origenInputValue = loc.nombre_destino;
-      this.origenMunicipio = null;
-      this.origenDepartamento = null;
-    } else {
-      this.destino = loc.id || loc.nombre_destino;
-      this.destinoInputValue = loc.nombre_destino;
-      this.destinoMunicipio = null;
-      this.destinoDepartamento = null;
-    }
-    this.validationError = '';
-    this.showAutocomplete = false;
-    this.handleSelectionHandoff(type);
-  }
-
-  selectUserLocationAsOrigin() {
-    this.origen = 'Mi Ubicación';
-    this.origenInputValue = 'Mi Ubicación';
-    this.origenMunicipio = null; 
-    this.origenDepartamento = '';
-    this.validationError = '';
-    this.showAutocomplete = false;
-    this.handleSelectionHandoff('origen');
-  }
-
-  selectOriginMunicipality(mun: any) {
-    this.origen = mun.nombre_display;
-    this.origenInputValue = mun.nombre_display;
-    this.origenMunicipio = mun.municipio;
-    this.origenDepartamento = mun.departamento;
-    this.validationError = '';
-    this.showAutocomplete = false;
-    this.handleSelectionHandoff('origen');
-  }
-
-  selectMunicipality(mun: any, forceType?: 'origen' | 'destino') {
-    const type = forceType || 'destino';
-    if (type === 'destino') {
-       this.destino = mun.nombre_display;
-       this.destinoInputValue = mun.nombre_display;
-       this.destinoMunicipio = mun.municipio;
-       this.destinoDepartamento = mun.departamento;
-    }
-    this.showAutocomplete = false;
-    this.validationError = '';
-    this.handleSelectionHandoff(type);
-  }
-
-  handleSelectionHandoff(type: 'origen' | 'destino' | null) {
-    if (type === 'origen' && !this.destino) {
-      this.focusInput('destino');
-    } else if (type === 'destino' && !this.origen) {
-      this.focusInput('origen');
-    }
-  }
-
-  executeSearch() {
-    this.showAutocomplete = false;
-    this.triggerDynamicSearch();
-  }
-
-  onDateChanged() {
-    this.triggerDynamicSearch();
-  }
-
-  triggerDynamicSearch() {
-    if (this.origen && this.destino) {
-       this.checkRoute();
-    } else if (this.destinoMunicipio) {
-       this.discoveryModeForMunicipality(this.destinoMunicipio, this.destinoDepartamento || '');
-    } else if (this.origenMunicipio) {
-       this.discoveryModeForOriginMunicipality(this.origenMunicipio, this.origenDepartamento || '');
-    } else if (this.origen && !this.destino) {
-       this.updateMapMarkers();
-       this.openLocationSelector('destino');
-    }
   }
 
   discoveryModeForOriginMunicipality(municipio: string, departamento: string) {
@@ -1310,52 +1064,6 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
     this.cdr.detectChanges();
   }
   
-  goToDestinoStep() {
-    if (!this.dropoffTime) {
-      this.validationError = 'Debes seleccionar una hora aproximada.';
-      return;
-    }
-    
-    this.validationError = '';
-    this.selectingLocation = 'destino';
-    this.activeFilterTab = 'destino';
-    this.locationSearchQuery = '';
-    this.filteredMunicipalities = [...this.uniqueMunicipalities];
-  }
-  
-  generateTimeSlots() {
-    this.timeSlots = [];
-    if (!this.dropoffDate) return;
-
-    const selectedDate = new Date(this.dropoffDate);
-    // Add timezone offset to fix off-by-one day issues
-    selectedDate.setMinutes(selectedDate.getMinutes() + selectedDate.getTimezoneOffset());
-    
-    const today = new Date();
-    
-    let startHour = 8; // Business hours start
-    const endHour = 18; // Business hours end
-    
-    if (selectedDate.toDateString() === today.toDateString()) {
-       // If today, start from next hour
-       startHour = Math.max(8, today.getHours() + 1);
-    }
-    
-    for (let h = startHour; h <= endHour; h++) {
-       const period = h >= 12 ? 'PM' : 'AM';
-       const displayHour = h > 12 ? h - 12 : (h === 0 ? 12 : h);
-       const hStr = displayHour.toString().padStart(2, '0');
-       // Real time for value
-       const valH = h.toString().padStart(2, '0');
-       this.timeSlots.push(`${valH}:00`);
-    }
-    
-    // Auto-select first slot if current is invalid
-    if (this.timeSlots.length > 0 && !this.timeSlots.includes(this.dropoffTime)) {
-       this.dropoffTime = this.timeSlots[0];
-    }
-  }
-
 
 
   recenterMap() {
@@ -1590,11 +1298,6 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
   // --- Proximity Based Logic ---
   municipalityResults: any[] = [];
   expandedResultCard: any = null;
-  
-  startRouteForCompany(empresa: string) {
-    this.bottomSheetState = 'collapsed';
-    this.openLocationSelector('origen', empresa);
-  }
 
   setEmpresaFilter(empresa: string) {
     this.activeEmpresa = empresa;

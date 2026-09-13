@@ -149,6 +149,7 @@ archivos. Codex debe revisar cada diff y ejecutar build y auditoría visual.
     - [x] T30d2b: Consumo de Proyección en el Shell; 232 pruebas, build y runtime auditados.
     - [ ] T30d3: Purga de Búsqueda Legada (Limpieza Final)
         - [x] T30d3a: handlers hoja sin consumidores eliminados; shell en 2128 líneas, 232 pruebas, build y runtime auditados.
+        - [x] T30d3b1: selector/modal público duplicado retirado; shell en 1831 líneas, 231 pruebas, build y runtime auditados.
 
 - [ ] T31 Eliminar duplicación y legado con búsqueda de consumidores.
 

@@ -120,20 +120,4 @@ describe('MobileAppComponent (T30a Characterization)', () => {
       expect(component.userMunicipalityName).toBe('Usulutan');
     }
   });
-
-  it('should update search inputs and handoff focus on selectLocation()', () => {
-    fixture.detectChanges();
-    flushInitRequests();
-
-    // Act: Select an origin location
-    const mockLocation = { id: 99, nombre_destino: 'Oficina Central' } as unknown;
-    component.selectLocation(mockLocation, 'origen');
-
-    // Assert: Check the side effects on search state
-    expect(component.origen).toBe(99);
-    expect(component.origenInputValue).toBe('Oficina Central');
-    expect(component.origenMunicipio).toBeNull();
-    expect(component.showAutocomplete).toBe(false);
-    expect(component.activeInput).toBe('destino');
-  });
 });

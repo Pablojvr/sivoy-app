@@ -21,6 +21,8 @@ Reducir residuos no administrativos de `MobileAppComponent` mediante evidencia d
 - Evitar intervalos duplicados ante reinicialización del flujo de datos.
 - Gates: prueba RED/GREEN focalizada, suite completa, build y cero timers huérfanos en la caracterización.
 
+**Estado:** aceptado y completado. Evidencia RED: la prueba de destrucción observó inicialmente una llamada post-destrucción. Evidencia GREEN: 232 pruebas pasan; el build pasa (solo con advertencias conocidas y diff-check limpio).
+
 ## T31c — cobertura temporal y de rutas
 
 - Añadir pruebas deterministas para límites de disponibilidad (`disponible`, `cerrará pronto`, próxima apertura).

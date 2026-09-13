@@ -99,6 +99,7 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
   
   // Renderer-only cache; public search state remains owned by HomeComponent.
   private latestPublicMapViewState: PublicMapViewState = { markers: [] };
+  private statusesIntervalId: ReturnType<typeof setInterval> | null = null;
 
   navigationIntent: Record<string, string> = {};
   private routeParamsSubscription?: Subscription;
@@ -134,7 +135,10 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
 
       this.updateAgencyStatuses();
       // Update statuses every minute
-      setInterval(() => this.updateAgencyStatuses(), 60000);
+      if (this.statusesIntervalId !== null) {
+        clearInterval(this.statusesIntervalId);
+      }
+      this.statusesIntervalId = setInterval(() => this.updateAgencyStatuses(), 60000);
 
       if (this.userLocation) {
         this.sortLocationsByDistance();
@@ -179,6 +183,10 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     this.mapLifecycle?.destroy();
     this.map = null;
+    if (this.statusesIntervalId !== null) {
+      clearInterval(this.statusesIntervalId);
+      this.statusesIntervalId = null;
+    }
   }
 
   ngAfterViewInit() {

@@ -120,4 +120,30 @@ describe('MobileAppComponent (T30a Characterization)', () => {
       expect(component.userMunicipalityName).toBe('Usulutan');
     }
   });
+
+  it('should clear updateAgencyStatuses interval on destroy', () => {
+    vi.useFakeTimers();
+    try {
+      fixture.detectChanges(); // inicializa componente
+      const updateSpy = vi.spyOn(component, 'updateAgencyStatuses');
+
+      flushInitRequests(); // flushea requests existentes
+
+      // confirma la primera actualización de estados (al resolverse los requests)
+      expect(updateSpy).toHaveBeenCalledTimes(1);
+      updateSpy.mockClear();
+
+      // destruye el fixture/componente
+      fixture.destroy();
+
+      // avanza 60s
+      vi.advanceTimersByTime(60000);
+
+      // prueba que updateAgencyStatuses no vuelve a ejecutarse
+      expect(updateSpy).not.toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+      vi.restoreAllMocks();
+    }
+  });
 });

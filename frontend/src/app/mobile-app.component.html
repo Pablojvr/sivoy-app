@@ -10,7 +10,7 @@
       [isPickingLocation]="isPickingLocation"
       [highlightedRoute]="highlightedRoute"
       [mapResourceMode]="isMapResourceMode"
-      (updateMapMarkers)="updateMapMarkers()"
+      (updateMapMarkers)="updateMapMarkers($event)"
       (clearMap)="resetMapMarkers()"
       (mapHighlightRoute)="onMapHighlightRoute($event); setMapResourceMode(true)"
       (recenterMapEvent)="recenterMap()"

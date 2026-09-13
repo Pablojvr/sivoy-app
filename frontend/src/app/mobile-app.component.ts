@@ -14,6 +14,7 @@ import { MapLibreMapAdapter } from './core/maps/maplibre-map.adapter';
 import { createMapMarkerElement } from './core/maps/map-marker-element';
 import { MapLifecycleManager } from './core/maps/map-lifecycle.manager';
 import { MapCapabilityService } from './core/maps/map-capability.service';
+import { PublicMapViewState, projectPublicMapViewState } from './features/home/public-map-view-state';
 import { calculateDistanceKm } from './core/maps/geo-distance';
 import { HomeComponent } from './features/home/home.component';
 import { AdminComponent } from './features/admin/admin.component';
@@ -24,6 +25,7 @@ interface MapMarkerMetadata {
   source: unknown;
   destinationName: string;
   companyName: string;
+  selected?: boolean;
 }
 
 const AUX_MARKER_KEYS = {
@@ -48,7 +50,6 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
     return this.interactiveMapSupported && !this.mapInitializationFailed;
   }
   @ViewChild('adminRef') adminRef!: AdminComponent;
-  @ViewChild(HomeComponent) homeCmp!: HomeComponent;
   locations: any[] = [];
   filteredLocations: any[] = [];
   origen: string = '';
@@ -137,6 +138,8 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
   mapResizeObserver: ResizeObserver | null = null;
   
   first: number = 0; // Required by design rules for pagination reset
+  // Renderer-only cache; public search state remains owned by HomeComponent.
+  private latestPublicMapViewState: PublicMapViewState = { markers: [] };
 
   navigationIntent: Record<string, string> = {};
   private routeParamsSubscription?: Subscription;
@@ -321,6 +324,7 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
           this.bottomSheetState = 'collapsed';
         }
         this.expandedResultCard = null;
+        this.updateMarkerStyles();
         this.cdr.detectChanges();
       }));
       
@@ -509,121 +513,96 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  updateMapMarkers() {
+  updateMapMarkers(state?: PublicMapViewState) {
+    if (state) {
+      this.latestPublicMapViewState = state;
+    }
+
     if (!this.map || !this.mapLifecycle) return;
     const mapLifecycle = this.mapLifecycle;
     
     this.removeRouteLine();
 
-    // Clear old markers
+    const isInicio = this.activeMainTab === 'inicio';
+    
+    let viewState: PublicMapViewState;
+    if (isInicio) {
+      viewState = this.latestPublicMapViewState;
+    } else {
+      viewState = this.projectSinglePin(this.selectedPin);
+    }
+
     mapLifecycle.clearPrimaryMarkers();
 
-    const isInicio = this.activeMainTab === 'inicio' && this.homeCmp;
-    const currentFlightResults = isInicio ? this.homeCmp.flightResults : this.flightResults;
-    const currentDisplayedResults = isInicio ? this.homeCmp.displayedResults : this.displayedResults;
-    const currentOrigen = isInicio ? this.homeCmp.origen : this.origen;
-    const currentDestino = isInicio ? this.homeCmp.destino : this.destino;
-    const currentDestinoMunicipio = isInicio ? this.homeCmp.destinoMunicipio : this.destinoMunicipio;
-    const currentOrigenMunicipio = isInicio ? this.homeCmp.origenMunicipio : this.origenMunicipio;
-    const currentExpandedResultCard = isInicio ? this.homeCmp.expandedResultCard : this.expandedResultCard;
-    const currentIsOriginDiscoveryMode = isInicio ? this.homeCmp.isOriginDiscoveryMode : this.isOriginDiscoveryMode;
-    const currentSelectedPin = isInicio ? this.homeCmp.selectedPin : this.selectedPin;
-
-    let pointsToPlot: any[] = [];
-    
-    if (currentSelectedPin) {
-      pointsToPlot = [currentSelectedPin];
-    } else if (currentFlightResults && currentFlightResults.length > 0 && currentDisplayedResults.length > 0 && currentDisplayedResults[0].origen_nombre) {
-      currentDisplayedResults.forEach((r: any) => {
-        const originLoc = this.locations.find(l => l.nombre_destino === r.origen_nombre);
-        const destLoc = this.locations.find(l => l.nombre_destino === r.destino_nombre);
-        if (originLoc && !pointsToPlot.find(p => p.nombre_destino === originLoc.nombre_destino)) {
-          pointsToPlot.push({ ...originLoc, markerType: 'origin', locData: r });
-        }
-        if (destLoc && !pointsToPlot.find(p => p.nombre_destino === destLoc.nombre_destino)) {
-          pointsToPlot.push({ ...destLoc, markerType: 'destination', locData: r });
-        }
-      });
-    } else if (currentDisplayedResults && currentDisplayedResults.length > 0) {
-      pointsToPlot = [...currentDisplayedResults]; 
-      
-      if (currentDestino && !currentDestinoMunicipio) {
-         const destLoc = this.locations.find(l => l.id === currentDestino || l.nombre_destino === currentDestino);
-         if (destLoc && !pointsToPlot.find(p => p.nombre_destino === destLoc.nombre_destino)) {
-            pointsToPlot.push(destLoc);
-         }
-      }
-    } else {
-      pointsToPlot = [];
-      if (currentDestino && !currentDestinoMunicipio) {
-        const destLoc = this.locations.find(l => l.id === currentDestino || l.nombre_destino === currentDestino);
-        if (destLoc) pointsToPlot.push(destLoc);
-      }
-      if (currentOrigen && !currentOrigenMunicipio) {
-        const origLoc = this.locations.find(l => l.id === currentOrigen || l.nombre_destino === currentOrigen);
-        if (origLoc) pointsToPlot.push(origLoc);
-      }
+    if (viewState.markers.length === 0) {
+      return;
     }
-    
-    if (pointsToPlot.length === 0) return;
 
     const coordinates: MapCoordinate[] = [];
 
-    pointsToPlot.forEach(loc => {
-      const lat = loc.lat || loc.ubicacion?.lat;
-      const lng = loc.lng || loc.ubicacion?.lng;
+    viewState.markers.forEach(marker => {
+      const element = this.createMarkerElement(
+        marker.role,
+        marker.label,
+        marker.selected
+      );
 
-      if (lat && lng) {
-        const coordinate = this.toMapCoordinate(lat, lng);
-        coordinates.push(coordinate);
+      const metadata: MapMarkerMetadata = {
+        source: marker.source,
+        destinationName: marker.label,
+        companyName: marker.company,
+        selected: marker.selected
+      };
 
-        const isSelected = currentExpandedResultCard === loc || (currentSelectedPin && currentSelectedPin.nombre_destino === loc.nombre_destino);
-        
-        let markerType = loc.markerType || '';
-        
-        if (!markerType) {
-          if (currentOrigen && (loc.id === currentOrigen || loc.nombre_destino === currentOrigen)) markerType = 'origin';
-          else if (currentDestino && (loc.id === currentDestino || loc.nombre_destino === currentDestino)) markerType = 'destination';
-          else if (currentIsOriginDiscoveryMode) markerType = 'origin';
-          else markerType = 'destination'; 
-        }
+      mapLifecycle.addPrimaryMarker({
+        coordinate: marker.coordinate,
+        options: { element, anchor: 'bottom' },
+        metadata,
+        onClick: event => {
+          event.stopPropagation();
+          const loc = marker.source;
+          if (typeof loc === 'object' && loc !== null) {
+            const locRecord = loc as Record<string, unknown>;
+            this.focusLocation(locRecord);
 
-        const element = this.createMarkerElement(
-          markerType === 'origin' ? 'origin' : 'destination',
-          loc.nombre_destino || loc.destino_nombre || 'Punto logístico',
-          isSelected
-        );
-        mapLifecycle.addPrimaryMarker({
-          coordinate,
-          options: { element, anchor: 'bottom' },
-          metadata: this.toMarkerMetadata(loc, loc.nombre_destino, loc.empresa),
-          onClick: event => {
-            event.stopPropagation();
-            this.focusLocation(loc);
-
-            // Find original location object to get full details like schedule and status
             const originalLoc = this.locations.find((l) =>
-              (l.nombre_destino === loc.destino_nombre || l.nombre_destino === loc.nombre_destino) &&
-              (l.empresa === loc.empresa)
-            ) || loc;
+              (l.nombre_destino === locRecord['destino_nombre'] || l.nombre_destino === locRecord['nombre_destino']) &&
+              (l.empresa === locRecord['empresa'])
+            ) || locRecord;
 
-            this.selectedPin = { ...originalLoc, markerType: markerType };
+            const markerType = marker.role;
+            this.selectedPin = { ...originalLoc, markerType };
             this.selectedPinDayFilter = '';
-            this.expandedResultCard = null; // Collapse list card if open
+            this.expandedResultCard = null;
+            this.updateMarkerStyles();
             this.cdr.detectChanges();
           }
-        });
-      }
+        }
+      });
+      coordinates.push(marker.coordinate);
     });
 
     if (coordinates.length > 0) {
-      // Avoid zooming in too much if there's only 1 point
       this.isProgrammaticMove = true;
       this.map.fitCoordinates(coordinates, { padding: 50, maxZoom: 15, duration: 850 });
     }
     
-    // Ensure styles (like highlight/dim) are applied to the newly created markers
     this.updateMarkerStyles();
+  }
+
+  private projectSinglePin(pin: unknown): PublicMapViewState {
+    return projectPublicMapViewState({
+      locations: [],
+      selectedPin: pin,
+      flightResults: [],
+      displayedResults: [],
+      origen: '',
+      destino: '',
+      origenMunicipio: '',
+      destinoMunicipio: '',
+      expandedResultCard: null,
+      isOriginDiscoveryMode: false
+    });
   }
 
   highlightedRoute: any = null;
@@ -685,8 +664,9 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
          }
       }
 
-      const isSelected = this.expandedResultCard === metadata.source ||
-                         (this.selectedPin && this.selectedPin.nombre_destino === metadata.destinationName);
+      const isSelected = this.selectedPin
+        ? this.selectedPin.nombre_destino === metadata.destinationName
+        : Boolean(metadata.selected);
 
       if (isSelected) {
          el.classList.add('marker-selected');
@@ -694,7 +674,8 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
          el.classList.remove('marker-selected');
       }
 
-      if (this.expandedResultCard && !isSelected) {
+      const hasSelectedMarker = Boolean(this.selectedPin) || entries.some(entry => entry.metadata.selected);
+      if (!isSelected && hasSelectedMarker) {
          el.classList.add('marker-hidden');
       } else {
          el.classList.remove('marker-hidden');
@@ -2033,7 +2014,7 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
         ? 'destination'
         : loc.markerType;
     this.selectedPin = markerType ? { ...loc, markerType } : loc;
-    this.updateMapMarkers(); // Asegurarnos de pintar el marcador antes de hacer focus
+    this.updateMapMarkers(this.projectSinglePin(this.selectedPin)); // Asegurarnos de pintar el marcador antes de hacer focus
     
     setTimeout(() => {
       this.focusLocation(loc);

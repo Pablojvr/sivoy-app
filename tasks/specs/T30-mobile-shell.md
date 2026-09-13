@@ -104,11 +104,13 @@ El shell actualmente abarca los siguientes dominios superpuestos:
      3. `HomeComponent` cambia el output `updateMapMarkers` para emitir este payload mediante un helper, sin alterar el momento ni la cantidad de emisiones.
    - **Evidencia:** 232 pruebas pasan, el build compila, las ocho emisiones originales se preservan y las líneas añadidas no incorporan `any`, MapLibre, Mapbox ni `console`.
 2. **T30d2b: Consumo de Proyección en el Shell (Desacoplamiento):**
+   - **Estado:** aceptado por Codex.
    - **Alcance (<=5 archivos):** `mobile-app.component.ts`, `mobile-app.component.html`.
    - **Criterios de Aceptación:**
      1. El shell actualiza su binding `(updateMapMarkers)` para recibir el `$event` y pasarlo a su método.
      2. `updateMapMarkers(state: PublicMapViewState)` en el shell descarta la lectura directa a `this.homeCmp` (erradicando la dependencia sobre variables de Categoría D).
-     3. El shell dibuja lo provisto en el payload sin alterar la funcionalidad del mapa para Admin o Partner.
+     3. El shell dibuja lo provisto en el payload sin alterar la funcionalidad del mapa para Admin.
+   - **Evidencia:** 232 pruebas pasan, build de producción correcto, runtime móvil validado en `127.0.0.1:4303`, sin dependencia `homeCmp` ni nuevos `any`; la selección administrativa conserva una proyección explícita de un solo punto.
 3. **T30d3: Purga de Búsqueda Legada (Limpieza Final):**
    - **Alcance (<=5 archivos):** `mobile-app.component.ts`, `mobile-app.component.spec.ts`.
    - **Criterios de Aceptación:**

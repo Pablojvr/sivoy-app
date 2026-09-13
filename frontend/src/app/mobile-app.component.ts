@@ -53,8 +53,6 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
   locations: any[] = [];
   filteredLocations: any[] = [];
 
-  bottomSheetState: 'collapsed' | 'half' | 'expanded' = 'collapsed';
-  isProgrammaticMove: boolean = false;
   selectedPin: any = null;
   
   // Navigation State
@@ -91,9 +89,6 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
   tempPickedLng: string = '';
   
   // Map Interactivity State
-  mapCenterLat: number = 0;
-  mapCenterLng: number = 0;
-  
   private map: MapPort | null = null;
   private mapLifecycle: MapLifecycleManager<MapMarkerMetadata> | null = null;
   private destroyed = false;
@@ -242,45 +237,17 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
         return;
       }
   
-      // UX: Handle map clicks for destination selection or collapse bottom sheet
+      // UX: Handle map clicks for destination selection
       this.mapLifecycle?.trackMapEvent(this.map.onClick(() => {
-
         this.selectedPin = null;
-        if (this.bottomSheetState === 'expanded' || this.bottomSheetState === 'half') {
-          this.bottomSheetState = 'collapsed';
-        }
         this.updateMarkerStyles();
         this.cdr.detectChanges();
       }));
       
       this.mapLifecycle?.trackMapEvent(this.map.onDragStart(() => {
         this.selectedPin = null;
-        if (this.bottomSheetState === 'expanded' || this.bottomSheetState === 'half') {
-          this.bottomSheetState = 'collapsed';
-        }
         this.cdr.detectChanges();
       }));
-      
-      this.mapLifecycle?.trackMapEvent(this.map.onMoveStart(() => {
-        if (!this.isProgrammaticMove && (this.bottomSheetState === 'expanded' || this.bottomSheetState === 'half')) {
-          this.bottomSheetState = 'collapsed';
-          this.cdr.detectChanges();
-        }
-      }));
-      this.mapLifecycle?.trackMapEvent(this.map.onMoveEnd(() => {
-        this.isProgrammaticMove = false;
-      }));
-
-      // Track map center
-      this.mapLifecycle?.trackMapEvent(this.map.onMove((center) => {
-        this.mapCenterLat = center.lat;
-        this.mapCenterLng = center.lng;
-      }));
-
-      // Update map center on load if not set
-      const initCenter = this.map.getCenter();
-      this.mapCenterLat = initCenter.lat;
-      this.mapCenterLng = initCenter.lng;
 
       this.mapLifecycle?.trackMapEvent(this.map.onLoad(() => {
         mapElement.setAttribute('data-map-state', 'loaded');
@@ -396,7 +363,6 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
     });
 
     // Zoom map to fit the nearby points
-    this.isProgrammaticMove = true;
     this.map.fitCoordinates(coordinates, { padding: 50, maxZoom: 15, duration: 850 });
   }
 
@@ -468,7 +434,6 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
     });
 
     if (coordinates.length > 0) {
-      this.isProgrammaticMove = true;
       this.map.fitCoordinates(coordinates, { padding: 50, maxZoom: 15, duration: 850 });
     }
     
@@ -492,27 +457,6 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
 
   highlightedRoute: any = null;
 
-  highlightRouteOnMap(route: any) {
-    this.highlightedRoute = route;
-    this.updateMarkerStyles();
-    
-    // Fit bounds to just these two markers
-    if (this.map && route) {
-      const p1 = this.locations.find((l:any) => l.nombre_destino === route.origen_nombre && l.empresa === route.empresa);
-      const p2 = this.locations.find((l:any) => l.nombre_destino === route.destino_nombre && l.empresa === route.empresa);
-      const routeCoordinates: MapCoordinate[] = [];
-      if (p1 && (p1.ubicacion?.lat || p1.lat)) routeCoordinates.push(this.toMapCoordinate(p1.ubicacion?.lat || p1.lat, p1.ubicacion?.lng || p1.lng));
-      if (p2 && (p2.ubicacion?.lat || p2.lat)) routeCoordinates.push(this.toMapCoordinate(p2.ubicacion?.lat || p2.lat, p2.ubicacion?.lng || p2.lng));
-
-      if (routeCoordinates.length > 0) {
-        this.isProgrammaticMove = true;
-        this.map.fitCoordinates(routeCoordinates, { padding: 50, maxZoom: 15, duration: 850 });
-      }
-      this.bottomSheetState = 'collapsed';
-      this.cdr.detectChanges();
-    }
-  }
-
   resetMapMarkers() {
     this.highlightedRoute = null;
     this.selectedPin = null;
@@ -521,10 +465,8 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
     // Re-fit all bounds
     const entries = this.mapLifecycle?.getPrimaryEntries() ?? [];
     if (this.map && entries.length > 0) {
-      this.isProgrammaticMove = true;
       this.map.fitCoordinates(entries.map(entry => entry.marker.getCoordinate()), { padding: 50, maxZoom: 15, duration: 700 });
     }
-    this.bottomSheetState = 'expanded';
     this.cdr.detectChanges();
   }
 
@@ -615,51 +557,9 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
 
 
 
-  expandSheetIfNeeded() {
-    if (this.bottomSheetState === 'collapsed') {
-      this.bottomSheetState = 'half';
-    }
-  }
-
-  collapseSheet() {
-    if (this.bottomSheetState === 'expanded' || this.bottomSheetState === 'half') {
-      this.bottomSheetState = 'collapsed';
-    }
-  }
-
-  // --- Touch dragging logic for Bottom Sheet ---
-  private touchStartY: number = 0;
-
-  onTouchStart(e: TouchEvent) {
-    this.touchStartY = e.touches[0].clientY;
-  }
-
-  onTouchEnd(e: TouchEvent) {
-    const touchEndY = e.changedTouches[0].clientY;
-    const diff = touchEndY - this.touchStartY;
-    
-    const sheetContent = document.querySelector('.sheet-content');
-    const isAtTop = sheetContent ? sheetContent.scrollTop <= 1 : true;
-    
-    const target = e.target as HTMLElement;
-    const isHeaderTouch = target.closest('.persistent-sheet-header') !== null;
-
-    if (diff > 40 && (isAtTop || isHeaderTouch)) {
-      // Swiped down
-      if (this.bottomSheetState === 'expanded') this.bottomSheetState = 'half';
-      else if (this.bottomSheetState === 'half') this.bottomSheetState = 'collapsed';
-    } else if (diff < -40 && (isAtTop || isHeaderTouch)) {
-      // Swiped up
-      if (this.bottomSheetState === 'collapsed') {
-        this.bottomSheetState = 'half';
-      }
-      else if (this.bottomSheetState === 'half') this.bottomSheetState = 'expanded';
-    }
-  }
 
   focusLocation(loc: any) {
     if (this.map && loc.ubicacion && loc.ubicacion.lat && loc.ubicacion.lng) {
-      this.isProgrammaticMove = true;
       const lat = parseFloat(loc.ubicacion.lat);
       const lng = parseFloat(loc.ubicacion.lng);
       
@@ -667,11 +567,6 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
       // ya que la tarjeta de detalles cubre la mitad inferior en móviles.
       const latOffset = window.innerWidth < 768 ? 0.005 : 0.002;
       this.map.flyTo({ lng, lat: lat - latOffset }, { zoom: 15, duration: 800 });
-      
-      // Auto collapse bottom sheet on mobile to show map
-      if (window.innerWidth < 768) {
-        this.bottomSheetState = 'collapsed';
-      }
     }
   }
 
@@ -680,12 +575,6 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
     if (originLoc) {
       this.selectedPin = { ...originLoc, markerType: 'origin' };
       this.focusLocation(originLoc);
-      
-      // Set bottom sheet state to min or half so the map is visible
-      if (window.innerWidth < 768) {
-        this.bottomSheetState = 'collapsed';
-      }
-      
       this.cdr.detectChanges();
     }
   }
@@ -696,11 +585,6 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
     if (destLoc) {
       this.selectedPin = { ...destLoc, markerType: 'destination' };
       this.focusLocation(destLoc);
-      
-      if (window.innerWidth < 768) {
-        this.bottomSheetState = 'collapsed';
-      }
-      
       this.cdr.detectChanges();
     }
   }
@@ -805,7 +689,6 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
         if (this.destroyed) return;
         this.userLocation = { lng: coords.lng, lat: coords.lat };
         this.updateUserMarker();
-        this.isProgrammaticMove = true;
         if (this.userLocation) this.map?.flyTo(this.userLocation, { zoom: 15, duration: 900 });
         this.fetchMunicipalityName(coords.lat, coords.lng);
         this.sortLocationsByDistance();
@@ -814,7 +697,6 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
         if (this.destroyed) return;
         this.toastService.showError("Verifica los permisos de ubicación de tu navegador.", "Sin acceso");
         if (this.userLocation) {
-          this.isProgrammaticMove = true;
           this.map?.flyTo(this.userLocation, { zoom: 15, duration: 900 });
         }
       }
@@ -1121,8 +1003,6 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
           this.map?.fitCoordinates(routeCoordinates, { padding: 50, maxZoom: 15, duration: 850 });
         }, 100);
       }
-      
-      this.collapseSheet();
     }
   }
 
@@ -1130,7 +1010,6 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.map && coords && coords.lat && coords.lng) {
       setTimeout(() => {
         if (!this.map) return;
-        this.isProgrammaticMove = true;
         this.map.flyTo(coords, { zoom: 18, duration: 750 });
         
         const element = this.createMarkerElement(AUX_MARKER_KEYS.PREVIEW, 'Ubicación de vista previa');
@@ -1154,7 +1033,6 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
       if (this.map) {
         this.map.resize();
         if (this.map && this.editFormData.lat && this.editFormData.lng) {
-          this.isProgrammaticMove = true;
           this.map.jumpTo(this.toMapCoordinate(this.editFormData.lat, this.editFormData.lng), { zoom: 16 });
         }
         

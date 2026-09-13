@@ -167,7 +167,8 @@ archivos. Codex debe revisar cada diff y ejecutar build y auditoría visual.
 
 ## Fases 9–10 — Operación y evolución
 
-- [ ] T32 Definir eventos internos versionados.
+- [x] T32 Definir eventos internos versionados.
+  - Resultado auditado: accepted by Codex, 14 focused / 30 full backend tests, diff-check clean; sin bus/producers/outbox.
 - [ ] T33 Mover únicamente trabajos secundarios a eventos.
 - [ ] T34 Añadir métricas y logs estructurados.
 - [ ] T35 Implementar pipeline completo y staging.

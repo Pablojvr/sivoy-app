@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const { createHttpObservability } = require('./src/core/observability/http-observability');
 const { getDB } = require('./src/config/database');
 
 const empresasRoutes = require('./src/domains/empresas/empresas.routes');
@@ -17,6 +18,9 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
+
+const { middleware: observabilityMiddleware } = createHttpObservability();
+app.use('/api', observabilityMiddleware);
 
 // Serve compiled Angular frontend
 const DIST_PATH = path.join(__dirname, '..', 'frontend', 'dist', 'frontend', 'browser');
@@ -47,7 +51,7 @@ const PORT = process.env.PORT || 3000;
 getDB().then((db) => {
     // Para compatibilidad hacia atrás si hay algún middleware perdido que use app.locals.db
     app.locals.db = db;
-    
+
     app.listen(PORT, () => {
         console.log(`\n  ✅ SiVoy App running on http://localhost:${PORT}`);
         console.log(`  📦 Backend API at  http://localhost:${PORT}/api`);

@@ -172,6 +172,8 @@ archivos. Codex debe revisar cada diff y ejecutar build y auditoría visual.
 - [x] T33 Mover únicamente trabajos secundarios a eventos.
   - Resultado auditado: resuelto como "no-op" intencional (ver `tasks/specs/T33-secondary-jobs.md` y ADR `0001`). No existen consumidores asíncronos genuinos; flujos actuales (compartir, ETA) requieren ejecución síncrona. No se introduce bus ni listeners para evitar sobreingeniería y falsa sensación de desacoplamiento.
 - [ ] T34 Añadir métricas y logs estructurados.
+  - [x] T34a: accepted by Codex and evidence 12 focused subtests / 43 full backend tests, real Express route test, server check/diff check.
+  - [ ] T34b: structured controller errors and safe health/metrics exposure.
 - [ ] T35 Implementar pipeline completo y staging.
 - [ ] T36 Probar despliegue, smoke test y rollback.
 - [ ] T37 Escribir ADR sobre mantener o extraer `eta-core`.

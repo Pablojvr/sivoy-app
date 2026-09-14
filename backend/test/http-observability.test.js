@@ -34,7 +34,7 @@ test('HTTP Observability Middleware', async (t) => {
 
         assert.ok(nextCalled);
         assert.strictEqual(res.getHeaders()['x-request-id'], validUuid);
-        assert.strictEqual(req.log, undefined);
+        assert.strictEqual(typeof req.log.error, 'function');
     });
 
     await t.test('generates new UUID for malformed/invalid/header arrays', () => {
@@ -290,6 +290,211 @@ test('HTTP Observability Middleware', async (t) => {
         const logObj = JSON.parse(loggedString);
         assert.strictEqual(logObj.timestamp, new Date(logObj.timestamp).toISOString());
         assert.notStrictEqual(logObj.timestamp, '2023-01-01 12:00:00');
+    });
+
+    await t.test('req.log.error and req.log.warn attach to request, log structured data, normalize bad inputs, survive sink failure', () => {
+        let loggedString = null;
+        const sink = {
+            info: (msg) => { loggedString = msg; },
+            warn: (msg) => { loggedString = msg; },
+            error: (msg) => { loggedString = msg; }
+        };
+        const { middleware } = createHttpObservability({ sink });
+
+        const { req, res } = createFakeReqRes({
+            method: 'POST',
+            baseUrl: '/api',
+            route: { path: '/test' }
+        });
+
+        middleware(req, res, () => {});
+
+        assert.ok(req.log);
+        assert.ok(Object.isFrozen(req.log));
+        assert.deepStrictEqual(Object.keys(req.log).sort(), ['error', 'warn']);
+
+        // Test normal inputs for error
+        req.log.error('test_event', 'internal_error');
+        assert.ok(loggedString);
+        let logObj = JSON.parse(loggedString);
+        assert.strictEqual(logObj.level, 'error');
+        assert.strictEqual(logObj.event, 'test_event');
+        assert.strictEqual(logObj.errorCode, 'internal_error');
+        assert.strictEqual(logObj.method, 'POST');
+        assert.strictEqual(logObj.route, '/api/test');
+        assert.ok(logObj.requestId);
+        assert.ok(logObj.timestamp);
+        assert.deepStrictEqual(Object.keys(logObj).sort(), ['errorCode', 'event', 'level', 'method', 'requestId', 'route', 'timestamp']);
+
+        // Test normal inputs for warn
+        loggedString = null;
+        req.log.warn('warn_event', 'validation_error');
+        assert.ok(loggedString);
+        logObj = JSON.parse(loggedString);
+        assert.strictEqual(logObj.level, 'warn');
+        assert.strictEqual(logObj.event, 'warn_event');
+        assert.strictEqual(logObj.errorCode, 'validation_error');
+        assert.deepStrictEqual(Object.keys(logObj).sort(), ['errorCode', 'event', 'level', 'method', 'requestId', 'route', 'timestamp']);
+
+        // Test malicious inputs
+        loggedString = null;
+        req.log.error({ foo: 'bar' }, 'ATTACK<script>');
+        logObj = JSON.parse(loggedString);
+        assert.strictEqual(logObj.event, 'unknown_event');
+        assert.strictEqual(logObj.errorCode, 'unknown_code');
+        assert.ok(!JSON.stringify(logObj).includes('ATTACK<script>'));
+
+        // Sink failure
+        const badSink = {
+            info: () => { throw new Error('sink boom info'); },
+            warn: () => { throw new Error('sink boom warn'); },
+            error: () => { throw new Error('sink boom error'); }
+        };
+        const obs2 = createHttpObservability({ sink: badSink });
+        const reqRes2 = createFakeReqRes();
+        obs2.middleware(reqRes2.req, reqRes2.res, () => {});
+        assert.doesNotThrow(() => {
+            reqRes2.req.log.error('event', 'code');
+        });
+        assert.doesNotThrow(() => {
+            reqRes2.req.log.warn('event', 'code');
+        });
+
+        // Warn fallback to info when warn is missing
+        let infoCalled = false;
+        const fallbackSink = {
+            info: () => { infoCalled = true; },
+            error: () => {}
+        };
+        const obs3 = createHttpObservability({ sink: fallbackSink });
+        const reqRes3 = createFakeReqRes();
+        obs3.middleware(reqRes3.req, reqRes3.res, () => {});
+        reqRes3.req.log.warn('event', 'code');
+        assert.strictEqual(infoCalled, true);
+    });
+
+    await t.test('rutas.controller.js error logging', async (st) => {
+        const rutasController = require('../src/domains/rutas/rutas.controller');
+        const rutasService = require('../src/domains/rutas/rutas.service');
+
+        // safe mocking console.error
+        let consoleErrors = 0;
+        const origConsoleError = console.error;
+        console.error = () => { consoleErrors++; };
+
+        const origGetUpcomingRoutes = rutasService.getUpcomingRoutes;
+        const origSearchRoutesByMunicipality = rutasService.searchRoutesByMunicipality;
+        const origSearchFlights = rutasService.searchFlights;
+
+        st.after(() => {
+            console.error = origConsoleError;
+            rutasService.getUpcomingRoutes = origGetUpcomingRoutes;
+            rutasService.searchRoutesByMunicipality = origSearchRoutesByMunicipality;
+            rutasService.searchFlights = origSearchFlights;
+        });
+
+        const reqMock = () => {
+            let logData = null;
+            return {
+                body: {},
+                log: {
+                    error: (ev, code) => { logData = { ev, code, level: 'error' }; },
+                    warn: (ev, code) => { logData = { ev, code, level: 'warn' }; }
+                },
+                getLogData: () => logData
+            };
+        };
+        const resMock = () => {
+            let status = 200;
+            let body = null;
+            return {
+                status: function (s) { status = s; return this; },
+                json: function (b) { body = b; },
+                getStatus: () => status,
+                getBody: () => body
+            };
+        };
+
+        await st.test('getUpcomingRoutes - validation error', async () => {
+            rutasService.getUpcomingRoutes = async () => { throw new Error("Missing params"); };
+            const req = reqMock();
+            const res = resMock();
+            await rutasController.getUpcomingRoutes(req, res);
+            assert.strictEqual(res.getStatus(), 400);
+            assert.strictEqual(req.getLogData().ev, 'get_upcoming_routes_failed');
+            assert.strictEqual(req.getLogData().code, 'validation_error');
+            assert.strictEqual(req.getLogData().level, 'warn');
+        });
+
+        await st.test('getUpcomingRoutes - internal error', async () => {
+            rutasService.getUpcomingRoutes = async () => { throw new Error("DB dead"); };
+            const req = reqMock();
+            const res = resMock();
+            await rutasController.getUpcomingRoutes(req, res);
+            assert.strictEqual(res.getStatus(), 500);
+            assert.strictEqual(req.getLogData().ev, 'get_upcoming_routes_failed');
+            assert.strictEqual(req.getLogData().code, 'internal_error');
+            assert.strictEqual(req.getLogData().level, 'error');
+        });
+
+        await st.test('searchRoutesByMunicipality - validation error', async () => {
+            rutasService.searchRoutesByMunicipality = async () => { throw new Error("Missing params"); };
+            const req = reqMock();
+            const res = resMock();
+            await rutasController.searchRoutesByMunicipality(req, res);
+            assert.strictEqual(res.getStatus(), 400);
+            assert.strictEqual(req.getLogData().ev, 'search_by_municipality_failed');
+            assert.strictEqual(req.getLogData().code, 'validation_error');
+            assert.strictEqual(req.getLogData().level, 'warn');
+        });
+
+        await st.test('searchRoutesByMunicipality - origin not found', async () => {
+            rutasService.searchRoutesByMunicipality = async () => { throw new Error("Origen no encontrado"); };
+            const req = reqMock();
+            const res = resMock();
+            await rutasController.searchRoutesByMunicipality(req, res);
+            assert.strictEqual(res.getStatus(), 404);
+            assert.strictEqual(req.getLogData().ev, 'search_by_municipality_failed');
+            assert.strictEqual(req.getLogData().code, 'origin_not_found');
+            assert.strictEqual(req.getLogData().level, 'warn');
+        });
+
+        await st.test('searchRoutesByMunicipality - internal error', async () => {
+            rutasService.searchRoutesByMunicipality = async () => { throw new Error("Boom"); };
+            const req = reqMock();
+            const res = resMock();
+            await rutasController.searchRoutesByMunicipality(req, res);
+            assert.strictEqual(res.getStatus(), 500);
+            assert.strictEqual(req.getLogData().ev, 'search_by_municipality_failed');
+            assert.strictEqual(req.getLogData().code, 'internal_error');
+            assert.strictEqual(req.getLogData().level, 'error');
+        });
+
+        await st.test('searchFlights - validation error', async () => {
+            rutasService.searchFlights = async () => { throw new Error("Missing params"); };
+            const req = reqMock();
+            const res = resMock();
+            await rutasController.searchFlights(req, res);
+            assert.strictEqual(res.getStatus(), 400);
+            assert.strictEqual(req.getLogData().ev, 'search_flights_failed');
+            assert.strictEqual(req.getLogData().code, 'validation_error');
+            assert.strictEqual(req.getLogData().level, 'warn');
+        });
+
+        await st.test('searchFlights - internal error', async () => {
+            rutasService.searchFlights = async () => { throw new Error("DB Error"); };
+            const req = reqMock();
+            const res = resMock();
+            await rutasController.searchFlights(req, res);
+            assert.strictEqual(res.getStatus(), 500);
+            assert.strictEqual(req.getLogData().ev, 'search_flights_failed');
+            assert.strictEqual(req.getLogData().code, 'internal_error');
+            assert.strictEqual(req.getLogData().level, 'error');
+        });
+
+        await st.test('assert zero console.error calls', () => {
+            assert.strictEqual(consoleErrors, 0);
+        });
     });
 
     await t.test('snapshot is deeply frozen and resetMetrics clears state', () => {

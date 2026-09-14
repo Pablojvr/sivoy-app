@@ -22,7 +22,17 @@
 - `node --check backend/server.js`
 - `git diff --check`
 
+# T34b2a: Structured Controller Error Logs
+
+## Acceptance Criteria
+
+1. **Frozen Narrow API**: `req.log` is injected as an immutable object exposing only `error(event, errorCode)` and `warn(event, errorCode)`. Invalid names are normalized; the API accepts no arbitrary context object, message, stack, body, URL or headers.
+2. **Safe Logging Sink**: Warning and error events emit one allowlisted JSON record containing a canonical timestamp, their explicit level, `requestId`, normalized method, resolved route, validated `event` and `errorCode`. Invalid names become `unknown_event` and `unknown_code` without echoing attacker input; timestamp or sink failures never break the request.
+3. **Controller Refactoring & Coverage**: Every `console.error` in `rutas.controller.js` is replaced by `req.log.warn` for handled validation/not-found branches and `req.log.error` for internal failures. HTTP status/body contracts remain unchanged, and tests distinguish the logger method used by every catch branch while restoring mocks.
+
 ## State
 
-T34 unchecked / T34a accepted by Codex and evidence 12 focused subtests / 43 full backend tests, real Express route test, server check/diff check.
+T34 open / T34b2b pending.
+T34a accepted by Codex and evidence 12 focused subtests / 43 full backend tests, real Express route test, server check/diff check.
 T34b1 accepted by Codex and evidence 10 observability-route subtests / 54 full backend, server/diff checks.
+T34b2a accepted by Codex and evidence independent 64-test audit.

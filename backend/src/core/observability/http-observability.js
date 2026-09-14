@@ -10,8 +10,20 @@ function isValidUUID(uuid) {
 
 const HISTOGRAM_BUCKETS = [10, 50, 100, 500, 1000, 5000];
 
+const SNAKE_CASE_REGEX = /^[a-z0-9]+(_[a-z0-9]+)*$/;
+
+function getBoundedString(val, fallback) {
+    if (typeof val !== 'string' || val.length > 64 || !SNAKE_CASE_REGEX.test(val)) {
+        return fallback;
+    }
+    return val;
+}
+
 const defaultSink = {
     info: (msg) => {
+        try { process.stdout.write(msg + '\n'); } catch (e) {}
+    },
+    warn: (msg) => {
         try { process.stdout.write(msg + '\n'); } catch (e) {}
     },
     error: (msg) => {
@@ -54,6 +66,18 @@ function createHttpObservability(options = {}) {
         return Object.freeze(snap);
     }
 
+    function getTimestamp() {
+        try {
+            const val = nowIso();
+            if (typeof val === 'string' && val === new Date(val).toISOString()) {
+                return val;
+            }
+            return new Date().toISOString();
+        } catch {
+            return new Date().toISOString();
+        }
+    }
+
     const middleware = (req, res, next) => {
         let requestId = req.headers['x-request-id'];
 
@@ -61,6 +85,48 @@ function createHttpObservability(options = {}) {
             requestId = safeUUID(generateId);
         }
         res.setHeader('x-request-id', requestId);
+
+        const method = ALLOWED_METHODS.includes(req.method) ? req.method : 'OTHER';
+
+        const writeLog = (level, event, code) => {
+            const safeEvent = getBoundedString(event, 'unknown_event');
+            const safeCode = getBoundedString(code, 'unknown_code');
+
+            let currentRoute = 'unmatched';
+            if (req.route && req.route.path) {
+                currentRoute = (req.baseUrl || '') + req.route.path;
+            }
+
+            const logPayload = {
+                timestamp: getTimestamp(),
+                level,
+                event: safeEvent,
+                requestId,
+                method,
+                route: currentRoute,
+                errorCode: safeCode
+            };
+
+            const logString = JSON.stringify(logPayload);
+            try {
+                if (level === 'warn') {
+                    if (typeof sink.warn === 'function') {
+                        sink.warn(logString);
+                    } else {
+                        sink.info(logString);
+                    }
+                } else {
+                    sink.error(logString);
+                }
+            } catch (e) {
+                // sink failure must not break request
+            }
+        };
+
+        req.log = Object.freeze({
+            error: (event, errorCode) => writeLog('error', event, errorCode),
+            warn: (event, errorCode) => writeLog('warn', event, errorCode)
+        });
 
         let startTime = 0;
         try {
@@ -96,22 +162,8 @@ function createHttpObservability(options = {}) {
             const isError = res.statusCode >= 500;
             const level = isError ? 'error' : 'info';
 
-            const method = ALLOWED_METHODS.includes(req.method) ? req.method : 'OTHER';
-
-            let timestamp;
-            try {
-                const val = nowIso();
-                if (typeof val === 'string' && val === new Date(val).toISOString()) {
-                    timestamp = val;
-                } else {
-                    timestamp = new Date().toISOString();
-                }
-            } catch {
-                timestamp = new Date().toISOString();
-            }
-
             const logPayload = {
-                timestamp,
+                timestamp: getTimestamp(),
                 level,
                 event: 'http_request_completed',
                 requestId,

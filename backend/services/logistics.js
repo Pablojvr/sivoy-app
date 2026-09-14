@@ -142,7 +142,7 @@ function calcularIngresoOficial(origen, fechaDropoffStr, horaDropoff) {
     let currentDate = new Date(fechaDropoffStr + "T00:00:00");
     const today = new Date();
 
-    if (!canUseDateCore(currentDate) || !canUseDateCore(today)) {
+    if (!canUseOfficialEntryCore(currentDate, today)) {
         return calcularIngresoOficialLegacy(origen, currentDate, horaDropoff, today);
     }
 
@@ -237,6 +237,26 @@ function staysWithinDateCore(date, dayOffset) {
     return canUseDateCore(edgeDate);
 }
 
+// T08 will make these boundary guarantees part of the public input contract. Until then, keep
+// every legacy path behind this small policy boundary instead of spreading cutover conditions
+// through the adapter.
+function canUseOfficialEntryCore(currentDate, today) {
+    return canUseDateCore(currentDate) && canUseDateCore(today);
+}
+
+function canUseRouteValidationCore(officialEntryDate, desiredDate) {
+    return canUseDateCore(officialEntryDate) &&
+        isLocalMidnight(officialEntryDate) &&
+        canUseDateCore(desiredDate) &&
+        staysWithinDateCore(desiredDate, -7);
+}
+
+function canUseRouteProjectionCore(officialEntryDate) {
+    return canUseDateCore(officialEntryDate) &&
+        isLocalMidnight(officialEntryDate) &&
+        staysWithinDateCore(officialEntryDate, 60);
+}
+
 function mapDestinoToRules(destino) {
     const normalize = (value) => value
         ? value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
@@ -329,11 +349,8 @@ function validarFechaDeseadaLegacy(destino, ingresoOficialDate, fechaDeseadaStr)
 }
 
 function validarFechaDeseada(destino, ingresoOficialDate, fechaDeseadaStr) {
-    if (!canUseDateCore(ingresoOficialDate) || !isLocalMidnight(ingresoOficialDate)) {
-        return validarFechaDeseadaLegacy(destino, ingresoOficialDate, fechaDeseadaStr);
-    }
     const fechaDeseada = new Date(fechaDeseadaStr + "T00:00:00");
-    if (!canUseDateCore(fechaDeseada) || !staysWithinDateCore(fechaDeseada, -7)) {
+    if (!canUseRouteValidationCore(ingresoOficialDate, fechaDeseada)) {
         return validarFechaDeseadaLegacy(destino, ingresoOficialDate, fechaDeseadaStr);
     }
 
@@ -446,9 +463,7 @@ function proyectarProximasRutasLegacy(destino, ingresoOficialDate, limite = 3) {
 }
 
 function proyectarProximasRutas(destino, ingresoOficialDate, limite = 3) {
-    if (!canUseDateCore(ingresoOficialDate) ||
-        !isLocalMidnight(ingresoOficialDate) ||
-        !staysWithinDateCore(ingresoOficialDate, 60)) {
+    if (!canUseRouteProjectionCore(ingresoOficialDate)) {
         return proyectarProximasRutasLegacy(destino, ingresoOficialDate, limite);
     }
 

@@ -187,7 +187,7 @@ archivos. Codex debe revisar cada diff y ejecutar build y auditoría visual.
   - [x] T35b: CI quality gates accepted by Codex; 122 backend and 239 frontend tests, audits/signatures, production build.
   - [ ] T35c: validate migrations against ephemeral PostgreSQL in CI.
 - [ ] T36 Probar despliegue, smoke test y rollback.
-- [ ] T37 Escribir ADR sobre mantener o extraer `eta-core`.
+- [x] T37 ADR accepted by Codex: keep ETA inside the modular monolith until measurable extraction triggers are met.
 
 ### Checkpoint final
 

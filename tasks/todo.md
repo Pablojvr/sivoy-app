@@ -46,6 +46,10 @@ máximo cinco archivos. Un paquete no es autorización para modificar código.
 - [ ] T06 Definir modelos y DTOs de ubicaciones.
 - [ ] T07 Definir contratos de búsqueda de rutas.
 - [ ] T08 Añadir validación de entrada y errores consistentes.
+  - Spec pendiente de aprobación: `tasks/specs/T08-input-validation.md`.
+  - [ ] T08a: Validadores puros de rutas.
+  - [ ] T08b: Integración fail-fast en casos de uso.
+  - [ ] T08c: Traducción consistente en la frontera HTTP.
 - [x] T09 Extraer fechas y horarios al núcleo ETA puro.
   - [x] T09a: Caracterización y contratos del núcleo temporal.
     - Resultado auditado: 23 pruebas focalizadas en UTC, America/Los_Angeles y America/El_Salvador; 145/145 pruebas backend, sintaxis y diff verdes; ningún consumidor modificado.

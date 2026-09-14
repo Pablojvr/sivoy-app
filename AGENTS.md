@@ -42,7 +42,8 @@ solo permiso para instalar dependencias, modificar Git o desplegar.
 ## Qué puede delegarse a Antigravity
 
 Codex puede delegar una tarea cuando sea reversible, tenga criterios de aceptación
-concretos y afecte como máximo tres archivos conocidos. Son candidatas:
+concretos y afecte como máximo cinco archivos conocidos. Si toca backend debe
+existir un spec aprobado, pruebas focalizadas y una ruta de rollback. Son candidatas:
 
 - ajustes CSS/SCSS y tokens visuales;
 - espaciado, tipografía, color, bordes, sombras y estados visuales;
@@ -50,21 +51,29 @@ concretos y afecte como máximo tres archivos conocidos. Son candidatas:
 - cambios menores de marcado HTML exclusivamente presentacionales;
 - componentes y directivas TypeScript exclusivamente presentacionales, sin
   servicios, estado de negocio, navegación, RxJS ni efectos de infraestructura;
-- revisión visual o identificación de selectores, sin modificar lógica.
+- revisión visual o identificación de selectores, sin modificar lógica;
+- adopción de observabilidad ya especificada en servicios no críticos;
+- refactors mecánicos de claridad que preserven comportamiento y contratos;
+- pruebas unitarias o de caracterización sin acceso a red ni datos reales;
+- documentación técnica y automatización de calidad que no cambie despliegues,
+  dependencias ni secretos.
 
 Cada encargo debe indicar: objetivo, archivos permitidos, archivos prohibidos,
-criterios de aceptación, tamaños de viewport y comando de validación. Antigravity
-debe devolver un resumen breve y el resultado de las validaciones.
+criterios de aceptación, rollback y comandos de validación; para UI también debe
+incluir tamaños de viewport. Antigravity debe devolver un resumen breve y el
+resultado de las validaciones. Codex vuelve a ejecutar las pruebas relevantes y
+no acepta como evidencia suficiente el resumen del agente.
 
 ## Qué no se delega
 
-- lógica ETA, SQL, migraciones, seeds o contratos HTTP;
+- lógica ETA, SQL, migraciones, seeds o cambios de contratos HTTP;
 - TypeScript con estado de negocio, navegación, servicios o modelos de dominio;
 - dependencias, secretos, credenciales o configuración de producción;
-- operaciones Git destructivas, merge o despliegues;
-- refactorizaciones transversales o cambios fuera de los archivos autorizados.
+- operaciones Git destructivas, merge, releases o despliegues;
+- refactorizaciones transversales o cambios fuera de los archivos autorizados;
+- decisiones arquitectónicas nuevas no recogidas en un spec aprobado.
 
-Si una tarea visual exige alguno de estos cambios, Antigravity debe detenerse y
+Si una tarea delegada exige alguno de estos cambios, Antigravity debe detenerse y
 explicar el bloqueo. Codex decide el siguiente paso y revisa siempre el diff.
 
 ## Contrato de ejecución para estilos

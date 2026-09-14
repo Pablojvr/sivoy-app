@@ -66,3 +66,32 @@ T34b2b accepted by Codex and evidence 17 subtests for mapas/ubicaciones / 83 ful
 ## State
 
 T34c2 accepted by Codex with 17 focused tests / 122 full backend tests, clean structured test output, syntax and diff checks passed.
+
+# T34c3: Process Logger Adoption (Ubicaciones Service)
+
+## Acceptance Criteria
+
+1. **Injectable Service Runtime**: Export `createUbicacionesService(options)` with injectable repository, Cloudinary client, logger, environment lookup and ID clock while preserving the existing default `getAllLocations`, `getLocationByName`, `updateLocation`, and `createAgencia` exports. Dependencies are validated before use; importing the module performs no database query, network request or upload. Eager construction is allowed when it has no such side effect.
+2. **Safe Process Logs**: Replace all three `console.warn`/`console.error` paths in `ubicaciones.service.js`. Missing Cloudinary configuration logs `cloudinary_config_missing` with `configuration_missing`; invalid schedule JSON logs `horarios_parse_failed` with `invalid_schedule_data`. Logs contain no image data, payload, schedule string, error object, message, stack, URL or environment value, and logger failures do not alter the legacy service result.
+3. **Behavioral Parity and Tests**: Preserve raw base64 fallback when Cloudinary is absent, secure URL replacement when configured, empty schedules after invalid JSON, transaction/repository call shapes, not-found behavior and default exports. Unit tests cover both upload paths, invalid schedules, logger failure resilience, exact repository calls, legacy exports as callable functions and isolation of the injected environment from `process.env`, without network or database access.
+
+## Files
+
+- `backend/src/domains/ubicaciones/ubicaciones.service.js`
+- `backend/test/ubicaciones-service.test.js`
+
+## Commands
+
+- `cd backend; node --test test/ubicaciones-service.test.js test/process-logger.test.js`
+- `cd backend; node --test`
+- `cd backend; node -c src/domains/ubicaciones/ubicaciones.service.js`
+- `cd backend; npm audit --omit=dev`
+- `git diff --check`
+
+## Rollback
+
+`git revert <commit-de-T34c3>` restaura el servicio previo sin migraciones ni cambios de datos.
+
+## Out of Scope
+
+Partner, controladores, repositorio/SQL, payloads y contratos HTTP, dependencias, configuración de producción, cambios al logger core y despliegues.

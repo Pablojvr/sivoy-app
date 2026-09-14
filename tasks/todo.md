@@ -46,7 +46,7 @@ máximo cinco archivos. Un paquete no es autorización para modificar código.
 - [ ] T06 Definir modelos y DTOs de ubicaciones.
 - [ ] T07 Definir contratos de búsqueda de rutas.
 - [ ] T08 Añadir validación de entrada y errores consistentes.
-- [ ] T09 Extraer fechas y horarios al núcleo ETA puro.
+- [x] T09 Extraer fechas y horarios al núcleo ETA puro.
   - [x] T09a: Caracterización y contratos del núcleo temporal.
     - Resultado auditado: 23 pruebas focalizadas en UTC, America/Los_Angeles y America/El_Salvador; 145/145 pruebas backend, sintaxis y diff verdes; ningún consumidor modificado.
   - [x] T09b: Implementación de pureza en adapter logístico.
@@ -58,7 +58,8 @@ máximo cinco archivos. Un paquete no es autorización para modificar código.
       - Resultado auditado: 16 pruebas puras, incluidas en 36/36 enfocadas por TZ y 184/184 auditoría backend; salidas desconectadas profundamente congeladas; sin dependencia logística.
     - [x] T09d2: Integración del adaptador legacy.
       - Resultado auditado: 23/23 pruebas de adaptador y rutas por zona horaria, 187/187 backend, auditoría con 0 vulnerabilidades; contratos, pins, cortes, intervalos y límites legados preservados.
-  - [ ] T09e: Cutover y aislamiento final.
+  - [x] T09e: Cutover y aislamiento final.
+    - Resultado auditado: política de cutover aislada sin retirar fallbacks dependientes de T08; 23/23 pruebas de adaptador y rutas en UTC, America/Los_Angeles y America/El_Salvador, 187/187 backend, sintaxis y auditoría NPM de producción verdes.
 - [ ] T10 Extraer casos de uso de rutas y adaptador legacy.
 - [ ] T11 Añadir repositorios por interfaz.
 - [x] T12 Transaccionar actualización de punto y horarios.

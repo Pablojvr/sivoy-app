@@ -47,6 +47,11 @@ máximo cinco archivos. Un paquete no es autorización para modificar código.
 - [ ] T07 Definir contratos de búsqueda de rutas.
 - [ ] T08 Añadir validación de entrada y errores consistentes.
 - [ ] T09 Extraer fechas y horarios al núcleo ETA puro.
+  - [ ] T09a: Caracterización y contratos del núcleo temporal.
+  - [ ] T09b: Implementación de pureza en adapter logístico.
+  - [ ] T09c: Extracción de cálculo de ingreso oficial.
+  - [ ] T09d: Extracción de reglas de proyección de rutas.
+  - [ ] T09e: Cutover y aislamiento final.
 - [ ] T10 Extraer casos de uso de rutas y adaptador legacy.
 - [ ] T11 Añadir repositorios por interfaz.
 - [x] T12 Transaccionar actualización de punto y horarios.

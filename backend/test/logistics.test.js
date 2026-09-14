@@ -149,3 +149,65 @@ test('preserves legacy handling outside the civil-core year range', () => {
   assert.equal(result.esPosible, true);
   assert.match(result.msg, /Ingreso \(2200-01-01\) es <= Corte \(2200-01-01\)/);
 });
+
+const IDX_TO_DIA = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+const IDX_TO_MES = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+
+function toYYYYMMDD(d) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+test('adapter: handles pin dropoff with exact localized message', () => {
+  const origin = { is_pin: true };
+  const today = new Date();
+
+  const result = calcularIngresoOficial(origin, toYYYYMMDD(today), '12:00');
+
+  assert.equal(result.date.getFullYear(), today.getFullYear());
+  assert.equal(result.date.getMonth(), today.getMonth());
+  assert.equal(result.date.getDate(), today.getDate());
+
+  const expectedDateStr = `${IDX_TO_DIA[today.getDay()]}, ${today.getDate()} de ${IDX_TO_MES[today.getMonth()]}`;
+  const expectedMsg = `Recolección programada en tu ubicación el ${expectedDateStr}`;
+
+  assert.equal(result.msg, expectedMsg);
+});
+
+test('adapter: handles open agency with exact localized message', () => {
+  const today = new Date();
+  const diaSemana = IDX_TO_DIA[today.getDay()];
+
+  const origin = {
+    tipo: 'agencia',
+    horarios_operativos: [{ dia_semana: diaSemana, hora_apertura: '00:00', hora_cierre: '23:59' }]
+  };
+
+  const result = calcularIngresoOficial(origin, toYYYYMMDD(today), '12:00');
+
+  assert.equal(result.date.getFullYear(), today.getFullYear());
+  assert.equal(result.date.getMonth(), today.getMonth());
+  assert.equal(result.date.getDate(), today.getDate());
+
+  const expectedDateStr = `${diaSemana}, ${today.getDate()} de ${IDX_TO_MES[today.getMonth()]}`;
+  assert.equal(result.msg, `Abierto el día de hoy, ${expectedDateStr}`);
+});
+
+test('adapter: handles non-agencia wording for before interval and closed', () => {
+  const today = new Date();
+  const diaSemana = IDX_TO_DIA[today.getDay()];
+
+  const origin = {
+    tipo: 'punto_fijo',
+    horarios_operativos: [{ dia_semana: diaSemana, hora_apertura: '14:00', hora_cierre: '18:00' }]
+  };
+
+  const resultBefore = calcularIngresoOficial(origin, toYYYYMMDD(today), '12:00');
+
+  assert.equal(resultBefore.date.getFullYear(), today.getFullYear());
+  assert.equal(resultBefore.date.getMonth(), today.getMonth());
+  assert.equal(resultBefore.date.getDate(), today.getDate());
+  assert.equal(resultBefore.msg, 'El personal llega en el horario de 02:00 PM a 06:00 PM');
+
+  const resultClosed = calcularIngresoOficial(origin, toYYYYMMDD(today), '19:00');
+  assert.match(resultClosed.msg, /^las personas ya se retiraron del punto fijo/);
+});

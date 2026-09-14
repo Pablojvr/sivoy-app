@@ -77,7 +77,7 @@ function findDestino(data, nombre) {
     const nLower = nombre.toLowerCase();
     for (const d of data) {
         if (!d || typeof d !== 'object') continue;
-        if ((d.nombre_destino && d.nombre_destino.toLowerCase() === nLower) || 
+        if ((d.nombre_destino && d.nombre_destino.toLowerCase() === nLower) ||
             (d.id_destino && d.id_destino.toLowerCase() === nLower)) {
             return d;
         }
@@ -85,16 +85,17 @@ function findDestino(data, nombre) {
     return null;
 }
 
-function calcularIngresoOficial(origen, fechaDropoffStr, horaDropoff) {
-    let currentDate = new Date(fechaDropoffStr + "T00:00:00");
-    
+const { OFFICIAL_ENTRY_STATUS, calculateOfficialEntry } = require('../src/core/eta/official-entry');
+
+// TODO: Removal of this legacy fallback depends on boundary date validation (T08); do not drop it just because of T09e.
+function calcularIngresoOficialLegacy(origen, currentDate, horaDropoff, today) {
     if (origen.is_pin) {
         return {
             date: currentDate,
             msg: `Recolección programada en tu ubicación el ${formatFriendlyDate(currentDate)}`
         };
     }
-    
+
     let diaStr = getDiaFromDate(currentDate);
     const normalize = (s) => s ? s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase() : '';
     const horariosHoy = (origen.horarios_operativos || [])
@@ -104,12 +105,9 @@ function calcularIngresoOficial(origen, fechaDropoffStr, horaDropoff) {
         horaDropoff >= h.hora_apertura && horaDropoff <= h.hora_cierre
     );
     const proximoHorario = horariosHoy.find(h => horaDropoff < h.hora_apertura);
-    
+
     if (horarioActivo) {
-        const today = new Date();
-        let isToday = canUseDateCore(currentDate) && canUseDateCore(today)
-            ? dateCore.compare(dateToCivil(currentDate), dateToCivil(today)) === 0
-            : currentDate.toDateString() === today.toDateString();
+        let isToday = currentDate.toDateString() === today.toDateString();
         return {
             date: currentDate,
             msg: isToday ? `Abierto el día de hoy, ${formatFriendlyDate(currentDate)}` : `A tiempo el ${formatFriendlyDate(currentDate)}`
@@ -123,13 +121,12 @@ function calcularIngresoOficial(origen, fechaDropoffStr, horaDropoff) {
             msg: `${tipoOrigen} en el horario de ${formatTime12(proximoHorario.hora_apertura)} a ${formatTime12(proximoHorario.hora_cierre)}`
         };
     }
-    
+
     let tipoOrigenCerrado = origen.tipo?.toLowerCase() === 'agencia' ? 'la agencia ya cerró este día' : 'las personas ya se retiraron del punto fijo';
-    
+
     for (let i = 0; i < 7; i++) {
         currentDate = addDays(currentDate, 1);
         let diaEvalStr = getDiaFromDate(currentDate);
-        const normalize = (s) => s ? s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase() : '';
         if (origen.horarios_operativos?.some(h => normalize(h.dia_semana) === normalize(diaEvalStr))) {
             return {
                 date: currentDate,
@@ -138,6 +135,76 @@ function calcularIngresoOficial(origen, fechaDropoffStr, horaDropoff) {
         }
     }
     return { date: null, msg: "Error: El origen no tiene días operativos" };
+}
+
+function calcularIngresoOficial(origen, fechaDropoffStr, horaDropoff) {
+    let currentDate = new Date(fechaDropoffStr + "T00:00:00");
+    const today = new Date();
+
+    if (!canUseDateCore(currentDate) || !canUseDateCore(today)) {
+        return calcularIngresoOficialLegacy(origen, currentDate, horaDropoff, today);
+    }
+
+    const dropoffDate = dateToCivil(currentDate);
+    const civilToday = dateToCivil(today);
+
+    const schedules = [];
+    if (origen.horarios_operativos) {
+        for (const h of origen.horarios_operativos) {
+            const w = getDayIndexFromString(h.dia_semana);
+            if (w !== -1) {
+                schedules.push({
+                    weekday: w,
+                    openTime: h.hora_apertura,
+                    closeTime: h.hora_cierre
+                });
+            }
+        }
+    }
+
+    const result = calculateOfficialEntry({
+        isPin: !!origen.is_pin,
+        dropoffDate,
+        dropoffTime: horaDropoff,
+        schedules,
+        today: civilToday
+    });
+
+    switch (result.status) {
+        case OFFICIAL_ENTRY_STATUS.PIN:
+            return {
+                date: civilToDate(result.officialDate),
+                msg: `Recolección programada en tu ubicación el ${formatFriendlyDate(civilToDate(result.officialDate))}`
+            };
+        case OFFICIAL_ENTRY_STATUS.ACTIVE_TODAY:
+            return {
+                date: civilToDate(result.officialDate),
+                msg: `Abierto el día de hoy, ${formatFriendlyDate(civilToDate(result.officialDate))}`
+            };
+        case OFFICIAL_ENTRY_STATUS.ACTIVE_FUTURE:
+            return {
+                date: civilToDate(result.officialDate),
+                msg: `A tiempo el ${formatFriendlyDate(civilToDate(result.officialDate))}`
+            };
+        case OFFICIAL_ENTRY_STATUS.BEFORE_NEXT_INTERVAL: {
+            let tipoOrigen = origen.tipo?.toLowerCase() === 'agencia' ? 'La agencia abre' : 'El personal llega';
+            return {
+                date: civilToDate(result.officialDate),
+                msg: `${tipoOrigen} en el horario de ${formatTime12(result.nextInterval.openTime)} a ${formatTime12(result.nextInterval.closeTime)}`
+            };
+        }
+        case OFFICIAL_ENTRY_STATUS.CLOSED_UNTIL_NEXT_DAY: {
+            let tipoOrigenCerrado = origen.tipo?.toLowerCase() === 'agencia' ? 'la agencia ya cerró este día' : 'las personas ya se retiraron del punto fijo';
+            return {
+                date: civilToDate(result.officialDate),
+                msg: `${tipoOrigenCerrado}, se calculó tu entrega para el día siguiente operativo (${formatFriendlyDate(civilToDate(result.officialDate))}).`
+            };
+        }
+        case OFFICIAL_ENTRY_STATUS.NO_OPERATING_DAYS:
+            return { date: null, msg: "Error: El origen no tiene días operativos" };
+        default:
+            throw new Error(`Unknown official entry status: ${result.status}`);
+    }
 }
 
 function getCorteDate(fechaDeseada, reglaCorteStr) {
@@ -150,7 +217,7 @@ function getCorteDate(fechaDeseada, reglaCorteStr) {
     } else {
         const targetWeekday = getDayIndexFromString(reglaLower);
         if (targetWeekday === -1) return addDays(fechaDeseada, -1);
-        
+
         let corteDate = addDays(fechaDeseada, -1);
         while ((canUseDateCore(corteDate) ? dateCore.weekday(dateToCivil(corteDate)) : corteDate.getDay()) !== targetWeekday) {
             corteDate = addDays(corteDate, -1);
@@ -161,7 +228,7 @@ function getCorteDate(fechaDeseada, reglaCorteStr) {
 
 function validarFechaDeseada(destino, ingresoOficialDate, fechaDeseadaStr) {
     const fechaDeseada = new Date(fechaDeseadaStr + "T00:00:00");
-    
+
     if (destino.is_pin) {
         return { esPosible: true, msg: "Entrega a domicilio confirmada." };
     }
@@ -169,7 +236,7 @@ function validarFechaDeseada(destino, ingresoOficialDate, fechaDeseadaStr) {
     const normalize = (s) => s ? s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase() : '';
     const diaDeseadoStr = normalize(getDiaFromDate(fechaDeseada));
     const reglas = destino.reglas_entrega || [];
-    
+
     let reglaAplicable = null;
     for (const r of reglas) {
         const entregaStr = normalize(r.dia_entrega);
@@ -178,17 +245,17 @@ function validarFechaDeseada(destino, ingresoOficialDate, fechaDeseadaStr) {
             break;
         }
     }
-    
+
     if (!reglaAplicable) {
-        return { 
-            esPosible: false, 
-            msg: `El destino no recibe entregas los días ${diaDeseadoStr}.` 
+        return {
+            esPosible: false,
+            msg: `El destino no recibe entregas los días ${diaDeseadoStr}.`
         };
     }
-    
+
     const corteDate = getCorteDate(fechaDeseada, reglaAplicable.dia_corte_maximo);
     const corteDateStr = formatFriendlyDate(corteDate);
-    
+
     const ingresoIso = canUseDateCore(ingresoOficialDate)
         ? dateCore.toIsoDate(dateToCivil(ingresoOficialDate))
         : ingresoOficialDate.toISOString().split('T')[0];
@@ -215,7 +282,7 @@ function proyectarProximasRutas(destino, ingresoOficialDate, limite = 3) {
     const opciones = [];
     let evalDate = new Date(ingresoOficialDate.getTime());
     let diasIterados = 0;
-    
+
     // Iteramos al futuro máximo 60 días para seguridad
     while (opciones.length < limite && diasIterados < 60) {
         const evalCivil = canUseDateCore(evalDate) ? dateToCivil(evalDate) : null;
@@ -227,7 +294,7 @@ function proyectarProximasRutas(destino, ingresoOficialDate, limite = 3) {
             const horarios = (destino.horarios_operativos || [])
                 .filter(h => normalize(h.dia_semana) === normalize(diaStr))
                 .sort((a, b) => a.hora_apertura.localeCompare(b.hora_apertura));
-            
+
             if (horarios.length === 0 || horarios.some(h => !h.hora_apertura || !h.hora_cierre)) {
                 // If there's no operating hours, the location is closed on this day.
                 // We should NOT project this day as an arrival option. Move to the next day.

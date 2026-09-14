@@ -67,8 +67,9 @@
 ## T09e: Cutover y aislamiento final
 
 *   **Archivos:** `backend/services/logistics.js` (1 archivo).
+*   **Dependencias:** T08.
 *   **Criterios de aceptación:**
-    1.  Ejecutar el cutover internamente solo sobre `backend/services/logistics.js`.
+    1.  Ejecutar el cutover internamente solo sobre `backend/services/logistics.js`. De forma explícita: la eliminación del fallback legacy está condicionada a que la validación de límites de T08 esté completada; si T08 no está completa, T09e debe retener el fallback. No se debe descartar la compatibilidad incondicionalmente.
     2.  Dejar inalterado `backend/src/domains/rutas/rutas.service.js` porque su contrato queda preservado por el adaptador.
     3.  Asegurar que pasen todas las pruebas completas del backend y chequeos de sintaxis sin alertas en dependencias NPM de producción.
 *   **Comandos de prueba:**

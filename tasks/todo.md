@@ -49,7 +49,8 @@ máximo cinco archivos. Un paquete no es autorización para modificar código.
 - [ ] T09 Extraer fechas y horarios al núcleo ETA puro.
   - [x] T09a: Caracterización y contratos del núcleo temporal.
     - Resultado auditado: 23 pruebas focalizadas en UTC, America/Los_Angeles y America/El_Salvador; 145/145 pruebas backend, sintaxis y diff verdes; ningún consumidor modificado.
-  - [ ] T09b: Implementación de pureza en adapter logístico.
+  - [x] T09b: Implementación de pureza en adapter logístico.
+    - Resultado auditado: 12 pruebas enfocadas en cada uno de UTC, America/Los_Angeles y America/El_Salvador; 150/150 pruebas de backend; contratos legados, comparación instantánea, comportamiento de fecha inválida y fechas fuera del rango principal preservadas.
   - [ ] T09c: Extracción de cálculo de ingreso oficial.
   - [ ] T09d: Extracción de reglas de proyección de rutas.
   - [ ] T09e: Cutover y aislamiento final.

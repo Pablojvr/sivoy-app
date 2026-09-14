@@ -1,16 +1,45 @@
 const IDX_TO_DIA = {0: "Domingo", 1: "Lunes", 2: "Martes", 3: "Miércoles", 4: "Jueves", 5: "Viernes", 6: "Sábado"};
 const IDX_TO_MES = {0: "Enero", 1: "Febrero", 2: "Marzo", 3: "Abril", 4: "Mayo", 5: "Junio", 6: "Julio", 7: "Agosto", 8: "Septiembre", 9: "Octubre", 10: "Noviembre", 11: "Diciembre"};
+const dateCore = require('../src/core/eta/date');
+
+function canUseDateCore(date) {
+    const year = date.getFullYear();
+    return !Number.isNaN(date.getTime()) && year >= 1900 && year <= 2100;
+}
+
+function dateToCivil(date) {
+    if (Number.isNaN(date.getTime())) {
+        date.toISOString();
+    }
+    return {
+        year: date.getFullYear(),
+        month: date.getMonth() + 1,
+        day: date.getDate()
+    };
+}
+
+function civilToDate(civilDate) {
+    return new Date(civilDate.year, civilDate.month - 1, civilDate.day);
+}
 
 // Helper to add days
 function addDays(date, days) {
-    const result = new Date(date);
-    result.setDate(result.getDate() + days);
-    return result;
+    if (!canUseDateCore(date)) {
+        const result = new Date(date);
+        result.setDate(result.getDate() + days);
+        return result;
+    }
+    const civil = dateToCivil(date);
+    return civilToDate(dateCore.addDays(civil, days));
 }
 
 // Helper to get string name of day
 function getDiaFromDate(date) {
-    return IDX_TO_DIA[date.getDay()];
+    if (!canUseDateCore(date)) {
+        return IDX_TO_DIA[date.getDay()];
+    }
+    const civil = dateToCivil(date);
+    return IDX_TO_DIA[dateCore.weekday(civil)];
 }
 
 function formatTime12(timeStr) {
@@ -23,9 +52,13 @@ function formatTime12(timeStr) {
 }
 
 function formatFriendlyDate(date) {
-    const dayName = getDiaFromDate(date);
-    const day = date.getDate();
-    const month = IDX_TO_MES[date.getMonth()];
+    if (!canUseDateCore(date)) {
+        return `${getDiaFromDate(date)}, ${date.getDate()} de ${IDX_TO_MES[date.getMonth()]}`;
+    }
+    const civil = dateToCivil(date);
+    const dayName = IDX_TO_DIA[dateCore.weekday(civil)];
+    const day = civil.day;
+    const month = IDX_TO_MES[civil.month - 1];
     return `${dayName}, ${day} de ${month}`;
 }
 
@@ -73,7 +106,10 @@ function calcularIngresoOficial(origen, fechaDropoffStr, horaDropoff) {
     const proximoHorario = horariosHoy.find(h => horaDropoff < h.hora_apertura);
     
     if (horarioActivo) {
-        let isToday = currentDate.toDateString() === new Date().toDateString();
+        const today = new Date();
+        let isToday = canUseDateCore(currentDate) && canUseDateCore(today)
+            ? dateCore.compare(dateToCivil(currentDate), dateToCivil(today)) === 0
+            : currentDate.toDateString() === today.toDateString();
         return {
             date: currentDate,
             msg: isToday ? `Abierto el día de hoy, ${formatFriendlyDate(currentDate)}` : `A tiempo el ${formatFriendlyDate(currentDate)}`
@@ -116,7 +152,7 @@ function getCorteDate(fechaDeseada, reglaCorteStr) {
         if (targetWeekday === -1) return addDays(fechaDeseada, -1);
         
         let corteDate = addDays(fechaDeseada, -1);
-        while (corteDate.getDay() !== targetWeekday) {
+        while ((canUseDateCore(corteDate) ? dateCore.weekday(dateToCivil(corteDate)) : corteDate.getDay()) !== targetWeekday) {
             corteDate = addDays(corteDate, -1);
         }
         return corteDate;
@@ -153,16 +189,23 @@ function validarFechaDeseada(destino, ingresoOficialDate, fechaDeseadaStr) {
     const corteDate = getCorteDate(fechaDeseada, reglaAplicable.dia_corte_maximo);
     const corteDateStr = formatFriendlyDate(corteDate);
     
+    const ingresoIso = canUseDateCore(ingresoOficialDate)
+        ? dateCore.toIsoDate(dateToCivil(ingresoOficialDate))
+        : ingresoOficialDate.toISOString().split('T')[0];
+    const corteIso = canUseDateCore(corteDate)
+        ? dateCore.toIsoDate(dateToCivil(corteDate))
+        : corteDate.toISOString().split('T')[0];
+
     if (ingresoOficialDate.getTime() <= corteDate.getTime()) {
         return {
             esPosible: true,
-            msg: `Aprobado. Ingreso (${ingresoOficialDate.toISOString().split('T')[0]}) es <= Corte (${corteDate.toISOString().split('T')[0]}).`,
+            msg: `Aprobado. Ingreso (${ingresoIso}) es <= Corte (${corteIso}).`,
             corteDateStr: corteDateStr
         };
     } else {
         return {
             esPosible: false,
-            msg: `Rechazado. El ingreso es (${ingresoOficialDate.toISOString().split('T')[0]}) pero la ruta cortaba el (${corteDate.toISOString().split('T')[0]}).`,
+            msg: `Rechazado. El ingreso es (${ingresoIso}) pero la ruta cortaba el (${corteIso}).`,
             corteDateStr: corteDateStr
         };
     }
@@ -175,7 +218,9 @@ function proyectarProximasRutas(destino, ingresoOficialDate, limite = 3) {
     
     // Iteramos al futuro máximo 60 días para seguridad
     while (opciones.length < limite && diasIterados < 60) {
-        const result = validarFechaDeseada(destino, ingresoOficialDate, evalDate.toISOString().split('T')[0]);
+        const evalCivil = canUseDateCore(evalDate) ? dateToCivil(evalDate) : null;
+        const evalIso = evalCivil ? dateCore.toIsoDate(evalCivil) : evalDate.toISOString().split('T')[0];
+        const result = validarFechaDeseada(destino, ingresoOficialDate, evalIso);
         if (result.esPosible) {
             const diaStr = getDiaFromDate(evalDate);
             const normalize = (s) => s ? s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase() : '';
@@ -211,7 +256,7 @@ function proyectarProximasRutas(destino, ingresoOficialDate, limite = 3) {
 
             opciones.push({
                 fecha_llegada: formatFriendlyDate(evalDate),
-                fecha_llegada_iso: evalDate.toISOString().split('T')[0],
+                fecha_llegada_iso: evalIso,
                 horario_recoleccion: horarioStr
             });
         }

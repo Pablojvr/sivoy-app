@@ -99,3 +99,53 @@ test('reports every public service interval for the promised destination day', (
 
   assert.equal(options[0].horario_recoleccion, '8:00 AM a 12:00 PM / 1:00 PM a 4:00 PM');
 });
+
+test('preserves the localized civil day while adapting legacy Date values', () => {
+  const origin = point({
+    schedules: [{ dia_semana: 'Lunes', hora_apertura: '09:00', hora_cierre: '16:00' }]
+  });
+
+  const result = calcularIngresoOficial(origin, '2026-09-07', '10:00');
+
+  assert.match(result.msg, /Lunes, 7 de Septiembre/);
+});
+
+test('preserves date-only values in cutoff messages', () => {
+  const destination = point({
+    schedules: [{ dia_semana: 'Lunes', hora_apertura: '09:00', hora_cierre: '16:00' }],
+    rules: [{ dia_entrega: 'Lunes', dia_corte_maximo: 'Día anterior' }]
+  });
+
+  const result = validarFechaDeseada(destination, new Date('2026-09-06T00:00:00'), '2026-09-07');
+
+  assert.equal(result.esPosible, true);
+  assert.match(result.msg, /Ingreso \(2026-09-06\) es <= Corte \(2026-09-06\)/);
+});
+
+test('preserves the legacy result for an invalid dropoff date', () => {
+  const origin = point({
+    schedules: [{ dia_semana: 'Lunes', hora_apertura: '09:00', hora_cierre: '16:00' }]
+  });
+
+  const result = calcularIngresoOficial(origin, 'invalid-date', '16:00');
+
+  assert.deepEqual(result, { date: null, msg: 'Error: El origen no tiene días operativos' });
+});
+
+test('preserves RangeError when route projection receives an invalid Date', () => {
+  const destination = point({ schedules: [], rules: [] });
+
+  assert.throws(() => proyectarProximasRutas(destination, new Date(NaN), 1), RangeError);
+});
+
+test('preserves legacy handling outside the civil-core year range', () => {
+  const destination = point({
+    schedules: [],
+    rules: [{ dia_entrega: 'Diario', dia_corte_maximo: 'Día anterior' }]
+  });
+
+  const result = validarFechaDeseada(destination, new Date('2200-01-01T00:00:00'), '2200-01-02');
+
+  assert.equal(result.esPosible, true);
+  assert.match(result.msg, /Ingreso \(2200-01-01\) es <= Corte \(2200-01-01\)/);
+});

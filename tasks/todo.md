@@ -47,7 +47,8 @@ máximo cinco archivos. Un paquete no es autorización para modificar código.
 - [ ] T07 Definir contratos de búsqueda de rutas.
 - [ ] T08 Añadir validación de entrada y errores consistentes.
 - [ ] T09 Extraer fechas y horarios al núcleo ETA puro.
-  - [ ] T09a: Caracterización y contratos del núcleo temporal.
+  - [x] T09a: Caracterización y contratos del núcleo temporal.
+    - Resultado auditado: 23 pruebas focalizadas en UTC, America/Los_Angeles y America/El_Salvador; 145/145 pruebas backend, sintaxis y diff verdes; ningún consumidor modificado.
   - [ ] T09b: Implementación de pureza en adapter logístico.
   - [ ] T09c: Extracción de cálculo de ingreso oficial.
   - [ ] T09d: Extracción de reglas de proyección de rutas.

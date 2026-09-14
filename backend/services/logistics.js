@@ -24,7 +24,7 @@ function civilToDate(civilDate) {
 
 // Helper to add days
 function addDays(date, days) {
-    if (!canUseDateCore(date)) {
+    if (!canUseDateCore(date) || !staysWithinDateCore(date, days)) {
         const result = new Date(date);
         result.setDate(result.getDate() + days);
         return result;
@@ -86,6 +86,7 @@ function findDestino(data, nombre) {
 }
 
 const { OFFICIAL_ENTRY_STATUS, calculateOfficialEntry } = require('../src/core/eta/official-entry');
+const routeProjection = require('../src/core/eta/route-projection');
 
 // TODO: Removal of this legacy fallback depends on boundary date validation (T08); do not drop it just because of T09e.
 function calcularIngresoOficialLegacy(origen, currentDate, horaDropoff, today) {
@@ -226,7 +227,56 @@ function getCorteDate(fechaDeseada, reglaCorteStr) {
     }
 }
 
-function validarFechaDeseada(destino, ingresoOficialDate, fechaDeseadaStr) {
+function isLocalMidnight(date) {
+    return date.getHours() === 0 && date.getMinutes() === 0 && date.getSeconds() === 0 && date.getMilliseconds() === 0;
+}
+
+function staysWithinDateCore(date, dayOffset) {
+    const edgeDate = new Date(date);
+    edgeDate.setDate(edgeDate.getDate() + dayOffset);
+    return canUseDateCore(edgeDate);
+}
+
+function mapDestinoToRules(destino) {
+    const normalize = (value) => value
+        ? value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
+        : '';
+
+    return (destino.reglas_entrega || []).map(r => {
+        const diaEntrega = normalize(r.dia_entrega);
+        let cutoffType = routeProjection.CUTOFF_TYPE.PREVIOUS_DAY;
+        let cutoffWeekday = null;
+
+        const reglaLower = r.dia_corte_maximo ? r.dia_corte_maximo.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase() : '';
+        if (reglaLower === 'mismo dia') {
+            cutoffType = routeProjection.CUTOFF_TYPE.SAME_DAY;
+        } else if (reglaLower !== 'dia anterior') {
+            const dayIdx = getDayIndexFromString(reglaLower);
+            if (dayIdx !== -1) {
+                cutoffType = routeProjection.CUTOFF_TYPE.WEEKDAY;
+                cutoffWeekday = dayIdx;
+            }
+        }
+
+        return {
+            deliveryWeekday: diaEntrega === 'diario' ? null : getDayIndexFromString(diaEntrega),
+            cutoffType,
+            cutoffWeekday
+        };
+    });
+}
+
+function mapDestinoToSchedules(destino) {
+    return (destino.horarios_operativos || []).map(h => {
+        return {
+            weekday: getDayIndexFromString(h.dia_semana),
+            openTime: h.hora_apertura,
+            closeTime: h.hora_cierre
+        };
+    }).filter(s => s.weekday !== -1);
+}
+
+function validarFechaDeseadaLegacy(destino, ingresoOficialDate, fechaDeseadaStr) {
     const fechaDeseada = new Date(fechaDeseadaStr + "T00:00:00");
 
     if (destino.is_pin) {
@@ -278,7 +328,85 @@ function validarFechaDeseada(destino, ingresoOficialDate, fechaDeseadaStr) {
     }
 }
 
-function proyectarProximasRutas(destino, ingresoOficialDate, limite = 3) {
+function validarFechaDeseada(destino, ingresoOficialDate, fechaDeseadaStr) {
+    if (!canUseDateCore(ingresoOficialDate) || !isLocalMidnight(ingresoOficialDate)) {
+        return validarFechaDeseadaLegacy(destino, ingresoOficialDate, fechaDeseadaStr);
+    }
+    const fechaDeseada = new Date(fechaDeseadaStr + "T00:00:00");
+    if (!canUseDateCore(fechaDeseada) || !staysWithinDateCore(fechaDeseada, -7)) {
+        return validarFechaDeseadaLegacy(destino, ingresoOficialDate, fechaDeseadaStr);
+    }
+
+    const rules = mapDestinoToRules(destino);
+    const result = routeProjection.validateDesiredDate(
+        !!destino.is_pin,
+        rules,
+        dateToCivil(ingresoOficialDate),
+        dateToCivil(fechaDeseada)
+    );
+
+    const diaDeseadoStr = getDiaFromDate(fechaDeseada)
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase();
+
+    if (result.status === routeProjection.ROUTE_RULE_STATUS.PIN) {
+        return { esPosible: true, msg: "Entrega a domicilio confirmada." };
+    }
+
+    if (result.status === routeProjection.ROUTE_RULE_STATUS.NO_DELIVERY) {
+        return {
+            esPosible: false,
+            msg: `El destino no recibe entregas los días ${diaDeseadoStr}.`
+        };
+    }
+
+    const corteDate = civilToDate(result.cutoffDate);
+    const corteDateStr = formatFriendlyDate(corteDate);
+    const ingresoIso = dateCore.toIsoDate(dateToCivil(ingresoOficialDate));
+    const corteIso = dateCore.toIsoDate(result.cutoffDate);
+
+    if (result.status === routeProjection.ROUTE_RULE_STATUS.APPROVED) {
+        return {
+            esPosible: true,
+            msg: `Aprobado. Ingreso (${ingresoIso}) es <= Corte (${corteIso}).`,
+            corteDateStr: corteDateStr
+        };
+    }
+
+    if (result.status === routeProjection.ROUTE_RULE_STATUS.REJECTED_CUTOFF) {
+        return {
+            esPosible: false,
+            msg: `Rechazado. El ingreso es (${ingresoIso}) pero la ruta cortaba el (${corteIso}).`,
+            corteDateStr: corteDateStr
+        };
+    }
+
+    throw new Error(`Unknown route rule status: ${result.status}`);
+}
+
+function formatProjectedTime(timeStr) {
+    if (typeof timeStr === 'number') {
+        const h = Math.floor(timeStr / 60);
+        const m = timeStr % 60;
+        const ampm = h >= 12 ? 'PM' : 'AM';
+        return `${h % 12 || 12}:${m.toString().padStart(2, '0')} ${ampm}`;
+    }
+    const parts = String(timeStr).split(':');
+    const h = parseInt(parts[0], 10) || 0;
+    const m = parseInt(parts[1], 10) || 0;
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    const h12 = h % 12 || 12;
+    return `${h12}:${m.toString().padStart(2, '0')} ${ampm}`;
+}
+
+function formatProjectedIntervals(intervals, openKey, closeKey) {
+    return intervals
+        .map(i => `${formatProjectedTime(i[openKey])} a ${formatProjectedTime(i[closeKey])}`)
+        .join(' / ');
+}
+
+function proyectarProximasRutasLegacy(destino, ingresoOficialDate, limite = 3) {
     const opciones = [];
     let evalDate = new Date(ingresoOficialDate.getTime());
     let diasIterados = 0;
@@ -303,23 +431,7 @@ function proyectarProximasRutas(destino, ingresoOficialDate, limite = 3) {
                 continue;
             }
 
-            const formatTime = (timeStr) => {
-                if (typeof timeStr === 'number') {
-                    const h = Math.floor(timeStr / 60);
-                    const m = timeStr % 60;
-                    const ampm = h >= 12 ? 'PM' : 'AM';
-                    return `${h % 12 || 12}:${m.toString().padStart(2, '0')} ${ampm}`;
-                }
-                const parts = String(timeStr).split(':');
-                const h = parseInt(parts[0], 10) || 0;
-                const m = parseInt(parts[1], 10) || 0;
-                const ampm = h >= 12 ? 'PM' : 'AM';
-                const h12 = h % 12 || 12;
-                return `${h12}:${m.toString().padStart(2, '0')} ${ampm}`;
-            };
-            const horarioStr = horarios
-                .map(horario => `${formatTime(horario.hora_apertura)} a ${formatTime(horario.hora_cierre)}`)
-                .join(' / ');
+            const horarioStr = formatProjectedIntervals(horarios, 'hora_apertura', 'hora_cierre');
 
             opciones.push({
                 fecha_llegada: formatFriendlyDate(evalDate),
@@ -331,6 +443,36 @@ function proyectarProximasRutas(destino, ingresoOficialDate, limite = 3) {
         diasIterados++;
     }
     return opciones;
+}
+
+function proyectarProximasRutas(destino, ingresoOficialDate, limite = 3) {
+    if (!canUseDateCore(ingresoOficialDate) ||
+        !isLocalMidnight(ingresoOficialDate) ||
+        !staysWithinDateCore(ingresoOficialDate, 60)) {
+        return proyectarProximasRutasLegacy(destino, ingresoOficialDate, limite);
+    }
+
+    const rules = mapDestinoToRules(destino);
+    const schedules = mapDestinoToSchedules(destino);
+
+    const projected = routeProjection.projectRoutes(
+        !!destino.is_pin,
+        rules,
+        schedules,
+        dateToCivil(ingresoOficialDate),
+        limite
+    );
+
+    return projected.map(opt => {
+        const arrivalDate = civilToDate(opt.date);
+        const horarioStr = formatProjectedIntervals(opt.intervals, 'openTime', 'closeTime');
+
+        return {
+            fecha_llegada: formatFriendlyDate(arrivalDate),
+            fecha_llegada_iso: dateCore.toIsoDate(opt.date),
+            horario_recoleccion: horarioStr
+        };
+    });
 }
 
 module.exports = {

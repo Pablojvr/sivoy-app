@@ -1,4 +1,4 @@
-const test = require('node:test');
+const { test } = require('node:test');
 const assert = require('node:assert/strict');
 
 const {
@@ -210,4 +210,122 @@ test('adapter: handles non-agencia wording for before interval and closed', () =
 
   const resultClosed = calcularIngresoOficial(origin, toYYYYMMDD(today), '19:00');
   assert.match(resultClosed.msg, /^las personas ya se retiraron del punto fijo/);
+});
+
+const routeProjectionMod = require('../src/core/eta/route-projection');
+
+test('adapter: same-day noon vs same-day cutoff remains rejected and projection parity', (t) => {
+  t.mock.method(routeProjectionMod, 'validateDesiredDate');
+  t.mock.method(routeProjectionMod, 'projectRoutes');
+
+  const destino = {
+    reglas_entrega: [
+      { dia_entrega: 'diario', dia_corte_maximo: 'mismo dia' }
+    ],
+    horarios_operativos: [
+      { dia_semana: 'Lunes', hora_apertura: '08:00', hora_cierre: '18:00' }
+    ]
+  };
+
+  const midnightIngreso = new Date('2026-09-14T00:00:00');
+  const resMidnight = validarFechaDeseada(destino, midnightIngreso, '2026-09-14');
+  assert.strictEqual(resMidnight.esPosible, true);
+
+  const noonIngreso = new Date('2026-09-14T12:00:00');
+  const resNoon = validarFechaDeseada(destino, noonIngreso, '2026-09-14');
+
+  assert.strictEqual(resNoon.esPosible, false);
+
+  const projMidnight = proyectarProximasRutas(destino, midnightIngreso, 1);
+  assert.strictEqual(projMidnight.length, 1);
+
+  const projNoon = proyectarProximasRutas(destino, noonIngreso, 1);
+  assert.strictEqual(projNoon[0].fecha_llegada_iso, '2026-09-21');
+  assert.strictEqual(projMidnight[0].fecha_llegada_iso, '2026-09-14');
+
+  assert.strictEqual(
+    routeProjectionMod.validateDesiredDate.mock.callCount(),
+    1,
+    'expected one core validation call'
+  );
+  assert.strictEqual(
+    routeProjectionMod.projectRoutes.mock.callCount(),
+    1,
+    'expected one core projection call'
+  );
+});
+
+test('adapter: preserves legacy normalization and date-core boundary behavior', () => {
+  const noMatchDestination = {
+    reglas_entrega: [{ dia_entrega: 'Falso', dia_corte_maximo: 'Día anterior' }]
+  };
+  const noMatch = validarFechaDeseada(
+    noMatchDestination,
+    new Date('2026-09-14T00:00:00'),
+    '2026-09-16'
+  );
+  assert.deepStrictEqual(noMatch, {
+    esPosible: false,
+    msg: 'El destino no recibe entregas los días miercoles.'
+  });
+
+  const boundaryDestination = {
+    reglas_entrega: [{ dia_entrega: 'Diario', dia_corte_maximo: 'Mismo día' }],
+    horarios_operativos: [
+      { dia_semana: 'Viernes', hora_apertura: '08:00', hora_cierre: '17:00' }
+    ]
+  };
+  const boundaryProjection = proyectarProximasRutas(
+    boundaryDestination,
+    new Date('2100-12-31T00:00:00'),
+    1
+  );
+  assert.strictEqual(boundaryProjection[0].fecha_llegada_iso, '2100-12-31');
+});
+
+test('adapter: validarFechaDeseada on is_pin returns exact legacy success message', () => {
+  const destination = { is_pin: true };
+  const result = validarFechaDeseada(destination, new Date('2026-09-14T00:00:00'), '2026-09-15');
+  assert.deepStrictEqual(result, { esPosible: true, msg: 'Entrega a domicilio confirmada.' });
+});
+
+test('adapter: proyectarProximasRutas on pin with Spanish schedule produces legacy option shape; pin without schedule remains empty', () => {
+  const pinWithSchedule = {
+    is_pin: true,
+    horarios_operativos: [{ dia_semana: 'Lunes', hora_apertura: '09:00', hora_cierre: '18:00' }]
+  };
+  const pinNoSchedule = { is_pin: true };
+  const baseDate = new Date('2026-09-14T00:00:00'); // Monday
+
+  const withSchedRes = proyectarProximasRutas(pinWithSchedule, baseDate, 1);
+  assert.strictEqual(withSchedRes.length, 1);
+  assert.deepStrictEqual(withSchedRes[0], {
+    fecha_llegada: 'Lunes, 14 de Septiembre',
+    fecha_llegada_iso: '2026-09-14',
+    horario_recoleccion: '9:00 AM a 6:00 PM'
+  });
+
+  const noSchedRes = proyectarProximasRutas(pinNoSchedule, baseDate, 1);
+  assert.strictEqual(noSchedRes.length, 0);
+});
+
+test('adapter: unknown cutoff maps to previous-day semantics, unknown delivery day remains no-delivery', () => {
+  const destination = {
+    reglas_entrega: [{ dia_entrega: 'Lunes', dia_corte_maximo: 'Inventado' }],
+    horarios_operativos: [{ dia_semana: 'Lunes', hora_apertura: '09:00', hora_cierre: '18:00' }]
+  };
+
+  const valid = validarFechaDeseada(destination, new Date('2026-09-13T00:00:00'), '2026-09-14');
+  assert.strictEqual(valid.esPosible, true);
+
+  const invalid = validarFechaDeseada(destination, new Date('2026-09-14T00:00:00'), '2026-09-14');
+  assert.strictEqual(invalid.esPosible, false);
+
+  const unknownDelivery = {
+    reglas_entrega: [{ dia_entrega: 'DiaFalso', dia_corte_maximo: 'Mismo día' }],
+    horarios_operativos: [{ dia_semana: 'Lunes', hora_apertura: '09:00', hora_cierre: '18:00' }]
+  };
+
+  const noDelivery = validarFechaDeseada(unknownDelivery, new Date('2026-09-14T00:00:00'), '2026-09-14');
+  assert.strictEqual(noDelivery.esPosible, false);
 });

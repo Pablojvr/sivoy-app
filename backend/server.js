@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const { createHttpObservability } = require('./src/core/observability/http-observability');
+const { registerObservabilityRoutes } = require('./src/core/observability/observability-routes');
 const { getDB } = require('./src/config/database');
 
 const empresasRoutes = require('./src/domains/empresas/empresas.routes');
@@ -19,8 +20,9 @@ app.use(cors(corsOptions));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
-const { middleware: observabilityMiddleware } = createHttpObservability();
-app.use('/api', observabilityMiddleware);
+const observability = createHttpObservability();
+registerObservabilityRoutes(app, observability);
+app.use('/api', observability.middleware);
 
 // Serve compiled Angular frontend
 const DIST_PATH = path.join(__dirname, '..', 'frontend', 'dist', 'frontend', 'browser');

@@ -51,18 +51,33 @@
 
 ## T09d: Extracción de reglas de proyección de rutas
 
-*   **Archivos:** `backend/src/core/eta/route-projection.js`, `backend/test/route-projection.test.js`, `backend/services/logistics.js` (3 archivos).
+### T09d1: Núcleo puro de reglas de proyección
+
+*   **Archivos:** `backend/src/core/eta/route-projection.js`, `backend/test/route-projection.test.js` (2 archivos).
 *   **Criterios de aceptación:**
     1.  Extraer el cálculo estructurado de proyección de rutas y reglas a `backend/src/core/eta/route-projection.js`.
-    2.  Implementar y validar las pruebas de la proyección de rutas en su archivo de pruebas dedicado.
-    3.  Asegurar que el adaptador `logistics.js` siga preservando la salida esperada al utilizar el nuevo cálculo.
+    2.  Implementar y validar las pruebas de la proyección de rutas de manera Pura (sin dependencias ni mocks logísticos).
 *   **Comandos de prueba:**
     ```powershell
     cd backend
-    node --test test/route-projection.test.js test/logistics.test.js
+    node --test test/route-projection.test.js
     ```
 *   **Rollback:** `git revert HEAD` (revertir commit atómico).
-*   **Fuera de alcance:** Modificar endpoints de Partner, dependencias de paquetes, controladores, TS o DB.
+*   **Fuera de alcance:** Mocks logísticos, endpoints de Partner, dependencias de paquetes, controladores, TS o DB.
+
+### T09d2: Integración del adaptador legacy
+
+*   **Archivos:** `backend/services/logistics.js`, `backend/test/logistics.test.js` (2 archivos).
+*   **Criterios de aceptación:**
+    1.  Asegurar que el adaptador `logistics.js` preserve la salida esperada consumiendo el núcleo puro.
+    2.  Mover e integrar las pruebas del adaptador explícitamente en `logistics.test.js` usando `node:test` (mock.method seguro).
+*   **Comandos de prueba:**
+    ```powershell
+    cd backend
+    node --test test/logistics.test.js
+    ```
+*   **Rollback:** `git revert HEAD` (revertir commit atómico).
+*   **Fuera de alcance:** Cambios en reglas de core puros, dependencias de paquetes, controladores, TS o DB.
 
 ## T09e: Cutover y aislamiento final
 

@@ -54,6 +54,9 @@ máximo cinco archivos. Un paquete no es autorización para modificar código.
   - [x] T09c: Extracción de cálculo de ingreso oficial.
     - Resultado auditado: 28 pruebas enfocadas por TZ (UTC, America/Los_Angeles, America/El_Salvador), 166/166 backend, DTO profundo inmutable/separado, salidas de adaptador legacy preservadas.
   - [ ] T09d: Extracción de reglas de proyección de rutas.
+    - [x] T09d1: Núcleo puro de reglas de proyección.
+      - Resultado auditado: 16 pruebas puras, incluidas en 36/36 enfocadas por TZ y 184/184 auditoría backend; salidas desconectadas profundamente congeladas; sin dependencia logística.
+    - [ ] T09d2: Integración del adaptador legacy.
   - [ ] T09e: Cutover y aislamiento final.
 - [ ] T10 Extraer casos de uso de rutas y adaptador legacy.
 - [ ] T11 Añadir repositorios por interfaz.

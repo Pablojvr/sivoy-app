@@ -40,8 +40,17 @@
 
 ## State
 
-T34 open / T34b2c empresas/excel pendiente.
+T34 global abierto / T34b2c diferido por exclusión de Partners, no completado.
+T34c1 accepted by Codex with 23 focused subtests / 107 full backend tests, syntax and diff checks passed.
 T34a accepted by Codex and evidence 12 focused subtests / 43 full backend tests, real Express route test, server check/diff check.
 T34b1 accepted by Codex and evidence 10 observability-route subtests / 54 full backend, server/diff checks.
 T34b2a accepted by Codex and evidence independent 64-test audit.
 T34b2b accepted by Codex and evidence 17 subtests for mapas/ubicaciones / 83 full backend tests, node/diff checks passed.
+
+# T34c1: Process Logger (Core TDD)
+
+## Acceptance Criteria
+
+1. **Frozen Narrow API**: Exposes `createProcessLogger(options)`. The API only allows logging `info`, `warn`, and `error` passing an event, an optional error code, and an optional fields object.
+2. **Safe Logging Sink**: Events and error codes are checked against strict allowlists (e.g. `server_startup_success`, `database_error`). Invalid inputs fallback to `unknown_event` or `unknown_code` without echoing the input. The only allowed field is `port` (integer 1..65535). Emits one JSON record to stdout/stderr.
+3. **Resilience & Testing**: Clock failures, UUID generation failures, and sink/serialization failures never propagate. The fallback is deterministic. The object is deep-frozen before passing to the sink. Contractual branch coverage for each level and fallback without throwing exceptions, including partial sinks.

@@ -65,6 +65,10 @@ máximo cinco archivos. Un paquete no es autorización para modificar código.
   - [x] T09e: Cutover y aislamiento final.
     - Resultado auditado: política de cutover aislada sin retirar fallbacks dependientes de T08; 23/23 pruebas de adaptador y rutas en UTC, America/Los_Angeles y America/El_Salvador, 187/187 backend, sintaxis y auditoría NPM de producción verdes.
 - [ ] T10 Extraer casos de uso de rutas y adaptador legacy.
+  - Spec pendiente de aprobación: `tasks/specs/T10-route-use-cases.md`.
+  - [ ] T10a: Soporte determinista de casos de uso.
+  - [ ] T10b: Fábrica de casos de uso.
+  - [ ] T10c: Adaptador legacy y cutover.
 - [ ] T11 Añadir repositorios por interfaz.
 - [x] T12 Transaccionar actualización de punto y horarios.
 - [ ] T13 Resolver y migrar contrato `id`/`id_destino`.

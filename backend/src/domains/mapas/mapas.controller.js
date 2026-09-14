@@ -6,10 +6,11 @@ async function resolveMapsLink(req, res) {
         const result = await mapasService.resolveMapsLink(url);
         res.json({ success: true, ...result });
     } catch (e) {
-        console.error('resolve-maps-link error:', e.message);
         if (e.message.startsWith('Missing')) {
+            req.log.warn('resolve_maps_link_failed', 'validation_error');
             return res.status(400).json({ error: e.message });
         }
+        req.log.error('resolve_maps_link_failed', 'maps_provider_error');
         return res.status(500).json({ success: false, error: e.message });
     }
 }
@@ -20,7 +21,11 @@ async function searchPlaces(req, res) {
         const suggestions = await mapasService.searchPlaces(query, sessionToken);
         res.json({ success: true, suggestions });
     } catch (e) {
-        console.error('places-autocomplete error:', e.message);
+        if (Number.isInteger(e.statusCode) && e.statusCode >= 400 && e.statusCode < 500) {
+            req.log.warn('search_places_failed', 'maps_request_rejected');
+        } else {
+            req.log.error('search_places_failed', 'maps_provider_error');
+        }
         res.status(e.statusCode || 500).json({
             success: false,
             code: e.code || 'MAPS_ERROR',
@@ -35,7 +40,11 @@ async function resolvePlace(req, res) {
         const place = await mapasService.resolvePlace(placeId, sessionToken);
         res.json({ success: true, place });
     } catch (e) {
-        console.error('place-details error:', e.message);
+        if (Number.isInteger(e.statusCode) && e.statusCode >= 400 && e.statusCode < 500) {
+            req.log.warn('resolve_place_failed', 'maps_request_rejected');
+        } else {
+            req.log.error('resolve_place_failed', 'maps_provider_error');
+        }
         res.status(e.statusCode || 500).json({
             success: false,
             code: e.code || 'MAPS_ERROR',

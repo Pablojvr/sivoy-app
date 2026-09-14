@@ -30,9 +30,18 @@
 2. **Safe Logging Sink**: Warning and error events emit one allowlisted JSON record containing a canonical timestamp, their explicit level, `requestId`, normalized method, resolved route, validated `event` and `errorCode`. Invalid names become `unknown_event` and `unknown_code` without echoing attacker input; timestamp or sink failures never break the request.
 3. **Controller Refactoring & Coverage**: Every `console.error` in `rutas.controller.js` is replaced by `req.log.warn` for handled validation/not-found branches and `req.log.error` for internal failures. HTTP status/body contracts remain unchanged, and tests distinguish the logger method used by every catch branch while restoring mocks.
 
+# T34b2b: Structured Controller Error Logs (Mapas & Ubicaciones)
+
+## Acceptance Criteria
+
+1. **Ubicaciones Logs**: Replace `console.error` in `ubicaciones.controller.js`. Instrument silent `testLocation` catch via `req.log`. 404 (`location_not_found`) and 400 (`validation_error`) use `req.log.warn`; 500 (`internal_error`) uses `req.log.error`. Fixed event names per endpoint. No `e.message`/`e.code` in logs. Preserve exact HTTP status/body contracts.
+2. **Mapas Logs**: Replace `console.error` in `mapas.controller.js`. Missing link input or integer `statusCode` values from 400 through 499 use `req.log.warn` with `validation_error` or `maps_request_rejected`. Every other provider failure uses `req.log.error` with `maps_provider_error`. Fixed events, no `e.message`/`e.code`. Preserve exact HTTP status/body contracts.
+3. **Resilience & Testing**: Tests safely mock both services and distinguish warn/error for every catch branch including silent testLocation. Assert no console error. Restore all globals/methods. Avoid parallel/global mock leaks.
+
 ## State
 
-T34 open / T34b2b pending.
+T34 open / T34b2c empresas/excel pendiente.
 T34a accepted by Codex and evidence 12 focused subtests / 43 full backend tests, real Express route test, server check/diff check.
 T34b1 accepted by Codex and evidence 10 observability-route subtests / 54 full backend, server/diff checks.
 T34b2a accepted by Codex and evidence independent 64-test audit.
+T34b2b accepted by Codex and evidence 17 subtests for mapas/ubicaciones / 83 full backend tests, node/diff checks passed.

@@ -497,6 +497,322 @@ test('HTTP Observability Middleware', async (t) => {
         });
     });
 
+    await t.test('ubicaciones.controller.js error logging', async (st) => {
+        const ubicacionesController = require('../src/domains/ubicaciones/ubicaciones.controller');
+        const ubicacionesService = require('../src/domains/ubicaciones/ubicaciones.service');
+
+        let consoleErrors = 0;
+        const origConsoleError = console.error;
+        console.error = () => { consoleErrors++; };
+
+        const origGetAllLocations = ubicacionesService.getAllLocations;
+        const origUpdateLocation = ubicacionesService.updateLocation;
+        const origCreateAgencia = ubicacionesService.createAgencia;
+        const origGetLocationByName = ubicacionesService.getLocationByName;
+
+        st.after(() => {
+            console.error = origConsoleError;
+            ubicacionesService.getAllLocations = origGetAllLocations;
+            ubicacionesService.updateLocation = origUpdateLocation;
+            ubicacionesService.createAgencia = origCreateAgencia;
+            ubicacionesService.getLocationByName = origGetLocationByName;
+        });
+
+        const reqMock = (params = {}, body = {}) => {
+            const logs = [];
+            return {
+                params,
+                body,
+                log: {
+                    error: (...args) => { logs.push({ level: 'error', args }); },
+                    warn: (...args) => { logs.push({ level: 'warn', args }); }
+                },
+                getLogs: () => logs
+            };
+        };
+        const resMock = () => {
+            let status = 200;
+            let body = null;
+            return {
+                status: function (s) { status = s; return this; },
+                json: function (b) { body = b; },
+                getStatus: () => status,
+                getBody: () => body
+            };
+        };
+
+        await st.test('getAllLocations - internal error', async () => {
+            ubicacionesService.getAllLocations = async () => { throw new Error("DB Error"); };
+            const req = reqMock();
+            const res = resMock();
+            await ubicacionesController.getAllLocations(req, res);
+            assert.strictEqual(res.getStatus(), 500);
+            assert.deepStrictEqual(res.getBody(), { error: "Database error" });
+            const logs = req.getLogs();
+            assert.strictEqual(logs.length, 1);
+            assert.strictEqual(logs[0].level, 'error');
+            assert.deepStrictEqual(logs[0].args, ['get_all_locations_failed', 'internal_error']);
+        });
+
+        await st.test('updateLocation - not found', async () => {
+            ubicacionesService.updateLocation = async () => { throw new Error("Location not found"); };
+            const req = reqMock({ id: '123' }, {});
+            const res = resMock();
+            await ubicacionesController.updateLocation(req, res);
+            assert.strictEqual(res.getStatus(), 404);
+            assert.deepStrictEqual(res.getBody(), { error: "Location not found" });
+            const logs = req.getLogs();
+            assert.strictEqual(logs.length, 1);
+            assert.strictEqual(logs[0].level, 'warn');
+            assert.deepStrictEqual(logs[0].args, ['update_location_failed', 'location_not_found']);
+        });
+
+        await st.test('updateLocation - internal error', async () => {
+            ubicacionesService.updateLocation = async () => { throw new Error("DB Error"); };
+            const req = reqMock({ id: '123' }, {});
+            const res = resMock();
+            await ubicacionesController.updateLocation(req, res);
+            assert.strictEqual(res.getStatus(), 500);
+            assert.deepStrictEqual(res.getBody(), { error: "Database error" });
+            const logs = req.getLogs();
+            assert.strictEqual(logs.length, 1);
+            assert.strictEqual(logs[0].level, 'error');
+            assert.deepStrictEqual(logs[0].args, ['update_location_failed', 'internal_error']);
+        });
+
+        await st.test('createAgencia - validation error', async () => {
+            ubicacionesService.createAgencia = async () => { throw new Error("Missing required fields"); };
+            const req = reqMock({}, { name: 'test' });
+            const res = resMock();
+            await ubicacionesController.createAgencia(req, res);
+            assert.strictEqual(res.getStatus(), 400);
+            assert.deepStrictEqual(res.getBody(), { error: "Missing required fields" });
+            const logs = req.getLogs();
+            assert.strictEqual(logs.length, 1);
+            assert.strictEqual(logs[0].level, 'warn');
+            assert.deepStrictEqual(logs[0].args, ['create_agencia_failed', 'validation_error']);
+        });
+
+        await st.test('createAgencia - internal error', async () => {
+            ubicacionesService.createAgencia = async () => { throw new Error("DB Error"); };
+            const req = reqMock({}, { name: 'test' });
+            const res = resMock();
+            await ubicacionesController.createAgencia(req, res);
+            assert.strictEqual(res.getStatus(), 500);
+            assert.deepStrictEqual(res.getBody(), { error: "Database error" });
+            const logs = req.getLogs();
+            assert.strictEqual(logs.length, 1);
+            assert.strictEqual(logs[0].level, 'error');
+            assert.deepStrictEqual(logs[0].args, ['create_agencia_failed', 'internal_error']);
+        });
+
+        await st.test('testLocation - internal error (silent catch)', async () => {
+            ubicacionesService.getLocationByName = async () => { throw new Error("DB Error"); };
+            const req = reqMock();
+            const res = resMock();
+            await ubicacionesController.testLocation(req, res);
+            assert.strictEqual(res.getStatus(), 500);
+            assert.deepStrictEqual(res.getBody(), { error: "Database error" });
+            const logs = req.getLogs();
+            assert.strictEqual(logs.length, 1);
+            assert.strictEqual(logs[0].level, 'error');
+            assert.deepStrictEqual(logs[0].args, ['test_location_failed', 'internal_error']);
+        });
+
+        await st.test('assert zero console.error calls', () => {
+            assert.strictEqual(consoleErrors, 0);
+        });
+    });
+
+    await t.test('mapas.controller.js error logging', async (st) => {
+        const mapasController = require('../src/domains/mapas/mapas.controller');
+        const mapasService = require('../src/domains/mapas/mapas.service');
+
+        let consoleErrors = 0;
+        const origConsoleError = console.error;
+        console.error = () => { consoleErrors++; };
+
+        const origResolveMapsLink = mapasService.resolveMapsLink;
+        const origSearchPlaces = mapasService.searchPlaces;
+        const origResolvePlace = mapasService.resolvePlace;
+
+        st.after(() => {
+            console.error = origConsoleError;
+            mapasService.resolveMapsLink = origResolveMapsLink;
+            mapasService.searchPlaces = origSearchPlaces;
+            mapasService.resolvePlace = origResolvePlace;
+        });
+
+        const reqMock = (body = {}) => {
+            const logs = [];
+            return {
+                body,
+                log: {
+                    error: (...args) => { logs.push({ level: 'error', args }); },
+                    warn: (...args) => { logs.push({ level: 'warn', args }); }
+                },
+                getLogs: () => logs
+            };
+        };
+        const resMock = () => {
+            let status = 200;
+            let body = null;
+            return {
+                status: function (s) { status = s; return this; },
+                json: function (b) { body = b; },
+                getStatus: () => status,
+                getBody: () => body
+            };
+        };
+
+        await st.test('resolveMapsLink - validation error', async () => {
+            mapasService.resolveMapsLink = async () => { throw new Error("Missing URL"); };
+            const req = reqMock({ url: '' });
+            const res = resMock();
+            await mapasController.resolveMapsLink(req, res);
+            assert.strictEqual(res.getStatus(), 400);
+            assert.deepStrictEqual(res.getBody(), { error: "Missing URL" });
+            const logs = req.getLogs();
+            assert.strictEqual(logs.length, 1);
+            assert.strictEqual(logs[0].level, 'warn');
+            assert.deepStrictEqual(logs[0].args, ['resolve_maps_link_failed', 'validation_error']);
+        });
+
+        await st.test('resolveMapsLink - maps provider error', async () => {
+            mapasService.resolveMapsLink = async () => { throw new Error("Network Error"); };
+            const req = reqMock({ url: 'https://maps.google.com' });
+            const res = resMock();
+            await mapasController.resolveMapsLink(req, res);
+            assert.strictEqual(res.getStatus(), 500);
+            assert.deepStrictEqual(res.getBody(), { success: false, error: "Network Error" });
+            const logs = req.getLogs();
+            assert.strictEqual(logs.length, 1);
+            assert.strictEqual(logs[0].level, 'error');
+            assert.deepStrictEqual(logs[0].args, ['resolve_maps_link_failed', 'maps_provider_error']);
+        });
+
+        await st.test('searchPlaces - statusCode 399 (error)', async () => {
+            mapasService.searchPlaces = async () => {
+                const err = new Error("Provider Error");
+                err.statusCode = 399;
+                throw err;
+            };
+            const req = reqMock({ query: 'test' });
+            const res = resMock();
+            await mapasController.searchPlaces(req, res);
+            assert.strictEqual(res.getStatus(), 399);
+            assert.deepStrictEqual(res.getBody(), { success: false, code: 'MAPS_ERROR', error: "Provider Error" });
+            const logs = req.getLogs();
+            assert.strictEqual(logs.length, 1);
+            assert.strictEqual(logs[0].level, 'error');
+            assert.deepStrictEqual(logs[0].args, ['search_places_failed', 'maps_provider_error']);
+        });
+
+        await st.test('searchPlaces - string "400" (error)', async () => {
+            mapasService.searchPlaces = async () => {
+                const err = new Error("Invalid request");
+                err.statusCode = "400";
+                err.code = 'INVALID_REQUEST';
+                throw err;
+            };
+            const req = reqMock({ query: 'test' });
+            const res = resMock();
+            await mapasController.searchPlaces(req, res);
+            assert.strictEqual(res.getStatus(), "400");
+            assert.deepStrictEqual(res.getBody(), { success: false, code: 'INVALID_REQUEST', error: "Invalid request" });
+            const logs = req.getLogs();
+            assert.strictEqual(logs.length, 1);
+            assert.strictEqual(logs[0].level, 'error');
+            assert.deepStrictEqual(logs[0].args, ['search_places_failed', 'maps_provider_error']);
+        });
+
+        await st.test('searchPlaces - statusCode 400 (warn)', async () => {
+            mapasService.searchPlaces = async () => {
+                const err = new Error("Invalid request");
+                err.statusCode = 400;
+                err.code = 'INVALID_REQUEST';
+                throw err;
+            };
+            const req = reqMock({ query: 'test' });
+            const res = resMock();
+            await mapasController.searchPlaces(req, res);
+            assert.strictEqual(res.getStatus(), 400);
+            assert.deepStrictEqual(res.getBody(), { success: false, code: 'INVALID_REQUEST', error: "Invalid request" });
+            const logs = req.getLogs();
+            assert.strictEqual(logs.length, 1);
+            assert.strictEqual(logs[0].level, 'warn');
+            assert.deepStrictEqual(logs[0].args, ['search_places_failed', 'maps_request_rejected']);
+        });
+
+        await st.test('searchPlaces - statusCode 404 (warn)', async () => {
+            mapasService.searchPlaces = async () => {
+                const err = new Error("Not Found");
+                err.statusCode = 404;
+                throw err;
+            };
+            const req = reqMock({ query: 'test' });
+            const res = resMock();
+            await mapasController.searchPlaces(req, res);
+            assert.strictEqual(res.getStatus(), 404);
+            assert.deepStrictEqual(res.getBody(), { success: false, code: 'MAPS_ERROR', error: "Not Found" });
+            const logs = req.getLogs();
+            assert.strictEqual(logs.length, 1);
+            assert.strictEqual(logs[0].level, 'warn');
+            assert.deepStrictEqual(logs[0].args, ['search_places_failed', 'maps_request_rejected']);
+        });
+
+        await st.test('resolvePlace - statusCode 500 (error)', async () => {
+            mapasService.resolvePlace = async () => {
+                const err = new Error("Internal Server Error");
+                err.statusCode = 500;
+                throw err;
+            };
+            const req = reqMock({ placeId: 'test' });
+            const res = resMock();
+            await mapasController.resolvePlace(req, res);
+            assert.strictEqual(res.getStatus(), 500);
+            assert.deepStrictEqual(res.getBody(), { success: false, code: 'MAPS_ERROR', error: "Internal Server Error" });
+            const logs = req.getLogs();
+            assert.strictEqual(logs.length, 1);
+            assert.strictEqual(logs[0].level, 'error');
+            assert.deepStrictEqual(logs[0].args, ['resolve_place_failed', 'maps_provider_error']);
+        });
+
+        await st.test('resolvePlace - statusCode 502 (error)', async () => {
+            mapasService.resolvePlace = async () => {
+                const err = new Error("Bad Gateway");
+                err.statusCode = 502;
+                throw err;
+            };
+            const req = reqMock({ placeId: 'test' });
+            const res = resMock();
+            await mapasController.resolvePlace(req, res);
+            assert.strictEqual(res.getStatus(), 502);
+            assert.deepStrictEqual(res.getBody(), { success: false, code: 'MAPS_ERROR', error: "Bad Gateway" });
+            const logs = req.getLogs();
+            assert.strictEqual(logs.length, 1);
+            assert.strictEqual(logs[0].level, 'error');
+            assert.deepStrictEqual(logs[0].args, ['resolve_place_failed', 'maps_provider_error']);
+        });
+
+        await st.test('resolvePlace - maps provider error (default)', async () => {
+            mapasService.resolvePlace = async () => { throw new Error("Internal"); };
+            const req = reqMock({ placeId: 'test' });
+            const res = resMock();
+            await mapasController.resolvePlace(req, res);
+            assert.strictEqual(res.getStatus(), 500);
+            assert.deepStrictEqual(res.getBody(), { success: false, code: 'MAPS_ERROR', error: "Internal" });
+            const logs = req.getLogs();
+            assert.strictEqual(logs.length, 1);
+            assert.strictEqual(logs[0].level, 'error');
+            assert.deepStrictEqual(logs[0].args, ['resolve_place_failed', 'maps_provider_error']);
+        });
+
+        await st.test('assert zero console.error calls', () => {
+            assert.strictEqual(consoleErrors, 0);
+        });
+    });
+
     await t.test('snapshot is deeply frozen and resetMetrics clears state', () => {
         'use strict';
         const { middleware, getSnapshot, resetMetrics } = createHttpObservability({

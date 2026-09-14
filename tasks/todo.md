@@ -176,7 +176,8 @@ archivos. Codex debe revisar cada diff y ejecutar build y auditoría visual.
   - [ ] T34b: structured controller errors and safe health/metrics exposure.
     - [x] T34b1: accepted by Codex and evidence 10 observability-route subtests / 54 full backend, server/diff checks.
     - [x] T34b2a: accepted by Codex and evidence independent 64-test audit.
-    - [ ] T34b2b: remaining non-route backend console logs.
+    - [x] T34b2b: accepted by Codex and evidence 17 subtests for mapas/ubicaciones / 83 full backend tests, node/diff checks passed.
+    - [ ] T34b2c: empresas/excel logs pendientes.
 - [ ] T35 Implementar pipeline completo y staging.
 - [ ] T36 Probar despliegue, smoke test y rollback.
 - [ ] T37 Escribir ADR sobre mantener o extraer `eta-core`.

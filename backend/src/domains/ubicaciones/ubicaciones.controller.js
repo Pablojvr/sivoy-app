@@ -5,7 +5,7 @@ async function getAllLocations(req, res) {
         const locations = await ubicacionService.getAllLocations();
         res.json(locations);
     } catch (e) {
-        console.error("Error fetching locations:", e);
+        req.log.error('get_all_locations_failed', 'internal_error');
         res.status(500).json({ error: "Database error" });
     }
 }
@@ -18,10 +18,11 @@ async function updateLocation(req, res) {
         const updated = await ubicacionService.updateLocation(locId, payload);
         res.json({ success: true, updated: updated });
     } catch (e) {
-        console.error("Error updating location:", e);
         if (e.message === "Location not found") {
+            req.log.warn('update_location_failed', 'location_not_found');
             return res.status(404).json({ error: e.message });
         }
+        req.log.error('update_location_failed', 'internal_error');
         res.status(500).json({ error: "Database error" });
     }
 }
@@ -33,10 +34,11 @@ async function createAgencia(req, res) {
         const id_destino = await ubicacionService.createAgencia(payload);
         res.json({ success: true, id_destino });
     } catch (e) {
-        console.error("Error creating agencia:", e);
         if (e.message === "Missing required fields") {
+            req.log.warn('create_agencia_failed', 'validation_error');
             return res.status(400).json({ error: e.message });
         }
+        req.log.error('create_agencia_failed', 'internal_error');
         res.status(500).json({ error: "Database error" });
     }
 }
@@ -47,6 +49,7 @@ async function testLocation(req, res) {
         const testLoc = await ubicacionService.getLocationByName("Agencia Lourdes");
         res.json(testLoc);
     } catch (e) {
+        req.log.error('test_location_failed', 'internal_error');
         res.status(500).json({ error: "Database error" });
     }
 }

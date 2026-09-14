@@ -184,7 +184,8 @@ archivos. Codex debe revisar cada diff y ejecutar build y auditoría visual.
     - [ ] T34c3: adopt process logger in non-Partner location service runtime paths.
 - [ ] T35 Implementar pipeline completo y staging.
   - [x] T35a: multer 2.3.0 accepted by Codex; 122 backend tests, zero production audit findings, registry signatures verified.
-  - [ ] T35b: CI quality gates without deployment.
+  - [x] T35b: CI quality gates accepted by Codex; 122 backend and 239 frontend tests, audits/signatures, production build.
+  - [ ] T35c: validate migrations against ephemeral PostgreSQL in CI.
 - [ ] T36 Probar despliegue, smoke test y rollback.
 - [ ] T37 Escribir ADR sobre mantener o extraer `eta-core`.
 

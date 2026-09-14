@@ -1,0 +1,86 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend CI
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: ./backend
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+          
+      - name: Install dependencies strictly
+        run: npm ci
+        
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=high
+        
+      - name: Verify package signatures
+        run: npm audit signatures
+        
+      - name: Run backend tests
+        run: npm test
+        
+      - name: Validate server syntax
+        run: node --check server.js
+
+  frontend:
+    name: Frontend CI
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: ./frontend
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+          
+      - name: Install dependencies strictly
+        run: npm ci
+        
+      - name: Audit dependencies
+        run: npm audit --audit-level=high
+        
+      - name: Verify package signatures
+        run: npm audit signatures
+        
+      - name: Run frontend tests
+        run: npm run test:ci
+        
+      - name: Build frontend production
+        run: npm run build -- --configuration production

@@ -1,49 +1,79 @@
 const { Pool } = require('pg');
+const { createProcessLogger } = require('../core/observability/process-logger');
 
-let poolInstance = null;
+function createDatabaseRuntime(options = {}) {
+    const {
+        PoolCtor = Pool,
+        logger = createProcessLogger({ entryPoint: 'database' }),
+        env = process.env
+    } = options;
 
-async function getDB() {
-    if (poolInstance) {
+    let poolInstance = null;
+
+    async function getDB() {
+        if (poolInstance) {
+            return poolInstance;
+        }
+
+        const isProd = env.NODE_ENV === 'production';
+        const newPool = new PoolCtor({
+            connectionString: env.DATABASE_URL,
+            ssl: isProd ? { rejectUnauthorized: false } : false
+        });
+
+        poolInstance = newPool;
+
+        try {
+            logger.info('db_pool_connected');
+        } catch (err) {
+            // ignore logger failure
+        }
+
         return poolInstance;
     }
-    
-    // Si no hay DATABASE_URL, usamos un fallback de conexión local para testing si es necesario
-    // Pero requerimos DATABASE_URL en prod
-    poolInstance = new Pool({
-        connectionString: process.env.DATABASE_URL,
-        ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
-    });
-    
-    console.log('[INIT] Connected to PostgreSQL database pool.');
-    return poolInstance;
+
+    async function runInTransaction(client, work) {
+        await client.query('BEGIN');
+        try {
+            const result = await work(client);
+            await client.query('COMMIT');
+            return result;
+        } catch (error) {
+            try {
+                await client.query('ROLLBACK');
+            } catch (rollbackError) {
+                try {
+                    logger.error('db_rollback_failed', 'database_error');
+                } catch (logErr) {
+                    // ignore logger failure
+                }
+            }
+            throw error;
+        }
+    }
+
+    async function withTransaction(work) {
+        const pool = await getDB();
+        const client = await pool.connect();
+        try {
+            return await runInTransaction(client, work);
+        } finally {
+            client.release();
+        }
+    }
+
+    return {
+        getDB,
+        runInTransaction,
+        withTransaction
+    };
 }
 
-async function runInTransaction(client, work) {
-    await client.query('BEGIN');
-    try {
-        const result = await work(client);
-        await client.query('COMMIT');
-        return result;
-    } catch (error) {
-        await client.query('ROLLBACK').catch((rollbackError) => {
-            console.error('[DB] Rollback failed:', rollbackError);
-        });
-        throw error;
-    }
-}
-
-async function withTransaction(work) {
-    const pool = await getDB();
-    const client = await pool.connect();
-    try {
-        return await runInTransaction(client, work);
-    } finally {
-        client.release();
-    }
-}
+const defaultRuntime = createDatabaseRuntime();
 
 module.exports = {
-    getDB,
-    runInTransaction,
-    withTransaction
+    createDatabaseRuntime,
+    getDB: defaultRuntime.getDB,
+    runInTransaction: defaultRuntime.runInTransaction,
+    withTransaction: defaultRuntime.withTransaction
 };

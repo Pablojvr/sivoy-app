@@ -180,7 +180,8 @@ archivos. Codex debe revisar cada diff y ejecutar build y auditoría visual.
     - [ ] T34b2c: diferido por exclusión de Partners, no completado.
   - [ ] T34c: Process Logger
     - [x] T34c1: accepted by Codex with 23 focused subtests / 107 full backend tests, syntax and diff checks passed.
-    - [ ] T34c2: adopt process logger in server startup and database runtime.
+    - [x] T34c2: accepted by Codex with 17 focused tests / 122 full backend tests, clean structured test output, syntax and diff checks passed.
+    - [ ] T34c3: adopt process logger in non-Partner location service runtime paths.
 - [ ] T35 Implementar pipeline completo y staging.
 - [ ] T36 Probar despliegue, smoke test y rollback.
 - [ ] T37 Escribir ADR sobre mantener o extraer `eta-core`.

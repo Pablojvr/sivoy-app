@@ -54,3 +54,15 @@ T34b2b accepted by Codex and evidence 17 subtests for mapas/ubicaciones / 83 ful
 1. **Frozen Narrow API**: Exposes `createProcessLogger(options)`. The API only allows logging `info`, `warn`, and `error` passing an event, an optional error code, and an optional fields object.
 2. **Safe Logging Sink**: Events and error codes are checked against strict allowlists (e.g. `server_startup_success`, `database_error`). Invalid inputs fallback to `unknown_event` or `unknown_code` without echoing the input. The only allowed field is `port` (integer 1..65535). Emits one JSON record to stdout/stderr.
 3. **Resilience & Testing**: Clock failures, UUID generation failures, and sink/serialization failures never propagate. The fallback is deterministic. The object is deep-frozen before passing to the sink. Contractual branch coverage for each level and fallback without throwing exceptions, including partial sinks.
+
+# T34c2: Process Logger Adoption (Server & Database)
+
+## Acceptance Criteria
+
+1. **Database Runtime**: Export `createDatabaseRuntime(options)` injecting `PoolCtor` and `logger`, keeping `getDB`, `runInTransaction`, and `withTransaction` working as a default lazy singleton. If `new PoolCtor` throws, it must not assign the singleton and must not emit `db_pool_connected`, allowing subsequent attempts to retry. Log `db_pool_connected` exactly once without error code. Failed transactions log `db_rollback_failed` and `database_error` securely, preserving and rethrowing the original error.
+2. **Server Startup**: Extract `startServer(options)` injecting dependencies. On success, log `server_startup_success` exactly once with the original valid integer `port` field. The `port` must not be parsed with a permissive `parseInt`; only valid integers 1-65535 or strictly canonical decimal strings resolving to 1-65535 are accepted for the `port` log field (otherwise omitted). On success, `application.listen` must be called with the exact unmutated original `port` value. On failure (including sync throws or async rejections from `getDatabase`), `application.listen` is never called, log `server_startup_failed` without raw error, and call injected `exit(1)` (verified via `options.exit !== undefined`). Auto-starts only if `require.main === module`. Zero `console.log`/`console.error`.
+3. **Resilience & Testing**: Verify all success and failure branches without network/global mocks. Validate injected functions to prevent surprising failures. Legacy exports `getDB`/`runInTransaction`/`withTransaction` must be tested to ensure they are functions without actually invoking them against a DB. Test that both synchronous throws and asynchronous rejections from `getDatabase` correctly log and exit. Test that `listen` receives the original unmodified port, and that invalid canonical string representations (e.g. `03000`) or strings with extra characters are omitted from logs.
+
+## State
+
+T34c2 accepted by Codex with 17 focused tests / 122 full backend tests, clean structured test output, syntax and diff checks passed.

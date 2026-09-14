@@ -1,10 +1,11 @@
-require('dotenv').config();
+require('dotenv').config({ quiet: true });
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const { createHttpObservability } = require('./src/core/observability/http-observability');
 const { registerObservabilityRoutes } = require('./src/core/observability/observability-routes');
 const { getDB } = require('./src/config/database');
+const { createProcessLogger } = require('./src/core/observability/process-logger');
 
 const empresasRoutes = require('./src/domains/empresas/empresas.routes');
 const ubicacionesRoutes = require('./src/domains/ubicaciones/ubicaciones.routes');
@@ -49,17 +50,55 @@ app.get('/{*splat}', (req, res) => {
     res.sendFile(path.join(DIST_PATH, 'index.html'));
 });
 
-const PORT = process.env.PORT || 3000;
-getDB().then((db) => {
-    // Para compatibilidad hacia atrás si hay algún middleware perdido que use app.locals.db
-    app.locals.db = db;
+function startServer(options = {}) {
+    const application = options.application || app;
+    const getDatabase = options.getDatabase || getDB;
+    const logger = options.logger || createProcessLogger({ entryPoint: 'server' });
+    const port = options.port !== undefined ? options.port : (process.env.PORT || 3000);
+    const exit = options.exit !== undefined ? options.exit : process.exit;
 
-    app.listen(PORT, () => {
-        console.log(`\n  ✅ SiVoy App running on http://localhost:${PORT}`);
-        console.log(`  📦 Backend API at  http://localhost:${PORT}/api`);
-        console.log(`  🌐 Frontend at     http://localhost:${PORT}\n`);
+    if (typeof getDatabase !== 'function') throw new TypeError('getDatabase must be a function');
+    if (typeof exit !== 'function') throw new TypeError('exit must be a function');
+    if (typeof application.listen !== 'function') throw new TypeError('application.listen must be a function');
+
+    return Promise.resolve().then(() => getDatabase()).then((db) => {
+        application.locals.db = db;
+
+        const server = application.listen(port, () => {
+            try {
+                let portInt;
+                if (typeof port === 'number' && Number.isInteger(port) && port >= 1 && port <= 65535) {
+                    portInt = port;
+                } else if (typeof port === 'string' && /^[1-9]\d*$/.test(port)) {
+                    const num = Number(port);
+                    if (num >= 1 && num <= 65535 && num.toString() === port) {
+                        portInt = num;
+                    }
+                }
+
+                const fields = portInt !== undefined ? { port: portInt } : undefined;
+                logger.info('server_startup_success', 'none', fields);
+            } catch (err) {
+                // Ignore logger errors
+            }
+        });
+        return server;
+    }).catch(err => {
+        try {
+            logger.error('server_startup_failed', 'startup_error');
+        } catch (logErr) {
+            // Ignore
+        }
+
+        exit(1);
     });
-}).catch(err => {
-    console.error('Failed to initialize database:', err);
-    process.exit(1);
-});
+}
+
+if (require.main === module) {
+    startServer();
+}
+
+module.exports = {
+    app,
+    startServer
+};

@@ -79,7 +79,7 @@ describe('MobileAppComponent (T30a Characterization)', () => {
   const flushInitRequests = () => {
     const reqLoc = httpMock.expectOne(req => req.url.includes('/api/locations'));
     reqLoc.flush([
-      { id: 10, empresa: 'SiVoyExpress', ubicacion: { municipio: 'San Miguel', departamento: 'San Miguel' } }
+      { id: 10, nombre_destino: 'Agencia San Miguel', empresa: 'SiVoyExpress', ubicacion: { municipio: 'San Miguel', departamento: 'San Miguel' } }
     ]);
 
     const reqEmp = httpMock.expectOne(req => req.url.includes('/api/empresas'));

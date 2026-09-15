@@ -200,17 +200,18 @@ archivos. Codex debe revisar cada diff y ejecutar build y auditoría visual.
   - Resultado auditado: accepted by Codex, 14 focused / 30 full backend tests, diff-check clean; sin bus/producers/outbox.
 - [x] T33 Mover únicamente trabajos secundarios a eventos.
   - Resultado auditado: resuelto como "no-op" intencional (ver `tasks/specs/T33-secondary-jobs.md` y ADR `0001`). No existen consumidores asíncronos genuinos; flujos actuales (compartir, ETA) requieren ejecución síncrona. No se introduce bus ni listeners para evitar sobreingeniería y falsa sensación de desacoplamiento.
-- [ ] T34 Añadir métricas y logs estructurados.
+- [x] T34 Añadir métricas y logs estructurados (alcance público/no-Partner).
   - [x] T34a: accepted by Codex and evidence 12 focused subtests / 43 full backend tests, real Express route test, server check/diff check.
-  - [ ] T34b: structured controller errors and safe health/metrics exposure.
+  - [x] T34b: structured controller errors and safe health/metrics exposure.
     - [x] T34b1: accepted by Codex and evidence 10 observability-route subtests / 54 full backend, server/diff checks.
     - [x] T34b2a: accepted by Codex and evidence independent 64-test audit.
     - [x] T34b2b: accepted by Codex and evidence 17 subtests for mapas/ubicaciones / 83 full backend tests, node/diff checks passed.
-    - [ ] T34b2c: diferido por exclusión de Partners, no completado.
-  - [ ] T34c: Process Logger
+    - [x] T34b2c: excluido formalmente del alcance actual por instrucción del usuario; Partner no fue modificado.
+  - [x] T34c: Process Logger
     - [x] T34c1: accepted by Codex with 23 focused subtests / 107 full backend tests, syntax and diff checks passed.
     - [x] T34c2: accepted by Codex with 17 focused tests / 122 full backend tests, clean structured test output, syntax and diff checks passed.
-    - [ ] T34c3: adopt process logger in non-Partner location service runtime paths (spec in `tasks/specs/T34-observability.md`, pending approval).
+    - [x] T34c3: process logger adopted in non-Partner location service runtime paths.
+      - Resultado auditado: 43/43 pruebas focalizadas, 206/206 backend, sintaxis y diff verdes, 0 vulnerabilidades de producción; sin `console.*`, DB, red ni cambios de contrato.
 - [ ] T35 Implementar pipeline completo y staging.
   - [x] T35a: multer 2.3.0 accepted by Codex; 122 backend tests, zero production audit findings, registry signatures verified.
   - [x] T35b: CI quality gates accepted by Codex; 122 backend and 239 frontend tests, audits/signatures, production build.

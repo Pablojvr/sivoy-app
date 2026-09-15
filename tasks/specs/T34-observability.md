@@ -95,3 +95,8 @@ T34c2 accepted by Codex with 17 focused tests / 122 full backend tests, clean st
 ## Out of Scope
 
 Partner, controladores, repositorio/SQL, payloads y contratos HTTP, dependencias, configuración de producción, cambios al logger core y despliegues.
+
+## State
+
+T34c3 accepted by Codex with 43 focused tests and 206 full backend tests; syntax,
+diff check and production dependency audit passed. Partner remained excluded.

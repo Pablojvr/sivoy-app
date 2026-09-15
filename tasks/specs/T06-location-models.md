@@ -78,3 +78,8 @@ hasta T13/T44; este paquete no cambia el backend ni Partner.
 T06 termina cuando la lectura pública no expone `any`/`unknown`, los payloads
 hostiles están cubiertos y el build permanece verde. ¿Se aprueba descartar
 individualmente registros inválidos y conservar los nombres wire legacy?
+
+## Estado
+
+T06a aceptado por Codex: contrato wire y modelo público compilados con TypeScript
+estricto, sin cambios de runtime ni dependencias.

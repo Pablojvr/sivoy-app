@@ -45,7 +45,8 @@ máximo cinco archivos. Un paquete no es autorización para modificar código.
 
 - [ ] T06 Definir modelos y DTOs de ubicaciones.
   - Spec pendiente de aprobación: `tasks/specs/T06-location-models.md`.
-  - [ ] T06a: Contratos TypeScript wire-compatible.
+  - [x] T06a: Contratos TypeScript wire-compatible.
+    - Resultado auditado: modelo `DeliveryPoint` inmutable y DTO legacy sin `any`; identidad exige `id` o `id_destino`; TypeScript y diff verdes.
   - [ ] T06b: Mapper de frontera.
   - [ ] T06c: Integración del servicio público.
 - [ ] T07 Definir contratos de búsqueda de rutas.

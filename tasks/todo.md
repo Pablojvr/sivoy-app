@@ -43,12 +43,14 @@ máximo cinco archivos. Un paquete no es autorización para modificar código.
 
 ## Fases 1–3 — Dominio y backend
 
-- [ ] T06 Definir modelos y DTOs de ubicaciones.
-  - Spec pendiente de aprobación: `tasks/specs/T06-location-models.md`.
+- [x] T06 Definir modelos y DTOs de ubicaciones.
+  - Spec ejecutado: `tasks/specs/T06-location-models.md`.
   - [x] T06a: Contratos TypeScript wire-compatible.
     - Resultado auditado: modelo `DeliveryPoint` inmutable y DTO legacy sin `any`; identidad exige `id` o `id_destino`; TypeScript y diff verdes.
-  - [ ] T06b: Mapper de frontera.
-  - [ ] T06c: Integración del servicio público.
+  - [x] T06b: Mapper de frontera.
+    - Resultado auditado: 10 pruebas focalizadas y 249 pruebas frontend; payloads hostiles descartados sin mutar la entrada, build y auditoría sin vulnerabilidades.
+  - [x] T06c: Integración del servicio público.
+    - Resultado auditado: 250/250 pruebas frontend, build y auditoría sin vulnerabilidades; conserva URL y errores HTTP, valida datos en la frontera; Partner intacto.
 - [ ] T07 Definir contratos de búsqueda de rutas.
   - Spec pendiente de aprobación: `tasks/specs/T07-route-contracts.md`.
   - [ ] T07a: Matriz y fixtures legacy.

@@ -81,5 +81,9 @@ individualmente registros inválidos y conservar los nombres wire legacy?
 
 ## Estado
 
-T06a aceptado por Codex: contrato wire y modelo público compilados con TypeScript
-estricto, sin cambios de runtime ni dependencias.
+T06 completo y auditado por Codex. T06a define el contrato wire y modelo público;
+T06b valida el payload y T06c lo aplica en `getLocations()` conservando URL y
+errores HTTP. Verificación final: 250/250 pruebas frontend, build verde con dos
+avisos preexistentes (presupuesto CSS y `mapbox-gl` CommonJS), auditoría de
+producción con 0 vulnerabilidades y `git diff --check` verde. No se tocó Partner,
+backend, motor ETA ni dependencias.

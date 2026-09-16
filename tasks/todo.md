@@ -52,8 +52,9 @@ máximo cinco archivos. Un paquete no es autorización para modificar código.
   - [x] T06c: Integración del servicio público.
     - Resultado auditado: 250/250 pruebas frontend, build y auditoría sin vulnerabilidades; conserva URL y errores HTTP, valida datos en la frontera; Partner intacto.
 - [ ] T07 Definir contratos de búsqueda de rutas.
-  - Spec pendiente de aprobación: `tasks/specs/T07-route-contracts.md`.
-  - [ ] T07a: Matriz y fixtures legacy.
+  - Spec en ejecución: `tasks/specs/T07-route-contracts.md`.
+  - [x] T07a: Matriz y fixtures legacy.
+    - Resultado auditado: tres endpoints caracterizados, ejemplos ficticios JSON válidos, diferencias UTC/local y respuestas vacías documentadas; commit remoto `5d4d6f7` verificado.
   - [ ] T07b: Pruebas de contrato HTTP.
   - [ ] T07c: Tipos de consumo frontend.
 - [ ] T08 Añadir validación de entrada y errores consistentes.

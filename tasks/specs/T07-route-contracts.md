@@ -51,17 +51,19 @@ Se caracterizan variantes scalar/array, defaults de fecha/hora, 400, 404, 500,
      compartido entre pruebas concurrentes.
 - **Verificación:** `cd backend; node --test test/rutas-contract.test.js; node --test`
 
-### T07c Tipos de consumo frontend
+### T07c Consolidar tipos de consumo frontend
 
 - **Dependencia:** T07a.
 - **Archivos (2):**
-  - `frontend/src/app/core/models/route-contracts.ts`
-  - `frontend/src/app/core/models/route-contracts.spec.ts`
+  - `frontend/src/app/core/services/route-api.contracts.ts`
+  - `frontend/src/app/core/services/route-api.contracts.spec.ts`
 - **Criterios de aceptación:**
-  1. Modelar requests/responses legacy como uniones discriminables sin `any`.
+  1. Completar los tipos requests/responses legacy ya consumidos desde
+     `route-api.contracts.ts` como uniones discriminables sin `any`, sin crear una
+     segunda fuente de verdad.
   2. Mantener separadas las variantes scalar/collection y resultados de negocio.
   3. Verificar fixtures representativos y exhaustividad de variantes.
-- **Verificación:** `cd frontend; npm test -- --watch=false --include='src/app/core/models/route-contracts.spec.ts'; npm run build`
+- **Verificación:** `cd frontend; npm test -- --watch=false --include='src/app/core/services/route-api.contracts.spec.ts'; npm run build`
 
 ## Límites
 

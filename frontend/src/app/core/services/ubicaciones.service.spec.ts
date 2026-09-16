@@ -24,30 +24,46 @@ describe('UbicacionesService', () => {
     expect(service).toBeTruthy();
   });
 
-  it('should fetch locations via GET and preserve string IDs and mixed coordinates', () => {
+  it('should fetch and validate locations via one GET request', () => {
     const mockResponse: LocationData[] = [
       {
         id: 'AG_123',
-        nombre_destino: 'Agencia String ID',
+        nombre_destino: ' Agencia String ID ',
         ubicacion: {
           lat: '13.123',
           lng: -89.456
         }
-      }
+      },
+      { id: null, nombre_destino: 'Sin identidad' }
     ];
 
     service.getLocations().subscribe(locations => {
       expect(locations).toBeTruthy();
       expect(locations.length).toBe(1);
-      // Ensure preservation without coercion
       expect(locations[0].id).toBe('AG_123');
-      expect(locations[0].ubicacion?.lat).toBe('13.123');
-      expect(locations[0].ubicacion?.lng).toBe(-89.456);
+      expect(locations[0].nombre_destino).toBe('Agencia String ID');
+      expect(locations[0].ubicacion.lat).toBe(13.123);
+      expect(locations[0].ubicacion.lng).toBe(-89.456);
     });
 
     const req = httpMock.expectOne(`${environment.apiUrl}/api/locations`);
     expect(req.request.method).toBe('GET');
     req.flush(mockResponse);
+  });
+
+  it('should preserve HTTP failures from the locations request', () => {
+    let observedStatus: number | undefined;
+    let emittedValue = false;
+
+    service.getLocations().subscribe({
+      next: () => { emittedValue = true; },
+      error: error => { observedStatus = error.status; }
+    });
+
+    const req = httpMock.expectOne(`${environment.apiUrl}/api/locations`);
+    req.flush({ error: 'unavailable' }, { status: 503, statusText: 'Unavailable' });
+    expect(emittedValue).toBe(false);
+    expect(observedStatus).toBe(503);
   });
 
   it('should preserve an alphanumeric location ID in the update URL', () => {

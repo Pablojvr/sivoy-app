@@ -2,28 +2,18 @@ import { environment } from '../../../environments/environment';
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
+import { mapLocationResponse } from '../models/location.mapper';
+import {
+  DeliveryPoint,
+  LocationCoordinatesDto,
+  LocationDto
+} from '../models/location.models';
 
-export interface LocationUbicacion {
-  lat?: number | string;
-  lng?: number | string;
-  municipio?: string;
-  departamento?: string;
-  direccion?: string;
-}
-
-export interface LocationData {
-  id?: string | number;
-  nombre_destino?: string;
-  empresa?: string;
-  ubicacion?: LocationUbicacion;
-  lat?: number | string;
-  lng?: number | string;
-  distance?: number;
-  _status?: unknown;
-  horarios_operativos?: unknown;
-  maps_url?: string;
-  imagen_url?: string;
-}
+/** @deprecated Import LocationCoordinatesDto from core/models instead. */
+export type LocationUbicacion = LocationCoordinatesDto;
+/** @deprecated Import LocationDto from core/models instead. */
+export type LocationData = LocationDto;
 
 @Injectable({
   providedIn: 'root'
@@ -33,8 +23,10 @@ export class UbicacionesService {
 
   constructor(private http: HttpClient) {}
 
-  getLocations(): Observable<LocationData[]> {
-    return this.http.get<LocationData[]>(`${this.apiUrl}/locations`);
+  getLocations(): Observable<DeliveryPoint[]> {
+    return this.http.get<unknown>(`${this.apiUrl}/locations`).pipe(
+      map(response => [...mapLocationResponse(response)])
+    );
   }
 
   createLocation(payload: any): Observable<any> {

@@ -115,9 +115,8 @@ describe('RutasService', () => {
       const mockResponse: SearchRoutesByMunicipalityResponseDto = {
         success: true,
         origen_msg: 'Msg',
+        origen_nombre: 'Origen Test',
         results: [{
-          origen_nombre: 'Origen Test',
-          empresa: 'Empresa A',
           destino_nombre: 'Destino Test',
           fecha_llegada: 'Lunes',
           horario_recoleccion: '10am',
@@ -137,7 +136,7 @@ describe('RutasService', () => {
       service.searchRoutesByMunicipality(params).subscribe(res => {
         if (res.success) {
           expect(res.results.length).toBe(1);
-          expect(res.results[0].empresa).toBe('Empresa A');
+          expect('origen_nombre' in res && res.origen_nombre).toBe('Origen Test');
         } else {
           expect.fail('Expected success response');
         }
@@ -203,7 +202,6 @@ describe('RutasService', () => {
       const params = { origen: ['O'], destino: ['D'], dropoff_date: '2023-10-10', dropoff_time: '10:00' };
       const mockArrayResponse: GetUpcomingRoutesResponseDto = {
         success: true,
-        origen_msg: 'Msg',
         results: [{
           empresa: 'E',
           origen_nombre: 'O',

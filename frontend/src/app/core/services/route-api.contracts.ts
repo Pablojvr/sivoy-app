@@ -34,9 +34,7 @@ export interface SearchFlightsResponseDto {
   results: SearchFlightsResultDto[];
 }
 
-export interface MunicipalityRouteItemDto {
-  origen_nombre?: string;
-  empresa?: string;
+interface MunicipalityRouteBaseItemDto {
   destino_nombre: string;
   fecha_llegada: string;
   horario_recoleccion: string;
@@ -44,9 +42,37 @@ export interface MunicipalityRouteItemDto {
   opciones: ProjectedDeliveryOptionDto[];
 }
 
+export type MunicipalityScalarItemDto = MunicipalityRouteBaseItemDto;
+
+export interface MunicipalityCollectionItemDto extends MunicipalityRouteBaseItemDto {
+  origen_nombre: string;
+  empresa: string;
+}
+
+export type MunicipalityRouteItemDto = MunicipalityScalarItemDto | MunicipalityCollectionItemDto;
+
+export interface MunicipalityScalarSuccessDto {
+  success: true;
+  origen_msg: string;
+  origen_nombre: string;
+  results: MunicipalityScalarItemDto[];
+}
+
+export interface MunicipalityCollectionSuccessDto {
+  success: true;
+  results: MunicipalityCollectionItemDto[];
+}
+
+export interface MunicipalityNoIncomeDto {
+  success: false;
+  origen_msg: string;
+  results: [];
+}
+
 export type SearchRoutesByMunicipalityResponseDto =
-  | { success: true; results: MunicipalityRouteItemDto[]; origen_msg?: string; origen_nombre?: string }
-  | { success: false; results: []; origen_msg: string };
+  | MunicipalityScalarSuccessDto
+  | MunicipalityCollectionSuccessDto
+  | MunicipalityNoIncomeDto;
 
 export interface UpcomingRouteResultDto {
   empresa: string;
@@ -57,10 +83,22 @@ export interface UpcomingRouteResultDto {
   opciones_entrega: FlightDeliveryOptionDto[];
 }
 
+export interface GetUpcomingRoutesCollectionSuccessDto {
+  success: true;
+  results: UpcomingRouteResultDto[];
+}
+
+export type GetUpcomingRoutesScalarSuccessDto = { success: true } & UpcomingRouteResultDto;
+
+export interface GetUpcomingRoutesNoRouteDto {
+  success: false;
+  origen_msg: string;
+}
+
 export type GetUpcomingRoutesResponseDto =
-  | { success: true; results: UpcomingRouteResultDto[]; origen_msg?: string; origen_nombre?: string }
-  | ({ success: true } & UpcomingRouteResultDto)
-  | { success: false; origen_msg: string };
+  | GetUpcomingRoutesCollectionSuccessDto
+  | GetUpcomingRoutesScalarSuccessDto
+  | GetUpcomingRoutesNoRouteDto;
 
 export interface RouteErrorBodyDto {
   error: string;
@@ -71,15 +109,15 @@ export interface SearchFlightsPayload {
   origen_departamento?: string;
   destino_municipio: string;
   destino_departamento?: string;
-  dropoff_date: string;
-  dropoff_time: string;
+  dropoff_date?: string;
+  dropoff_time?: string;
 }
 
 export interface SearchRoutesByMunicipalityPayload {
   origen: string | string[];
   destinos: string[];
-  dropoff_date: string;
-  dropoff_time: string;
+  dropoff_date?: string;
+  dropoff_time?: string;
   arrival_date?: string;
 }
 

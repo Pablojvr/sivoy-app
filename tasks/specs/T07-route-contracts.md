@@ -54,9 +54,11 @@ Se caracterizan variantes scalar/array, defaults de fecha/hora, 400, 404, 500,
 ### T07c Consolidar tipos de consumo frontend
 
 - **Dependencia:** T07a.
-- **Archivos (2):**
+- **Archivos (3):**
   - `frontend/src/app/core/services/route-api.contracts.ts`
   - `frontend/src/app/core/services/route-api.contracts.spec.ts`
+  - `frontend/src/app/core/services/rutas.service.spec.ts` (ajustar fixtures de
+    prueba que combinan variantes incompatibles con el contrato real)
 - **Criterios de aceptación:**
   1. Completar los tipos requests/responses legacy ya consumidos desde
      `route-api.contracts.ts` como uniones discriminables sin `any`, sin crear una

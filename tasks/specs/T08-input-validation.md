@@ -125,3 +125,9 @@ No se añaden paquetes ni expresiones regulares con backtracking no acotado.
 
 ¿Se aprueban los límites de 160 caracteres, máximo 100 elementos y años 1900–2100,
 manteniendo la sustitución legacy de fecha/hora cuando falte cualquiera de ambas?
+
+## Estado de aprobación
+
+El usuario aprobó expresamente esos límites y la conservación del valor por
+defecto legacy de fecha/hora el 2026-09-16. No se aprobaron cambios de envelope,
+IDs, dependencias ni despliegue.

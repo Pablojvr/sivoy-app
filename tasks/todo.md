@@ -60,7 +60,7 @@ máximo cinco archivos. Un paquete no es autorización para modificar código.
   - [x] T07c: Tipos de consumo frontend.
     - Resultado auditado: variantes legacy diferenciadas en el contrato canónico; 11 pruebas focalizadas, 253/253 pruebas frontend, TypeScript, build y auditoría con 0 vulnerabilidades; Partner intacto.
 - [ ] T08 Añadir validación de entrada y errores consistentes.
-  - Spec pendiente de aprobación: `tasks/specs/T08-input-validation.md`.
+  - Límites aprobados por el usuario (160 caracteres, 100 elementos, años 1900–2100) conservando defaults legacy; spec: `tasks/specs/T08-input-validation.md`.
   - [ ] T08a: Validadores puros de rutas.
   - [ ] T08b: Integración fail-fast en casos de uso.
   - [ ] T08c: Traducción consistente en la frontera HTTP.
@@ -79,8 +79,9 @@ máximo cinco archivos. Un paquete no es autorización para modificar código.
   - [x] T09e: Cutover y aislamiento final.
     - Resultado auditado: política de cutover aislada sin retirar fallbacks dependientes de T08; 23/23 pruebas de adaptador y rutas en UTC, America/Los_Angeles y America/El_Salvador, 187/187 backend, sintaxis y auditoría NPM de producción verdes.
 - [ ] T10 Extraer casos de uso de rutas y adaptador legacy.
-  - Spec pendiente de aprobación: `tasks/specs/T10-route-use-cases.md`.
-  - [ ] T10a: Soporte determinista de casos de uso.
+  - Spec en ejecución: `tasks/specs/T10-route-use-cases.md`; cutover requiere T08 completado.
+  - [x] T10a: Soporte determinista de casos de uso.
+    - Resultado auditado: 4 pruebas focalizadas y 228/228 backend, equivalencia temporal legacy en tres zonas horarias, sintaxis y auditoría con 0 vulnerabilidades; aún sin consumidor productivo.
   - [ ] T10b: Fábrica de casos de uso.
   - [ ] T10c: Adaptador legacy y cutover.
 - [ ] T11 Añadir repositorios por interfaz.

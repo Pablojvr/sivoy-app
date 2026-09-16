@@ -80,3 +80,13 @@ Se caracterizan variantes scalar/array, defaults de fecha/hora, 400, 404, 500,
 T07 termina cuando la matriz, fixtures, pruebas HTTP y tipos frontend coinciden.
 ¿Se aprueba congelar las peculiaridades legacy hasta que T44 publique un contrato
 versionado con estrategia de migración?
+
+## Estado
+
+T07 completo y auditado por Codex en la rama de orquestación. T07a documenta las
+variantes observables y T07b las prueba contra Express sin DB ni red externa;
+T07c consolida los tipos ya consumidos por el frontend sin crear un duplicado.
+Verificación: 224/224 pruebas backend, 253/253 frontend, TypeScript, build y
+auditorías de dependencias de producción con 0 vulnerabilidades. El build
+conserva dos avisos previos (presupuesto CSS y `mapbox-gl` CommonJS). No se
+modificaron endpoints, ETA, SQL, Partner ni dependencias.

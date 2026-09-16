@@ -51,12 +51,14 @@ máximo cinco archivos. Un paquete no es autorización para modificar código.
     - Resultado auditado: 10 pruebas focalizadas y 249 pruebas frontend; payloads hostiles descartados sin mutar la entrada, build y auditoría sin vulnerabilidades.
   - [x] T06c: Integración del servicio público.
     - Resultado auditado: 250/250 pruebas frontend, build y auditoría sin vulnerabilidades; conserva URL y errores HTTP, valida datos en la frontera; Partner intacto.
-- [ ] T07 Definir contratos de búsqueda de rutas.
-  - Spec en ejecución: `tasks/specs/T07-route-contracts.md`.
+- [x] T07 Definir contratos de búsqueda de rutas.
+  - Spec ejecutado: `tasks/specs/T07-route-contracts.md`.
   - [x] T07a: Matriz y fixtures legacy.
     - Resultado auditado: tres endpoints caracterizados, ejemplos ficticios JSON válidos, diferencias UTC/local y respuestas vacías documentadas; commit remoto `5d4d6f7` verificado.
-  - [ ] T07b: Pruebas de contrato HTTP.
-  - [ ] T07c: Tipos de consumo frontend.
+  - [x] T07b: Pruebas de contrato HTTP.
+    - Resultado auditado: 18/18 casos HTTP contra Express local, 224/224 pruebas backend y auditoría de producción con 0 vulnerabilidades; commit remoto `e49ea87` verificado.
+  - [x] T07c: Tipos de consumo frontend.
+    - Resultado auditado: variantes legacy diferenciadas en el contrato canónico; 11 pruebas focalizadas, 253/253 pruebas frontend, TypeScript, build y auditoría con 0 vulnerabilidades; Partner intacto.
 - [ ] T08 Añadir validación de entrada y errores consistentes.
   - Spec pendiente de aprobación: `tasks/specs/T08-input-validation.md`.
   - [ ] T08a: Validadores puros de rutas.

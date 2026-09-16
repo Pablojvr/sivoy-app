@@ -1,0 +1,254 @@
+{
+  "get_upcoming_routes": {
+    "requests": {
+      "scalar_success": {
+        "origen": "O1",
+        "destino": "D1",
+        "dropoff_date": "2026-09-16",
+        "dropoff_time": "10:00"
+      },
+      "array_success": {
+        "origen": ["O1", "O2"],
+        "destino": ["D1"],
+        "dropoff_date": "2026-09-16",
+        "dropoff_time": "10:00"
+      },
+      "array_empty": {
+        "origen": ["O_EMPTY"],
+        "destino": ["D_EMPTY"],
+        "dropoff_date": "2026-09-16",
+        "dropoff_time": "10:00"
+      },
+      "scalar_not_found": {
+        "origen": "O_NOT_FOUND",
+        "destino": "D1",
+        "dropoff_date": "2026-09-16",
+        "dropoff_time": "10:00"
+      },
+      "missing_fields": {
+        "origen": "O1"
+      }
+    },
+    "responses": {
+      "scalar_success_200": {
+        "success": true,
+        "empresa": "EMP1",
+        "origen_nombre": "O1 Name",
+        "origen_msg": "Msg",
+        "destino_nombre": "D1 Name",
+        "opciones": [
+          {
+            "fecha_llegada": "Mañana",
+            "horario_recoleccion": "Tarde",
+            "fecha_llegada_iso": "2026-09-17"
+          }
+        ],
+        "opciones_entrega": [
+          {
+            "dropoff_date": "2026-09-16",
+            "dropoff_msg": "Msg",
+            "fecha_llegada": "Mañana",
+            "horario_recoleccion": "Tarde"
+          }
+        ]
+      },
+      "array_success_200": {
+        "success": true,
+        "results": [
+          {
+            "empresa": "EMP1",
+            "origen_nombre": "O1 Name",
+            "origen_msg": "Msg",
+            "destino_nombre": "D1 Name",
+            "opciones": [
+              {
+                "fecha_llegada": "Mañana",
+                "horario_recoleccion": "Tarde",
+                "fecha_llegada_iso": "2026-09-17"
+              }
+            ],
+            "opciones_entrega": [
+              {
+                "dropoff_date": "2026-09-16",
+                "dropoff_msg": "Msg",
+                "fecha_llegada": "Mañana",
+                "horario_recoleccion": "Tarde"
+              }
+            ]
+          }
+        ]
+      },
+      "array_empty_success_200": {
+        "success": true,
+        "results": []
+      },
+      "scalar_not_found_200_false": {
+        "success": false,
+        "origen_msg": "No hay rutas disponibles o no operan en esa zona/empresa."
+      },
+      "missing_fields_400": {
+        "error": "Missing origin or destination"
+      },
+      "server_error_500": {
+        "error": "Database error"
+      }
+    }
+  },
+  "search_routes_by_municipality": {
+    "requests": {
+      "scalar_success": {
+        "origen": "O1",
+        "destinos": ["D1"],
+        "dropoff_date": "2026-09-16",
+        "dropoff_time": "10:00",
+        "arrival_date": "2026-09-18"
+      },
+      "array_success": {
+        "origen": ["O1", "O2"],
+        "destinos": ["D1"],
+        "dropoff_date": "2026-09-16",
+        "dropoff_time": "10:00"
+      },
+      "array_empty": {
+        "origen": ["O_EMPTY"],
+        "destinos": ["D1"],
+        "dropoff_date": "2026-09-16",
+        "dropoff_time": "10:00"
+      },
+      "scalar_no_income": {
+        "origen": "O_NO_INCOME",
+        "destinos": ["D1"],
+        "dropoff_date": "2026-09-16",
+        "dropoff_time": "10:00"
+      },
+      "scalar_not_found": {
+        "origen": "O_NOT_FOUND",
+        "destinos": ["D1"]
+      },
+      "missing_fields": {
+        "origen": "O1"
+      },
+      "server_error": {
+        "origen": "O_ERROR",
+        "destinos": ["D1"]
+      }
+    },
+    "responses": {
+      "scalar_success_200": {
+        "success": true,
+        "origen_msg": "Msg",
+        "origen_nombre": "O1 Name",
+        "results": [
+          {
+            "destino_nombre": "D1 Name",
+            "fecha_llegada": "Mañana",
+            "horario_recoleccion": "Tarde",
+            "origen_msg": "Msg",
+            "opciones": [
+              {
+                "fecha_llegada": "Mañana",
+                "horario_recoleccion": "Tarde",
+                "fecha_llegada_iso": "2026-09-17"
+              }
+            ]
+          }
+        ]
+      },
+      "array_success_200": {
+        "success": true,
+        "results": [
+          {
+            "origen_nombre": "O1 Name",
+            "empresa": "EMP1",
+            "destino_nombre": "D1 Name",
+            "fecha_llegada": "Mañana",
+            "horario_recoleccion": "Tarde",
+            "origen_msg": "Msg",
+            "opciones": [
+              {
+                "fecha_llegada": "Mañana",
+                "horario_recoleccion": "Tarde",
+                "fecha_llegada_iso": "2026-09-17"
+              }
+            ]
+          }
+        ]
+      },
+      "array_empty_success_200": {
+        "success": true,
+        "results": []
+      },
+      "scalar_no_income_200_false": {
+        "success": false,
+        "origen_msg": "Punto cerrado",
+        "results": []
+      },
+      "scalar_not_found_404": {
+        "error": "Origen no encontrado"
+      },
+      "missing_fields_400": {
+        "error": "Missing parameters or destinos is not an array"
+      },
+      "server_error_500": {
+        "error": "SyntaxError: Unexpected token u in JSON at position 0"
+      }
+    }
+  },
+  "search_flights": {
+    "requests": {
+      "success": {
+        "origen_municipio": "MunO1",
+        "destino_municipio": "MunD1",
+        "dropoff_date": "2026-09-16",
+        "dropoff_time": "10:00"
+      },
+      "empty_success": {
+        "origen_municipio": "MunO_EMPTY",
+        "destino_municipio": "MunD_EMPTY"
+      },
+      "missing_fields": {
+        "origen_municipio": "MunO1"
+      }
+    },
+    "responses": {
+      "success_200": {
+        "success": true,
+        "results": [
+          {
+            "empresa": "EMP1",
+            "origen_nombre": "O1 Name",
+            "origen_tipo": "agencia",
+            "origen_lat": 10.0,
+            "origen_lng": -10.0,
+            "destino_nombre_destino": "D1 Name",
+            "destino_tipo": "sucursal",
+            "destino_lat": 20.0,
+            "destino_lng": -20.0,
+            "origen_msg": "Msg",
+            "fecha_llegada": "Mañana",
+            "horario_recoleccion": "Tarde",
+            "opciones_entrega": [
+              {
+                "dropoff_date": "2026-09-16",
+                "dropoff_msg": "Msg",
+                "fecha_llegada": "Mañana",
+                "horario_recoleccion": "Tarde"
+              }
+            ],
+            "distance": 0
+          }
+        ]
+      },
+      "empty_success_200": {
+        "success": true,
+        "results": []
+      },
+      "missing_fields_400": {
+        "error": "Missing origin or destination"
+      },
+      "server_error_500": {
+        "error": "Database error in search-flights"
+      }
+    }
+  }
+}

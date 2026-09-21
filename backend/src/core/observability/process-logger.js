@@ -6,6 +6,8 @@ const ENTRYPOINTS = new Set(['server', 'database', 'ubicaciones_service']);
 const EVENTS = new Set([
     'server_startup_success',
     'server_startup_failed',
+    'server_shutdown_success',
+    'server_shutdown_failed',
     'db_pool_connected',
     'db_rollback_failed',
     'cloudinary_config_missing',
@@ -13,6 +15,7 @@ const EVENTS = new Set([
 ]);
 const ERROR_CODES = new Set([
     'startup_error',
+    'shutdown_error',
     'database_error',
     'configuration_missing',
     'invalid_schedule_data',

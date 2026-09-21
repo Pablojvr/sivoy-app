@@ -33,12 +33,32 @@ escrituras operativas. El MVP sigue sin login y Partner queda fuera de alcance.
 - Verificación: `cd backend; node --test test/database.test.js; npm test`.
 - Rollback: revertir solo T46b1; no cambia arranque ni señales.
 
-### T46b2 Integración con servidor
+### T46b2a Eventos seguros de apagado
 
-- Requiere T46b1 y spec de handler propio. Esperar `server.close()` antes de
-  `pool.end()`; no registrar handlers globales cuando `server.js` se importa en
-  pruebas. Evitar logs con secretos y verificar con servidor/pool inyectados y
-  smoke de SIGTERM. Sin cambio del contrato HTTP ni Partner.
+- Archivos (máximo 4): `backend/src/core/observability/process-logger.js`,
+  `backend/test/process-logger.test.js`, este spec y `tasks/todo.md`.
+- Agregar `server_shutdown_success`, `server_shutdown_failed` y código fijo
+  `shutdown_error` a las listas permitidas; nunca aceptar el error bruto,
+  configuración de pool ni URL de conexión en los logs. Pruebas de serialización
+  real y `npm test` antes de integrar señales.
+
+### T46b2b Integración con servidor
+
+- Archivos (máximo 5): `backend/src/core/lifecycle/shutdown.js`,
+  `backend/test/server-shutdown.test.js`, `backend/server.js`, este spec y
+  `tasks/todo.md`.
+- Requiere T46b2a. Criterios: (1) `registerShutdownHandlers({ server, closeDatabase, processRef,
+  logger, exit, timeoutMs })` se invoca solo en el autoarranque de `server.js`;
+  importar el módulo no registra señales; (2) SIGTERM/SIGINT llaman una sola
+  vez a `server.close()` y esperan su callback antes de `closeDatabase()`;
+  finalizar con código 0; (3) timeout/error registra solo evento/código fijo y
+  finaliza 1, sin imprimir el error. Timeout total por defecto 10000 ms y
+  `closeAllConnections()` opcional después de iniciar `server.close()`.
+- Pruebas: fake de señales/servidor con orden y reentrancia, error y timeout;
+  `cd backend; node --test test/server-shutdown.test.js
+  test/server-startup.test.js; npm test; git diff --check`.
+- Rollback: revertir solo T46b2; T46b1 continúa disponible. Sin cambio del
+  contrato HTTP, rutas públicas ni Partner.
 
 ## T46c Frontera pública/operativa
 

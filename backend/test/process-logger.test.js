@@ -52,6 +52,24 @@ test('ProcessLogger', async (t) => {
         assert.strictEqual(captured.event, 'db_pool_connected');
         assert.strictEqual(captured.errorCode, 'database_error');
     });
+
+    await t.test('shutdown events stay allowlisted without leaking error details', () => {
+        const records = [];
+        const logger = createProcessLogger({
+            entryPoint: 'server',
+            sink: {
+                info: record => records.push(record),
+                error: record => records.push(record)
+            }
+        });
+        logger.info('server_shutdown_success', 'none', { password: 'secret' });
+        logger.error('server_shutdown_failed', 'shutdown_error', { message: 'postgres://secret' });
+        assert.deepStrictEqual(records.map(record => [record.event, record.errorCode]), [
+            ['server_shutdown_success', 'none'],
+            ['server_shutdown_failed', 'shutdown_error']
+        ]);
+        assert.doesNotMatch(JSON.stringify(records), /postgres:\/\/secret|password|secret/);
+    });
     
     await t.test('handles omitted errorCode correctly', () => {
         let captured = null;

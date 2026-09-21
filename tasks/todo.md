@@ -81,13 +81,14 @@ máximo cinco archivos. Un paquete no es autorización para modificar código.
       - Resultado auditado: 23/23 pruebas de adaptador y rutas por zona horaria, 187/187 backend, auditoría con 0 vulnerabilidades; contratos, pins, cortes, intervalos y límites legados preservados.
   - [x] T09e: Cutover y aislamiento final.
     - Resultado auditado: política de cutover aislada sin retirar fallbacks dependientes de T08; 23/23 pruebas de adaptador y rutas en UTC, America/Los_Angeles y America/El_Salvador, 187/187 backend, sintaxis y auditoría NPM de producción verdes.
-- [ ] T10 Extraer casos de uso de rutas y adaptador legacy.
+- [x] T10 Extraer casos de uso de rutas y adaptador legacy.
   - Spec en ejecución: `tasks/specs/T10-route-use-cases.md`; cutover requiere T08 completado.
   - [x] T10a: Soporte determinista de casos de uso.
     - Resultado auditado: 4 pruebas focalizadas y 228/228 backend, equivalencia temporal legacy en tres zonas horarias, sintaxis y auditoría con 0 vulnerabilidades; aún sin consumidor productivo.
   - [x] T10b: Fábrica de casos de uso.
     - Resultado auditado: dependencias y reloj inyectados sin DB/red/Express; preserva respuestas legacy y diferencias escalar/array, calendario de siete candidatos y errores de dependencias. Pruebas de Antigravity corregidas en auditoría; 277/277 backend, sintaxis y auditoría de producción sin vulnerabilidades. La fábrica sigue sin conectarse al adaptador público hasta T10c.
-  - [ ] T10c: Adaptador legacy y cutover.
+  - [x] T10c: Adaptador legacy y cutover.
+    - Resultado auditado: `rutas.service.js` reducido de 279 a 33 líneas de composición y validación; tests de servicio sin `require.cache`, reloj y puertos inyectados, 34 contratos focalizados y 278/278 backend, sintaxis y auditoría sin vulnerabilidades. Controller y SQL intactos.
 - [ ] T11 Añadir repositorios por interfaz.
 - [x] T12 Transaccionar actualización de punto y horarios.
 - [ ] T13 Resolver y migrar contrato `id`/`id_destino`.

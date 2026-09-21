@@ -1,7 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 
-const repositoryPath = require.resolve('../src/domains/ubicaciones/ubicaciones.repository');
+const { createRutasService } = require('../src/domains/rutas/rutas.service');
 
 function location(name, schedules, rules = []) {
   return {
@@ -25,95 +25,127 @@ const destination = location('Destino', [
 ]);
 destination.ubicacion = { ...destination.ubicacion, municipio: 'Santa Ana', departamento: 'Santa Ana' };
 
-require.cache[repositoryPath] = {
-  id: repositoryPath,
-  filename: repositoryPath,
-  loaded: true,
-  exports: {
-    getLocationByName: async name => ({ Origen: origin, Destino: destination }[name] || null),
-    getAllLocations: async () => [origin, destination]
-  }
-};
-
-const routesService = require('../src/domains/rutas/rutas.service');
-const locationRepository = require('../src/domains/ubicaciones/ubicaciones.repository');
-const logistics = require('../services/logistics');
-
-test('rejects invalid route payloads before touching repository or ETA', async () => {
-  const originalLookup = locationRepository.getLocationByName;
-  const originalList = locationRepository.getAllLocations;
-  const originalEntry = logistics.calcularIngresoOficial;
-  const originalProjection = logistics.proyectarProximasRutas;
-  let dependencyCalls = 0;
-  const unexpectedCall = () => { dependencyCalls++; throw new Error('Dependency called for invalid input'); };
-  locationRepository.getLocationByName = unexpectedCall;
-  locationRepository.getAllLocations = unexpectedCall;
-  logistics.calcularIngresoOficial = unexpectedCall;
-  logistics.proyectarProximasRutas = unexpectedCall;
-
-  try {
-    for (const [method, payload] of [
-      ['getUpcomingRoutes', { origen: 'A'.repeat(161), destino: 'Destino' }],
-      ['searchRoutesByMunicipality', { origen: 'Origen', destinos: [] }],
-      ['searchFlights', { origen_municipio: 'San Salvador', destino_municipio: 'Santa Ana', dropoff_date: '2026-02-29', dropoff_time: '10:00' }]
-    ]) {
-      await assert.rejects(routesService[method](payload), error =>
-        error.code === 'VALIDATION_ERROR' && !error.message.includes('Dependency called')
-      );
-    }
-    assert.equal(dependencyCalls, 0);
-  } finally {
-    locationRepository.getLocationByName = originalLookup;
-    locationRepository.getAllLocations = originalList;
-    logistics.calcularIngresoOficial = originalEntry;
-    logistics.proyectarProximasRutas = originalProjection;
-  }
+// Factory double for locations
+const createLocationsPort = (overrides = {}) => ({
+  getLocationByName: async name => ({ Origen: origin, Destino: destination }[name] || null),
+  getAllLocations: async () => [origin, destination],
+  ...overrides
 });
 
-test('preserves the legacy scalar municipality response for valid input', async () => {
-  const response = await routesService.searchRoutesByMunicipality({
+// Factory double for eta
+const createEtaPort = (overrides = {}) => ({
+  calcularIngresoOficial: () => ({ date: new Date('2026-09-07T00:00:00Z'), msg: 'Test entry' }),
+  proyectarProximasRutas: () => [{ fecha_llegada_iso: '2026-09-08', fecha_llegada: '08-Sep', horario_recoleccion: '10:00' }],
+  ...overrides
+});
+
+// Default clock
+const createClockPort = (nowStr = '2026-09-07T10:00:00Z') => ({
+  now: () => new Date(nowStr)
+});
+
+
+test('rejects invalid route payloads before touching repository or ETA (fail-fast)', async () => {
+  let dependencyCalls = 0;
+  const unexpectedCall = () => { dependencyCalls++; throw new Error('Dependency called for invalid input'); };
+
+  const locations = createLocationsPort({ getLocationByName: unexpectedCall, getAllLocations: unexpectedCall });
+  const eta = createEtaPort({ calcularIngresoOficial: unexpectedCall, proyectarProximasRutas: unexpectedCall });
+  const clock = createClockPort();
+
+  const routesService = createRutasService({ locations, eta, clock });
+
+  for (const [method, payload] of [
+    ['getUpcomingRoutes', { origen: 'A'.repeat(161), destino: 'Destino' }],
+    ['searchRoutesByMunicipality', { origen: 'Origen', destinos: [] }],
+    ['searchFlights', { origen_municipio: 'San Salvador', destino_municipio: 'Santa Ana', dropoff_date: '2026-02-29', dropoff_time: '10:00' }]
+  ]) {
+    await assert.rejects(routesService[method](payload), error =>
+      error.code === 'VALIDATION_ERROR' && !error.message.includes('Dependency called')
+    );
+  }
+  assert.equal(dependencyCalls, 0);
+});
+
+
+test('municipality: scalar and array, valid inputs', async () => {
+  const routesService = createRutasService({
+    locations: createLocationsPort(),
+    eta: createEtaPort(),
+    clock: createClockPort()
+  });
+
+  // scalar
+  const responseScalar = await routesService.searchRoutesByMunicipality({
     origen: 'Origen',
     destinos: ['Destino'],
     dropoff_date: '2026-09-07',
     dropoff_time: '10:00'
   });
+  assert.equal(responseScalar.success, true);
+  assert.equal(responseScalar.origen_nombre, 'Origen');
+  assert.ok(Array.isArray(responseScalar.results));
+  assert.equal(responseScalar.results[0].destino_nombre, 'Destino');
+  assert.equal(responseScalar.results[0].opciones[0].fecha_llegada_iso, '2026-09-08');
 
-  assert.equal(response.success, true);
-  assert.equal(response.origen_nombre, 'Origen');
-  assert.equal(response.results[0].destino_nombre, 'Destino');
-  assert.equal(response.results[0].opciones[0].fecha_llegada_iso, '2026-09-08');
+  // array
+  const responseArray = await routesService.searchRoutesByMunicipality({
+    origen: ['Origen'],
+    destinos: ['Destino'],
+    dropoff_date: '2026-09-07',
+    dropoff_time: '10:00'
+  });
+  assert.equal(responseArray.success, true);
+  assert.ok(Array.isArray(responseArray.results));
+  assert.equal(responseArray.results[0].origen_nombre, 'Origen');
+  assert.equal(responseArray.results[0].destino_nombre, 'Destino');
+  assert.equal(responseArray.results[0].opciones[0].fecha_llegada_iso, '2026-09-08');
 });
 
-test('preserves the legacy scalar route response', async () => {
-  const response = await routesService.getUpcomingRoutes({
+
+test('upcoming: scalar and array, valid inputs', async () => {
+  const routesService = createRutasService({
+    locations: createLocationsPort(),
+    eta: createEtaPort(),
+    clock: createClockPort()
+  });
+
+  // scalar
+  const responseScalar = await routesService.getUpcomingRoutes({
     origen: 'Origen',
     destino: 'Destino',
     dropoff_date: '2026-09-07',
     dropoff_time: '10:00'
   });
+  assert.equal(responseScalar.success, true);
+  assert.equal(responseScalar.origen_nombre, 'Origen');
+  assert.equal(responseScalar.destino_nombre, 'Destino');
+  assert.ok(Array.isArray(responseScalar.opciones));
+  assert.equal(responseScalar.opciones[0].fecha_llegada_iso, '2026-09-08');
 
-  assert.equal(response.success, true);
-  assert.equal(response.origen_nombre, 'Origen');
-  assert.equal(response.destino_nombre, 'Destino');
-  assert.equal(response.opciones[0].fecha_llegada_iso, '2026-09-08');
-});
-
-test('preserves the legacy collection response for array input', async () => {
-  const response = await routesService.getUpcomingRoutes({
+  // array
+  const responseArray = await routesService.getUpcomingRoutes({
     origen: ['Origen'],
     destino: ['Destino'],
     dropoff_date: '2026-09-07',
     dropoff_time: '10:00'
   });
-
-  assert.equal(response.success, true);
-  assert.equal(response.results.length, 1);
-  assert.equal(response.results[0].destino_nombre, 'Destino');
+  assert.equal(responseArray.success, true);
+  assert.ok(Array.isArray(responseArray.results));
+  assert.equal(responseArray.results[0].origen_nombre, 'Origen');
+  assert.equal(responseArray.results[0].destino_nombre, 'Destino');
+  assert.equal(responseArray.results[0].opciones[0].fecha_llegada_iso, '2026-09-08');
 });
 
-test('returns an empty municipal search result when companies do not match', async () => {
+
+test('flights: returns an empty municipal search result when companies do not match', async () => {
   const otherDestination = { ...destination, empresa: 'Otra empresa' };
-  require.cache[repositoryPath].exports.getAllLocations = async () => [origin, otherDestination];
+
+  const routesService = createRutasService({
+    locations: createLocationsPort({ getAllLocations: async () => [origin, otherDestination] }),
+    eta: createEtaPort(),
+    clock: createClockPort()
+  });
 
   const response = await routesService.searchFlights({
     origen_municipio: 'San Salvador',
@@ -122,5 +154,52 @@ test('returns an empty municipal search result when companies do not match', asy
     dropoff_time: '10:00'
   });
 
-  assert.deepEqual(response, { success: true, results: [] });
+  assert.equal(response.success, true);
+  assert.deepEqual(response.results, []);
+});
+
+
+test('uses injected clock for default date and time when omitted in payload', async () => {
+  let firstCandidate = null;
+
+  const routesService = createRutasService({
+    locations: createLocationsPort(),
+    eta: createEtaPort({
+      calcularIngresoOficial: (loc, d, t) => {
+        firstCandidate ??= { date: d, time: t };
+        return { date: new Date(`${d}T00:00:00Z`), msg: 'Test msg' };
+      }
+    }),
+    clock: createClockPort('2026-10-15T14:45:00Z')
+  });
+
+  await routesService.getUpcomingRoutes({
+    origen: 'Origen',
+    destino: 'Destino'
+  });
+
+  const now = new Date('2026-10-15T14:45:00Z');
+  assert.deepEqual(firstCandidate, {
+    date: now.toISOString().split('T')[0],
+    time: now.toTimeString().split(' ')[0].substring(0, 5)
+  });
+});
+
+
+test('dependency error preserves identity to allow outer translation', async () => {
+  class CustomError extends Error {}
+  const specificError = new CustomError('DB connection lost');
+
+  const routesService = createRutasService({
+    locations: createLocationsPort({
+      getLocationByName: async () => { throw specificError; }
+    }),
+    eta: createEtaPort(),
+    clock: createClockPort()
+  });
+
+  await assert.rejects(
+    routesService.getUpcomingRoutes({ origen: 'Origen', destino: 'Destino', dropoff_date: '2026-09-07', dropoff_time: '10:00' }),
+    err => err === specificError
+  );
 });

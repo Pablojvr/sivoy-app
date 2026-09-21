@@ -105,6 +105,7 @@ máximo cinco archivos. Un paquete no es autorización para modificar código.
 - [ ] T45 Endurecer resolución de URLs y respuestas externas.
   - Spec en ejecución: `tasks/specs/T45-maps-link-security.md`. T45a política pura auditada y publicada. T45b resolvedor modular con DNS/IP pública fijada, conexión aislada, redirecciones y límites: pruebas RED→GREEN; revisión externa de Antigravity no disponible, auditado por Codex. T45c error HTTP genérico pendiente de decisión expresa para Maps.
 - [ ] T46 Separar superficie pública y operativa; endurecer HTTP y pool.
+  - Spec en ejecución: `tasks/specs/T46-http-pool-boundary.md`. T46a configura límites y timeout de adquisición; T46b cierre ordenado; T46c frontera pública/operativa pendiente de una política de autorización sin login.
 - [x] T47 Actualizar MapLibre a v6 segura y validar el adaptador compartido.
   - Resultado auditado: `maplibre-gl@6.8.0`, 0 vulnerabilidades en `npm audit --omit=dev`, 17 pruebas frontend y build de producción verdes.
   - Validación local: fallback MapLibre cargado sin errores de consola o worker; pin restaurado a la misma posición tras zoom in/out.

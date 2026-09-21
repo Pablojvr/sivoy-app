@@ -1,5 +1,39 @@
 const { getDB, withTransaction } = require('../../config/database');
 
+const UPDATE_COLUMNS = Object.freeze({
+    nombre_destino: 'nombre_destino',
+    empresa: 'empresa',
+    tipo: 'tipo',
+    maps_url: 'maps_url',
+    departamento: 'departamento',
+    municipio: 'municipio',
+    direccion_referencia: 'direccion_referencia',
+    lat: 'lat',
+    lng: 'lng',
+    imagen_referencia: 'imagen_referencia'
+});
+
+function buildAgencyUpdate(locId, changes) {
+    if (!changes || typeof changes !== 'object' || Array.isArray(changes)) {
+        throw new TypeError('Agency changes must be an object');
+    }
+    const fields = [];
+    const values = [];
+    for (const [key, value] of Object.entries(changes)) {
+        if (!Object.hasOwn(UPDATE_COLUMNS, key)) {
+            throw new TypeError('Unsupported agency update field');
+        }
+        values.push(value);
+        fields.push(`${UPDATE_COLUMNS[key]} = $${values.length}`);
+    }
+    if (fields.length === 0) return null;
+    values.push(locId);
+    return {
+        text: `UPDATE agencias SET ${fields.join(', ')} WHERE id = $${values.length}`,
+        values
+    };
+}
+
 async function getAllLocations() {
     const db = await getDB();
     const agencias = await db.query('SELECT * FROM agencias ORDER BY nombre_destino');
@@ -73,16 +107,11 @@ async function getLocationByName(nombre, queryable) {
     };
 }
 
-async function updateLocation(locId, updateFields, params, horarios) {
+async function updateLocation(locId, changes, horarios) {
     return withTransaction(async (db) => {
-        const queryParams = [...params];
-        if (updateFields.length > 0) {
-            const newUpdateFields = updateFields.map((field, index) =>
-                field.replace('?', '$' + (index + 1))
-            );
-            queryParams.push(locId);
-            const query = `UPDATE agencias SET ${newUpdateFields.join(', ')} WHERE id = $${queryParams.length}`;
-            await db.query(query, queryParams);
+        const update = buildAgencyUpdate(locId, changes);
+        if (update) {
+            await db.query(update.text, update.values);
         }
 
         if (horarios) {
@@ -130,6 +159,7 @@ async function createAgencia(id_destino, payload) {
 }
 
 module.exports = {
+    buildAgencyUpdate,
     getAllLocations,
     getLocationByName,
     updateLocation,

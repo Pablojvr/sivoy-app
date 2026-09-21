@@ -117,10 +117,10 @@ test('Ubicaciones Service', async (t) => {
         });
 
         let loggedEvent, loggedCode;
-        let updateParams;
+        let updateChanges;
         const dummyRepo = {
-            updateLocation: async (id, fields, params) => {
-                updateParams = params;
+            updateLocation: async (id, changes) => {
+                updateChanges = changes;
                 return true;
             }
         };
@@ -144,7 +144,7 @@ test('Ubicaciones Service', async (t) => {
         assert.strictEqual(res, true);
         assert.strictEqual(loggedEvent, 'cloudinary_config_missing');
         assert.strictEqual(loggedCode, 'configuration_missing');
-        assert.strictEqual(updateParams[0], 'data:image/png;base64,123'); // Should preserve raw base64
+        assert.strictEqual(updateChanges.imagen_referencia, 'data:image/png;base64,123'); // Should preserve raw base64
     });
 
     await t.test('Isolation: process.env lacks value but injected env has it -> upload', async (t) => {
@@ -155,10 +155,10 @@ test('Ubicaciones Service', async (t) => {
             if (originalEnv !== undefined) process.env.CLOUDINARY_URL = originalEnv;
         });
 
-        let uploadedImage, uploadOptions, updateParams;
+        let uploadedImage, uploadOptions, updateChanges;
         const dummyRepo = {
-            updateLocation: async (id, fields, params) => {
-                updateParams = params;
+            updateLocation: async (id, changes) => {
+                updateChanges = changes;
                 return true;
             }
         };
@@ -185,7 +185,7 @@ test('Ubicaciones Service', async (t) => {
         assert.strictEqual(res, true);
         assert.strictEqual(uploadedImage, 'data:image/png;base64,123');
         assert.deepStrictEqual(uploadOptions, { folder: 'sivoy_agencias' });
-        assert.strictEqual(updateParams[0], 'https://secure.url/image2.png');
+        assert.strictEqual(updateChanges.imagen_referencia, 'https://secure.url/image2.png');
     });
 
     await t.test('createAgencia upload success and exact repo arguments', async () => {
@@ -323,8 +323,8 @@ test('Ubicaciones Service', async (t) => {
     await t.test('updateLocation complete payload preserves original and maps arguments exactly', async () => {
         let capturedArgs;
         const dummyRepo = {
-            updateLocation: async (id, fields, params, horarios) => {
-                capturedArgs = { id, fields, params, horarios };
+            updateLocation: async (id, changes, horarios) => {
+                capturedArgs = { id, changes, horarios };
                 return { success: true, id };
             }
         };
@@ -359,33 +359,42 @@ test('Ubicaciones Service', async (t) => {
         assert.deepStrictEqual(result, { success: true, id: 'loc_123' });
 
         assert.strictEqual(capturedArgs.id, 'loc_123');
-        assert.deepStrictEqual(capturedArgs.fields, [
-            'nombre_destino = ?',
-            'empresa = ?',
-            'tipo = ?',
-            'maps_url = ?',
-            'departamento = ?',
-            'municipio = ?',
-            'direccion_referencia = ?',
-            'lat = ?',
-            'lng = ?',
-            'imagen_referencia = ?'
-        ]);
-        assert.deepStrictEqual(capturedArgs.params, [
-            'nd',
-            'emp',
-            'tp',
-            'http://maps',
-            'dep',
-            'mun',
-            'dir',
-            10,
-            20,
-            'https://images.com/img.png'
-        ]);
+        assert.deepStrictEqual(capturedArgs.changes, {
+            nombre_destino: 'nd',
+            empresa: 'emp',
+            tipo: 'tp',
+            maps_url: 'http://maps',
+            departamento: 'dep',
+            municipio: 'mun',
+            direccion_referencia: 'dir',
+            lat: 10,
+            lng: 20,
+            imagen_referencia: 'https://images.com/img.png'
+        });
         assert.deepStrictEqual(capturedArgs.horarios, [{ day: 'Monday' }]);
 
         assert.deepStrictEqual(originalPayload, payloadClone);
+    });
+
+    await t.test('updateLocation handles empty horarios, omitted horarios, and normalizes empty maps_url to null', async () => {
+        const calls = [];
+        const dummyRepo = {
+            updateLocation: async (id, changes, horarios) => {
+                calls.push({ id, changes, horarios });
+                return true;
+            }
+        };
+        const svc = ubicacionesService.createUbicacionesService({
+            repo: dummyRepo, cloudinary: {}, logger: { warn: () => {} }, env: {}, idClock: () => 1
+        });
+
+        await svc.updateLocation('loc_1', { horarios: '[]', maps_url: '' });
+        await svc.updateLocation('loc_2', { nombre_destino: 'nd' });
+
+        assert.deepStrictEqual(calls[0].horarios, []);
+        assert.strictEqual(calls[0].changes.maps_url, null);
+        assert.strictEqual(calls[1].horarios, undefined);
+        assert.strictEqual('maps_url' in calls[1].changes, false);
     });
 
     await t.test('getAllLocations and getLocationByName proxy properly', async () => {

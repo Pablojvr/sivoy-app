@@ -36,19 +36,18 @@ function createUbicacionesService(options) {
         if (typeof ubicacion === 'string') ubicacion = JSON.parse(ubicacion);
         if (typeof horarios === 'string') horarios = JSON.parse(horarios);
 
-        let updateFields = [];
-        let params = [];
+        const changes = {};
 
-        if (nombre_destino) { updateFields.push('nombre_destino = ?'); params.push(nombre_destino); }
-        if (empresa) { updateFields.push('empresa = ?'); params.push(empresa); }
-        if (tipo) { updateFields.push('tipo = ?'); params.push(tipo); }
-        if (maps_url !== undefined) { updateFields.push('maps_url = ?'); params.push(maps_url || null); }
+        if (nombre_destino) changes.nombre_destino = nombre_destino;
+        if (empresa) changes.empresa = empresa;
+        if (tipo) changes.tipo = tipo;
+        if (maps_url !== undefined) changes.maps_url = maps_url || null;
         if (ubicacion) {
-            if (ubicacion.departamento) { updateFields.push('departamento = ?'); params.push(ubicacion.departamento); }
-            if (ubicacion.municipio) { updateFields.push('municipio = ?'); params.push(ubicacion.municipio); }
-            if (ubicacion.direccion_referencia) { updateFields.push('direccion_referencia = ?'); params.push(ubicacion.direccion_referencia); }
-            if (ubicacion.lat) { updateFields.push('lat = ?'); params.push(ubicacion.lat); }
-            if (ubicacion.lng) { updateFields.push('lng = ?'); params.push(ubicacion.lng); }
+            if (ubicacion.departamento) changes.departamento = ubicacion.departamento;
+            if (ubicacion.municipio) changes.municipio = ubicacion.municipio;
+            if (ubicacion.direccion_referencia) changes.direccion_referencia = ubicacion.direccion_referencia;
+            if (ubicacion.lat) changes.lat = ubicacion.lat;
+            if (ubicacion.lng) changes.lng = ubicacion.lng;
         }
 
         if (imagen_referencia && imagen_referencia.startsWith('data:image')) {
@@ -64,11 +63,10 @@ function createUbicacionesService(options) {
         }
 
         if (imagen_referencia) {
-            updateFields.push('imagen_referencia = ?');
-            params.push(imagen_referencia);
+            changes.imagen_referencia = imagen_referencia;
         }
 
-        const updated = await repo.updateLocation(locId, updateFields, params, horarios);
+        const updated = await repo.updateLocation(locId, changes, horarios);
         if (!updated) {
             throw new Error("Location not found");
         }

@@ -103,7 +103,7 @@ máximo cinco archivos. Un paquete no es autorización para modificar código.
 - [ ] T43 Ejecutar ETA antiguo/nuevo en paralelo y comparar resultados.
 - [ ] T44 Uniformar envelopes, errores, IDs y timestamps del API.
 - [ ] T45 Endurecer resolución de URLs y respuestas externas.
-  - Spec en ejecución: `tasks/specs/T45-maps-link-security.md`. T45a política pura; T45b transporte con DNS/IP fijada, redirecciones y límites; T45c error HTTP genérico pendiente de decisión expresa.
+  - Spec en ejecución: `tasks/specs/T45-maps-link-security.md`. T45a política pura auditada con pruebas RED→GREEN y 294/294 backend; sin cambio de red ni endpoint. T45b transporte con DNS/IP fijada, redirecciones y límites pendiente. T45c error HTTP genérico pendiente de decisión expresa para Maps.
 - [ ] T46 Separar superficie pública y operativa; endurecer HTTP y pool.
 - [x] T47 Actualizar MapLibre a v6 segura y validar el adaptador compartido.
   - Resultado auditado: `maplibre-gl@6.8.0`, 0 vulnerabilidades en `npm audit --omit=dev`, 17 pruebas frontend y build de producción verdes.

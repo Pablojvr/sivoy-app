@@ -1,6 +1,14 @@
 const { Pool } = require('pg');
 const { createProcessLogger } = require('../core/observability/process-logger');
 
+function boundedEnvInteger(value, fallback, minimum, maximum) {
+    if (typeof value !== 'string' || !/^[1-9]\d*$/.test(value)) return fallback;
+    const parsed = Number(value);
+    return Number.isSafeInteger(parsed) && parsed >= minimum && parsed <= maximum
+        ? parsed
+        : fallback;
+}
+
 function createDatabaseRuntime(options = {}) {
     const {
         PoolCtor = Pool,
@@ -18,7 +26,10 @@ function createDatabaseRuntime(options = {}) {
         const isProd = env.NODE_ENV === 'production';
         const newPool = new PoolCtor({
             connectionString: env.DATABASE_URL,
-            ssl: isProd ? { rejectUnauthorized: false } : false
+            ssl: isProd ? { rejectUnauthorized: false } : false,
+            max: boundedEnvInteger(env.DB_POOL_MAX, 10, 1, 20),
+            connectionTimeoutMillis: boundedEnvInteger(env.DB_CONNECT_TIMEOUT_MS, 5000, 100, 30000),
+            idleTimeoutMillis: boundedEnvInteger(env.DB_IDLE_TIMEOUT_MS, 10000, 1000, 60000)
         });
 
         poolInstance = newPool;

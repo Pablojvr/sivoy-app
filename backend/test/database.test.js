@@ -177,6 +177,65 @@ test('si new PoolCtor lanza, no asigna singleton ni emite db_pool_connected y pe
     assert.deepEqual(logs, [{ level: 'info', event: 'db_pool_connected' }]);
 });
 
+test('configura límites de pool: valores por defecto, overrides válidos y fallbacks seguros (T46a)', async () => {
+    let lastConfig;
+    class FakePool {
+        constructor(config) {
+            lastConfig = config;
+        }
+    }
+    const fakeLogger = { info: () => {}, error: () => {} };
+
+    const check = async (env, expectedMax, expectedConnect, expectedIdle) => {
+        const runtime = createDatabaseRuntime({
+            PoolCtor: FakePool,
+            logger: fakeLogger,
+            env
+        });
+        await runtime.getDB();
+        assert.strictEqual(lastConfig.max, expectedMax);
+        assert.strictEqual(lastConfig.connectionTimeoutMillis, expectedConnect);
+        assert.strictEqual(lastConfig.idleTimeoutMillis, expectedIdle);
+    };
+
+    // 1. Defaults
+    await check({}, 10, 5000, 10000);
+
+    // 2. Overrides válidos
+    await check({
+        DB_POOL_MAX: '6',
+        DB_CONNECT_TIMEOUT_MS: '1200',
+        DB_IDLE_TIMEOUT_MS: '2000'
+    }, 6, 1200, 2000);
+    await check({
+        DB_POOL_MAX: '1',
+        DB_CONNECT_TIMEOUT_MS: '100',
+        DB_IDLE_TIMEOUT_MS: '1000'
+    }, 1, 100, 1000);
+    await check({
+        DB_POOL_MAX: '20',
+        DB_CONNECT_TIMEOUT_MS: '30000',
+        DB_IDLE_TIMEOUT_MS: '60000'
+    }, 20, 30000, 60000);
+
+    // 3. Inválidos
+    const invalids = [
+        { DB_POOL_MAX: '0', DB_CONNECT_TIMEOUT_MS: '0', DB_IDLE_TIMEOUT_MS: '0' },
+        { DB_POOL_MAX: '-1', DB_CONNECT_TIMEOUT_MS: '-100', DB_IDLE_TIMEOUT_MS: '-1000' },
+        { DB_POOL_MAX: '21', DB_CONNECT_TIMEOUT_MS: '30001', DB_IDLE_TIMEOUT_MS: '60001' },
+        { DB_POOL_MAX: '01', DB_CONNECT_TIMEOUT_MS: '0500', DB_IDLE_TIMEOUT_MS: '01000' },
+        { DB_POOL_MAX: ' 5', DB_CONNECT_TIMEOUT_MS: ' 1200', DB_IDLE_TIMEOUT_MS: ' 2000' },
+        { DB_POOL_MAX: '1.5', DB_CONNECT_TIMEOUT_MS: '100.5', DB_IDLE_TIMEOUT_MS: '1000.5' },
+        { DB_POOL_MAX: 'NaN', DB_CONNECT_TIMEOUT_MS: 'NaN', DB_IDLE_TIMEOUT_MS: 'NaN' },
+        { DB_POOL_MAX: undefined, DB_CONNECT_TIMEOUT_MS: undefined, DB_IDLE_TIMEOUT_MS: undefined }
+    ];
+
+    for (const env of invalids) {
+        await check(env, 10, 5000, 10000);
+    }
+    await check({ DB_POOL_MAX: '6', DB_CONNECT_TIMEOUT_MS: '0' }, 6, 5000, 10000);
+});
+
 test('legacy exports siguen siendo funciones (sin invocarlas contra DB)', () => {
     const dbConfig = require('../src/config/database');
     assert.strictEqual(typeof dbConfig.getDB, 'function');

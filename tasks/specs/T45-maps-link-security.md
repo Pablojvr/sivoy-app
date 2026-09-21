@@ -26,7 +26,8 @@ fuera de este paquete salvo una auditoría posterior de su respuesta externa.
 - CI usa Node.js 22; ejecución local usa Node.js 24. No se añaden paquetes.
 - `https.request(URL, options)` acepta opciones de `http.request`, incluyendo
   `lookup` y `signal`; `dns.lookup` con `all: true` entrega direcciones y familia.
-  El timeout de socket por sí solo no aborta la petición. Fuentes oficiales:
+  El timeout de socket por sí solo no aborta la petición. `agent: false` evita
+  reutilizar una conexión anterior al pinning. Fuentes oficiales:
   [HTTPS de Node 22](https://nodejs.org/download/release/v22.19.0/docs/api/https.html),
   [HTTP de Node 22](https://nodejs.org/download/release/latest-jod/docs/api/http.html),
   [DNS de Node](https://nodejs.org/api/dns.html),
@@ -47,6 +48,7 @@ fuera de este paquete salvo una auditoría posterior de su respuesta externa.
 ### T45b Transporte seguro y cutover
 
 - Archivos: `backend/src/domains/mapas/mapas.service.js`,
+  `backend/src/domains/mapas/maps-link-resolver.js`,
   `backend/test/maps-link-resolver.test.js` y, si requiere factorizar el pinning,
   `backend/src/domains/mapas/maps-link-policy.js`.
 - Validar antes de cada petición y redirección; DNS a IPv4 pública y fijar esa

@@ -85,7 +85,8 @@ máximo cinco archivos. Un paquete no es autorización para modificar código.
   - Spec en ejecución: `tasks/specs/T10-route-use-cases.md`; cutover requiere T08 completado.
   - [x] T10a: Soporte determinista de casos de uso.
     - Resultado auditado: 4 pruebas focalizadas y 228/228 backend, equivalencia temporal legacy en tres zonas horarias, sintaxis y auditoría con 0 vulnerabilidades; aún sin consumidor productivo.
-  - [ ] T10b: Fábrica de casos de uso.
+  - [x] T10b: Fábrica de casos de uso.
+    - Resultado auditado: dependencias y reloj inyectados sin DB/red/Express; preserva respuestas legacy y diferencias escalar/array, calendario de siete candidatos y errores de dependencias. Pruebas de Antigravity corregidas en auditoría; 277/277 backend, sintaxis y auditoría de producción sin vulnerabilidades. La fábrica sigue sin conectarse al adaptador público hasta T10c.
   - [ ] T10c: Adaptador legacy y cutover.
 - [ ] T11 Añadir repositorios por interfaz.
 - [x] T12 Transaccionar actualización de punto y horarios.

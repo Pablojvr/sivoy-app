@@ -7,6 +7,7 @@ const path = require('node:path');
 // Importar rutas y servicio original
 const rutasService = require('../src/domains/rutas/rutas.service');
 const rutasRoutes = require('../src/domains/rutas/rutas.routes');
+const { ValidationError } = require('../src/domains/rutas/rutas.validation');
 
 // Cargar fixtures
 const fixturesPath = path.join(__dirname, 'fixtures', 'routes-contract-v1.json');
@@ -119,7 +120,7 @@ describe('Rutas Contracts API (T07b)', { concurrency: false }, () => {
 
         test('missing_fields - 400', async () => {
             rutasService.getUpcomingRoutes = async () => {
-                throw new Error("Missing origin or destination");
+                throw new ValidationError("Missing origin or destination");
             };
             const response = await fetchEphemeral(app, endpoint, fixReq.missing_fields);
             assertJsonResponse(response, 400, fixRes.missing_fields_400);
@@ -193,7 +194,7 @@ describe('Rutas Contracts API (T07b)', { concurrency: false }, () => {
 
         test('missing_fields - 400', async () => {
             rutasService.searchRoutesByMunicipality = async () => {
-                throw new Error("Missing parameters or destinos is not an array");
+                throw new ValidationError("Missing parameters or destinos is not an array");
             };
             const response = await fetchEphemeral(app, endpoint, fixReq.missing_fields);
             assertJsonResponse(response, 400, fixRes.missing_fields_400);
@@ -233,7 +234,7 @@ describe('Rutas Contracts API (T07b)', { concurrency: false }, () => {
 
         test('missing_fields - 400', async () => {
             rutasService.searchFlights = async () => {
-                throw new Error("Missing origin or destination");
+                throw new ValidationError("Missing origin or destination");
             };
             const response = await fetchEphemeral(app, endpoint, fixReq.missing_fields);
             assertJsonResponse(response, 400, fixRes.missing_fields_400);

@@ -376,6 +376,7 @@ test('HTTP Observability Middleware', async (t) => {
     await t.test('rutas.controller.js error logging', async (st) => {
         const rutasController = require('../src/domains/rutas/rutas.controller');
         const rutasService = require('../src/domains/rutas/rutas.service');
+        const { ValidationError } = require('../src/domains/rutas/rutas.validation');
 
         // safe mocking console.error
         let consoleErrors = 0;
@@ -416,33 +417,36 @@ test('HTTP Observability Middleware', async (t) => {
         };
 
         await st.test('getUpcomingRoutes - validation error', async () => {
-            rutasService.getUpcomingRoutes = async () => { throw new Error("Missing params"); };
+            rutasService.getUpcomingRoutes = async () => { throw new ValidationError("Length out of bounds for origen"); };
             const req = reqMock();
             const res = resMock();
             await rutasController.getUpcomingRoutes(req, res);
             assert.strictEqual(res.getStatus(), 400);
+            assert.deepStrictEqual(res.getBody(), { error: 'Length out of bounds for origen' });
             assert.strictEqual(req.getLogData().ev, 'get_upcoming_routes_failed');
             assert.strictEqual(req.getLogData().code, 'validation_error');
             assert.strictEqual(req.getLogData().level, 'warn');
         });
 
         await st.test('getUpcomingRoutes - internal error', async () => {
-            rutasService.getUpcomingRoutes = async () => { throw new Error("DB dead"); };
+            rutasService.getUpcomingRoutes = async () => { throw new Error("Missing but internal SQL detail"); };
             const req = reqMock();
             const res = resMock();
             await rutasController.getUpcomingRoutes(req, res);
             assert.strictEqual(res.getStatus(), 500);
+            assert.deepStrictEqual(res.getBody(), { error: 'Database error' });
             assert.strictEqual(req.getLogData().ev, 'get_upcoming_routes_failed');
             assert.strictEqual(req.getLogData().code, 'internal_error');
             assert.strictEqual(req.getLogData().level, 'error');
         });
 
         await st.test('searchRoutesByMunicipality - validation error', async () => {
-            rutasService.searchRoutesByMunicipality = async () => { throw new Error("Missing params"); };
+            rutasService.searchRoutesByMunicipality = async () => { throw new ValidationError("Length out of bounds for origen"); };
             const req = reqMock();
             const res = resMock();
             await rutasController.searchRoutesByMunicipality(req, res);
             assert.strictEqual(res.getStatus(), 400);
+            assert.deepStrictEqual(res.getBody(), { error: 'Length out of bounds for origen' });
             assert.strictEqual(req.getLogData().ev, 'search_by_municipality_failed');
             assert.strictEqual(req.getLogData().code, 'validation_error');
             assert.strictEqual(req.getLogData().level, 'warn');
@@ -460,33 +464,36 @@ test('HTTP Observability Middleware', async (t) => {
         });
 
         await st.test('searchRoutesByMunicipality - internal error', async () => {
-            rutasService.searchRoutesByMunicipality = async () => { throw new Error("Boom"); };
+            rutasService.searchRoutesByMunicipality = async () => { throw new Error("Missing internal route data"); };
             const req = reqMock();
             const res = resMock();
             await rutasController.searchRoutesByMunicipality(req, res);
             assert.strictEqual(res.getStatus(), 500);
+            assert.deepStrictEqual(res.getBody(), { error: 'Missing internal route data' });
             assert.strictEqual(req.getLogData().ev, 'search_by_municipality_failed');
             assert.strictEqual(req.getLogData().code, 'internal_error');
             assert.strictEqual(req.getLogData().level, 'error');
         });
 
         await st.test('searchFlights - validation error', async () => {
-            rutasService.searchFlights = async () => { throw new Error("Missing params"); };
+            rutasService.searchFlights = async () => { throw new ValidationError("Length out of bounds for origen_municipio"); };
             const req = reqMock();
             const res = resMock();
             await rutasController.searchFlights(req, res);
             assert.strictEqual(res.getStatus(), 400);
+            assert.deepStrictEqual(res.getBody(), { error: 'Length out of bounds for origen_municipio' });
             assert.strictEqual(req.getLogData().ev, 'search_flights_failed');
             assert.strictEqual(req.getLogData().code, 'validation_error');
             assert.strictEqual(req.getLogData().level, 'warn');
         });
 
         await st.test('searchFlights - internal error', async () => {
-            rutasService.searchFlights = async () => { throw new Error("DB Error"); };
+            rutasService.searchFlights = async () => { throw new Error("Missing internal flight data"); };
             const req = reqMock();
             const res = resMock();
             await rutasController.searchFlights(req, res);
             assert.strictEqual(res.getStatus(), 500);
+            assert.deepStrictEqual(res.getBody(), { error: 'Database error in search-flights' });
             assert.strictEqual(req.getLogData().ev, 'search_flights_failed');
             assert.strictEqual(req.getLogData().code, 'internal_error');
             assert.strictEqual(req.getLogData().level, 'error');

@@ -1,11 +1,12 @@
 const rutasService = require('./rutas.service');
+const { ValidationError } = require('./rutas.validation');
 
 async function getUpcomingRoutes(req, res) {
     try {
         const result = await rutasService.getUpcomingRoutes(req.body);
         res.json(result);
     } catch (e) {
-        if (e.message.startsWith("Missing")) {
+        if (e instanceof ValidationError && e.code === 'VALIDATION_ERROR') {
             req.log.warn('get_upcoming_routes_failed', 'validation_error');
             return res.status(400).json({ error: e.message });
         }
@@ -22,7 +23,7 @@ async function searchRoutesByMunicipality(req, res) {
         }
         res.json(result);
     } catch (e) {
-        if (e.message.startsWith("Missing")) {
+        if (e instanceof ValidationError && e.code === 'VALIDATION_ERROR') {
             req.log.warn('search_by_municipality_failed', 'validation_error');
             return res.status(400).json({ error: e.message });
         }
@@ -40,7 +41,7 @@ async function searchFlights(req, res) {
         const result = await rutasService.searchFlights(req.body);
         res.json(result);
     } catch (e) {
-        if (e.message.startsWith("Missing")) {
+        if (e instanceof ValidationError && e.code === 'VALIDATION_ERROR') {
             req.log.warn('search_flights_failed', 'validation_error');
             return res.status(400).json({ error: e.message });
         }

@@ -89,7 +89,8 @@ máximo cinco archivos. Un paquete no es autorización para modificar código.
     - Resultado auditado: dependencias y reloj inyectados sin DB/red/Express; preserva respuestas legacy y diferencias escalar/array, calendario de siete candidatos y errores de dependencias. Pruebas de Antigravity corregidas en auditoría; 277/277 backend, sintaxis y auditoría de producción sin vulnerabilidades. La fábrica sigue sin conectarse al adaptador público hasta T10c.
   - [x] T10c: Adaptador legacy y cutover.
     - Resultado auditado: `rutas.service.js` reducido de 279 a 33 líneas de composición y validación; tests de servicio sin `require.cache`, reloj y puertos inyectados, 34 contratos focalizados y 278/278 backend, sintaxis y auditoría sin vulnerabilidades. Controller y SQL intactos.
-- [ ] T11 Añadir repositorios por interfaz.
+- [ ] T11 Completar el puerto de persistencia de ubicaciones.
+  - Spec en ejecución: `tasks/specs/T11-location-repository-port.md`. T10 ya cubre lectura de rutas por puertos; queda retirar expresiones SQL de la escritura de puntos sin alterar el endpoint ni Partner.
 - [x] T12 Transaccionar actualización de punto y horarios.
 - [ ] T13 Resolver y migrar contrato `id`/`id_destino`.
 - [ ] T14 Optimizar búsquedas después de medir consultas.

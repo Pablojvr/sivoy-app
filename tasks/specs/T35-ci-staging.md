@@ -15,3 +15,19 @@
 ## T35c: Migraciones y staging
 - **Migraciones efímeras**: Pendiente
 - **Staging externo**: Aún no configurado
+
+### Prerrequisito de CI detectado (2026-09-21)
+
+Las migraciones numeradas no arrancan sobre PostgreSQL vacío: `0001` referencia
+`agencias` y `empresas`, mientras `0006` modifica también
+`horarios_operativos` y `reglas_entrega`. No existe en el repositorio un esquema
+base reproducible que cree esas tablas; `backend/package.json` menciona además
+`scripts/pg_init.js`, archivo ausente. Por tanto, añadir directamente
+`npm run migrate` al CI produciría un fallo seguro y no validaría la migración.
+
+Antes de T35c debe incorporarse y auditarse un baseline estructural **sin datos
+ni secretos** de las tablas legacy, obtenido de una fuente autorizada y
+verificado contra las claves/columnas que requieren `0001`–`0006`. Solo entonces
+podrá configurarse PostgreSQL efímero, cargar ese baseline y ejecutar el runner
+dos veces para comprobar aplicación e idempotencia. No se modifica ningún SQL
+ni pipeline en este diagnóstico.

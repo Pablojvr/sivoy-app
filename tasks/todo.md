@@ -59,11 +59,14 @@ máximo cinco archivos. Un paquete no es autorización para modificar código.
     - Resultado auditado: 18/18 casos HTTP contra Express local, 224/224 pruebas backend y auditoría de producción con 0 vulnerabilidades; commit remoto `e49ea87` verificado.
   - [x] T07c: Tipos de consumo frontend.
     - Resultado auditado: variantes legacy diferenciadas en el contrato canónico; 11 pruebas focalizadas, 253/253 pruebas frontend, TypeScript, build y auditoría con 0 vulnerabilidades; Partner intacto.
-- [ ] T08 Añadir validación de entrada y errores consistentes.
+- [x] T08 Añadir validación de entrada y errores consistentes.
   - Límites aprobados por el usuario (160 caracteres, 100 elementos, años 1900–2100) conservando defaults legacy; spec: `tasks/specs/T08-input-validation.md`.
-  - [ ] T08a: Validadores puros de rutas.
-  - [ ] T08b: Integración fail-fast en casos de uso.
-  - [ ] T08c: Traducción consistente en la frontera HTTP.
+  - [x] T08a: Validadores puros de rutas.
+    - Resultado auditado: límites, calendario UTC, copias y entradas hostiles; 265/265 backend y auditoría 0 vulnerabilidades; commit remoto `f07c569` verificado.
+  - [x] T08b: Integración fail-fast en casos de uso.
+    - Resultado auditado: repositorio y ETA no se invocan con payload inválido; 267/267 backend y auditoría 0 vulnerabilidades; commit remoto `d4bec6f` verificado.
+  - [x] T08c: Traducción consistente en la frontera HTTP.
+    - Validaciones tipadas producen 400, origen ausente conserva 404 y errores internos 500; prueba HTTP real sin I/O. Con aprobación expresa del usuario, el 500 municipal oculta el detalle interno bajo `{ "error": "Database error" }`.
 - [x] T09 Extraer fechas y horarios al núcleo ETA puro.
   - [x] T09a: Caracterización y contratos del núcleo temporal.
     - Resultado auditado: 23 pruebas focalizadas en UTC, America/Los_Angeles y America/El_Salvador; 145/145 pruebas backend, sintaxis y diff verdes; ningún consumidor modificado.

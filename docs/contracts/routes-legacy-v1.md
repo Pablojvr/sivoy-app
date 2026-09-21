@@ -171,7 +171,9 @@ Este documento describe el contrato observable de los endpoints legacy de rutas,
 - Nota: 404 por `result.success=false/error` existe en el controller, pero el servicio observado lanza una excepción si el origen escalar está ausente.
 
 **500 Internal Server Error**
-- Ante cualquier otro error: `{ "error": "<mensaje literal de la excepción>" }`
+- Ante cualquier otro error: `{ "error": "Database error" }`. El mensaje literal
+  de la excepción se dejó de exponer con aprobación expresa del usuario el
+  2026-09-21; se mantiene el código 500 y el envelope `{ error: string }`.
 
 ---
 

@@ -32,7 +32,7 @@ async function searchRoutesByMunicipality(req, res) {
             return res.status(404).json({ error: e.message });
         }
         req.log.error('search_by_municipality_failed', 'internal_error');
-        res.status(500).json({ error: e.message });
+        res.status(500).json({ error: "Database error" });
     }
 }
 

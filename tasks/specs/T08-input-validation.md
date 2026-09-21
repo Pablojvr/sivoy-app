@@ -92,14 +92,16 @@ No se añaden paquetes ni expresiones regulares con backtracking no acotado.
 ### T08c Traducción consistente en la frontera HTTP
 
 - **Dependencia:** T08b.
-- **Archivos (2):**
+- **Archivos (3):**
   - `backend/src/domains/rutas/rutas.controller.js`
   - `backend/test/http-observability.test.js`
+  - `backend/test/rutas-contract.test.js` (regresión HTTP real y dobles tipados)
 - **Criterios de aceptación:**
   1. Solo `VALIDATION_ERROR` produce 400; errores no reconocidos continúan como
      500 y `Origen no encontrado` conserva 404.
-  2. Los cuerpos legacy `{ error: string }` y eventos estructurados existentes se
-     preservan sin filtrar stack, SQL ni payloads.
+  2. Se preservan los envelopes `{ error: string }` y eventos estructurados
+     existentes sin filtrar stack, SQL ni payloads. Por aprobación expresa del
+     usuario, el 500 municipal usa `{ "error": "Database error" }`.
   3. Ninguna decisión HTTP depende de prefijos del mensaje (`startsWith`).
 - **Verificación:**
   `cd backend; node --test test/http-observability.test.js test/routes-service.test.js; node --test; npm audit --omit=dev`
@@ -119,7 +121,8 @@ No se añaden paquetes ni expresiones regulares con backtracking no acotado.
 1. Los tres endpoints de rutas rechazan tipos y límites inválidos de forma
    consistente antes de I/O.
 2. La suite completa y el audit de dependencias de producción quedan verdes.
-3. No cambia ningún contrato exitoso ni cuerpo de error público sin versión.
+3. No cambia ningún contrato exitoso. La única excepción aprobada al cuerpo
+   público de error es la redacción del 500 municipal, sin cambiar su código.
 
 ## Pregunta de aprobación
 
@@ -131,3 +134,8 @@ manteniendo la sustitución legacy de fecha/hora cuando falte cualquiera de amba
 El usuario aprobó expresamente esos límites y la conservación del valor por
 defecto legacy de fecha/hora el 2026-09-16. No se aprobaron cambios de envelope,
 IDs, dependencias ni despliegue.
+
+El 2026-09-21 el usuario aprobó expresamente ocultar detalles internos en el
+500 de búsqueda por municipio mediante `{ "error": "Database error" }`, conservando
+el código 500. Esta excepción de seguridad al cuerpo legacy está cubierta por
+pruebas HTTP y fixture del contrato. T08a, T08b y T08c están auditados.

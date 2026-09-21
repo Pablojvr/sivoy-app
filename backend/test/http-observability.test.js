@@ -469,7 +469,7 @@ test('HTTP Observability Middleware', async (t) => {
             const res = resMock();
             await rutasController.searchRoutesByMunicipality(req, res);
             assert.strictEqual(res.getStatus(), 500);
-            assert.deepStrictEqual(res.getBody(), { error: 'Missing internal route data' });
+            assert.deepStrictEqual(res.getBody(), { error: 'Database error' });
             assert.strictEqual(req.getLogData().ev, 'search_by_municipality_failed');
             assert.strictEqual(req.getLogData().code, 'internal_error');
             assert.strictEqual(req.getLogData().level, 'error');

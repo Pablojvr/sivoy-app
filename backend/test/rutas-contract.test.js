@@ -233,7 +233,7 @@ describe('Rutas Contracts API (T07b)', { concurrency: false }, () => {
 
         test('server_error - 500', async () => {
             rutasService.searchRoutesByMunicipality = async () => {
-                throw new Error("SyntaxError: Unexpected token u in JSON at position 0");
+                throw new Error("Synthetic internal SQL detail");
             };
             const response = await fetchEphemeral(app, endpoint, fixReq.server_error);
             assertJsonResponse(response, 500, fixRes.server_error_500);

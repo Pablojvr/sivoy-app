@@ -190,7 +190,7 @@
         "error": "Missing parameters or destinos is not an array"
       },
       "server_error_500": {
-        "error": "SyntaxError: Unexpected token u in JSON at position 0"
+        "error": "Database error"
       }
     }
   },

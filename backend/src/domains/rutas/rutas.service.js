@@ -1,5 +1,10 @@
 const logistics = require('../../../services/logistics');
 const ubicacionesRepo = require('../ubicaciones/ubicaciones.repository');
+const {
+    validateUpcomingRoutes,
+    validateMunicipalityRoutes,
+    validateSearchFlights
+} = require('./rutas.validation');
 
 function getNextDates(startDateStr, days) {
     let dates = [];
@@ -12,7 +17,7 @@ function getNextDates(startDateStr, days) {
 }
 
 async function getUpcomingRoutes(payload) {
-    let { origen, destino, dropoff_date, dropoff_time } = payload;
+    let { origen, destino, dropoff_date, dropoff_time } = validateUpcomingRoutes(payload);
     
     if (!origen || !destino) {
         throw new Error("Missing origin or destination");
@@ -95,7 +100,7 @@ async function getUpcomingRoutes(payload) {
 }
 
 async function searchRoutesByMunicipality(payload) {
-    let { origen, destinos, dropoff_date, dropoff_time, arrival_date } = payload;
+    let { origen, destinos, dropoff_date, dropoff_time, arrival_date } = validateMunicipalityRoutes(payload);
     
     if (!origen || !destinos || !Array.isArray(destinos)) {
         throw new Error("Missing parameters or destinos is not an array");
@@ -180,7 +185,7 @@ async function searchRoutesByMunicipality(payload) {
 }
 
 async function searchFlights(payload) {
-    let { origen_municipio, origen_departamento, destino_municipio, destino_departamento, dropoff_date, dropoff_time } = payload;
+    let { origen_municipio, origen_departamento, destino_municipio, destino_departamento, dropoff_date, dropoff_time } = validateSearchFlights(payload);
 
     if (!origen_municipio || !destino_municipio) {
         throw new Error("Missing origin or destination");

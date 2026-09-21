@@ -36,6 +36,53 @@ require.cache[repositoryPath] = {
 };
 
 const routesService = require('../src/domains/rutas/rutas.service');
+const locationRepository = require('../src/domains/ubicaciones/ubicaciones.repository');
+const logistics = require('../services/logistics');
+
+test('rejects invalid route payloads before touching repository or ETA', async () => {
+  const originalLookup = locationRepository.getLocationByName;
+  const originalList = locationRepository.getAllLocations;
+  const originalEntry = logistics.calcularIngresoOficial;
+  const originalProjection = logistics.proyectarProximasRutas;
+  let dependencyCalls = 0;
+  const unexpectedCall = () => { dependencyCalls++; throw new Error('Dependency called for invalid input'); };
+  locationRepository.getLocationByName = unexpectedCall;
+  locationRepository.getAllLocations = unexpectedCall;
+  logistics.calcularIngresoOficial = unexpectedCall;
+  logistics.proyectarProximasRutas = unexpectedCall;
+
+  try {
+    for (const [method, payload] of [
+      ['getUpcomingRoutes', { origen: 'A'.repeat(161), destino: 'Destino' }],
+      ['searchRoutesByMunicipality', { origen: 'Origen', destinos: [] }],
+      ['searchFlights', { origen_municipio: 'San Salvador', destino_municipio: 'Santa Ana', dropoff_date: '2026-02-29', dropoff_time: '10:00' }]
+    ]) {
+      await assert.rejects(routesService[method](payload), error =>
+        error.code === 'VALIDATION_ERROR' && !error.message.includes('Dependency called')
+      );
+    }
+    assert.equal(dependencyCalls, 0);
+  } finally {
+    locationRepository.getLocationByName = originalLookup;
+    locationRepository.getAllLocations = originalList;
+    logistics.calcularIngresoOficial = originalEntry;
+    logistics.proyectarProximasRutas = originalProjection;
+  }
+});
+
+test('preserves the legacy scalar municipality response for valid input', async () => {
+  const response = await routesService.searchRoutesByMunicipality({
+    origen: 'Origen',
+    destinos: ['Destino'],
+    dropoff_date: '2026-09-07',
+    dropoff_time: '10:00'
+  });
+
+  assert.equal(response.success, true);
+  assert.equal(response.origen_nombre, 'Origen');
+  assert.equal(response.results[0].destino_nombre, 'Destino');
+  assert.equal(response.results[0].opciones[0].fecha_llegada_iso, '2026-09-08');
+});
 
 test('preserves the legacy scalar route response', async () => {
   const response = await routesService.getUpcomingRoutes({

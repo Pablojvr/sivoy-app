@@ -236,9 +236,66 @@ test('configura límites de pool: valores por defecto, overrides válidos y fall
     await check({ DB_POOL_MAX: '6', DB_CONNECT_TIMEOUT_MS: '0' }, 6, 5000, 10000);
 });
 
+test('closeDB() no crea pool si nunca se usó, y getDB posterior rechaza', async () => {
+    let poolCreated = 0;
+    class FakePool {
+        constructor() { poolCreated++; }
+        async end() { throw new Error('No debe llamarse a end'); }
+    }
+    const runtime = createDatabaseRuntime({ PoolCtor: FakePool, logger: { info: () => {}, error: () => {} }, env: {} });
+
+    await runtime.closeDB();
+    assert.strictEqual(poolCreated, 0);
+    await assert.rejects(runtime.getDB());
+});
+
+test('closeDB() llama una sola vez a end() incluso concurrente, y bloquea nuevas peticiones', async () => {
+    let endCalls = 0;
+    class FakePool {
+        async end() {
+            endCalls++;
+            await new Promise(r => setTimeout(r, 10)); // simula latencia
+        }
+    }
+    const runtime = createDatabaseRuntime({ PoolCtor: FakePool, logger: { info: () => {}, error: () => {} }, env: {} });
+    await runtime.getDB(); // fuerza creación
+
+    const p1 = runtime.closeDB();
+    const p2 = runtime.closeDB();
+    await Promise.all([p1, p2]);
+
+    assert.strictEqual(endCalls, 1);
+    await assert.rejects(runtime.getDB());
+    await assert.rejects(runtime.withTransaction(async () => {}));
+});
+
+test('closeDB() propaga error de end() y no reintenta', async () => {
+    let endCalls = 0;
+    const expected = new Error('end boom');
+    class FakePool {
+        async end() {
+            endCalls++;
+            throw expected;
+        }
+    }
+    const runtime = createDatabaseRuntime({ PoolCtor: FakePool, logger: { info: () => {}, error: () => {} }, env: {} });
+    await runtime.getDB();
+
+    const p1 = runtime.closeDB();
+    const p2 = runtime.closeDB();
+
+    await assert.rejects(p1, (err) => err === expected);
+    await assert.rejects(p2, (err) => err === expected);
+    assert.strictEqual(endCalls, 1);
+
+    await assert.rejects(runtime.closeDB(), (err) => err === expected);
+    assert.strictEqual(endCalls, 1);
+});
+
 test('legacy exports siguen siendo funciones (sin invocarlas contra DB)', () => {
     const dbConfig = require('../src/config/database');
     assert.strictEqual(typeof dbConfig.getDB, 'function');
     assert.strictEqual(typeof dbConfig.runInTransaction, 'function');
     assert.strictEqual(typeof dbConfig.withTransaction, 'function');
+    assert.strictEqual(typeof dbConfig.closeDB, 'function');
 });

@@ -22,17 +22,44 @@ escrituras operativas. El MVP sigue sin login y Partner queda fuera de alcance.
 
 ## T46b Cierre ordenado
 
-- Requiere spec y pruebas propios después de T46a. Exponer un cierre idempotente
-  de pool; esperar `server.close()` antes de `pool.end()`; no registrar handlers
-  globales cuando `server.js` se importa en pruebas. Evitar logs con secretos.
-- Verificar unidades con pool/servidor inyectados y un smoke con SIGTERM.
+### T46b1 Cierre idempotente del runtime de base de datos
+
+- Archivos (máximo 3): `backend/src/config/database.js`,
+  `backend/test/database.test.js`, `tasks/todo.md`.
+- Criterios: `closeDB()` no crea pool si nunca se usó, espera exactamente una
+  llamada a `pool.end()` aun con cierres concurrentes y rechaza nuevas
+  adquisiciones después de iniciar el cierre. Si `pool.end()` falla, el error
+  se propaga sin imprimir configuración o credenciales.
+- Verificación: `cd backend; node --test test/database.test.js; npm test`.
+- Rollback: revertir solo T46b1; no cambia arranque ni señales.
+
+### T46b2 Integración con servidor
+
+- Requiere T46b1 y spec de handler propio. Esperar `server.close()` antes de
+  `pool.end()`; no registrar handlers globales cuando `server.js` se importa en
+  pruebas. Evitar logs con secretos y verificar con servidor/pool inyectados y
+  smoke de SIGTERM. Sin cambio del contrato HTTP ni Partner.
 
 ## T46c Frontera pública/operativa
 
-- Aplazado hasta decidir cómo autorizar la escritura del panel sin login. No
-  se deshabilitan rutas de administración ni se alteran CORS, tamaños o límites
-  de tasa globales en T46a/b. Una política de lectura pública y operación
-  protegida tendrá contrato y despliegue propios.
+- Decisión expresa del usuario: desactivar temporalmente en producción las
+  escrituras de empresas y puntos mientras se define un canal privado; el MVP
+  no añadirá login por ahora. Antes del cutover se inventariarán métodos/rutas
+  y consumidores para preservar la lectura pública y los demás flujos.
+- Inventario auditado: bloquear solo `POST /api/empresas`,
+  `PUT /api/empresas/:id`, `POST /api/agencias` y
+  `PUT /api/locations/:id` cuando `NODE_ENV=production`, antes de parsear
+  multipartes o cuerpos grandes. Sus consumidores actuales son el admin de
+  `MobileAppComponent`, `AdminComponent` y los servicios `EmpresasService` y
+  `UbicacionesService`. Mantener GET de empresas/ubicaciones/plantilla, POST de
+  rutas ETA y POST de Maps/Places; no bloquear `OPTIONS` de preflight.
+- Contrato propuesto para solicitudes bloqueadas: 403 y cuerpo genérico
+  `{ "error": "Operational writes are disabled" }`, sin revelar detalles
+  internos. Desarrollar primero pruebas HTTP reales que distingan producción
+  de desarrollo y no invoquen Cloudinary ni repositorios si se bloquea.
+- No se deshabilitan rutas de administración ni se alteran CORS, tamaños o
+  límites de tasa globales en T46a/b. La política tendrá spec, pruebas de
+  contrato y rollback propios antes de tocar `server.js` o routers.
 
 ## Fuentes
 

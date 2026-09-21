@@ -17,8 +17,11 @@ function createDatabaseRuntime(options = {}) {
     } = options;
 
     let poolInstance = null;
+    let closingPromise = null;
+    let closed = false;
 
     async function getDB() {
+        if (closed) throw new Error('Database runtime closed');
         if (poolInstance) {
             return poolInstance;
         }
@@ -41,6 +44,15 @@ function createDatabaseRuntime(options = {}) {
         }
 
         return poolInstance;
+    }
+
+    function closeDB() {
+        if (closingPromise) return closingPromise;
+        closed = true;
+        closingPromise = poolInstance
+            ? Promise.resolve().then(() => poolInstance.end())
+            : Promise.resolve();
+        return closingPromise;
     }
 
     async function runInTransaction(client, work) {
@@ -75,6 +87,7 @@ function createDatabaseRuntime(options = {}) {
 
     return {
         getDB,
+        closeDB,
         runInTransaction,
         withTransaction
     };
@@ -85,6 +98,7 @@ const defaultRuntime = createDatabaseRuntime();
 module.exports = {
     createDatabaseRuntime,
     getDB: defaultRuntime.getDB,
+    closeDB: defaultRuntime.closeDB,
     runInTransaction: defaultRuntime.runInTransaction,
     withTransaction: defaultRuntime.withTransaction
 };

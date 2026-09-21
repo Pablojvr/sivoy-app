@@ -8,6 +8,7 @@ const path = require('node:path');
 const rutasService = require('../src/domains/rutas/rutas.service');
 const rutasRoutes = require('../src/domains/rutas/rutas.routes');
 const { ValidationError } = require('../src/domains/rutas/rutas.validation');
+const locationRepository = require('../src/domains/ubicaciones/ubicaciones.repository');
 
 // Cargar fixtures
 const fixturesPath = path.join(__dirname, 'fixtures', 'routes-contract-v1.json');
@@ -70,6 +71,36 @@ describe('Rutas Contracts API (T07b)', { concurrency: false }, () => {
     });
 
     const app = createTestApp();
+
+    test('real route service rejects invalid HTTP payloads before location I/O', async () => {
+        rutasService.getUpcomingRoutes = originalGetUpcomingRoutes;
+        rutasService.searchRoutesByMunicipality = originalSearchRoutesByMunicipality;
+        rutasService.searchFlights = originalSearchFlights;
+        const originalLookup = locationRepository.getLocationByName;
+        const originalList = locationRepository.getAllLocations;
+        let locationCalls = 0;
+        locationRepository.getLocationByName = () => { locationCalls++; throw new Error('Unexpected location lookup'); };
+        locationRepository.getAllLocations = () => { locationCalls++; throw new Error('Unexpected location list'); };
+
+        try {
+            const cases = [
+                ['/api/get-upcoming-routes', { origen: 'A'.repeat(161), destino: 'Destino' }, 'Length out of bounds for origen'],
+                ['/api/search-routes-by-municipality', { origen: 'Origen', destinos: [] }, 'Array length out of bounds for destinos'],
+                ['/api/search-flights', {
+                    origen_municipio: 'San Salvador', destino_municipio: 'Santa Ana',
+                    dropoff_date: '2026-02-29', dropoff_time: '10:00'
+                }, 'Invalid calendar date for dropoff_date']
+            ];
+            for (const [endpoint, payload, message] of cases) {
+                const response = await fetchEphemeral(app, endpoint, payload);
+                assertJsonResponse(response, 400, { error: message });
+            }
+            assert.strictEqual(locationCalls, 0);
+        } finally {
+            locationRepository.getLocationByName = originalLookup;
+            locationRepository.getAllLocations = originalList;
+        }
+    });
 
     function assertJsonResponse(response, expectedStatus, expectedBody) {
         assert.strictEqual(response.status, expectedStatus);

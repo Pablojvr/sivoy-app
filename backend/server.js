@@ -4,8 +4,9 @@ const cors = require('cors');
 const path = require('path');
 const { createHttpObservability } = require('./src/core/observability/http-observability');
 const { registerObservabilityRoutes } = require('./src/core/observability/observability-routes');
-const { getDB } = require('./src/config/database');
+const { getDB, closeDB } = require('./src/config/database');
 const { createProcessLogger } = require('./src/core/observability/process-logger');
+const { registerShutdownHandlers } = require('./src/core/lifecycle/shutdown');
 
 const empresasRoutes = require('./src/domains/empresas/empresas.routes');
 const ubicacionesRoutes = require('./src/domains/ubicaciones/ubicaciones.routes');
@@ -95,7 +96,15 @@ function startServer(options = {}) {
 }
 
 if (require.main === module) {
-    startServer();
+    startServer().then(server => {
+        if (server) {
+            registerShutdownHandlers({
+                server,
+                closeDatabase: closeDB,
+                logger: createProcessLogger({ entryPoint: 'server' })
+            });
+        }
+    });
 }
 
 module.exports = {

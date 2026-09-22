@@ -73,4 +73,110 @@ describe('HomeComponent (T31d)', () => {
     // searchPlaces should NOT have been called
     expect(mapasServiceMock.searchPlaces).not.toHaveBeenCalled();
   });
+
+  describe('T48a — Acciones de mapa seguras en modo list-first', () => {
+    let mapResourceModeChangeSpy: ReturnType<typeof vi.spyOn>;
+    let resetMapMarkersSpy: ReturnType<typeof vi.spyOn>;
+    let showPinDetailsSpy: ReturnType<typeof vi.spyOn>;
+    let mapHighlightRouteSpy: ReturnType<typeof vi.spyOn>;
+
+    beforeEach(() => {
+      mapResourceModeChangeSpy = vi.spyOn(component.mapResourceModeChange, 'emit');
+      resetMapMarkersSpy = vi.spyOn(component.resetMapMarkersEvent, 'emit');
+      showPinDetailsSpy = vi.spyOn(component.showPinDetails, 'emit');
+      mapHighlightRouteSpy = vi.spyOn(component.mapHighlightRoute, 'emit');
+    });
+
+    describe('con mapAvailable=false', () => {
+      beforeEach(() => {
+        component.mapAvailable = false;
+        component.mapResourceMode = false;
+        component.bottomSheetState = 'half';
+        component.lastSelectedLocationId = null;
+        component.expandedResultCard = { id: 'card-1' } as any;
+      });
+
+      it('exploreMapFromDiscovery solicita modo mapa pero no muta estado ni emite resetMapMarkersEvent', () => {
+        component.exploreMapFromDiscovery();
+
+        expect(mapResourceModeChangeSpy).toHaveBeenCalledTimes(1);
+        expect(mapResourceModeChangeSpy).toHaveBeenCalledWith(true);
+        expect(component.mapResourceMode).toBe(false);
+        expect(component.bottomSheetState).toBe('half');
+        expect(resetMapMarkersSpy).not.toHaveBeenCalled();
+      });
+
+      it('viewPointOnMap solicita modo mapa pero no muta estado, pin ni emite showPinDetails', () => {
+        const mockPoint = { id_destino: 'pto-123', nombre_destino: 'Punto Central' };
+        component.viewPointOnMap(mockPoint);
+
+        expect(mapResourceModeChangeSpy).toHaveBeenCalledTimes(1);
+        expect(mapResourceModeChangeSpy).toHaveBeenCalledWith(true);
+        expect(component.mapResourceMode).toBe(false);
+        expect(component.bottomSheetState).toBe('half');
+        expect(component.lastSelectedLocationId).toBeNull();
+        expect(showPinDetailsSpy).not.toHaveBeenCalled();
+      });
+
+      it('highlightRouteOnMap solicita modo mapa pero no muta estado ni emite mapHighlightRoute', () => {
+        const mockRoute = { id: 'route-456' };
+        component.highlightRouteOnMap(mockRoute);
+
+        expect(mapResourceModeChangeSpy).toHaveBeenCalledTimes(1);
+        expect(mapResourceModeChangeSpy).toHaveBeenCalledWith(true);
+        expect(component.mapResourceMode).toBe(false);
+        expect(component.bottomSheetState).toBe('half');
+        expect(component.expandedResultCard).toEqual({ id: 'card-1' });
+        expect(mapHighlightRouteSpy).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('con mapAvailable=true', () => {
+      beforeEach(() => {
+        component.mapAvailable = true;
+        component.mapResourceMode = false;
+        component.bottomSheetState = 'half';
+        component.lastSelectedLocationId = null;
+        component.expandedResultCard = { id: 'card-1' } as any;
+      });
+
+      it('exploreMapFromDiscovery emite solicitud, colapsa sheet y emite resetMapMarkersEvent sin mutar input', () => {
+        component.exploreMapFromDiscovery();
+
+        expect(mapResourceModeChangeSpy).toHaveBeenCalledTimes(1);
+        expect(mapResourceModeChangeSpy).toHaveBeenCalledWith(true);
+        expect(component.mapResourceMode).toBe(false);
+        expect(component.bottomSheetState).toBe('collapsed');
+        expect(resetMapMarkersSpy).toHaveBeenCalledTimes(1);
+      });
+
+      it('viewPointOnMap emite solicitud, asigna lastSelectedLocationId y emite showPinDetails sin mutar input', () => {
+        const mockPoint = { id_destino: 'pto-123', nombre_destino: 'Punto Central' };
+        component.viewPointOnMap(mockPoint);
+
+        expect(mapResourceModeChangeSpy).toHaveBeenCalledTimes(1);
+        expect(mapResourceModeChangeSpy).toHaveBeenCalledWith(true);
+        expect(component.mapResourceMode).toBe(false);
+        expect(component.lastSelectedLocationId).toBe('pto-123');
+        expect(showPinDetailsSpy).toHaveBeenCalledTimes(1);
+        expect(showPinDetailsSpy).toHaveBeenCalledWith({
+          location: mockPoint,
+          type: 'destino'
+        });
+      });
+
+      it('highlightRouteOnMap emite solicitud, emite ruta y colapsa sheet sin mutar input', () => {
+        const mockRoute = { id: 'route-456' };
+        component.highlightRouteOnMap(mockRoute);
+
+        expect(mapResourceModeChangeSpy).toHaveBeenCalledTimes(1);
+        expect(mapResourceModeChangeSpy).toHaveBeenCalledWith(true);
+        expect(component.mapResourceMode).toBe(false);
+        expect(component.bottomSheetState).toBe('collapsed');
+        expect(component.expandedResultCard).toBeNull();
+        expect(mapHighlightRouteSpy).toHaveBeenCalledTimes(1);
+        expect(mapHighlightRouteSpy).toHaveBeenCalledWith(mockRoute);
+      });
+    });
+  });
 });

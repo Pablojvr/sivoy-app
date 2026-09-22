@@ -35,7 +35,9 @@ máximo cinco archivos. Un paquete no es autorización para modificar código.
   - Verificación: E2E y capturas en cuatro viewports.
   - Dependencias: T01.
   - [x] T05a: caracterización Angular con datos falsos del DOM destino→compartir→origen→ruta, sin red ni mapa; 254/254 pruebas frontend y build verdes. No sustituye E2E ni captura visual.
-  - [ ] T05b: navegador real y capturas 386×912, 768, 1024 y 1440 con catálogo disponible. El servidor local `4303` sirve el frontend, pero no hay API en `localhost:3000`; búsqueda muestra 0 municipios y errores HTTP de empresas. Docker y WSL tampoco están instalados, así que falta un backend/fixture local reproducible.
+  - [ ] T05b: navegador real y capturas 386×912, 768, 1024 y 1440 con catálogo disponible.
+    - [x] T05b1: fixture sintético reproducible en loopback `localhost:3000`; 16/16 pruebas, catálogo destino→origen→ruta y acción de mapa auditados en navegador real. No altera producción ni simula reglas empresariales reales.
+    - [ ] T05b2: persistir las cuatro capturas visuales como baseline versionado y automatizar el recorrido; las revisiones manuales de los cuatro anchos no sustituyen este artefacto.
 
 ### Checkpoint A
 
@@ -211,6 +213,7 @@ archivos. Codex debe revisar cada diff y ejecutar build y auditoría visual.
 ### Checkpoint D
 
 - [ ] Búsqueda funciona sin mapa.
+  - [x] T48a: las tres acciones de mapa preservan lista/selección cuando el mapa no está disponible; seis regresiones nuevas, 260/260 frontend, build y flujo normal de mapa auditados. Falta evidencia de navegador en un dispositivo sin soporte para cerrar el checkpoint.
 - [ ] Navegación atrás/adelante preserva el estado esperado.
 - [ ] Panel empresarial no comparte estado con búsqueda pública.
 - [ ] No existen listeners o timers huérfanos en los recorridos E2E.

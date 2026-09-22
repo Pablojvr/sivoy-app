@@ -392,9 +392,15 @@ export class HomeComponent implements OnInit, OnChanges, OnDestroy {
     });
   }
 
-  exploreMapFromDiscovery() {
-    this.mapResourceMode = true;
+  private requestMapMode(): boolean {
     this.mapResourceModeChange.emit(true);
+    return this.mapAvailable;
+  }
+
+  exploreMapFromDiscovery() {
+    if (!this.requestMapMode()) {
+      return;
+    }
     this.bottomSheetState = 'collapsed';
     this.resetMapMarkersEvent.emit();
   }
@@ -1024,6 +1030,9 @@ export class HomeComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   highlightRouteOnMap(flight: any) {
+    if (!this.requestMapMode()) {
+      return;
+    }
     this.mapHighlightRoute.emit(flight);
     this.expandedResultCard = null;
     this.bottomSheetState = 'collapsed';
@@ -1301,9 +1310,10 @@ export class HomeComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   viewPointOnMap(point: any) {
+    if (!this.requestMapMode()) {
+      return;
+    }
     this.lastSelectedLocationId = point.id_destino || point.id_origen || point.id;
-    this.mapResourceMode = true;
-    this.mapResourceModeChange.emit(true);
     this.showPinDetails.emit({
       location: point,
       type: this.isOriginDiscoveryMode ? 'origen' : 'destino'

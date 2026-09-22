@@ -19,12 +19,24 @@ const corsOptions = {
     optionsSuccessStatus: 200
 };
 app.use(cors(corsOptions));
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ limit: '10mb', extended: true }));
-
 const observability = createHttpObservability();
 registerObservabilityRoutes(app, observability);
 app.use('/api', observability.middleware);
+
+function restrictOperationalWrites(req, res, next) {
+    if (process.env.NODE_ENV === 'production') {
+        return res.status(403).json({ error: 'Operational writes are disabled' });
+    }
+    next();
+}
+
+app.post('/api/empresas', restrictOperationalWrites);
+app.put('/api/empresas/:id', restrictOperationalWrites);
+app.post('/api/agencias', restrictOperationalWrites);
+app.put('/api/locations/:id', restrictOperationalWrites);
+
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 // Serve compiled Angular frontend
 const DIST_PATH = path.join(__dirname, '..', 'frontend', 'dist', 'frontend', 'browser');

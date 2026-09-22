@@ -64,8 +64,8 @@ escrituras operativas. El MVP sigue sin login y Partner queda fuera de alcance.
 
 - Decisión expresa del usuario: desactivar temporalmente en producción las
   escrituras de empresas y puntos mientras se define un canal privado; el MVP
-  no añadirá login por ahora. Antes del cutover se inventariarán métodos/rutas
-  y consumidores para preservar la lectura pública y los demás flujos.
+  no añadirá login por ahora. El inventario de métodos/rutas y consumidores
+  preserva la lectura pública y los demás flujos.
 - Inventario auditado: bloquear solo `POST /api/empresas`,
   `PUT /api/empresas/:id`, `POST /api/agencias` y
   `PUT /api/locations/:id` cuando `NODE_ENV=production`, antes de parsear
@@ -73,13 +73,24 @@ escrituras operativas. El MVP sigue sin login y Partner queda fuera de alcance.
   `MobileAppComponent`, `AdminComponent` y los servicios `EmpresasService` y
   `UbicacionesService`. Mantener GET de empresas/ubicaciones/plantilla, POST de
   rutas ETA y POST de Maps/Places; no bloquear `OPTIONS` de preflight.
-- Contrato propuesto para solicitudes bloqueadas: 403 y cuerpo genérico
+- Contrato para solicitudes bloqueadas: 403 y cuerpo genérico
   `{ "error": "Operational writes are disabled" }`, sin revelar detalles
-  internos. Desarrollar primero pruebas HTTP reales que distingan producción
-  de desarrollo y no invoquen Cloudinary ni repositorios si se bloquea.
-- No se deshabilitan rutas de administración ni se alteran CORS, tamaños o
-  límites de tasa globales en T46a/b. La política tendrá spec, pruebas de
-  contrato y rollback propios antes de tocar `server.js` o routers.
+  internos. Guardas explícitas de método/ruta se instalan después de CORS y
+  observabilidad, antes de los parsers JSON/urlencoded y de los routers
+  (incluido Multer).
+  Así, una solicitud bloqueada no invoca Cloudinary ni repositorios. El
+  entorno de desarrollo sigue usando los controladores existentes.
+- Paquete T46c (máximo 4 archivos): `backend/server.js`,
+  `backend/test/operational-write-guard.test.js`, este spec y `tasks/todo.md`.
+  Pruebas HTTP reales distinguen producción/desarrollo, mayúsculas, barra
+  final, query, multipart, POST públicos y preflight. Ejecutar prueba focal,
+  `npm test`, `npm audit --omit=dev --audit-level=low` y `git diff --check`.
+- Rollback: revertir solo el commit T46c para restaurar las cuatro escrituras
+  públicas. Esta medida es temporal; antes de volver a habilitarlas en
+  producción hace falta un canal operativo privado o control de acceso.
+- No se alteran CORS, tamaños de cuerpo ni límites de tasa globales. Los
+  formularios de administración siguen presentes, pero sus escrituras
+  recibirán 403 en producción hasta contar con un canal privado.
 
 ## Fuentes
 

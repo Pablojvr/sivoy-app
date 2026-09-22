@@ -154,6 +154,9 @@ describe('Home Flow Characterization (T05a)', () => {
 
     expect(component.isOriginChoiceMode).toBe(true);
 
+    component.dropoffDate = '2025-01-01';
+    component.dropoffTime = '08:00';
+
     // 6. Seleccionar origen compatible (Santa Tecla / Agencia Norte)
     const compatiblePoints = fixture.debugElement.queryAll(By.css('.compatible-point-card'));
     expect(compatiblePoints.length).toBeGreaterThan(0);
@@ -168,5 +171,184 @@ describe('Home Flow Characterization (T05a)', () => {
     const routeCards = fixture.debugElement.queryAll(By.css('article.sivoy-route-card'));
     expect(routeCards.length).toBe(1);
     expect(component.flightResults.length).toBe(1);
+
+    // 8. T48b2: Destruir y recrear Home con el mismo facade y mismo initialIntent municipal
+    expect(rutasServiceMock.getUpcomingRoutes).toHaveBeenCalledTimes(1);
+
+    fixture.destroy();
+
+    fixture = TestBed.createComponent(HomeComponent);
+    component = fixture.componentInstance;
+    fixture.componentRef.setInput('locations', mockLocations);
+    fixture.componentRef.setInput('initialIntent', { municipio: 'San Salvador' });
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    // Probar que no ocurre una segunda búsqueda HTTP
+    expect(rutasServiceMock.getUpcomingRoutes).toHaveBeenCalledTimes(1);
+
+    // Probar que la ruta se restaura sin pérdida
+    expect(component.flightResults.length).toBe(1);
+    const restoredRouteCards = fixture.debugElement.queryAll(By.css('article.sivoy-route-card'));
+    expect(restoredRouteCards.length).toBe(1);
+
+    // Probar que el origen y destino seleccionados exactos se restauran
+    expect(component.selectedOriginPoint).toEqual(mockLocations[1]);
+    expect(component.selectedDestinationPoint).toEqual(mockLocations[0]);
+    expect(component.origen).toBe('Agencia Norte');
+    expect(component.destino).toBe('Agencia Centro');
+    expect(component.origenInputValue).toBe('Agencia Norte');
+    expect(component.destinoInputValue).toBe('Agencia Centro');
+
+    // Probar que los filtros se restauran
+    expect(component.dropoffDate).toBe('2025-01-01');
+    expect(component.dropoffTime).toBe('08:00');
+  });
+
+  it('restaura estado de ruta y conserva municipios si un punto ya no existe en el catalogo', async () => {
+    // 1. Iniciar búsqueda de destino y seleccionar San Salvador
+    fixture.debugElement.query(By.css('.destination-search-trigger')).nativeElement.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const destInput = fixture.debugElement.query(By.css('app-destination-search input')).nativeElement;
+    destInput.value = 'San Salvador';
+    destInput.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    fixture.debugElement.queryAll(By.css('app-destination-search .destination-option'))[0].nativeElement.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    // 2. Seleccionar punto destino y luego origen compatible
+    fixture.debugElement.query(By.css('article.point-result-card .point-use-action')).nativeElement.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    fixture.debugElement.queryAll(By.css('.compatible-point-card'))[0].nativeElement.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(rutasServiceMock.getUpcomingRoutes).toHaveBeenCalledTimes(1);
+    expect(component.flightResults.length).toBe(1);
+
+    // 3. Recrear Home con catálogo donde el origen ya no existe
+    fixture.destroy();
+
+    fixture = TestBed.createComponent(HomeComponent);
+    component = fixture.componentInstance;
+    // Solo dejamos la agencia destino (id 1); la de origen (id 2) se remueve
+    fixture.componentRef.setInput('locations', [mockLocations[0]]);
+    fixture.componentRef.setInput('initialIntent', { municipio: 'San Salvador' });
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(rutasServiceMock.getUpcomingRoutes).toHaveBeenCalledTimes(1);
+    expect(component.flightResults.length).toBe(1);
+    expect(component.selectedOriginPoint).toBeNull();
+    expect(component.origenMunicipio).toBe('Santa Tecla');
+    expect(component.origenDepartamento).toBe('La Libertad');
+    expect(component.origen).toBe('Agencia Norte');
+    expect(component.selectedDestinationPoint).toEqual(mockLocations[0]);
+    expect(component.destinoMunicipio).toBe('San Salvador');
+  });
+
+  it('no restaura la ruta activa de San Salvador cuando initialIntent solicita un municipio diferente', async () => {
+    // 1. Iniciar búsqueda de destino y seleccionar San Salvador
+    fixture.debugElement.query(By.css('.destination-search-trigger')).nativeElement.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const destInput = fixture.debugElement.query(By.css('app-destination-search input')).nativeElement;
+    destInput.value = 'San Salvador';
+    destInput.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    fixture.debugElement.queryAll(By.css('app-destination-search .destination-option'))[0].nativeElement.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    // 2. Seleccionar punto destino y luego origen compatible
+    fixture.debugElement.query(By.css('article.point-result-card .point-use-action')).nativeElement.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    fixture.debugElement.queryAll(By.css('.compatible-point-card'))[0].nativeElement.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(rutasServiceMock.getUpcomingRoutes).toHaveBeenCalledTimes(1);
+    expect(component.flightResults.length).toBe(1);
+    expect(component.destinoMunicipio).toBe('San Salvador');
+
+    // 3. Recrear Home con initialIntent solicitando un municipio diferente (Santa Tecla)
+    fixture.destroy();
+
+    fixture = TestBed.createComponent(HomeComponent);
+    component = fixture.componentInstance;
+    fixture.componentRef.setInput('locations', mockLocations);
+    fixture.componentRef.setInput('initialIntent', { municipio: 'Santa Tecla', departamento: 'La Libertad' });
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise(resolve => setTimeout(resolve, 0));
+    fixture.detectChanges();
+
+    // Probar que la ruta activa previa de San Salvador NO sobreescribe el intent
+    expect(component.destinoMunicipio).toBe('Santa Tecla');
+    expect(component.destino).toBe('Santa Tecla');
+    expect(component.selectedDestinationPoint).toBeNull();
+    expect(component.selectedOriginPoint).toBeNull();
+    expect(component.flightResults.length).toBe(0);
+    expect(fixture.debugElement.queryAll(By.css('article.sivoy-route-card')).length).toBe(0);
+
+    // Probar que entra en modo descubrimiento para el nuevo municipio
+    expect(component.isDiscoveryMode).toBe(true);
+    expect(component.displayedResults.length).toBe(1);
+    expect(component.displayedResults[0].nombre_destino).toBe('Agencia Norte');
+    expect(fixture.debugElement.queryAll(By.css('article.point-result-card')).length).toBe(1);
+  });
+
+  it('respeta una acción explícita de punto en vez de restaurar la ruta activa', async () => {
+    fixture.debugElement.query(By.css('.destination-search-trigger')).nativeElement.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const destInput = fixture.debugElement.query(By.css('app-destination-search input')).nativeElement;
+    destInput.value = 'San Salvador';
+    destInput.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    fixture.debugElement.queryAll(By.css('app-destination-search .destination-option'))[0].nativeElement.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.debugElement.query(By.css('article.point-result-card .point-use-action')).nativeElement.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.debugElement.queryAll(By.css('.compatible-point-card'))[0].nativeElement.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(rutasServiceMock.getUpcomingRoutes).toHaveBeenCalledTimes(1);
+    expect(component.flightResults.length).toBe(1);
+
+    fixture.destroy();
+    fixture = TestBed.createComponent(HomeComponent);
+    component = fixture.componentInstance;
+    fixture.componentRef.setInput('locations', mockLocations);
+    fixture.componentRef.setInput('initialIntent', { punto: '1', accion: 'preview' });
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise(resolve => setTimeout(resolve, 0));
+    fixture.detectChanges();
+
+    expect(rutasServiceMock.getUpcomingRoutes).toHaveBeenCalledTimes(1);
+    expect(component.flightResults).toEqual([]);
+    expect(component.isDiscoveryMode).toBe(true);
+    expect(component.expandedResultCard).toEqual(
+      expect.objectContaining({ nombre_destino: 'Agencia Centro' }),
+    );
   });
 });

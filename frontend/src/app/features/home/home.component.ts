@@ -15,7 +15,7 @@ import { RouteResultCardComponent, RouteResultViewModel, RouteDeliveryDayChange,
 import { PinDetailCardComponent } from './results/pin-detail-card.component';
 import { applyClosedDropoffFilter } from './shipment-route.filters';
 import { presentSearchRoute, pointRefFromLocation } from './results/route-result.presenter';
-import { PointRef, SEARCH_ERROR_MESSAGES, LocationSelection } from './shipment-search.models';
+import { PointRef, SEARCH_ERROR_MESSAGES, LocationSelection, ShipmentSearchState } from './shipment-search.models';
 import { PublicMapViewState, projectPublicMapViewState } from './public-map-view-state';
 
 
@@ -282,12 +282,22 @@ export class HomeComponent implements OnInit, OnChanges, OnDestroy {
     const today = new Date();
     const tzOffset = today.getTimezoneOffset() * 60000;
     const localISODate = new Date(today.getTime() - tzOffset).toISOString().split('T')[0];
-    this.dropoffDate = localISODate;
     this.minDate = localISODate;
 
-    const hours = String(today.getHours()).padStart(2, '0');
-    const minutes = String(today.getMinutes()).padStart(2, '0');
-    this.dropoffTime = `${hours}:${minutes}`;
+    if (this.locations.length > 0) {
+      if (!this.restoreActiveRouteState()) {
+        this.applyInitialIntent();
+      }
+    }
+
+    if (!this.dropoffDate) {
+      this.dropoffDate = localISODate;
+    }
+    if (!this.dropoffTime) {
+      const hours = String(today.getHours()).padStart(2, '0');
+      const minutes = String(today.getMinutes()).padStart(2, '0');
+      this.dropoffTime = `${hours}:${minutes}`;
+    }
   }
 
   ngOnDestroy() {
@@ -357,11 +367,118 @@ export class HomeComponent implements OnInit, OnChanges, OnDestroy {
 
   ngOnChanges(changes: SimpleChanges) {
     if ((changes['locations'] || changes['initialIntent']) && this.locations.length > 0) {
+      if (this.restoreActiveRouteState()) {
+        return;
+      }
+      const state = this.facade.state();
+      if (state.mode === 'municipality-routes' || state.mode === 'point-routes') {
+        this.facade.reset();
+        this.flightResults = [];
+        this.result = null;
+        this.errorMsg = '';
+        this.expandedResultCard = null;
+        this.activeDetailedCard = null;
+      }
       this.applyInitialIntent();
     }
   }
 
+  private findLocationByPointId(pointId: string | null | undefined): any | null {
+    if (!pointId) return null;
+    const target = String(pointId);
+    return this.locations.find(loc =>
+      String(loc.id_destino || '') === target ||
+      String(loc.id_origen || '') === target ||
+      String(loc.id || '') === target ||
+      this.getLocationIdentity(loc) === target
+    ) || null;
+  }
+
+  private matchesActiveRouteIntent(state: ShipmentSearchState): boolean {
+    const intent = this.initialIntent;
+    if (!intent || Object.keys(intent).length === 0) return true;
+    if (intent['buscar'] || intent['empresa'] || intent['accion']) return false;
+    if (intent['punto']) {
+      return String(state.destination.point?.id || '') === String(intent['punto']);
+    }
+    if (!intent['municipio']) return false;
+
+    const storedMunicipality = state.destination.municipality
+      || state.destination.point?.municipality?.municipio
+      || '';
+    const sameMunicipality = this.normalizeSearchText(storedMunicipality)
+      === this.normalizeSearchText(intent['municipio']);
+    const storedDepartment = state.destination.department
+      || state.destination.point?.municipality?.departamento
+      || '';
+    const sameDepartment = !intent['departamento']
+      || this.normalizeSearchText(storedDepartment)
+        === this.normalizeSearchText(intent['departamento']);
+    return sameMunicipality && sameDepartment;
+  }
+
+  private restoreActiveRouteState(): boolean {
+    const state = this.facade.state();
+    if (state.mode !== 'municipality-routes' && state.mode !== 'point-routes') {
+      return false;
+    }
+
+    if (!this.matchesActiveRouteIntent(state)) {
+      return false;
+    }
+
+    if (state.origin) {
+      const pointLocation = this.findLocationByPointId(state.origin.point?.id);
+      this.selectedOriginPoint = pointLocation;
+      this.origenMunicipio = state.origin.municipality
+        || pointLocation?.ubicacion?.municipio
+        || state.origin.point?.municipality?.municipio
+        || '';
+      this.origenDepartamento = state.origin.department
+        || pointLocation?.ubicacion?.departamento
+        || state.origin.point?.municipality?.departamento
+        || '';
+      this.origenInputValue = state.origin.inputValue
+        || (pointLocation ? this.getLocationName(pointLocation) : '')
+        || state.origin.point?.name
+        || this.origenMunicipio;
+      this.origen = this.origenInputValue;
+    }
+
+    if (state.destination) {
+      const pointLocation = this.findLocationByPointId(state.destination.point?.id);
+      this.selectedDestinationPoint = pointLocation;
+      this.destinoMunicipio = state.destination.municipality
+        || pointLocation?.ubicacion?.municipio
+        || state.destination.point?.municipality?.municipio
+        || '';
+      this.destinoDepartamento = state.destination.department
+        || pointLocation?.ubicacion?.departamento
+        || state.destination.point?.municipality?.departamento
+        || '';
+      this.destinoInputValue = state.destination.inputValue
+        || (pointLocation ? this.getLocationName(pointLocation) : '')
+        || state.destination.point?.name
+        || this.destinoMunicipio;
+      this.destino = this.destinoInputValue;
+    }
+
+    if (state.filters) {
+      if (state.filters.dropoffDate) {
+        this.dropoffDate = state.filters.dropoffDate;
+      }
+      if (state.filters.dropoffTime) {
+        this.dropoffTime = state.filters.dropoffTime;
+      }
+    }
+
+    this.appliedIntentKey = JSON.stringify(this.initialIntent);
+    this.cdr.markForCheck();
+    return true;
+  }
+
   private applyInitialIntent() {
+    if (this.restoreActiveRouteState()) return;
     if (Object.keys(this.initialIntent || {}).length === 0) return;
     const intentKey = JSON.stringify(this.initialIntent);
     if (intentKey === this.appliedIntentKey) return;
@@ -374,9 +491,12 @@ export class HomeComponent implements OnInit, OnChanges, OnDestroy {
       } else if (intent['empresa']) {
         this.exploreCompanyFromDiscovery(intent['empresa']);
       } else if (intent['municipio']) {
+        const matchingLoc = this.locations.find(location =>
+          this.normalizeSearchText(location.ubicacion?.municipio) === this.normalizeSearchText(intent['municipio'])
+        );
         this.selectMunicipalityFromDiscovery({
           municipio: intent['municipio'],
-          departamento: intent['departamento'] || ''
+          departamento: intent['departamento'] || matchingLoc?.ubicacion?.departamento || ''
         });
       } else if (intent['punto']) {
         const point = this.locations.find(location =>

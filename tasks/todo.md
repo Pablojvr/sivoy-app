@@ -34,6 +34,8 @@ máximo cinco archivos. Un paquete no es autorización para modificar código.
   - Aceptación: recorrido destino→origen→ruta→compartir reproducible.
   - Verificación: E2E y capturas en cuatro viewports.
   - Dependencias: T01.
+  - [x] T05a: caracterización Angular con datos falsos del DOM destino→compartir→origen→ruta, sin red ni mapa; 254/254 pruebas frontend y build verdes. No sustituye E2E ni captura visual.
+  - [ ] T05b: navegador real y capturas 386×912, 768, 1024 y 1440 con catálogo disponible. El servidor local `4303` sirve el frontend, pero no hay API en `localhost:3000`; búsqueda muestra 0 municipios y errores HTTP de empresas. Docker y WSL tampoco están instalados, así que falta un backend/fixture local reproducible.
 
 ### Checkpoint A
 

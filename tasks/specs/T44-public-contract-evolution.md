@@ -27,8 +27,9 @@ cutover actual; solo se inventaría su frontera.
 
 ## Paquetes posteriores sujetos a revisión
 
-- T44b: proponer el contrato objetivo y el plan de compatibilidad para cada
-  consumidor; la forma nueva, status y versionado requieren aprobación humana.
+- T44b: propuesta documental en `docs/contracts/public-http-v2-proposal.md`;
+  la forma nueva, status y versionado requieren aprobación humana antes de
+  T44c. No cambia runtime.
 - T44c: pruebas de contrato antes de introducir adaptadores HTTP, sin reemplazar
   respuestas legacy ni tocar el motor ETA en el mismo corte.
 - T44d: migrar consumidores de forma progresiva y retirar legado solo tras

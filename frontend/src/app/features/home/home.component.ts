@@ -15,7 +15,7 @@ import { RouteResultCardComponent, RouteResultViewModel, RouteDeliveryDayChange,
 import { PinDetailCardComponent } from './results/pin-detail-card.component';
 import { applyClosedDropoffFilter } from './shipment-route.filters';
 import { presentSearchRoute, pointRefFromLocation } from './results/route-result.presenter';
-import { PointRef, SEARCH_ERROR_MESSAGES } from './shipment-search.models';
+import { PointRef, SEARCH_ERROR_MESSAGES, LocationSelection } from './shipment-search.models';
 import { PublicMapViewState, projectPublicMapViewState } from './public-map-view-state';
 
 
@@ -1522,7 +1522,22 @@ export class HomeComponent implements OnInit, OnChanges, OnDestroy {
       return;
     }
 
+    const origin: LocationSelection = {
+      point: this.selectedOriginPoint ? pointRefFromLocation(this.selectedOriginPoint) : null,
+      inputValue: this.origenInputValue || this.origen || '',
+      municipality: this.origenMunicipio || this.selectedOriginPoint?.ubicacion?.municipio || this.origen.split(',')[0]?.trim() || '',
+      department: this.origenDepartamento || this.selectedOriginPoint?.ubicacion?.departamento || this.origen.split(',')[1]?.trim() || ''
+    };
+    const destination: LocationSelection = {
+      point: this.selectedDestinationPoint ? pointRefFromLocation(this.selectedDestinationPoint) : null,
+      inputValue: this.destinoInputValue || this.destino || '',
+      municipality: this.destinoMunicipio || this.selectedDestinationPoint?.ubicacion?.municipio || this.destino.split(',')[0]?.trim() || '',
+      department: this.destinoDepartamento || this.selectedDestinationPoint?.ubicacion?.departamento || this.destino.split(',')[1]?.trim() || ''
+    };
+
     this.facade.searchPointRoutes({
+      origin,
+      destination,
       originPoints,
       destinationPoints,
       filters: { dropoffDate: this.dropoffDate, dropoffTime: this.dropoffTime }

@@ -92,6 +92,8 @@ export interface MunicipalityRouteSearchCommand {
 }
 
 export interface PointRouteSearchCommand {
+  origin: LocationSelection;
+  destination: LocationSelection;
   originPoints: PointRef[];
   destinationPoints: PointRef[];
   filters: SearchFilters;

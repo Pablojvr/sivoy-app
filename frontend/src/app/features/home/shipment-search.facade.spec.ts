@@ -3,7 +3,7 @@ import { of, throwError, Subject } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ShipmentSearchFacade } from './shipment-search.facade';
 import { RutasService } from '../../core/services/rutas.service';
-import { PointRef, MunicipalityRouteSearchCommand, PointRouteSearchCommand } from './shipment-search.models';
+import { PointRef, MunicipalityRouteSearchCommand, PointRouteSearchCommand, LocationSelection } from './shipment-search.models';
 import { vi, Mock } from 'vitest';
 
 describe('ShipmentSearchFacade (T26b)', () => {
@@ -20,7 +20,21 @@ describe('ShipmentSearchFacade (T26b)', () => {
   };
 
   const dummyPoint: PointRef = { id: '1', name: 'O', company: 'E', type: 'Ag', coordinates: null, municipality: { municipio: '', departamento: '' } };
+  const dummyOriginSelection: LocationSelection = {
+    point: dummyPoint,
+    inputValue: 'Agencia O',
+    municipality: 'Mun O',
+    department: 'Dep O'
+  };
+  const dummyDestinationSelection: LocationSelection = {
+    point: null,
+    inputValue: 'Mun D',
+    municipality: 'Mun D',
+    department: 'Dep D'
+  };
   const dummyCommandPoint: PointRouteSearchCommand = {
+    origin: dummyOriginSelection,
+    destination: dummyDestinationSelection,
     originPoints: [dummyPoint],
     destinationPoints: [dummyPoint],
     filters: { dropoffDate: '', dropoffTime: '' }
@@ -261,6 +275,46 @@ describe('ShipmentSearchFacade (T26b)', () => {
 
       facade.selectRouteOption(0, 0);
       expect(facade.state()).toBe(prevState);
+    });
+  });
+
+  describe('Atomic Search State (T48b1)', () => {
+    it('atomically stores explicit origin, destination, and filters when searching point routes', () => {
+      mockService.getUpcomingRoutes.mockReturnValue(new Subject<unknown>().asObservable());
+      facade.searchPointRoutes(dummyCommandPoint);
+
+      const state = facade.state();
+      expect(state.status).toBe('loading');
+      expect(state.mode).toBe('point-routes');
+      expect(state.origin).toEqual(dummyCommandPoint.origin);
+      expect(state.destination).toEqual(dummyCommandPoint.destination);
+      expect(state.filters).toEqual(dummyCommandPoint.filters);
+      expect(state.results).toEqual([]);
+      expect(state.error).toBeNull();
+    });
+
+    it('atomically stores derived municipality selections and filters when searching municipality routes', () => {
+      mockService.searchFlights.mockReturnValue(new Subject<unknown>().asObservable());
+      facade.searchMunicipalityRoutes(dummyCommandMunicipality);
+
+      const state = facade.state();
+      expect(state.status).toBe('loading');
+      expect(state.mode).toBe('municipality-routes');
+      expect(state.origin).toEqual({
+        point: null,
+        inputValue: 'A',
+        municipality: 'A',
+        department: 'B'
+      });
+      expect(state.destination).toEqual({
+        point: null,
+        inputValue: 'C',
+        municipality: 'C',
+        department: 'D'
+      });
+      expect(state.filters).toEqual(dummyCommandMunicipality.filters);
+      expect(state.results).toEqual([]);
+      expect(state.error).toBeNull();
     });
   });
 });

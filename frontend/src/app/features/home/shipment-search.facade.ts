@@ -180,10 +180,25 @@ export class ShipmentSearchFacade {
   }
 
   searchMunicipalityRoutes(command: MunicipalityRouteSearchCommand): void {
+    const origin: LocationSelection = {
+      point: null,
+      inputValue: command.origin.municipio,
+      municipality: command.origin.municipio,
+      department: command.origin.departamento
+    };
+    const destination: LocationSelection = {
+      point: null,
+      inputValue: command.destination.municipio,
+      municipality: command.destination.municipio,
+      department: command.destination.departamento
+    };
+
     this._state.update(state => ({
       ...state,
       status: 'loading',
       mode: 'municipality-routes',
+      origin,
+      destination,
       filters: command.filters,
       results: [],
       error: null
@@ -196,6 +211,8 @@ export class ShipmentSearchFacade {
       ...state,
       status: 'loading',
       mode: 'point-routes',
+      origin: command.origin,
+      destination: command.destination,
       filters: command.filters,
       results: [],
       error: null

@@ -104,6 +104,8 @@ máximo cinco archivos. Un paquete no es autorización para modificar código.
 - [ ] T42 Implementar escritura dual y backfill idempotente.
 - [ ] T43 Ejecutar ETA antiguo/nuevo en paralelo y comparar resultados.
 - [ ] T44 Uniformar envelopes, errores, IDs y timestamps del API.
+  - [x] T44a: inventario fuente/prueba/consumidor en `docs/contracts/public-http-current.md`, sin modificar respuestas. Se detectó que `/api/metrics` sin token devuelve HTML 200 por el catch-all en el servidor completo, pese al 404 del router aislado.
+  - [ ] T44b–d: contrato objetivo versionado, pruebas/adaptadores y migración de consumidores; cambios observables sujetos a aprobación y a la línea base E2E/DB.
 - [ ] T45 Endurecer resolución de URLs y respuestas externas.
   - Spec en ejecución: `tasks/specs/T45-maps-link-security.md`. T45a política pura auditada y publicada. T45b resolvedor modular con DNS/IP pública fijada, conexión aislada, redirecciones y límites: pruebas RED→GREEN; revisión externa de Antigravity no disponible, auditado por Codex. T45c error HTTP genérico pendiente de decisión expresa para Maps.
 - [ ] T46 Separar superficie pública y operativa; endurecer HTTP y pool.

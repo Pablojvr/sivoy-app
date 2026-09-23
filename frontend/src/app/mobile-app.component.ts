@@ -103,6 +103,7 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
 
   navigationIntent: Record<string, string> = {};
   private routeParamsSubscription?: Subscription;
+  private locationsSubscription?: Subscription;
   private geoSub?: Subscription;
   private nomSub?: Subscription;
 
@@ -129,7 +130,8 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
       this.activeMainTab = requestedTab === 'puntos' || requestedTab === 'perfil' ? requestedTab : 'inicio';
       this.cdr.detectChanges();
     });
-    this.ubicacionesService.getLocations().subscribe(data => {
+    this.locationsSubscription = this.ubicacionesService.getLocations().subscribe(data => {
+      if (this.destroyed) return;
       this.locations = data;
       this.filteredLocations = [...this.locations];
 
@@ -176,6 +178,7 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
   ngOnDestroy() {
     this.destroyed = true;
     this.routeParamsSubscription?.unsubscribe();
+    this.locationsSubscription?.unsubscribe();
     this.geoSub?.unsubscribe();
     this.nomSub?.unsubscribe();
     if (this.mapResizeObserver) {

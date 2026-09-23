@@ -10,6 +10,8 @@ import { BottomNavComponent } from './shared/components/bottom-nav/bottom-nav.co
 import { PerfilComponent } from './features/perfil/perfil.component';
 import { MapPort } from './core/maps/map.port';
 import { MapLifecycleManager } from './core/maps/map-lifecycle.manager';
+import { Subject } from 'rxjs';
+import { UbicacionesService } from './core/services/ubicaciones.service';
 
 class MockToastService {
   showInfo() {}
@@ -151,6 +153,28 @@ describe('MobileAppComponent (T30a Characterization)', () => {
       vi.useRealTimers();
       vi.restoreAllMocks();
     }
+  });
+
+  it('should unsubscribe from a pending locations request on destroy', () => {
+    const locationsSubject = new Subject<any[]>();
+    const ubicacionesService = TestBed.inject(UbicacionesService);
+    vi.spyOn(ubicacionesService, 'getLocations').mockReturnValue(locationsSubject.asObservable());
+
+    fixture.detectChanges();
+
+    const reqEmp = httpMock.expectOne(req => req.url.includes('/api/empresas'));
+    reqEmp.flush({ success: true, empresas: [] });
+    const nomReq = httpMock.expectOne(req => req.url.includes('nominatim.openstreetmap.org'));
+    nomReq.flush({ address: { municipality: 'San Salvador' } });
+
+    expect(locationsSubject.observed).toBe(true);
+
+    fixture.destroy();
+
+    expect(locationsSubject.observed).toBe(false);
+    locationsSubject.next([{ id: 99, nombre_destino: 'Respuesta tardía' }]);
+    expect(component.locations).toEqual([]);
+    expect((component as any).statusesIntervalId).toBeNull();
   });
 });
 

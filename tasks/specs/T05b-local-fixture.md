@@ -39,3 +39,24 @@ reglas de empresas ni paridad con producción. No se altera código productivo.
    corte posterior; no marcar T05b completo solo por tener el servidor.
 4. Sin archivos de fixture en el build ni en producción; `git diff --check`
    limpio. Rollback: parar proceso de fixture y revertir sus dos archivos.
+
+## T05b2a — Recorrido reproducible en navegador
+
+- Herramienta: `@playwright/test` 1.63.0 con Chromium y cuatro proyectos de
+  viewport: 386×912, 768×1024, 1024×768 y 1440×900.
+- Playwright inicia o reutiliza los dos servidores locales declarados en su
+  configuración: fixture en `3000` y Angular en `4303`. El test no usa red ni
+  datos empresariales reales y reemplaza Web Share dentro del contexto aislado
+  del navegador para verificar el payload sin abrir UI del sistema.
+- Aceptación: el mismo recorrido Inicio → destino → compartir → origen → ruta
+  pasa en los cuatro proyectos; unitarias, build y auditoría de dependencias
+  permanecen verdes. Las capturas versionadas se incorporan en T05b2b.
+- Rollback: revertir dependencia, lockfile, configuración y spec E2E; el
+  fixture T05b1 permanece independiente.
+
+Fuentes oficiales verificadas:
+
+- https://playwright.dev/docs/test-webserver
+- https://playwright.dev/docs/ci
+- https://playwright.dev/docs/browsers
+- https://playwright.dev/docs/test-snapshots

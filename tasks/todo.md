@@ -212,8 +212,8 @@ archivos. Codex debe revisar cada diff y ejecutar build y auditoría visual.
 
 ### Checkpoint D
 
-- [ ] Búsqueda funciona sin mapa.
-  - [x] T48a: las tres acciones de mapa preservan lista/selección cuando el mapa no está disponible; seis regresiones nuevas, 260/260 frontend, build y flujo normal de mapa auditados. Falta evidencia de navegador en un dispositivo sin soporte para cerrar el checkpoint.
+- [x] Búsqueda funciona sin mapa.
+  - [x] T48a: las tres acciones de mapa preservan lista/selección cuando el mapa no está disponible; seis regresiones unitarias y un recorrido Playwright con WebGL2 deshabilitado prueban buscar, conservar resultados y compartir en 386×912, 768, 1024 y 1440 px. La prueba RED detectó que el panel bloqueaba el cierre del aviso; su capa se corrigió y quedaron verdes 271/271 pruebas frontend, build y 8/8 recorridos E2E.
 - [x] Navegación atrás/adelante preserva el estado esperado.
   - [x] T48b: el facade conserva la selección semántica y Home rehidrata punto/municipio, filtros y ruta dentro de la misma sesión; 265/265 pruebas, build y recorrido real Inicio→Atrás→Adelante→Atrás verdes. La recarga en frío conserva únicamente la intención de URL.
 - [ ] Panel empresarial no comparte estado con búsqueda pública.

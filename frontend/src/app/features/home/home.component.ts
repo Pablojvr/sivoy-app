@@ -17,6 +17,7 @@ import { applyClosedDropoffFilter } from './shipment-route.filters';
 import { presentSearchRoute, pointRefFromLocation } from './results/route-result.presenter';
 import { PointRef, SEARCH_ERROR_MESSAGES, LocationSelection, ShipmentSearchState } from './shipment-search.models';
 import { PublicMapViewState, projectPublicMapViewState } from './public-map-view-state';
+import { Subscription } from 'rxjs';
 
 
 @Component({
@@ -47,8 +48,13 @@ export class HomeComponent implements OnInit, OnChanges, OnDestroy {
   private pinCardTouchStartY = 0;
   private suppressPinImagePreview = false;
   private pinCardStateLocked = false;
+  private selectedPinScrollTimer: ReturnType<typeof setTimeout> | null = null;
 
   @Input() set selectedPin(value: any) {
+    if (this.selectedPinScrollTimer !== null) {
+      clearTimeout(this.selectedPinScrollTimer);
+      this.selectedPinScrollTimer = null;
+    }
     const previousPinIdentity = this._selectedPin
       ? String(this._selectedPin.id_destino || this._selectedPin.id_origen || this._selectedPin.id || this.getLocationName(this._selectedPin))
       : '';
@@ -65,7 +71,8 @@ export class HomeComponent implements OnInit, OnChanges, OnDestroy {
       this.lastSelectedLocationId = value.id_destino || value.id_origen || value.id;
 
       // Auto-scroll the list to the selected card
-      setTimeout(() => {
+      this.selectedPinScrollTimer = setTimeout(() => {
+        this.selectedPinScrollTimer = null;
         const cardId = 'card-' + this.lastSelectedLocationId;
         const el = document.getElementById(cardId);
         if (el) {
@@ -152,6 +159,9 @@ export class HomeComponent implements OnInit, OnChanges, OnDestroy {
   placeSearchLoading: boolean = false;
   placeSearchError: string = '';
   private placeSearchTimer: ReturnType<typeof setTimeout> | null = null;
+  private initialIntentTimer: ReturnType<typeof setTimeout> | null = null;
+  private placeSearchSubscription?: Subscription;
+  private placeResolveSubscription?: Subscription;
   private placeSearchSessionToken: string = '';
   bottomSheetState: 'hidden' | 'collapsed' | 'half' | 'expanded' = 'collapsed';
   isSheetScrolled: boolean = false;
@@ -301,10 +311,20 @@ export class HomeComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   ngOnDestroy() {
-    if (this.placeSearchTimer) {
+    if (this.placeSearchTimer !== null) {
       clearTimeout(this.placeSearchTimer);
       this.placeSearchTimer = null;
     }
+    if (this.initialIntentTimer !== null) {
+      clearTimeout(this.initialIntentTimer);
+      this.initialIntentTimer = null;
+    }
+    if (this.selectedPinScrollTimer !== null) {
+      clearTimeout(this.selectedPinScrollTimer);
+      this.selectedPinScrollTimer = null;
+    }
+    this.placeSearchSubscription?.unsubscribe();
+    this.placeResolveSubscription?.unsubscribe();
   }
 
   // UI Handlers
@@ -485,7 +505,11 @@ export class HomeComponent implements OnInit, OnChanges, OnDestroy {
     this.appliedIntentKey = intentKey;
     const intent = this.initialIntent;
 
-    setTimeout(() => {
+    if (this.initialIntentTimer !== null) {
+      clearTimeout(this.initialIntentTimer);
+    }
+    this.initialIntentTimer = setTimeout(() => {
+      this.initialIntentTimer = null;
       if (intent['buscar'] === 'destino') {
         this.openLocationSelector('destino');
       } else if (intent['empresa']) {
@@ -702,18 +726,28 @@ export class HomeComponent implements OnInit, OnChanges, OnDestroy {
     this.placeSearchQuery = value;
     this.placeSuggestions = [];
     this.placeSearchError = '';
-    if (this.placeSearchTimer) clearTimeout(this.placeSearchTimer);
+    if (this.placeSearchTimer !== null) {
+      clearTimeout(this.placeSearchTimer);
+      this.placeSearchTimer = null;
+    }
 
     if (value.trim().length < 3) {
       this.placeSearchLoading = false;
       return;
     }
 
-    this.placeSearchTimer = setTimeout(() => this.searchPlaces(value.trim()), 350);
+    this.placeSearchTimer = setTimeout(() => {
+      this.placeSearchTimer = null;
+      this.searchPlaces(value.trim());
+    }, 350);
   }
 
   clearPlaceSearch() {
-    if (this.placeSearchTimer) clearTimeout(this.placeSearchTimer);
+    if (this.placeSearchTimer !== null) {
+      clearTimeout(this.placeSearchTimer);
+      this.placeSearchTimer = null;
+    }
+    this.placeSearchSubscription?.unsubscribe();
     this.placeSearchQuery = '';
     this.placeSuggestions = [];
     this.placeSearchError = '';
@@ -726,7 +760,8 @@ export class HomeComponent implements OnInit, OnChanges, OnDestroy {
     this.placeSearchLoading = true;
     this.placeSearchError = '';
 
-    this.mapasService.resolvePlace(suggestion.placeId, this.placeSearchSessionToken).subscribe({
+    this.placeResolveSubscription?.unsubscribe();
+    this.placeResolveSubscription = this.mapasService.resolvePlace(suggestion.placeId, this.placeSearchSessionToken).subscribe({
       next: response => {
         const municipality = this.matchRegisteredMunicipality(response?.place);
         this.placeSearchLoading = false;
@@ -756,7 +791,8 @@ export class HomeComponent implements OnInit, OnChanges, OnDestroy {
     if (!this.placeSearchSessionToken) this.placeSearchSessionToken = this.createPlaceSessionToken();
     this.placeSearchLoading = true;
 
-    this.mapasService.searchPlaces(query, this.placeSearchSessionToken).subscribe({
+    this.placeSearchSubscription?.unsubscribe();
+    this.placeSearchSubscription = this.mapasService.searchPlaces(query, this.placeSearchSessionToken).subscribe({
       next: response => {
         this.placeSuggestions = response?.suggestions || [];
         this.placeSearchLoading = false;

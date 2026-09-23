@@ -218,6 +218,7 @@ archivos. Codex debe revisar cada diff y ejecutar build y auditoría visual.
   - [x] T48b: el facade conserva la selección semántica y Home rehidrata punto/municipio, filtros y ruta dentro de la misma sesión; 265/265 pruebas, build y recorrido real Inicio→Atrás→Adelante→Atrás verdes. La recarga en frío conserva únicamente la intención de URL.
 - [ ] Panel empresarial no comparte estado con búsqueda pública.
 - [ ] No existen listeners o timers huérfanos en los recorridos E2E.
+  - [x] T48c: shell y Home cancelan carga inicial, búsquedas de lugares, resolución y timers de intención/scroll al destruirse; 271/271 frontend y build de producción verdes. Falta evidencia E2E automatizada para cerrar el checkpoint padre.
 
 ## Fases 9–10 — Operación y evolución
 

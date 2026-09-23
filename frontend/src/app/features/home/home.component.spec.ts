@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi, Mock } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi, Mock } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HomeComponent } from './home.component';
 import { MapasService } from '../../core/services/mapas.service';
@@ -6,7 +6,7 @@ import { ToastService } from '../../core/services/toast.service';
 import { ShipmentSearchFacade } from './shipment-search.facade';
 import { PointShareService } from './results/point-share.service';
 import { signal } from '@angular/core';
-import { of } from 'rxjs';
+import { of, Subject } from 'rxjs';
 
 describe('HomeComponent (T31d)', () => {
   let component: HomeComponent;
@@ -54,6 +54,7 @@ describe('HomeComponent (T31d)', () => {
 
   afterEach(() => {
     vi.useRealTimers();
+    vi.unstubAllGlobals();
     if (fixture && !fixture.componentRef?.hostView?.destroyed) {
       fixture.destroy();
     }
@@ -72,6 +73,79 @@ describe('HomeComponent (T31d)', () => {
 
     // searchPlaces should NOT have been called
     expect(mapasServiceMock.searchPlaces).not.toHaveBeenCalled();
+  });
+
+  it('should unsubscribe from an in-flight place search on destroy', () => {
+    vi.useFakeTimers();
+    const searchSubject = new Subject<{ suggestions: any[] }>();
+    mapasServiceMock.searchPlaces.mockReturnValue(searchSubject.asObservable());
+
+    component.onPlaceSearchInput('San Salvador');
+    vi.advanceTimersByTime(350);
+
+    expect(searchSubject.observed).toBe(true);
+
+    fixture.destroy();
+
+    expect(searchSubject.observed).toBe(false);
+    searchSubject.next({ suggestions: [{ placeId: 'late-result' }] });
+    expect(component.placeSuggestions).toEqual([]);
+  });
+
+  it('should unsubscribe from an in-flight place search when the helper is cleared', () => {
+    vi.useFakeTimers();
+    const searchSubject = new Subject<{ suggestions: any[] }>();
+    mapasServiceMock.searchPlaces.mockReturnValue(searchSubject.asObservable());
+
+    component.onPlaceSearchInput('San Salvador');
+    vi.advanceTimersByTime(350);
+    expect(searchSubject.observed).toBe(true);
+
+    component.clearPlaceSearch();
+
+    expect(searchSubject.observed).toBe(false);
+    searchSubject.next({ suggestions: [{ placeId: 'late-result' }] });
+    expect(component.placeSuggestions).toEqual([]);
+  });
+
+  it('should unsubscribe from an in-flight place resolution on destroy', () => {
+    const resolveSubject = new Subject<any>();
+    mapasServiceMock.resolvePlace.mockReturnValue(resolveSubject.asObservable());
+
+    component.selectPlaceSuggestion({ placeId: 'place-1', mainText: 'Centro Comercial' });
+
+    expect(resolveSubject.observed).toBe(true);
+
+    fixture.destroy();
+
+    expect(resolveSubject.observed).toBe(false);
+    resolveSubject.next({ place: { name: 'Respuesta tardía' } });
+    expect(toastMock['showInfo']).not.toHaveBeenCalled();
+    expect(facadeMock['setOrigin']).not.toHaveBeenCalled();
+  });
+
+  it('should cancel the pending initial-intent callback on destroy', () => {
+    vi.useFakeTimers();
+    const openSelectorSpy = vi.spyOn(component, 'openLocationSelector');
+    component.initialIntent = { buscar: 'destino' };
+
+    (component as any).applyInitialIntent();
+    fixture.destroy();
+    vi.runAllTimers();
+
+    expect(openSelectorSpy).not.toHaveBeenCalled();
+  });
+
+  it('should cancel the pending selected-pin scroll callback on destroy', () => {
+    vi.useFakeTimers();
+    vi.stubGlobal('matchMedia', vi.fn().mockReturnValue({ matches: false }));
+    const getElementByIdSpy = vi.spyOn(document, 'getElementById');
+
+    component.selectedPin = { id_destino: 'point-1', nombre_destino: 'Punto uno' };
+    fixture.destroy();
+    vi.advanceTimersByTime(150);
+
+    expect(getElementByIdSpy).not.toHaveBeenCalledWith('card-point-1');
   });
 
   describe('T48a — Acciones de mapa seguras en modo list-first', () => {

@@ -52,7 +52,8 @@ export function formatFriendlyDate(dateStr?: string | null): string {
   selector: 'article[siRouteResultCard]',
   standalone: true,
   imports: [CommonModule],
-  templateUrl: './route-result-card.component.html'
+  templateUrl: './route-result-card.component.html',
+  styleUrl: './route-result-card.component.css'
 })
 export class RouteResultCardComponent {
   @Input({ required: true }) route!: RouteResultViewModel;

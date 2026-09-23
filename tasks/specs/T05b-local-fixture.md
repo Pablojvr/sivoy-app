@@ -60,3 +60,15 @@ Fuentes oficiales verificadas:
 - https://playwright.dev/docs/ci
 - https://playwright.dev/docs/browsers
 - https://playwright.dev/docs/test-snapshots
+
+## T05b2b–c — Baseline y CI
+
+- Se versionan cuatro capturas canónicas de Windows, una por viewport. Solo se
+  enmascaran los valores de fecha que cambian con el día de ejecución; estructura,
+  contenido logístico estable, horarios y acciones permanecen comparables.
+- CI instala únicamente Chromium headless y ejecuta el flujo funcional con
+  snapshots ignorados. Playwright advierte que el render puede variar entre
+  sistemas operativos; las comparaciones visuales de Linux se activarán cuando
+  sus baselines se generen en ese mismo entorno.
+- Los reportes y resultados temporales se ignoran y el reporte HTML se conserva
+  como artefacto de CI. Las cuatro PNG canónicas no están ignoradas.

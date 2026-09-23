@@ -84,3 +84,18 @@ jobs:
         
       - name: Build frontend production
         run: npm run build -- --configuration production
+
+      - name: Install Chromium for browser smoke
+        run: npx playwright install --with-deps --only-shell chromium
+
+      - name: Run public shipment browser smoke
+        run: npm run e2e -- --ignore-snapshots
+
+      - name: Upload Playwright report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: frontend/playwright-report/
+          if-no-files-found: ignore
+          retention-days: 14

@@ -30,19 +30,19 @@ máximo cinco archivos. Un paquete no es autorización para modificar código.
   - Aceptación: punto-punto y municipio-municipio preservan respuestas.
   - Verificación: unitarias y contrato HTTP verdes.
   - Dependencias: T02.
-- [ ] T05 Capturar smoke E2E y baseline visual.
+- [x] T05 Capturar smoke E2E y baseline visual.
   - Aceptación: recorrido destino→origen→ruta→compartir reproducible.
   - Verificación: E2E y capturas en cuatro viewports.
   - Dependencias: T01.
   - [x] T05a: caracterización Angular con datos falsos del DOM destino→compartir→origen→ruta, sin red ni mapa; 254/254 pruebas frontend y build verdes. No sustituye E2E ni captura visual.
-  - [ ] T05b: navegador real y capturas 386×912, 768, 1024 y 1440 con catálogo disponible.
+  - [x] T05b: navegador real y capturas 386×912, 768, 1024 y 1440 con catálogo disponible.
     - [x] T05b1: fixture sintético reproducible en loopback `localhost:3000`; 16/16 pruebas, catálogo destino→origen→ruta y acción de mapa auditados en navegador real. No altera producción ni simula reglas empresariales reales.
-    - [ ] T05b2: persistir las cuatro capturas visuales como baseline versionado y automatizar el recorrido; las revisiones manuales de los cuatro anchos no sustituyen este artefacto.
+    - [x] T05b2: recorrido Playwright destino→compartir→origen→ruta verde en cuatro viewports y cuatro capturas Win32 versionadas; CI ejecuta el smoke funcional. La comparación visual Linux queda pendiente para Checkpoint C porque Playwright requiere generar baseline en el mismo entorno.
 
 ### Checkpoint A
 
-- [ ] Build frontend y pruebas backend verdes.
-- [ ] Flujo actual preservado.
+- [x] Build frontend y pruebas backend verdes (271 frontend, 322 backend y build de producción auditados).
+- [x] Flujo actual preservado (smoke real en cuatro viewports y navegación atrás/adelante verificada).
 - [ ] Revisión humana antes de arquitectura interna.
 
 ## Fases 1–3 — Dominio y backend

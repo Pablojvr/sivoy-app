@@ -145,7 +145,9 @@ archivos. Codex debe revisar cada diff y ejecutar build y auditoría visual.
 ### Checkpoint C
 
 - [ ] Visual regression y accesibilidad aprobadas.
+  - [x] Toast global: regiones atómicas por severidad (`status/polite` y `alert/assertive`), iconos decorativos ocultos y cierre nombrado; seis pruebas RED→GREEN incluidas en 277/277 frontend.
 - [ ] CSS global reducido sin cambiar comportamiento.
+  - [x] Primer corte: 234 reglas exclusivas de Home movidas sin alteración desde `app.css` hacia `home.component.css`; fuente global 107084 → 101858 bytes, build y comparación visual en cuatro viewports verdes.
 - [ ] No aparecen nuevos colores o tokens paralelos.
 
 ## Fases 5–8 — Frontend modular
@@ -218,7 +220,7 @@ archivos. Codex debe revisar cada diff y ejecutar build y auditoría visual.
   - [x] T48b: el facade conserva la selección semántica y Home rehidrata punto/municipio, filtros y ruta dentro de la misma sesión; 265/265 pruebas, build y recorrido real Inicio→Atrás→Adelante→Atrás verdes. La recarga en frío conserva únicamente la intención de URL.
 - [ ] Panel empresarial no comparte estado con búsqueda pública.
 - [ ] No existen listeners o timers huérfanos en los recorridos E2E.
-  - [x] T48c: shell y Home cancelan carga inicial, búsquedas de lugares, resolución y timers de intención/scroll al destruirse; 271/271 frontend y build de producción verdes. Falta evidencia E2E automatizada para cerrar el checkpoint padre.
+  - [x] T48c: shell, Home y Toast cancelan carga inicial, búsquedas de lugares, resolución y timers de intención/scroll/remoción al destruirse; el cierre temprano también cancela el auto-remove de Toast. 277/277 frontend y build de producción verdes. Falta instrumentar la ausencia de timers/listeners huérfanos dentro del recorrido E2E para cerrar el checkpoint padre.
 
 ## Fases 9–10 — Operación y evolución
 

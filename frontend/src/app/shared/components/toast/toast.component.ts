@@ -13,8 +13,8 @@ export interface InternalToast extends ToastMessage {
   imports: [CommonModule],
   template: `
     <div class="toast-container">
-      <div *ngFor="let toast of toasts" class="toast-card glassmorphism slide-in" [ngClass]="[toast.type, toast.leaving ? 'fade-out' : '']">
-        <div class="toast-icon">
+      <div *ngFor="let toast of toasts" class="toast-card glassmorphism slide-in" [ngClass]="[toast.type, toast.leaving ? 'fade-out' : '']" [attr.role]="toast.type === 'error' ? 'alert' : 'status'" [attr.aria-live]="toast.type === 'error' ? 'assertive' : 'polite'" aria-atomic="true">
+        <div class="toast-icon" aria-hidden="true">
           <svg *ngIf="toast.type === 'success'" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline>
           </svg>
@@ -29,7 +29,7 @@ export interface InternalToast extends ToastMessage {
           <h4 *ngIf="toast.title">{{ toast.title }}</h4>
           <p>{{ toast.message }}</p>
         </div>
-        <button class="toast-close" (click)="removeToast(toast.id)">&times;</button>
+        <button type="button" class="toast-close" (click)="removeToast(toast.id)" aria-label="Cerrar notificación">&times;</button>
       </div>
     </div>
   `,
@@ -38,6 +38,8 @@ export interface InternalToast extends ToastMessage {
 export class ToastComponent implements OnInit, OnDestroy {
   toasts: InternalToast[] = [];
   private subscription!: Subscription;
+  private readonly autoRemovalTimers = new Map<string, ReturnType<typeof setTimeout>>();
+  private readonly leaveAnimationTimers = new Map<string, ReturnType<typeof setTimeout>>();
 
   constructor(private toastService: ToastService, private cdr: ChangeDetectorRef) {}
 
@@ -53,19 +55,31 @@ export class ToastComponent implements OnInit, OnDestroy {
 
       this.cdr.detectChanges(); // Trigger immediately after push
 
-      setTimeout(() => this.removeToast(toast.id), 5000); // Auto remove after 5s
+      const autoRemovalTimer = setTimeout(() => {
+        this.autoRemovalTimers.delete(toast.id);
+        this.removeToast(toast.id);
+      }, 5000);
+      this.autoRemovalTimers.set(toast.id, autoRemovalTimer);
     });
   }
 
   removeToast(id: string) {
+    const autoRemovalTimer = this.autoRemovalTimers.get(id);
+    if (autoRemovalTimer !== undefined) {
+      clearTimeout(autoRemovalTimer);
+      this.autoRemovalTimers.delete(id);
+    }
+
     const toast = this.toasts.find(t => t.id === id);
     if (toast && !toast.leaving) {
       toast.leaving = true;
       this.cdr.detectChanges(); // Trigger leaving animation
-      setTimeout(() => {
+      const leaveAnimationTimer = setTimeout(() => {
+        this.leaveAnimationTimers.delete(id);
         this.toasts = this.toasts.filter(t => t.id !== id);
         this.cdr.detectChanges(); // Trigger DOM removal
       }, 300); // Match animation duration
+      this.leaveAnimationTimers.set(id, leaveAnimationTimer);
     }
   }
 
@@ -73,5 +87,13 @@ export class ToastComponent implements OnInit, OnDestroy {
     if (this.subscription) {
       this.subscription.unsubscribe();
     }
+    for (const timerId of this.autoRemovalTimers.values()) {
+      clearTimeout(timerId);
+    }
+    this.autoRemovalTimers.clear();
+    for (const timerId of this.leaveAnimationTimers.values()) {
+      clearTimeout(timerId);
+    }
+    this.leaveAnimationTimers.clear();
   }
 }

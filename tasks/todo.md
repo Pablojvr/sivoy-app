@@ -146,9 +146,10 @@ archivos. Codex debe revisar cada diff y ejecutar build y auditoría visual.
 
 - [ ] Visual regression y accesibilidad aprobadas.
   - [x] Toast global: regiones atómicas por severidad (`status/polite` y `alert/assertive`), iconos decorativos ocultos y cierre nombrado; seis pruebas RED→GREEN incluidas en 277/277 frontend.
-- [ ] CSS global reducido sin cambiar comportamiento.
+- [x] CSS global reducido sin cambiar comportamiento.
   - [x] Primer corte: 234 reglas exclusivas de Home movidas sin alteración desde `app.css` hacia `home.component.css`; fuente global 107084 → 101858 bytes, build y comparación visual en cuatro viewports verdes.
   - [x] Segundo corte: 373 líneas de tarjeta de ruta encapsuladas en `route-result-card.component.css`; `app.css` 101858 → 94718 bytes y presupuesto compilado 75.84 → 70.33 kB, con 7/7 pruebas focalizadas, 277/277 frontend, build y 8/8 E2E visuales verdes.
+  - [x] Tercer corte: 556 líneas de origen y búsqueda movidas literalmente a `home.component.css`; `app.css` 94718 → 83685 bytes y desaparece la advertencia de presupuesto CSS, con 277/277 frontend, build y 8/8 E2E visuales verdes.
 - [ ] No aparecen nuevos colores o tokens paralelos.
 
 ## Fases 5–8 — Frontend modular

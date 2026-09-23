@@ -34,4 +34,16 @@ test('destino, compartir, origen y ruta permanecen operativos', async ({ page })
   await page.getByRole('button', { name: 'Ver detalles de la ruta de Agencia Norte a Agencia Centro' }).click();
   await expect(page.getByText('Día para entregar en origen')).toBeVisible();
   await expect(page.getByText('Horario de prueba').first()).toBeVisible();
+
+  await expect(page).toHaveScreenshot('public-route.png', {
+    animations: 'disabled',
+    caret: 'hide',
+    mask: [
+      page.locator('.route-card-eta strong'),
+      page.locator('.route-date-selector select'),
+      page.locator('.route-data-grid > div:first-child strong')
+    ],
+    maskColor: '#d9dde3',
+    maxDiffPixelRatio: 0.02
+  });
 });

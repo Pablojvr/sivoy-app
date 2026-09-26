@@ -145,8 +145,9 @@ archivos. Codex debe revisar cada diff y ejecutar build y auditoría visual.
 
 ### Checkpoint C
 
-- [ ] Visual regression y accesibilidad aprobadas.
+- [x] Visual regression y accesibilidad aprobadas para el flujo público crítico (Partner continúa fuera de alcance).
   - [x] Toast global: regiones atómicas por severidad (`status/polite` y `alert/assertive`), iconos decorativos ocultos y cierre nombrado; seis pruebas RED→GREEN incluidas en 277/277 frontend.
+  - [x] Buscador de destino: diálogo nombrado, foco inicial, ciclo de `Tab`/`Shift+Tab`, cierre con `Escape`, retorno al disparador y controles visibles con nombre accesible; 12/12 repeticiones focalizadas y 16/16 E2E en cuatro viewports, 279/279 frontend y build verdes.
 - [x] CSS global reducido sin cambiar comportamiento.
   - [x] Primer corte: 234 reglas exclusivas de Home movidas sin alteración desde `app.css` hacia `home.component.css`; fuente global 107084 → 101858 bytes, build y comparación visual en cuatro viewports verdes.
   - [x] Segundo corte: 373 líneas de tarjeta de ruta encapsuladas en `route-result-card.component.css`; `app.css` 101858 → 94718 bytes y presupuesto compilado 75.84 → 70.33 kB, con 7/7 pruebas focalizadas, 277/277 frontend, build y 8/8 E2E visuales verdes.

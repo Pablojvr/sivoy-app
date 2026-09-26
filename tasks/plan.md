@@ -1,7 +1,8 @@
 # Plan de implementación: reinvención arquitectónica de SiVoy
 
-Estado: borrador para aprobación. Este documento no autoriza implementación ni
-despliegue por sí solo.
+Estado: aprobado para ejecución incremental y reversible. Contratos públicos,
+base de datos y producción requieren sus respectivos gates y aprobaciones; este
+documento no autoriza por sí solo cambios observables ni despliegues.
 
 ## Objetivo
 

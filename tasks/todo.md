@@ -1,6 +1,7 @@
 # Reinvención arquitectónica — índice de ejecución
 
-No iniciar tareas hasta aprobar `CAPABILITY-MAP.md` y `tasks/plan.md`.
+Baseline arquitectónico aprobado: `CAPABILITY-MAP.md` y `tasks/plan.md` están
+aprobados para ejecución incremental y reversible.
 
 T01–T05 son tareas ejecutables de descubrimiento. T06–T37 son paquetes de trabajo:
 antes de iniciar cada uno se debe aprobar el spec de su módulo y descomponerlo en
@@ -43,7 +44,7 @@ máximo cinco archivos. Un paquete no es autorización para modificar código.
 
 - [x] Build frontend y pruebas backend verdes (271 frontend, 322 backend y build de producción auditados).
 - [x] Flujo actual preservado (smoke real en cuatro viewports y navegación atrás/adelante verificada).
-- [ ] Revisión humana antes de arquitectura interna.
+- [x] Revisión humana antes de arquitectura interna (aprobado por el usuario para ejecución incremental y reversible; Codex audita cada corte).
 
 ## Fases 1–3 — Dominio y backend
 
@@ -150,7 +151,8 @@ archivos. Codex debe revisar cada diff y ejecutar build y auditoría visual.
   - [x] Primer corte: 234 reglas exclusivas de Home movidas sin alteración desde `app.css` hacia `home.component.css`; fuente global 107084 → 101858 bytes, build y comparación visual en cuatro viewports verdes.
   - [x] Segundo corte: 373 líneas de tarjeta de ruta encapsuladas en `route-result-card.component.css`; `app.css` 101858 → 94718 bytes y presupuesto compilado 75.84 → 70.33 kB, con 7/7 pruebas focalizadas, 277/277 frontend, build y 8/8 E2E visuales verdes.
   - [x] Tercer corte: 556 líneas de origen y búsqueda movidas literalmente a `home.component.css`; `app.css` 94718 → 83685 bytes y desaparece la advertencia de presupuesto CSS, con 277/277 frontend, build y 8/8 E2E visuales verdes.
-- [ ] No aparecen nuevos colores o tokens paralelos.
+- [x] No aparecen nuevos colores o tokens paralelos.
+  - Contrato versionado de 355 literales, 3 keywords y 33 tokens `:root`; guard sin dependencias en CI; 14/14 guard tests, 277/277 frontend, build y 12/12 E2E.
 
 ## Fases 5–8 — Frontend modular
 

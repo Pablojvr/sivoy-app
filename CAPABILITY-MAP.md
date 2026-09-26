@@ -1,6 +1,7 @@
 # Capability Map: reinvención arquitectónica de SiVoy
 
-Estado: propuesta pendiente de aprobación humana.
+Estado: aprobado como baseline arquitectónico para ejecución incremental. Este
+documento no autoriza por sí solo cambios observables ni despliegues.
 
 | Módulo | Responsabilidad | Depende de |
 |---|---|---|

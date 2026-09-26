@@ -8,6 +8,7 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "test:ci": "ng test --watch=false",
+    "check:css-colors": "node --test scripts/check-css-color-contract.test.mjs && node scripts/check-css-color-contract.mjs",
     "e2e": "playwright test",
     "e2e:headed": "playwright test --headed"
   },

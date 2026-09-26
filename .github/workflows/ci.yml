@@ -79,6 +79,9 @@ jobs:
       - name: Verify package signatures
         run: npm audit signatures
         
+      - name: Verify CSS color contract
+        run: npm run check:css-colors
+
       - name: Run frontend tests
         run: npm run test:ci
         

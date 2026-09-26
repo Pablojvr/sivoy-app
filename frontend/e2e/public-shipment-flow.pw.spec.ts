@@ -1,5 +1,20 @@
 import { expect, test } from '@playwright/test';
 
+type IntervalDiagnosticsWindow = Window & {
+  __sivoyActiveIntervals?: Map<number, number>;
+};
+
+const countActiveIntervalsByDelay = (delay: number) =>
+  window.__sivoyActiveIntervals
+    ? [...window.__sivoyActiveIntervals.values()].filter(activeDelay => activeDelay === delay).length
+    : 0;
+
+declare global {
+  interface Window {
+    __sivoyActiveIntervals?: Map<number, number>;
+  }
+}
+
 test('destino, compartir, origen y ruta permanecen operativos', async ({ page }) => {
   await page.addInitScript(() => {
     Object.defineProperty(navigator, 'share', {
@@ -97,4 +112,35 @@ test('buscar y compartir siguen disponibles sin WebGL2', async ({ page }) => {
     text: expect.stringContaining('Empresa de prueba'),
     url: expect.stringContaining('google.com/maps')
   });
+});
+
+test('salir del flujo de envío libera el intervalo de actualización', async ({ page }) => {
+  await page.addInitScript(() => {
+    const diagnosticsWindow = window as IntervalDiagnosticsWindow;
+    const activeIntervals = new Map<number, number>();
+    const originalSetInterval = window.setInterval.bind(window);
+    const originalClearInterval = window.clearInterval.bind(window);
+
+    diagnosticsWindow.__sivoyActiveIntervals = activeIntervals;
+    window.setInterval = ((handler: TimerHandler, delay?: number, ...args: unknown[]) => {
+      const intervalId = originalSetInterval(handler, delay, ...args);
+      activeIntervals.set(intervalId, delay ?? 0);
+      return intervalId;
+    }) as typeof window.setInterval;
+    window.clearInterval = ((intervalId?: number) => {
+      if (typeof intervalId === 'number') {
+        activeIntervals.delete(intervalId);
+      }
+      originalClearInterval(intervalId);
+    }) as typeof window.clearInterval;
+  });
+
+  await page.goto('/#/');
+  await page.getByRole('button', { name: 'Buscar destino' }).click();
+
+  await expect.poll(() => page.evaluate(countActiveIntervalsByDelay, 60_000)).toBe(1);
+
+  await page.getByRole('link', { name: 'Inicio', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Envía sin complicarte.' })).toBeVisible();
+  await expect.poll(() => page.evaluate(countActiveIntervalsByDelay, 60_000)).toBe(0);
 });

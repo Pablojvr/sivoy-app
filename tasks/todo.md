@@ -221,8 +221,8 @@ archivos. Codex debe revisar cada diff y ejecutar build y auditoría visual.
 - [x] Navegación atrás/adelante preserva el estado esperado.
   - [x] T48b: el facade conserva la selección semántica y Home rehidrata punto/municipio, filtros y ruta dentro de la misma sesión; 265/265 pruebas, build y recorrido real Inicio→Atrás→Adelante→Atrás verdes. La recarga en frío conserva únicamente la intención de URL.
 - [ ] Panel empresarial no comparte estado con búsqueda pública.
-- [ ] No existen listeners o timers huérfanos en los recorridos E2E.
-  - [x] T48c: shell, Home y Toast cancelan carga inicial, búsquedas de lugares, resolución y timers de intención/scroll/remoción al destruirse; el cierre temprano también cancela el auto-remove de Toast. 277/277 frontend y build de producción verdes. Falta instrumentar la ausencia de timers/listeners huérfanos dentro del recorrido E2E para cerrar el checkpoint padre.
+- [x] No existen listeners o timers huérfanos en los recorridos E2E.
+  - [x] T48c: shell, Home y Toast cancelan carga inicial, búsquedas de lugares, resolución y timers de intención/scroll/remoción al destruirse; el cierre temprano también cancela el auto-remove de Toast. Las pruebas unitarias cubren la liberación de listeners del mapa y 277/277 pruebas frontend permanecen verdes. Un recorrido Playwright instrumentado confirma que el intervalo de 60 segundos se crea al entrar a `/enviar` y vuelve a cero al regresar a Inicio en 386×912, 768, 1024 y 1440 px; la matriz E2E queda en 12/12.
 
 ## Fases 9–10 — Operación y evolución
 

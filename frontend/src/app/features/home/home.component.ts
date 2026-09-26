@@ -160,6 +160,9 @@ export class HomeComponent implements OnInit, OnChanges, OnDestroy {
   placeSearchError: string = '';
   private placeSearchTimer: ReturnType<typeof setTimeout> | null = null;
   private initialIntentTimer: ReturnType<typeof setTimeout> | null = null;
+  private searchInputFocusTimer: ReturnType<typeof setTimeout> | null = null;
+  private searchReturnFocusTimer: ReturnType<typeof setTimeout> | null = null;
+  private searchReturnFocusSelector: string | null = null;
   private placeSearchSubscription?: Subscription;
   private placeResolveSubscription?: Subscription;
   private placeSearchSessionToken: string = '';
@@ -323,6 +326,7 @@ export class HomeComponent implements OnInit, OnChanges, OnDestroy {
       clearTimeout(this.selectedPinScrollTimer);
       this.selectedPinScrollTimer = null;
     }
+    this.clearSearchFocusTimers();
     this.placeSearchSubscription?.unsubscribe();
     this.placeResolveSubscription?.unsubscribe();
   }
@@ -333,17 +337,89 @@ export class HomeComponent implements OnInit, OnChanges, OnDestroy {
       this.closeLocationSelector();
       return;
     }
+    if (!this.isSearchExpanded) {
+      this.searchReturnFocusSelector = this.resolveSearchReturnFocusSelector();
+    }
     this.activeInput = type;
     this.isSearchExpanded = true;
     this.showAutocomplete = true;
     this.locationSearchQuery = type === 'origen' ? this.origenInputValue : this.destinoInputValue;
     this.updateAutocompleteFilters();
+    this.scheduleSearchInputFocus(type);
   }
 
   closeLocationSelector() {
+    const returnFocusSelector = this.searchReturnFocusSelector;
+    this.clearSearchFocusTimers();
     this.activeInput = null;
     this.isSearchExpanded = false;
     this.showAutocomplete = false;
+    this.searchReturnFocusSelector = null;
+
+    if (returnFocusSelector) {
+      this.searchReturnFocusTimer = setTimeout(() => {
+        this.searchReturnFocusTimer = null;
+        document.querySelector<HTMLElement>(returnFocusSelector)?.focus();
+      });
+    }
+  }
+
+  onSearchDialogKeydown(event: KeyboardEvent) {
+    if (!this.isSearchExpanded) return;
+
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      event.stopPropagation();
+      this.closeLocationSelector();
+      return;
+    }
+
+    if (event.key !== 'Tab') return;
+    const dialog = document.getElementById('location-search-panel');
+    if (!dialog) return;
+
+    const focusable = Array.from(dialog.querySelectorAll<HTMLElement>(
+      'button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    )).filter(element => element.getClientRects().length > 0);
+    if (focusable.length === 0) return;
+
+    const activeIndex = focusable.indexOf(document.activeElement as HTMLElement);
+    const nextIndex = event.shiftKey
+      ? (activeIndex <= 0 ? focusable.length - 1 : activeIndex - 1)
+      : (activeIndex < 0 || activeIndex === focusable.length - 1 ? 0 : activeIndex + 1);
+
+    event.preventDefault();
+    focusable[nextIndex].focus();
+  }
+
+  private scheduleSearchInputFocus(type: 'origen' | 'destino') {
+    if (this.searchInputFocusTimer !== null) {
+      clearTimeout(this.searchInputFocusTimer);
+    }
+    const inputId = type === 'origen' ? 'origin-location' : 'destination-municipality';
+    this.searchInputFocusTimer = setTimeout(() => {
+      this.searchInputFocusTimer = null;
+      document.getElementById(inputId)?.focus();
+    });
+  }
+
+  private resolveSearchReturnFocusSelector(): string | null {
+    const activeElement = document.activeElement;
+    if (!(activeElement instanceof HTMLElement)) return null;
+    if (activeElement.matches('.destination-search-trigger')) return '.destination-search-trigger';
+    if (activeElement.closest('.list-first-intro')) return '.list-first-intro button';
+    return null;
+  }
+
+  private clearSearchFocusTimers() {
+    if (this.searchInputFocusTimer !== null) {
+      clearTimeout(this.searchInputFocusTimer);
+      this.searchInputFocusTimer = null;
+    }
+    if (this.searchReturnFocusTimer !== null) {
+      clearTimeout(this.searchReturnFocusTimer);
+      this.searchReturnFocusTimer = null;
+    }
   }
 
   @HostListener('document:click', ['$event'])

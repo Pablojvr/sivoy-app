@@ -14,8 +14,11 @@
     (input)="onInput($event)"
     (focus)="onFocus()"
     (keydown.enter)="onEnter()"
+    role="combobox"
     aria-controls="destination-options"
-    aria-autocomplete="list">
+    aria-autocomplete="list"
+    aria-haspopup="listbox"
+    [attr.aria-expanded]="isListVisible && options.length > 0">
   <button
     type="button"
     class="input-clear-btn"

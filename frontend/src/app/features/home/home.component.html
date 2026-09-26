@@ -9,18 +9,18 @@
     <!-- FIXED CENTER PIN (Removed as per design changes, using blue dot marker for user location instead) -->
     
     <!-- RECENTER BUTTON -->
-    <button class="recenter-btn" (click)="recenterMap()">
+    <button class="recenter-btn" (click)="recenterMap()" aria-label="Centrar mapa en mi ubicación">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="3"></circle></svg>
     </button>
     
     <!-- RESTORE MAP BUTTON -->
-    <button class="nearby-fab restore-map-btn" (click)="resetMapMarkers()" *ngIf="highlightedRoute">
+    <button class="nearby-fab restore-map-btn" (click)="resetMapMarkers()" *ngIf="highlightedRoute" aria-label="Ver todas las rutas en el mapa">
       <i class="pi pi-undo restore-map-icon"></i>
       Ver todas las rutas
     </button>
     
     <!-- NEARBY POINTS BUTTON -->
-    <button class="nearby-fab" (click)="showNearbyPoints()" *ngIf="!destino && !isPickingLocation">
+    <button class="nearby-fab" (click)="showNearbyPoints()" *ngIf="!destino && !isPickingLocation" aria-label="Buscar puntos cerca de mí">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
         <circle cx="12" cy="10" r="3"></circle>
@@ -56,7 +56,13 @@
     </span>
     <h1 id="list-first-title">¿Adónde lo envías?</h1>
     <p>Busca un punto, revisa el horario y compártelo.</p>
-    <button type="button" (click)="openLocationSelector('destino')">Buscar destino</button>
+    <button
+      type="button"
+      (click)="openLocationSelector('destino')"
+      aria-controls="location-search-panel"
+      [attr.aria-expanded]="isSearchExpanded">
+      Buscar destino
+    </button>
   </section>
 
   <button type="button" class="map-resource-exit" *ngIf="mapResourceMode" (click)="exitMapResource(); $event.stopPropagation()">
@@ -74,6 +80,8 @@
         type="button"
         class="destination-search-trigger"
         (click)="openLocationSelector('destino')"
+        aria-controls="location-search-panel"
+        [attr.aria-expanded]="isSearchExpanded"
         [attr.aria-label]="destino ? 'Cambiar municipio de destino' : 'Buscar municipio de destino'">
         <span class="destination-search-icon" aria-hidden="true">
           <svg *ngIf="destino" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -115,9 +123,11 @@
 
     <!-- Progressive selector: destination first, origin only when requested from a card -->
     <section
+      id="location-search-panel"
       class="search-panel-expanded card-style slide-down"
       *ngIf="isSearchExpanded"
       (click)="$event.stopPropagation()"
+      (keydown)="onSearchDialogKeydown($event)"
       role="dialog"
       aria-modal="true"
       aria-labelledby="location-search-title">

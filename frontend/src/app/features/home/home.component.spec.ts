@@ -148,6 +148,39 @@ describe('HomeComponent (T31d)', () => {
     expect(getElementByIdSpy).not.toHaveBeenCalledWith('card-point-1');
   });
 
+  it('focuses the destination combobox and closes the dialog after Escape', () => {
+    vi.useFakeTimers();
+    const focus = vi.fn();
+    const getElementByIdSpy = vi.spyOn(document, 'getElementById').mockReturnValue({ focus } as unknown as HTMLElement);
+
+    component.openLocationSelector('destino');
+    vi.runOnlyPendingTimers();
+
+    expect(getElementByIdSpy).toHaveBeenCalledWith('destination-municipality');
+    expect(focus).toHaveBeenCalledTimes(1);
+
+    const escapeEvent = new KeyboardEvent('keydown', { key: 'Escape', cancelable: true });
+    const preventDefaultSpy = vi.spyOn(escapeEvent, 'preventDefault');
+    component.onSearchDialogKeydown(escapeEvent);
+    vi.runOnlyPendingTimers();
+
+    expect(component.isSearchExpanded).toBe(false);
+    expect(preventDefaultSpy).toHaveBeenCalledTimes(1);
+    getElementByIdSpy.mockRestore();
+  });
+
+  it('cancels pending search focus work on destroy', () => {
+    vi.useFakeTimers();
+    const getElementByIdSpy = vi.spyOn(document, 'getElementById');
+
+    component.openLocationSelector('destino');
+    fixture.destroy();
+    vi.runAllTimers();
+
+    expect(getElementByIdSpy).not.toHaveBeenCalledWith('destination-municipality');
+    getElementByIdSpy.mockRestore();
+  });
+
   describe('T48a — Acciones de mapa seguras en modo list-first', () => {
     let mapResourceModeChangeSpy: ReturnType<typeof vi.spyOn>;
     let resetMapMarkersSpy: ReturnType<typeof vi.spyOn>;

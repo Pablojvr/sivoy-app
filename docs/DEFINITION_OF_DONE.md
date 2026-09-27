@@ -24,7 +24,12 @@ esta lista permanente. La presión de tiempo no reduce este estándar.
 
 ## Frontend
 
+- Ejecutar `npm run test:ci` desde `frontend/`.
 - Ejecutar `npm run build` desde `frontend/`.
+- Ejecutar `npm run check:boundaries`; el baseline arquitectónico debe permanecer
+  vacío y no se aceptan excepciones nuevas.
+- Ejecutar `npm run e2e` cuando cambien navegación, accesibilidad o flujos
+  públicos.
 - Verificar 386×912 y al menos un viewport de escritorio.
 - Comprobar teclado, foco visible, contraste y `prefers-reduced-motion`.
 - No introducir nuevos `any`, estilos inline, `!important` o colores fuera de tokens.

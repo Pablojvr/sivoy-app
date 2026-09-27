@@ -217,6 +217,7 @@ archivos. Codex debe revisar cada diff y ejecutar build y auditoría visual.
     - [x] T31c: caracterizar límites horarios y proyección de rutas.
     - [x] T31d: cancelar place-search debounce on destroy; 239 pruebas y diff-check verdes.
     - [x] T31e: fronteras `core`/`shared`/`features` automatizadas y baseline reducido a cero; 31 pruebas del guard, 279 unitarias, build y 16/16 recorridos E2E auditados.
+    - [x] T31f: Discovery consume `UbicacionesService` sin HTTP directo y conserva `DeliveryPoint` hasta la vista; 29 pruebas focalizadas, 308 unitarias, build, baseline cero y 16/16 recorridos E2E auditados.
 
 ### Checkpoint D
 

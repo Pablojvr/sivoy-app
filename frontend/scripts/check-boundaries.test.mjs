@@ -43,10 +43,10 @@ test('Architectural Boundaries - 1. real repo baseline passes with 0 new violati
   assert.ok(fs.existsSync(srcDir) && fs.existsSync(baselinePath));
 
   const result = checkBoundaries({ srcDir, baselinePath, baseDir: frontendDir });
+  assert.deepStrictEqual(result.newViolations, []);
   assert.strictEqual(result.ok, true);
   assert.strictEqual(result.errors.length, 0);
-  assert.strictEqual(result.newViolations.length, 0);
-  assert.strictEqual(result.permittedViolations, 1);
+  assert.strictEqual(result.permittedViolations, 0);
   assert.ok(result.totalFiles >= 40);
 });
 
@@ -253,7 +253,7 @@ test('Architectural Boundaries - 12. Baseline with mismatched rule fails', () =>
 });
 
 test('Architectural Boundaries - 13. Duplicate baseline entry fails validation', () => {
-  const entry = { source: 'src/app/features/discovery/discovery-page.component.ts', target: 'src/app/features/home/discovery-home.component.ts', rule: RULES.FEATURE_TO_FEATURE };
+  const entry = { source: 'src/app/features/alpha/alpha.component.ts', target: 'src/app/features/beta/beta.component.ts', rule: RULES.FEATURE_TO_FEATURE };
   const val = validateBaseline([entry, entry]);
   assert.strictEqual(val.valid, false);
   assert.ok(val.error.includes('Duplicate baseline entry detected'));
@@ -400,8 +400,6 @@ test('Architectural Boundaries - 30. CLI fails when an option is repeated', asyn
 test('Architectural Boundaries - 31. Toast migration eliminates shared-to-core exception and preserves strict class identity', () => {
   const baselinePath = path.join(frontendDir, 'scripts', 'boundary-baseline.json');
   const baselineData = JSON.parse(fs.readFileSync(baselinePath, 'utf8'));
-  assert.strictEqual(baselineData.length, 1, 'Baseline must contain exactly 1 permitted exception');
-  assert.strictEqual(baselineData[0].rule, RULES.FEATURE_TO_FEATURE);
   assert.ok(!baselineData.some((entry) => entry.rule === RULES.SHARED_TO_CORE), 'shared-cannot-import-core must no longer be present in baseline');
 
   const sharedServicePath = path.join(frontendDir, 'src', 'app', 'shared', 'services', 'toast.service.ts');

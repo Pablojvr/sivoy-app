@@ -4,7 +4,7 @@ import { ChangeDetectorRef, Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { environment } from '../../../environments/environment';
 import { BottomNavComponent } from '../../shared/components/bottom-nav/bottom-nav.component';
-import { DiscoveryHomeComponent } from '../home/discovery-home.component';
+import { DiscoveryHomeComponent } from './discovery-home.component';
 
 @Component({
   selector: 'app-discovery-page',

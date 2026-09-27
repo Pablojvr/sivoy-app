@@ -82,6 +82,9 @@ jobs:
       - name: Verify CSS color contract
         run: npm run check:css-colors
 
+      - name: Verify architectural boundaries
+        run: npm run check:boundaries
+
       - name: Run frontend tests
         run: npm run test:ci
         

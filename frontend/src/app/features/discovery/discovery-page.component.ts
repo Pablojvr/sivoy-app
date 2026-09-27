@@ -1,8 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
 import { ChangeDetectorRef, Component } from '@angular/core';
 import { Router } from '@angular/router';
-import { environment } from '../../../environments/environment';
+import { DeliveryPoint } from '../../core/models/location.models';
+import { UbicacionesService } from '../../core/services/ubicaciones.service';
 import { BottomNavComponent } from '../../shared/components/bottom-nav/bottom-nav.component';
 import { DiscoveryHomeComponent } from './discovery-home.component';
 
@@ -34,10 +34,14 @@ import { DiscoveryHomeComponent } from './discovery-home.component';
   `]
 })
 export class DiscoveryPageComponent {
-  locations: any[] = [];
+  locations: DeliveryPoint[] = [];
 
-  constructor(private http: HttpClient, private router: Router, private cdr: ChangeDetectorRef) {
-    this.http.get<any[]>(`${environment.apiUrl}/api/locations`).subscribe({
+  constructor(
+    private ubicacionesService: UbicacionesService,
+    private router: Router,
+    private cdr: ChangeDetectorRef
+  ) {
+    this.ubicacionesService.getLocations().subscribe({
       next: locations => {
         this.locations = locations || [];
         this.cdr.detectChanges();

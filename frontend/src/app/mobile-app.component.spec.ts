@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { MobileAppComponent } from './mobile-app.component';
+import { MobileAppComponent, resolveMainTab } from './mobile-app.component';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { ToastService } from './core/services/toast.service';
@@ -353,5 +353,20 @@ describe('MobileAppComponent.onMapHighlightRoute (T31c Characterization)', () =>
 
     expect(mockMapLifecycle.addPrimaryMarker).toHaveBeenCalledTimes(1);
     expect(mockMapPort.drawRouteLine).not.toHaveBeenCalled();
+  });
+});
+
+describe('resolveMainTab (T29a)', () => {
+  it('uses the route default when no explicit tab exists', () => {
+    expect(resolveMainTab(undefined, 'puntos')).toBe('puntos');
+  });
+
+  it('gives a valid explicit tab precedence over the route default', () => {
+    expect(resolveMainTab('perfil', 'puntos')).toBe('perfil');
+  });
+
+  it('keeps the public route on Inicio when neither value is valid', () => {
+    expect(resolveMainTab(undefined, undefined)).toBe('inicio');
+    expect(resolveMainTab('unknown', 'registro')).toBe('inicio');
   });
 });

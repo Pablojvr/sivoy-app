@@ -7,6 +7,11 @@ export const routes: Routes = [
     path: 'enviar',
     loadComponent: () => import('./mobile-app.component').then(module => module.MobileAppComponent)
   },
+  {
+    path: 'admin',
+    data: { defaultTab: 'puntos' },
+    loadComponent: () => import('./mobile-app.component').then(module => module.MobileAppComponent)
+  },
   { 
     path: 'partner', 
     loadComponent: () => import('./features/partner/partner.component').then(m => m.PartnerComponent) 

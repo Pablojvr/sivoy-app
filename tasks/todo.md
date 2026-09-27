@@ -199,6 +199,7 @@ archivos. Codex debe revisar cada diff y ejecutar build y auditoría visual.
     - [x] T28c: marcadores auxiliares y listeners de arrastre migrados; 211 pruebas y build auditados.
     - [x] T28d: eventos, disposer temporal y teardown final migrados; 211 pruebas, build y runtime auditados.
 - [ ] T29 Separar operaciones de empresas en ruta propia.
+  - [x] T29a: `/admin` establece un límite de navegación propio y conserva temporalmente el shell/mapa existente; el enlace Panel ya no depende de `?tab=puntos`. Codex redujo el spec delegado a tres casos de precedencia, auditó 311/311 pruebas, fronteras y colores sin excepciones, build y 16/16 E2E; el recorrido real Panel → `/admin` → Inicio quedó verde. La extracción de `AdminComponent` y su estado fuera de `MobileAppComponent` permanece pendiente.
 - [x] T30 Reducir `MobileAppComponent` al shell público (wiring empresarial temporalmente excluido).
     - [x] T30a: caracterización del shell público; 214 pruebas y build auditados.
     - [x] T30b: lectura tipada delegada a UbicacionesService; 217 pruebas y build auditados.

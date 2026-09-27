@@ -28,6 +28,16 @@ interface MapMarkerMetadata {
   selected?: boolean;
 }
 
+type MainTab = 'inicio' | 'puntos' | 'perfil' | 'registro';
+
+export function resolveMainTab(requestedTab: unknown, defaultTab: unknown): MainTab {
+  if (requestedTab === 'inicio' || requestedTab === 'puntos' || requestedTab === 'perfil') {
+    return requestedTab;
+  }
+
+  return defaultTab === 'puntos' || defaultTab === 'perfil' ? defaultTab : 'inicio';
+}
+
 const AUX_MARKER_KEYS = {
   USER: 'user',
   CUSTOM_DESTINO: 'custom_destino',
@@ -56,7 +66,7 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
   selectedPin: any = null;
   
   // Navigation State
-  activeMainTab: 'inicio' | 'puntos' | 'perfil' | 'registro' = 'inicio';
+  activeMainTab: MainTab = 'inicio';
   isMapForcedVisible: boolean = false;
   isMapResourceMode: boolean = false;
   
@@ -127,7 +137,8 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
       this.navigationIntent = { ...params };
       this.setMapResourceMode(params['vista'] === 'mapa');
       const requestedTab = params['tab'];
-      this.activeMainTab = requestedTab === 'puntos' || requestedTab === 'perfil' ? requestedTab : 'inicio';
+      const defaultTab = this.route.snapshot?.data?.['defaultTab'];
+      this.activeMainTab = resolveMainTab(requestedTab, defaultTab);
       this.cdr.detectChanges();
     });
     this.locationsSubscription = this.ubicacionesService.getLocations().subscribe(data => {

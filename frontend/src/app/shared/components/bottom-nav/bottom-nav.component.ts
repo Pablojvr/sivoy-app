@@ -10,7 +10,7 @@ import { RouterLink } from '@angular/router';
   template: `
     <nav class="persistent-bottom-nav" aria-label="Navegación principal">
       <div class="persistent-nav-track">
-        <a class="nav-item" [class.active]="activeTab === 'puntos'" routerLink="/enviar" [queryParams]="{ tab: 'puntos' }" [attr.aria-current]="activeTab === 'puntos' ? 'page' : null">
+        <a class="nav-item" [class.active]="activeTab === 'puntos'" routerLink="/admin" [attr.aria-current]="activeTab === 'puntos' ? 'page' : null">
           <span class="nav-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="3"></rect><path d="M8 9h8M8 13h5"></path></svg>
           </span>

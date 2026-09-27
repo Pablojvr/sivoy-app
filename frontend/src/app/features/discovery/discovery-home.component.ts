@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
+import { DeliveryPoint } from '../../core/models/location.models';
 
 interface CompanySummary {
   name: string;
@@ -9,7 +10,7 @@ interface CompanySummary {
   accent: string;
 }
 
-interface MunicipalitySummary {
+export interface MunicipalitySummary {
   municipio: string;
   departamento: string;
   pointCount: number;
@@ -23,19 +24,19 @@ interface MunicipalitySummary {
   styleUrl: './discovery-home.component.css'
 })
 export class DiscoveryHomeComponent implements OnChanges {
-  @Input() locations: any[] = [];
+  @Input() locations: readonly DeliveryPoint[] = [];
 
   @Output() destinationSearch = new EventEmitter<void>();
   @Output() mapExplore = new EventEmitter<void>();
   @Output() companySelected = new EventEmitter<string>();
   @Output() municipalitySelected = new EventEmitter<MunicipalitySummary>();
-  @Output() pointSelected = new EventEmitter<any>();
-  @Output() pointPreview = new EventEmitter<any>();
-  @Output() pointMap = new EventEmitter<any>();
+  @Output() pointSelected = new EventEmitter<DeliveryPoint>();
+  @Output() pointPreview = new EventEmitter<DeliveryPoint>();
+  @Output() pointMap = new EventEmitter<DeliveryPoint>();
 
   companies: CompanySummary[] = [];
   municipalities: MunicipalitySummary[] = [];
-  featuredPoints: any[] = [];
+  featuredPoints: DeliveryPoint[] = [];
   totalMunicipalities = 0;
 
   private readonly accents = ['#F45B78', '#B8EE4A', '#A9DDF5', '#FFD18A'];
@@ -56,12 +57,12 @@ export class DiscoveryHomeComponent implements OnChanges {
     return this.locations.length;
   }
 
-  pointName(point: any): string {
-    return (point?.nombre_destino || point?.destino_nombre || 'Punto de entrega')
+  pointName(point: DeliveryPoint): string {
+    return (point?.nombre_destino || 'Punto de entrega')
       .replace(/^AGENCIA\s+/i, '');
   }
 
-  locationLabel(point: any): string {
+  locationLabel(point: DeliveryPoint): string {
     return [point?.ubicacion?.municipio, point?.ubicacion?.departamento].filter(Boolean).join(', ');
   }
 
@@ -73,7 +74,7 @@ export class DiscoveryHomeComponent implements OnChanges {
     return `${municipality.municipio}-${municipality.departamento}`;
   }
 
-  trackPoint(_: number, point: any): string | number {
+  trackPoint(_: number, point: DeliveryPoint): string | number {
     return point?.id_destino || point?.id || point?.nombre_destino;
   }
 

@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { DeliveryPoint } from '../../core/models/location.models';
 import { UbicacionesService } from '../../core/services/ubicaciones.service';
 import { BottomNavComponent } from '../../shared/components/bottom-nav/bottom-nav.component';
-import { DiscoveryHomeComponent } from './discovery-home.component';
+import { DiscoveryHomeComponent, MunicipalitySummary } from './discovery-home.component';
 
 @Component({
   selector: 'app-discovery-page',
@@ -34,7 +34,7 @@ import { DiscoveryHomeComponent } from './discovery-home.component';
   `]
 })
 export class DiscoveryPageComponent {
-  locations: DeliveryPoint[] = [];
+  locations: readonly DeliveryPoint[] = [];
 
   constructor(
     private ubicacionesService: UbicacionesService,
@@ -65,7 +65,7 @@ export class DiscoveryPageComponent {
     this.router.navigate(['/enviar'], { queryParams: { empresa: company } });
   }
 
-  openMunicipality(municipality: any) {
+  openMunicipality(municipality: MunicipalitySummary) {
     this.router.navigate(['/enviar'], {
       queryParams: {
         municipio: municipality.municipio,
@@ -74,7 +74,7 @@ export class DiscoveryPageComponent {
     });
   }
 
-  openPoint(point: any, action: 'select' | 'preview' | 'map') {
+  openPoint(point: DeliveryPoint, action: 'select' | 'preview' | 'map') {
     this.router.navigate(['/enviar'], {
       queryParams: {
         punto: point.id_destino || point.id,

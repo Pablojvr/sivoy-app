@@ -1,12 +1,9 @@
-import { environment } from '../environments/environment';
-import { Component, OnInit, OnDestroy, ChangeDetectorRef, AfterViewInit, HostListener, ElementRef, ViewEncapsulation, ViewChild } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, AfterViewInit, ElementRef, ViewEncapsulation, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { ToastService } from './core/services/toast.service';
-import { HttpClient } from '@angular/common/http';
 import { UbicacionesService } from './core/services/ubicaciones.service';
 import { UserGeolocationService } from './core/services/user-geolocation.service';
 import { MapPort, MapCoordinate } from './core/maps/map.port';
@@ -70,33 +67,9 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
   isMapForcedVisible: boolean = false;
   isMapResourceMode: boolean = false;
   
-  // Admin Panel State
-  adminSubTab: 'empresas' | 'puntos' = 'puntos'; // Default to puntos
-  adminEmpresasList: any[] = [];
-  isEditingEmpresa: boolean = false;
-  editingEmpresaData: any = { id: null, nombre: '', logoUrl: '', logoFile: null };
-  activeEmpresaMenuId: number | null = null;
-  registroEmpresaId: number | null = null;
-  registroEmpresaNombre: string = '';
-  
   fullScreenImage: string | null = null;
-  
-  adminFilteredLocations: any[] = [];
-  adminCompanies: string[] = [];
-  adminCompanyFilter: string = '';
-  adminSearchTerm: string = '';
-  editingLocation: any = null;
-  editFormData: any = {};
-  
-  // Edit Location Modal State
-  editLocationTab: 'datos' | 'horarios' = 'datos';
-  editImageFile: File | null = null;
-  editImageUrl: string | null = null;
-  editHorarios: any[] = [];
+
   isPickingLocation: boolean = false;
-  
-  tempPickedLat: string = '';
-  tempPickedLng: string = '';
   
   // Map Interactivity State
   private map: MapPort | null = null;
@@ -118,15 +91,12 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
   private nomSub?: Subscription;
 
   constructor(
-    private http: HttpClient,
     private ubicacionesService: UbicacionesService,
     private userGeolocationService: UserGeolocationService,
     private cdr: ChangeDetectorRef,
     private elRef: ElementRef,
-    private sanitizer: DomSanitizer,
     private toastService: ToastService,
     private route: ActivatedRoute,
-    private router: Router,
     private mapCapability: MapCapabilityService
   ) {
     this.interactiveMapSupported = this.mapCapability.supportsInteractiveMap();
@@ -160,8 +130,6 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
       this.updateMapMarkers();
       this.cdr.detectChanges();
     });
-    
-    this.loadAdminEmpresas();
 
     // Default to El Salvador immediately so marker renders even if GPS hangs
     this.userLocation = { lng: -89.21, lat: 13.69 };
@@ -747,171 +715,6 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
 
 
 
-  // --- ADMIN PANEL LOGIC ---
-  switchToInicio() {
-    this.activeMainTab = 'inicio';
-    setTimeout(() => {
-      if (this.map) {
-        this.map.resize();
-      }
-    }, 50); // slight delay to allow display:block to take effect
-  }
-
-  openAdminPanel() {
-    this.activeMainTab = 'puntos';
-    this.adminCompanies = Array.from(new Set(this.locations.map(l => l.empresa))).filter(e => e) as string[];
-    this.adminSearchTerm = '';
-    // Limpiar variables de registro
-    this.isPickingLocation = false;
-    this.loadAdminEmpresas();
-    this.applyAdminFilter();
-  }
-
-  async loadAdminEmpresas() {
-    try {
-      const res = await this.http.get<any>(environment.apiUrl + '/api/empresas').toPromise();
-      if (res.success) {
-        this.adminEmpresasList = res.empresas;
-        this.adminCompanies = res.empresas.map((e: any) => e.nombre);
-      }
-    } catch (e) {
-      console.error('Error loading empresas', e);
-    }
-  }
-
-  // Empresas CRUD
-  toggleEmpresaMenu(empId: number, event: Event) {
-    event.stopPropagation();
-    if (this.activeEmpresaMenuId === empId) {
-      this.activeEmpresaMenuId = null;
-    } else {
-      this.activeEmpresaMenuId = empId;
-    }
-  }
-
-  @HostListener('document:click')
-  closeMenus() {
-    this.activeEmpresaMenuId = null;
-  }
-
-  openNewEmpresaModal() {
-    this.isEditingEmpresa = true;
-    this.activeEmpresaMenuId = null;
-    this.editingEmpresaData = { id: null, nombre: '', logoUrl: '', logoFile: null };
-  }
-
-  openEditEmpresaModal(empresa: any) {
-    this.isEditingEmpresa = true;
-    this.activeEmpresaMenuId = null;
-    this.editingEmpresaData = { id: empresa.id, nombre: empresa.nombre, logoUrl: empresa.logo_url, logoFile: null };
-  }
-
-  viewEmpresaPuntos(empresa: any) {
-    this.adminSubTab = 'puntos';
-    this.adminCompanyFilter = empresa.nombre;
-    this.applyAdminFilter();
-    this.activeEmpresaMenuId = null;
-  }
-
-  addPuntoToEmpresa(empresa: any) {
-    this.activeEmpresaMenuId = null;
-    this.registroEmpresaId = empresa.id;
-    this.registroEmpresaNombre = empresa.nombre;
-    this.activeMainTab = 'registro';
-  }
-
-  openRegistroLibre() {
-    this.registroEmpresaId = null;
-    this.registroEmpresaNombre = '';
-    this.activeMainTab = 'registro';
-  }
-
-
-
-  onEmpresaLogoSelected(event: any) {
-    const file = event.target.files[0];
-    if (file) {
-      this.editingEmpresaData.logoFile = file;
-    }
-  }
-
-  async saveEmpresa() {
-    if (!this.editingEmpresaData.nombre) return;
-    
-    const formData = new FormData();
-    formData.append('nombre', this.editingEmpresaData.nombre);
-    if (this.editingEmpresaData.logoFile) {
-      formData.append('logo', this.editingEmpresaData.logoFile);
-    }
-    
-    try {
-      let res;
-      if (this.editingEmpresaData.id) {
-        res = await this.http.put<any>(`${environment.apiUrl}/api/empresas/${this.editingEmpresaData.id}`, formData).toPromise();
-      } else {
-        res = await this.http.post<any>(environment.apiUrl + '/api/empresas', formData).toPromise();
-      }
-      
-      if (res.success) {
-        this.isEditingEmpresa = false;
-        await this.loadAdminEmpresas();
-      }
-    } catch (e) {
-      console.error('Error guardando empresa', e);
-    }
-  }
-
-  applyAdminFilter() {
-    let filtered = this.locations;
-    
-    if (this.adminCompanyFilter) {
-      filtered = filtered.filter(l => l.empresa === this.adminCompanyFilter);
-    }
-    
-    if (this.adminSearchTerm && this.adminSearchTerm.trim() !== '') {
-      const term = this.adminSearchTerm.toLowerCase().trim();
-      const normalize = (str: string) => str ? str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase() : '';
-      const normTerm = normalize(term);
-      
-      filtered = filtered.filter(l => 
-        normalize(l.nombre_destino).includes(normTerm) || 
-        normalize(l.ubicacion?.municipio).includes(normTerm) ||
-        normalize(l.ubicacion?.departamento).includes(normTerm)
-      );
-    }
-    
-    this.adminFilteredLocations = filtered;
-  }
-
-  editLocation(loc: any) {
-    this.editingLocation = loc;
-    this.editFormData = JSON.parse(JSON.stringify(loc)); // Deep copy
-    this.editLocationTab = 'datos';
-    this.editImageFile = null;
-    this.editImageUrl = loc.imagen_referencia ? `${environment.apiUrl}${loc.imagen_referencia}` : null;
-    
-    // Initialize horarios grid based on backend data
-    const dias = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
-    this.editHorarios = dias.map(dia => {
-      const existing = (loc.horarios_operativos || []).find((h: any) => h.dia_semana === dia);
-      return {
-        selected: !!existing,
-        dia: dia,
-        horaApertura: existing ? existing.hora_apertura : '08:00',
-        horaCierre: existing ? existing.hora_cierre : '17:00'
-      };
-    });
-  }
-
-  onEditImageSelected(event: any) {
-    const file = event.target.files[0];
-    if (file) {
-      this.editImageFile = file;
-      const reader = new FileReader();
-      reader.onload = e => this.editImageUrl = e.target?.result as string;
-      reader.readAsDataURL(file);
-    }
-  }
 
   viewOnMap(loc: any, pointRole?: string) {
     if (!this.setMapResourceMode(true)) return;
@@ -1047,167 +850,5 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
         
       }, 300);
     }
-  }
-
-  startPickingLocation() {
-    this.isPickingLocation = true;
-    setTimeout(() => {
-      if (this.map) {
-        this.map.resize();
-        if (this.map && this.editFormData.lat && this.editFormData.lng) {
-          this.map.jumpTo(this.toMapCoordinate(this.editFormData.lat, this.editFormData.lng), { zoom: 16 });
-        }
-        
-        const center = this.map.getCenter();
-        this.tempPickedLat = center.lat.toFixed(5);
-        this.tempPickedLng = center.lng.toFixed(5);
-        this.cdr.detectChanges();
-
-        this.mapLifecycle?.replaceScopedDisposer('picker', this.map.onMove((c) => {
-          this.tempPickedLat = c.lat.toFixed(5);
-          this.tempPickedLng = c.lng.toFixed(5);
-          this.cdr.detectChanges();
-        }));
-      }
-    }, 50);
-  }
-
-  confirmPickedLocation() {
-    if (this.map) {
-      this.mapLifecycle?.clearScopedDisposer('picker');
-      const center = this.map.getCenter();
-      this.editFormData.lat = center.lat.toFixed(7);
-      this.editFormData.lng = center.lng.toFixed(7);
-    }
-    this.isPickingLocation = false;
-  }
-  
-  cancelPickingLocation() {
-    this.mapLifecycle?.clearScopedDisposer('picker');
-    this.isPickingLocation = false;
-  }
-
-  googleLinkLoading = false;
-  googleLinkError = '';
-
-  async onGoogleLinkPaste(event: ClipboardEvent) {
-    const paste = event.clipboardData?.getData('text')?.trim();
-    if (!paste) return;
-    
-    this.googleLinkError = '';
-    
-    // Always save the URL itself regardless of coord extraction
-    if (paste.startsWith('http')) {
-      this.editFormData.maps_url = paste;
-    }
-    
-    // Quick local extraction (works for full Google Maps URLs with @lat,lng)
-    const directMatch =
-      paste.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/) ||
-      paste.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/) ||
-      paste.match(/[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)/) ||
-      paste.match(/ll=(-?\d+\.\d+),(-?\d+\.\d+)/);
-    
-    if (directMatch) {
-      if (!this.editFormData.ubicacion) this.editFormData.ubicacion = {};
-      this.editFormData.ubicacion.lat = parseFloat(directMatch[1]).toFixed(7);
-      this.editFormData.ubicacion.lng = parseFloat(directMatch[2]).toFixed(7);
-      this.cdr.detectChanges();
-      return;
-    }
-    
-    // For short URLs (maps.app.goo.gl), try backend but don't fail if can't extract
-    if (paste.startsWith('http') && !paste.includes('google.com/maps')) {
-      this.googleLinkLoading = true;
-      this.cdr.detectChanges();
-      try {
-        const res: any = await this.http.post('/api/resolve-maps-link', { url: paste }).toPromise();
-        if (res?.success) {
-          if (!this.editFormData.ubicacion) this.editFormData.ubicacion = {};
-          this.editFormData.ubicacion.lat = parseFloat(res.lat).toFixed(7);
-          this.editFormData.ubicacion.lng = parseFloat(res.lng).toFixed(7);
-        } else {
-          // URL saved but coords couldn't be auto-extracted — guide user
-          this.googleLinkError = '✅ URL guardada. Para extraer coordenadas automáticamente, abre Google Maps en escritorio, haz clic derecho en el punto y copia el link completo (contiene @lat,lng).';
-        }
-      } catch (e) {
-        this.googleLinkError = '✅ URL guardada. No se pudo conectar al servidor para resolver las coordenadas.';
-      } finally {
-        this.googleLinkLoading = false;
-        this.cdr.detectChanges();
-      }
-    } else if (paste.startsWith('http')) {
-      // Full google.com/maps URL but no coords found in it
-      this.googleLinkError = 'URL guardada, pero no se encontraron coordenadas. Verifica que el link tenga @lat,lng en la barra de direcciones.';
-      this.cdr.detectChanges();
-    }
-  }
-
-  cancelEdit() {
-    this.editingLocation = null;
-  }
-
-  saveLocation() {
-    if (!this.editingLocation) return;
-    
-    const formData = new FormData();
-    formData.append('nombre_destino', this.editFormData.nombre_destino);
-    formData.append('empresa', this.editFormData.empresa);
-    if (this.editFormData.maps_url) {
-      formData.append('maps_url', this.editFormData.maps_url);
-    } else {
-      formData.append('maps_url', ''); // clear it
-    }
-
-    const ubicacion = {
-      lat: parseFloat(this.editFormData.ubicacion?.lat),
-      lng: parseFloat(this.editFormData.ubicacion?.lng),
-      municipio: this.editFormData.ubicacion?.municipio,
-      departamento: this.editFormData.ubicacion?.departamento
-    };
-    formData.append('ubicacion', JSON.stringify(ubicacion));
-    
-    // Convert editHorarios back to array of { dia_semana, hora_apertura, hora_cierre }
-    const activeHorarios = this.editHorarios
-      .filter(h => h.selected)
-      .map(h => ({
-        dia_semana: h.dia,
-        hora_apertura: h.horaApertura,
-        hora_cierre: h.horaCierre
-      }));
-    formData.append('horarios', JSON.stringify(activeHorarios));
-
-    if (this.editImageFile) {
-      formData.append('imagen_referencia', this.editImageFile);
-    }
-
-    this.http.put(`${environment.apiUrl}/api/locations/${this.editingLocation.id}`, formData).subscribe({
-      next: (res: any) => {
-        // Fetch fresh list from server to get image and horarios updated properly, 
-        // or just update what we know. For simplicity, we can do a full reload of locations
-        // or update memory:
-        this.editingLocation.nombre_destino = this.editFormData.nombre_destino;
-        this.editingLocation.empresa = this.editFormData.empresa;
-        if (!this.editingLocation.ubicacion) this.editingLocation.ubicacion = {};
-        this.editingLocation.ubicacion.lat = ubicacion.lat;
-        this.editingLocation.ubicacion.lng = ubicacion.lng;
-        this.editingLocation.ubicacion.municipio = ubicacion.municipio;
-        this.editingLocation.ubicacion.departamento = ubicacion.departamento;
-        if (res.updated && res.updated.imagen_referencia) {
-          this.editingLocation.imagen_referencia = res.updated.imagen_referencia;
-        }
-        this.editingLocation.horarios_operativos = activeHorarios;
-        
-        this.editingLocation = null;
-        this.applyAdminFilter();
-        this.updateMapMarkers(); // Reflect changes on map
-        this.cdr.detectChanges();
-        this.toastService.showSuccess("El punto ha sido actualizado exitosamente", "Guardado");
-      },
-      error: (err) => {
-        console.error("Save error", err);
-        this.toastService.showError("Error al guardar el punto. Revisa la consola.", "Error");
-      }
-    });
   }
 }

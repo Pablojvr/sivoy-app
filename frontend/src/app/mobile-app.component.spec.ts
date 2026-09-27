@@ -84,19 +84,18 @@ describe('MobileAppComponent (T30a Characterization)', () => {
       { id: 10, nombre_destino: 'Agencia San Miguel', empresa: 'SiVoyExpress', ubicacion: { municipio: 'San Miguel', departamento: 'San Miguel' } }
     ]);
 
-    const reqEmp = httpMock.expectOne(req => req.url.includes('/api/empresas'));
-    reqEmp.flush({ success: true, empresas: [{ nombre: 'SiVoyExpress' }] });
-
     // Explicitly handle the default Nominatim call made in ngOnInit for map center
     const nomReq = httpMock.expectOne(req => req.url.includes('nominatim.openstreetmap.org') && req.urlWithParams.includes('lat=13.69'));
     nomReq.flush({ address: { municipality: 'San Salvador' } });
   };
 
-  it('should initialize and fetch /api/locations and /api/empresas properly', () => {
+  it('should initialize and fetch /api/locations properly', () => {
     fixture.detectChanges(); // Act: Trigger ngOnInit
 
     // Assert explicit requests via helper
     flushInitRequests();
+
+    httpMock.expectNone(req => req.url.includes('/api/empresas'));
 
     // Ensure the shell updated its state meant for handoff to HomeComponent
     expect(component.locations.length).toBe(1);
@@ -162,8 +161,6 @@ describe('MobileAppComponent (T30a Characterization)', () => {
 
     fixture.detectChanges();
 
-    const reqEmp = httpMock.expectOne(req => req.url.includes('/api/empresas'));
-    reqEmp.flush({ success: true, empresas: [] });
     const nomReq = httpMock.expectOne(req => req.url.includes('nominatim.openstreetmap.org'));
     nomReq.flush({ address: { municipality: 'San Salvador' } });
 

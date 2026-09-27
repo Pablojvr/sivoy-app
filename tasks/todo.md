@@ -211,6 +211,7 @@ archivos. Codex debe revisar cada diff y ejecutar build y auditoría visual.
         - [x] T30d3a: handlers hoja sin consumidores eliminados; shell en 2128 líneas, 232 pruebas, build y runtime auditados.
         - [x] T30d3b1: selector/modal público duplicado retirado; shell en 1831 líneas, 231 pruebas, build y runtime auditados.
         - [x] T30d3b2: motor/estado público legado retirado; shell en 1313 líneas y flujo de navegación auditado.
+    - [x] T30e: eliminado del shell el CRUD administrativo duplicado y la petición global a `/api/empresas`; `AdminComponent` conserva su carga propia y todo el wiring vivo de mapa. Antigravity produjo el corte bajo corrección de Codex; 311/311 pruebas, fronteras y colores sin excepciones, build, 16/16 E2E y recorrido de red (Inicio 0 solicitudes, `/admin` 1 solicitud) quedaron verdes.
 
 - [x] T31 Eliminar duplicación y legado con búsqueda de consumidores.
     - [x] T31a: estado visual fantasma retirado; 231 pruebas y build auditados.

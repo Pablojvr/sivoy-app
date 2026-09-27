@@ -46,7 +46,7 @@ test('Architectural Boundaries - 1. real repo baseline passes with 0 new violati
   assert.strictEqual(result.ok, true);
   assert.strictEqual(result.errors.length, 0);
   assert.strictEqual(result.newViolations.length, 0);
-  assert.strictEqual(result.permittedViolations, 2);
+  assert.strictEqual(result.permittedViolations, 1);
   assert.ok(result.totalFiles >= 40);
 });
 
@@ -395,4 +395,35 @@ test('Architectural Boundaries - 30. CLI fails when an option is repeated', asyn
   assert.strictEqual(await runCli(['--src-dir', 'dirA', '--src-dir', 'dirB']), 1);
   assert.strictEqual(await runCli(['--quiet', '--quiet']), 1);
   assert.strictEqual(await runCli(['--baseline', 'b1', '--baseline', 'b2']), 1);
+});
+
+test('Architectural Boundaries - 31. Toast migration eliminates shared-to-core exception and preserves strict class identity', () => {
+  const baselinePath = path.join(frontendDir, 'scripts', 'boundary-baseline.json');
+  const baselineData = JSON.parse(fs.readFileSync(baselinePath, 'utf8'));
+  assert.strictEqual(baselineData.length, 1, 'Baseline must contain exactly 1 permitted exception');
+  assert.strictEqual(baselineData[0].rule, RULES.FEATURE_TO_FEATURE);
+  assert.ok(!baselineData.some((entry) => entry.rule === RULES.SHARED_TO_CORE), 'shared-cannot-import-core must no longer be present in baseline');
+
+  const sharedServicePath = path.join(frontendDir, 'src', 'app', 'shared', 'services', 'toast.service.ts');
+  const coreServicePath = path.join(frontendDir, 'src', 'app', 'core', 'services', 'toast.service.ts');
+  const toastComponentPath = path.join(frontendDir, 'src', 'app', 'shared', 'components', 'toast', 'toast.component.ts');
+
+  assert.ok(fs.existsSync(sharedServicePath), 'Shared toast service file must exist');
+  assert.ok(fs.existsSync(coreServicePath), 'Core toast service file must exist');
+  assert.ok(fs.existsSync(toastComponentPath), 'Toast component file must exist');
+
+  const compContent = fs.readFileSync(toastComponentPath, 'utf8');
+  const compImports = extractImports(compContent);
+  assert.ok(!compImports.some((i) => i.specifier.includes('core/services/toast')), 'Toast component must not import core toast service');
+  assert.ok(compImports.some((i) => i.specifier.includes('../../services/toast.service')), 'Toast component must import shared toast service');
+
+  const coreTs = fs.readFileSync(coreServicePath, 'utf8');
+
+  // A direct ES module re-export preserves the exact class/token identity.
+  assert.ok(!coreTs.includes('class ToastService'), 'Core service must not declare its own ToastService class');
+  assert.match(
+    coreTs.trim(),
+    /^export \{ ToastService, type ToastMessage \} from '\.\.\/\.\.\/shared\/services\/toast\.service';$/,
+    'Core compatibility path must be a direct re-export of the shared service',
+  );
 });

@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ToastService, ToastMessage } from '../../../core/services/toast.service';
+import { ToastService, ToastMessage } from '../../services/toast.service';
 import { Subscription } from 'rxjs';
 
 export interface InternalToast extends ToastMessage {

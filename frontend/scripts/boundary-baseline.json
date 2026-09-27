@@ -3,10 +3,5 @@
     "source": "src/app/features/discovery/discovery-page.component.ts",
     "target": "src/app/features/home/discovery-home.component.ts",
     "rule": "features-cannot-import-features"
-  },
-  {
-    "source": "src/app/shared/components/toast/toast.component.ts",
-    "target": "src/app/core/services/toast.service.ts",
-    "rule": "shared-cannot-import-core"
   }
 ]

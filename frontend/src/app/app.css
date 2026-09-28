@@ -365,12 +365,6 @@
   color: #9ca3af;
 }
 
-.admin-search-input {
-  padding-left: 42px !important;
-  width: 100%;
-  box-sizing: border-box;
-}
-
 .admin-filter-row {
   display: flex;
   justify-content: space-between;
@@ -533,10 +527,6 @@
   align-items: flex-end;
   padding-bottom: 80px;
 }
-.modal-minimized {
-  pointer-events: auto;
-  box-shadow: 0 -4px 20px rgba(0,0,0,0.15) !important;
-}
 
 .modal-tabs {
   display: flex;
@@ -600,17 +590,6 @@ input:checked + .slider:before { transform: translateX(20px); }
     12px;
 }
 
-.view-details-modal {
-  min-height: 0;
-  max-height: calc(100dvh - 96px - env(safe-area-inset-top) - env(safe-area-inset-bottom)) !important;
-}
-
-.view-details-modal > .modal-hero {
-  min-height: clamp(160px, 25dvh, 200px) !important;
-  height: clamp(160px, 25dvh, 200px);
-  flex: 0 0 clamp(160px, 25dvh, 200px);
-}
-
 .view-details-modal > .modal-body {
   min-height: 0;
   flex: 1 1 auto;
@@ -622,15 +601,6 @@ input:checked + .slider:before { transform: translateX(20px); }
   .admin-modal-overlay:has(> .view-details-modal) {
     align-items: flex-start;
     padding-top: max(10px, env(safe-area-inset-top));
-  }
-
-  .view-details-modal {
-    border-radius: 20px !important;
-  }
-
-  .view-details-modal > .modal-body {
-    padding: 18px !important;
-    scroll-padding-bottom: 18px;
   }
 }
 
@@ -838,9 +808,6 @@ input:checked + .slider:before { transform: translateX(20px); }
   font-size: 11px;
   color: var(--text-muted);
   margin-top: 4px;
-}
-.error-text {
-  color: #ef4444 !important;
 }
 .saved-url-text {
   color: #22c55e;
@@ -2920,27 +2887,6 @@ input:checked + .slider:before { transform: translateX(20px); }
 }
 
 /* FAB BUTTON */
-.fab-btn {
-  position: fixed !important;
-  bottom: 110px;
-  right: 20px;
-  width: 56px;
-  height: 56px;
-  border-radius: 50% !important;
-  background: var(--primary) !important;
-  color: white !important;
-  border: none !important;
-  font-size: 28px !important;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 15px rgba(255, 90, 54, 0.4) !important;
-  cursor: pointer;
-  transition: transform 0.2s;
-  z-index: 1000;
-  padding: 0;
-  line-height: 1;
-}
 .fab-btn:active {
   transform: scale(0.9);
 }
@@ -2950,13 +2896,6 @@ input:checked + .slider:before { transform: translateX(20px); }
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
   gap: 15px;
-}
-
-.empresa-card-dashboard {
-  flex-direction: column !important;
-  align-items: center !important;
-  justify-content: flex-start !important;
-  padding: 20px 15px !important;
 }
 
 /* MENÚ TRES PUNTOS EN TARJETA EMPRESA */

@@ -92,6 +92,29 @@ escrituras operativas. El MVP sigue sin login y Partner queda fuera de alcance.
   formularios de administración siguen presentes, pero sus escrituras
   recibirán 403 en producción hasta contar con un canal privado.
 
+## Estado de cierre
+
+- **T46a (Configuración acotada del pool):** PASS. Límites de pool (`max` 10 por defecto), `idleTimeoutMillis` (10000 ms), timeout de adquisición (`connectionTimeoutMillis` 5000 ms) y validación estricta de overrides numéricos por variables de entorno con fallbacks seguros. Auditado con pruebas unitarias de configuración de base de datos.
+- **T46b (Cierre ordenado):** PASS.
+  - **T46b1:** Cierre idempotente del pool (`closeDB()`), previene pool huérfano si no fue usado, una sola invocación efectiva a `pool.end()`, rechazo fail-fast a nuevas adquisiciones durante/tras el cierre y propagación segura de fallos sin filtrar credenciales ni URLs.
+  - **T46b2a:** Eventos de observabilidad estructurada autorizados (`server_shutdown_success`, `server_shutdown_failed`, código fijo `shutdown_error`) sin serializar errores brutos ni credenciales.
+  - **T46b2b:** Manejo de señales SIGTERM/SIGINT integrado exclusivamente en autoarranque de `server.js` (no al importar), secuencia ordenada esperando cierre de conexiones HTTP (`server.close()`) antes del cierre de DB (`closeDB()`), timeout de gracia (10000 ms) y salida limpia con código 0 (o 1 en fallo/timeout).
+- **T46c (Frontera pública/operativa):** PASS. Guardia HTTP en producción instalada tras CORS y observabilidad, antes de parsers de cuerpo y routers (incluyendo Multer). Bloquea exactamente las cuatro escrituras operativas identificadas: `POST /api/empresas`, `PUT /api/empresas/:id`, `POST /api/agencias` y `PUT /api/locations/:id` respondiendo 403 `{ "error": "Operational writes are disabled" }`. Entorno de desarrollo, rutas públicas GET, POST de rutas ETA y POST de Maps/Places permanecen completamente funcionales.
+- **Evidencia global auditada por Codex:**
+  - T46a, T46b1, T46b2a/b y T46c cumplen el spec.
+  - 55/55 pruebas focalizadas.
+  - 322/322 pruebas backend.
+  - Sintaxis válida en 60 archivos JS (`node --check`).
+  - `npm audit --omit=dev`: 0 vulnerabilidades.
+  - `git diff` limpio.
+  - Guardia en producción bloquea exactamente `POST /api/empresas`, `PUT /api/empresas/:id`, `POST /api/agencias`, `PUT /api/locations/:id` con 403 antes de parsers/Multer/routers; desarrollo y rutas públicas preservados.
+  - Pool y shutdown auditados requisito por requisito.
+  - Partner no fue modificado y permanece fuera de alcance.
+- **Canal privado y trabajo futuro:**
+  - El canal privado es trabajo futuro necesario antes de reactivar escrituras; no es parte del alcance actual aprobado.
+  - No se agregó login ni autenticación en esta iteración.
+  - Los formularios de administración continúan en la interfaz, pero reciben 403 en producción al intentar cualquier escritura.
+
 ## Fuentes
 
 - [Pool de node-postgres](https://node-postgres.com/apis/pool): `max` 10 e

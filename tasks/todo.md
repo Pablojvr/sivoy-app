@@ -112,8 +112,13 @@ máximo cinco archivos. Un paquete no es autorización para modificar código.
   - [ ] T44c–d: pruebas/adaptadores y migración de consumidores; cambios observables sujetos a aprobación y a la línea base E2E/DB.
 - [ ] T45 Endurecer resolución de URLs y respuestas externas.
   - Spec en ejecución: `tasks/specs/T45-maps-link-security.md`. T45a política pura auditada y publicada. T45b resolvedor modular con DNS/IP pública fijada, conexión aislada, redirecciones y límites: pruebas RED→GREEN; revisión externa de Antigravity no disponible, auditado por Codex. T45c error HTTP genérico pendiente de decisión expresa para Maps.
-- [ ] T46 Separar superficie pública y operativa; endurecer HTTP y pool.
-  - Spec en ejecución: `tasks/specs/T46-http-pool-boundary.md`. T46a configura límites y timeout de adquisición. T46b1 expone cierre idempotente del pool. T46b2a añade eventos seguros; T46b2b integra SIGTERM/SIGINT solo en autoarranque, espera HTTP antes de DB, con timeout y pruebas RED→GREEN. T46c instala guardas de producción para las cuatro escrituras operativas, antes de los parsers y routers; pruebas HTTP RED→GREEN. El canal privado de escritura queda pendiente, sin login ni cambios del panel Partner por ahora.
+- [x] T46 Separar superficie pública y operativa; endurecer HTTP y pool.
+  - Spec ejecutado: `tasks/specs/T46-http-pool-boundary.md`.
+  - Resultado auditado por Codex: T46a, T46b1, T46b2a/b y T46c cumplen el spec. 55/55 pruebas focalizadas, 322/322 pruebas backend, sintaxis válida en 60 archivos JS, `npm audit --omit=dev` con 0 vulnerabilidades y git diff limpio.
+  - Guardia en producción bloquea exactamente `POST /api/empresas`, `PUT /api/empresas/:id`, `POST /api/agencias` y `PUT /api/locations/:id` con 403 antes de parsers/Multer/routers; desarrollo y rutas públicas preservados.
+  - Pool y shutdown auditados requisito por requisito (adquisición con timeout acotado, cierre idempotente del pool, eventos seguros y terminación ordenada esperando HTTP antes de DB).
+  - Partner no fue modificado y permanece fuera de alcance.
+  - El canal privado es trabajo futuro necesario antes de reactivar escrituras; no es parte del alcance actual aprobado, no se agregó login y los formularios reciben 403 en producción.
 - [x] T47 Actualizar MapLibre a v6 segura y validar el adaptador compartido.
   - Resultado auditado: `maplibre-gl@6.8.0`, 0 vulnerabilidades en `npm audit --omit=dev`, 17 pruebas frontend y build de producción verdes.
   - Validación local: fallback MapLibre cargado sin errores de consola o worker; pin restaurado a la misma posición tras zoom in/out.

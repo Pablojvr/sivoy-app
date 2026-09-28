@@ -16,11 +16,112 @@
   overflow: hidden;
 }
 
+.admin-map-host {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.admin-map-host.is-active {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.admin-map-overlay-actions {
+  position: absolute;
+  top: max(16px, env(safe-area-inset-top, 16px));
+  left: 16px;
+  z-index: 20;
+}
+
+.admin-map-back-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 10px 18px;
+  background-color: var(--white);
+  color: var(--text-main);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: var(--shadow-md);
+  cursor: pointer;
+  transition: transform var(--motion-fast) ease, box-shadow var(--motion-fast) ease;
+}
+
+.admin-map-back-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-lg);
+}
+
+.admin-map-back-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.admin-map-fallback-banner {
+  position: absolute;
+  top: max(16px, env(safe-area-inset-top, 16px));
+  left: 16px;
+  right: 16px;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  background-color: var(--white);
+  color: var(--text-main);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  font-size: 14px;
+}
+
+.admin-map-fallback-text {
+  flex: 1;
+}
+
+.admin-map-fallback-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-full);
+  color: var(--text-muted);
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.admin-map-fallback-close:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
 .admin-tab-content {
+  position: relative;
   flex: 1;
   height: 100%;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+  z-index: 10;
+}
+
+.admin-tab-content[hidden] {
+  display: none;
 }
 
 .admin-page-loading {
@@ -90,6 +191,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .admin-map-back-btn,
   .image-preview-close {
     transition: none;
   }

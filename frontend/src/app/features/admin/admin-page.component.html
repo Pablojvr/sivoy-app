@@ -1,10 +1,53 @@
 <div class="admin-page-container">
-  <div class="admin-tab-content">
+  <div
+    #mapHost
+    id="admin-map"
+    class="admin-map-host"
+    [class.is-active]="mapMode !== 'list'"
+    [attr.aria-hidden]="mapMode === 'list' ? 'true' : null"></div>
+
+  <div *ngIf="mapMode === 'viewing'" class="admin-map-overlay-actions">
+    <button
+      type="button"
+      class="admin-map-back-btn"
+      (click)="returnToList()"
+      aria-label="Volver a la lista">
+      ← Volver a la lista
+    </button>
+  </div>
+
+  <div *ngIf="mapMode === 'editing' && isPickingLocation" class="admin-map-overlay-actions">
+    <button
+      type="button"
+      class="admin-map-return-edit-btn admin-map-back-btn"
+      (click)="returnToEdit()"
+      aria-label="Volver a la edición">
+      ← Volver a la edición
+    </button>
+  </div>
+
+  <div *ngIf="mapErrorMessage" role="status" class="admin-map-fallback-banner" aria-live="polite">
+    <div class="admin-map-fallback-text">{{ mapErrorMessage }}</div>
+    <button
+      type="button"
+      class="admin-map-fallback-close"
+      (click)="clearMapError()"
+      aria-label="Cerrar aviso">
+      &times;
+    </button>
+  </div>
+
+  <div class="admin-tab-content" [hidden]="mapMode === 'viewing' || (mapMode === 'editing' && isPickingLocation)">
     <app-admin
+      #adminRef
       *ngIf="locationsLoaded; else loadingLocations"
       [locations]="locations"
       (locationUpdated)="onLocationUpdated()"
-      (previewImageEvent)="onPreviewImage($event)">
+      (previewImageEvent)="onPreviewImage($event)"
+      (viewOnMapEvent)="onViewOnMap($event)"
+      (previewMapEvent)="onPreviewMap($event)"
+      (minimizeModalEvent)="onMinimizeModal($event)"
+      (requestMapPick)="onRequestMapPick($event)">
     </app-admin>
     <ng-template #loadingLocations>
       <div class="admin-page-loading" role="status" aria-live="polite">

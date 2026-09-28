@@ -1,5 +1,5 @@
 import { environment } from '../../../environments/environment';
-import { Component, Input, Output, EventEmitter, OnInit, ChangeDetectorRef, HostListener, ViewEncapsulation, NgZone } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, ChangeDetectorRef, HostListener, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { EmpresasService } from '../../core/services/empresas.service';
@@ -13,8 +13,7 @@ import { EL_SALVADOR_LOCATIONS, DEPARTAMENTOS_EL_SALVADOR } from '../../core/con
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './admin.component.html',
-  styleUrl: './admin.component.css',
-  encapsulation: ViewEncapsulation.None
+  styleUrls: ['./admin-foundation.css', './admin.component.css']
 })
 export class AdminComponent implements OnInit {
   apiUrl = environment.apiUrl;

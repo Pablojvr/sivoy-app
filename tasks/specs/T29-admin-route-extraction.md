@@ -1,11 +1,14 @@
 # T29: Extracción de Admin en Contenedor y Ruta Propia
 
-## 1. Estado Actual con Evidencia (Ruta:Línea)
+## 1. Estado inicial auditado antes de T29
 
-La arquitectura actual mantiene un acoplamiento directo entre el shell público (`MobileAppComponent`) y la superficie de administración (`AdminComponent`), impidiendo el aislamiento de responsabilidades y manteniendo pendiente el cumplimiento de **Checkpoint D** ("Panel empresarial no comparte estado con búsqueda pública").
+Al iniciar T29, la arquitectura mantenía un acoplamiento directo entre el shell público (`MobileAppComponent`) y la superficie de administración (`AdminComponent`), lo que impedía el aislamiento de responsabilidades y bloqueaba el cumplimiento de **Checkpoint D** ("Panel empresarial no comparte estado con búsqueda pública").
 
-### 1.1 Configuración de Rutas
-- `frontend/src/app/app.routes.ts:10-14`: La ruta `/admin` aún delega la carga perezosa a `MobileAppComponent` con un valor por defecto en `data`:
+> [!NOTE]
+> Las subsecciones 1.1 a 1.4 documentan la línea base histórica con la evidencia auditada antes de iniciar la implementación de T29. No representan el estado arquitectónico vigente tras la ejecución y cierre de los slices T29a–T29f (ver Sección 12 para los resultados de cierre).
+
+### 1.1 Configuración de Rutas (Línea Base Histórica)
+- `frontend/src/app/app.routes.ts:10-14`: La ruta `/admin` delegaba la carga perezosa a `MobileAppComponent` con un valor por defecto en `data`:
   ```typescript
   {
     path: 'admin',
@@ -13,20 +16,20 @@ La arquitectura actual mantiene un acoplamiento directo entre el shell público 
     loadComponent: () => import('./mobile-app.component').then(module => module.MobileAppComponent)
   }
   ```
-  Esto convierte al shell público en el anfitrión de la lógica administrativa, obligándolo a cargar y mantener el ciclo de vida del panel.
+  Esto convertía al shell público en el anfitrión de la lógica administrativa, obligándolo a cargar y mantener el ciclo de vida del panel.
 
-### 1.2 Acoplamiento en `MobileAppComponent`
+### 1.2 Acoplamiento en `MobileAppComponent` (Línea Base Histórica)
 - `frontend/src/app/mobile-app.component.ts:17`: Importación directa de `AdminComponent`.
 - `frontend/src/app/mobile-app.component.ts:46`: Inclusión de `AdminComponent` en el arreglo `imports` del componente standalone.
 - `frontend/src/app/mobile-app.component.ts:59`: Inyección de vista mediante `@ViewChild('adminRef') adminRef!: AdminComponent;`.
 - `frontend/src/app/mobile-app.component.ts:66-67`: Campos de estado `activeMainTab: MainTab = 'inicio';` e `isMapForcedVisible: boolean = false;` utilizados para conmutar la visibilidad entre el mapa del shell y el contenido de administración.
 - `frontend/src/app/mobile-app.component.ts:72`: Campo huérfano `isPickingLocation: boolean = false;` conservado por compatibilidad de plantilla.
-- `frontend/src/app/mobile-app.component.ts:30-38` y `109-111`: Función `resolveMainTab` y suscripción a `queryParams` que resuelven `'puntos'` como pestaña interna del shell.
-- `frontend/src/app/mobile-app.component.ts:719-735`: Método `viewOnMap(loc, pointRole)` que conmuta `activeMainTab = 'inicio'`, forzando al usuario a abandonar la pestaña administrativa para ver un punto en el mapa público.
-- `frontend/src/app/mobile-app.component.ts:834-853`: Método `previewMap(coords)` que manipula el mapa del shell y asocia un marcador auxiliar arrastrable (`AUX_MARKER_KEYS.PREVIEW`), invocando directamente a `this.adminRef.updatePickedLocation(pos.lat.toFixed(6), pos.lng.toFixed(6))` al finalizar el arrastre (`onDragEnd`).
+- `frontend/src/app/mobile-app.component.ts:30-38` y `109-111`: Función `resolveMainTab` y suscripción a `queryParams` que resolvían `'puntos'` como pestaña interna del shell.
+- `frontend/src/app/mobile-app.component.ts:719-735`: Método `viewOnMap(loc, pointRole)` que conmutaba `activeMainTab = 'inicio'`, forzando al usuario a abandonar la pestaña administrativa para ver un punto en el mapa público.
+- `frontend/src/app/mobile-app.component.ts:834-853`: Método `previewMap(coords)` que manipulaba el mapa del shell y asociaba un marcador auxiliar arrastrable (`AUX_MARKER_KEYS.PREVIEW`), invocando directamente a `this.adminRef.updatePickedLocation(pos.lat.toFixed(6), pos.lng.toFixed(6))` al finalizar el arrastre (`onDragEnd`).
 
-### 1.3 Acoplamiento en Plantilla del Shell
-- `frontend/src/app/mobile-app.component.html:3`: La visibilidad de `<app-home>` depende de flags administrativos:
+### 1.3 Acoplamiento en Plantilla del Shell (Línea Base Histórica)
+- `frontend/src/app/mobile-app.component.html:3`: La visibilidad de `<app-home>` dependía de flags administrativos:
   ```html
   <div class="inicio-tab-content" [hidden]="activeMainTab !== 'inicio' && !isPickingLocation && !isMapForcedVisible">
   ```
@@ -43,26 +46,26 @@ La arquitectura actual mantiene un acoplamiento directo entre el shell público 
   </div>
   ```
 
-### 1.4 Acoplamiento en Pruebas Unitarias
+### 1.4 Acoplamiento en Pruebas Unitarias (Línea Base Histórica)
 - `frontend/src/app/mobile-app.component.spec.ts:8`: Import de `AdminComponent`.
 - `frontend/src/app/mobile-app.component.spec.ts:46, 191, 269`: Sobrescrituras del template de `AdminComponent` (`overrideComponent(AdminComponent, { set: { template: '' } })`) para evitar errores en pruebas unitarias del shell.
-- `frontend/src/app/mobile-app.component.spec.ts:356-370`: Pruebas de caracterización de `resolveMainTab` que evalúan la resolución de `'puntos'`.
+- `frontend/src/app/mobile-app.component.spec.ts:356-370`: Pruebas de caracterización de `resolveMainTab` que evaluaban la resolución de `'puntos'`.
 
-### 1.5 Estado de Transición en `tasks/todo.md`
-- `tasks/todo.md:201-202`: T29 pendiente, con T29a completada (estableció el enlace Panel hacia `/admin` en `BottomNavComponent` y un límite de navegación previo). La extracción física de `AdminComponent` y su estado fuera de `MobileAppComponent` permanece sin ejecutar.
-- `tasks/todo.md:230`: `[ ] Panel empresarial no comparte estado con búsqueda pública` (Único ítem pendiente de **Checkpoint D**).
+### 1.5 Estado de Cierre en `tasks/todo.md`
+- `tasks/todo.md`: T29 completada en su totalidad tras los slices T29a–T29f. La extracción física de `AdminComponent` y su estado fuera de `MobileAppComponent` ha concluido con éxito.
+- `tasks/todo.md`: `[x] Panel empresarial no comparte estado con búsqueda pública` marcado como completado, logrando el cierre del **Checkpoint D**.
 
 ---
 
 ## 2. Supuestos Explícitos
 
 1. **Invarianza de Backend y Contratos:** No se alteran contratos HTTP, controladores Express, PostgreSQL, SQL, migraciones ni seeds. No se agregan librerías npm ni dependencias de infraestructura.
-2. **Preservación Estricta de Partner:** `PartnerComponent` (`/partner`) permanece completamente intacto. No se modifican sus rutas, servicios, estilos ni dependencias con Mapbox.
+2. **Preservación Estricta de Partner:** `PartnerComponent` (`/partner`) permanece completamente intacto. No se modifican sus rutas, servicios, estilos ni dependencias con Mapbox. Partner permanece fuera del alcance y no se afirma que haya sido auditado funcional o visualmente.
 3. **Ausencia de Autenticación Nueva:** No se implementa ningún flujo de login, tokens JWT ni guards de autenticación nuevos para `/admin`. El acceso permanece como hasta ahora, conservando el modal/prompt existente `checkB2BPassword()` que conecta hacia `/partner`.
 4. **Reutilización del Motor de Mapa Unificado:** No se duplica código ni se crea un segundo motor de mapa. Se reutilizan estrictamente los contratos e implementaciones existentes de `MapPort`, `MapLibreMapAdapter`, `MapLifecycleManager`, `MapCapabilityService` y la fábrica `createMapMarkerElement`.
 5. **Filosofía List-First para Admin:** La vista principal de `/admin` es la lista administrativa (tabs de Empresas y Puntos). El mapa WebGL **no se inicializa en el arranque inicial**; se inicializa de manera diferida (on-demand) solo cuando el usuario ejecuta una acción espacial explícita ("Ver en Mapa", previsualizar o arrastrar marcador).
 6. **Desacoplamiento de Datos de Red:** La petición a `/api/empresas` y `/api/locations` dentro del contexto administrativo ocurre únicamente dentro de la superficie administrativa (`AdminPageComponent` y `AdminComponent`). El shell público (`/enviar` e Inicio `/`) no consulta empresas ni retiene estado administrativo.
-7. **Redirección de Compatibilidad sin Bucle:** El acceso legado `/enviar?tab=puntos` se redirige a `/admin` dentro de la misma navegación. La semántica real de `back`/`forward` se considera un criterio E2E y no se infiere únicamente por devolver un `UrlTree`.
+7. **Redirección de Compatibilidad sin Bucle:** El acceso legado `/enviar?tab=puntos` se redirige a `/admin` dentro de la misma navegación mediante `new RedirectCommand(router.createUrlTree(['/admin']), { replaceUrl: true })`. La semántica real de `back`/`forward` garantiza la sustitución de la entrada en el historial y se verifica exhaustivamente en E2E.
 8. **Granularidad de Slices:** Cada slice afectará un máximo de 5 archivos físicos, será atómico, reversible y contará con criterios de aceptación verificables.
 9. **Registro de Nuevos Puntos Fuera de T29:** `navigateToRegistro` se emite actualmente sin consumidor ni componente de registro existente. T29 documenta esa brecha y conserva la paridad actual; no inventa un formulario, endpoint o toast que simule una operación inexistente.
 
@@ -158,7 +161,7 @@ graph TB
 | URL Solicitada | Condición / Parámetros | Manejador / Guard | Componente Activo | Estado Visual / Tab | Historial (Back/Forward) |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | `/admin` | Ninguna | Carga directa | `AdminPageComponent` | Pestaña Puntos/Empresas (List-First, mapa apagado). | Preserva navegación normal. |
-| `/enviar?tab=puntos` | `tab=puntos` presente | `legacyAdminRedirectGuard` | Redirección inmediata a `/admin` | Carga `AdminPageComponent` sin renderizar `MobileAppComponent`. | La matriz E2E debe demostrar que "Atrás" regresa a la pantalla previa sin caer en bucle. |
+| `/enviar?tab=puntos` | `tab=puntos` presente | `legacyAdminRedirectGuard` | Redirección inmediata a `/admin` mediante `RedirectCommand` (`replaceUrl: true`) | Carga `AdminPageComponent` sin renderizar `MobileAppComponent`. | Reemplaza la entrada en el historial; la matriz E2E demuestra que "Atrás" regresa a la pantalla previa sin caer en bucle. |
 | `/enviar` | Sin parámetros | Carga directa | `MobileAppComponent` | Flujo público: Inicio / Búsqueda. | Entrada limpia al historial. |
 | `/enviar?tab=perfil` | `tab=perfil` presente | Carga directa | `MobileAppComponent` | Pestaña Perfil del usuario público. | Preserva navegación normal. |
 | `/` | Ninguna | Carga directa | `DiscoveryPageComponent` | Catálogo público y accesos rápidos. | Raíz de navegación. |
@@ -166,12 +169,15 @@ graph TB
 
 ### 5.2 Algoritmo del Guard de Redirección (`legacy-admin-redirect.guard.ts`)
 ```typescript
-export const legacyAdminRedirectGuard: CanActivateFn = (route, state) => {
+import { inject } from '@angular/core';
+import { CanActivateFn, RedirectCommand, Router } from '@angular/router';
+
+export const legacyAdminRedirectGuard: CanActivateFn = (route) => {
   if (route.queryParams['tab'] === 'puntos') {
     const router = inject(Router);
-    // El redirect pertenece a la navegación pendiente; el historial se verifica mediante E2E.
-    return router.createUrlTree(['/admin']);
+    return new RedirectCommand(router.createUrlTree(['/admin']), { replaceUrl: true });
   }
+
   return true;
 };
 ```
@@ -245,7 +251,7 @@ Cada slice afecta **un máximo de 5 archivos físicos**, mantiene el sistema ver
 - **Archivos Prohibidos:** `partner.component.*`, `home.component.*`.
 - **Criterios de Aceptación:**
   1. `/admin` carga perezosamente `AdminPageComponent`, ya cubierto por las pruebas de T29b/T29c.
-  2. Una navegación hacia `/enviar?tab=puntos` es interceptada por `legacyAdminRedirectGuard`, retornando `router.createUrlTree(['/admin'])`, y la URL visible termina en `/admin`.
+  2. Una navegación hacia `/enviar?tab=puntos` es interceptada por `legacyAdminRedirectGuard`, retornando `new RedirectCommand(router.createUrlTree(['/admin']), { replaceUrl: true })`, y la URL visible termina en `/admin` reemplazando la entrada en el historial de navegación.
   3. El historial del navegador no retiene `/enviar?tab=puntos` como una página intermedia insalvable; presionar "Atrás" retorna a la página anterior a la navegación.
   4. Si se accede a `/enviar` sin query params o con `tab=perfil` o `buscar=destino`, la navegación procede con normalidad hacia `MobileAppComponent`.
   5. 100% de cobertura en `legacy-admin-redirect.guard.spec.ts`.
@@ -304,13 +310,13 @@ npm run check:css-colors
 npm run test:ci
 
 # 4. Prueba Focalizada de Administración
-npx vitest run src/app/features/admin/admin-page.component.spec.ts
+npx ng test --watch=false --include=src/app/features/admin/admin-page.component.spec.ts
 
 # 5. Prueba Focalizada del Guard de Redirección
-npx vitest run src/app/core/guards/legacy-admin-redirect.guard.spec.ts
+npx ng test --watch=false --include=src/app/core/guards/legacy-admin-redirect.guard.spec.ts
 
 # 6. Prueba Focalizada del Shell Público Purgado
-npx vitest run src/app/mobile-app.component.spec.ts
+npx ng test --watch=false --include=src/app/mobile-app.component.spec.ts
 
 # 7. Compilación de Producción de Angular
 npm run build
@@ -319,6 +325,9 @@ npm run build
 npm run e2e
 ```
 
+> [!NOTE]
+> Las pruebas unitarias focalizadas se ejecutan con `npx ng test --watch=false --include=...` en lugar de `npx vitest run` directo. La razón exacta es que Angular CLI mediante el builder `@angular/build:unit-test` inicializa el entorno y el arnés `TestBed` de Angular; invocar Vitest directamente omite ese bootstrap. Esta distinción técnica corresponde al mecanismo de inicialización del runner y no representa un defecto del código productivo o de las pruebas.
+
 ---
 
 ## 9. Riesgos y Mitigaciones
@@ -326,7 +335,7 @@ npm run e2e
 | Riesgo Técnico Detectado | Impacto | Estrategia de Mitigación Concreta |
 | :--- | :--- | :--- |
 | **Fuga de Contexto WebGL al alternar entre `/enviar` y `/admin`** | Crítico (El navegador puede agotar los contextos WebGL disponibles y fallar el render). | Cada componente implementa `ngOnDestroy`; `MapLifecycleManager.destroy()` libera listeners, marcadores y destruye una sola vez el `MapPort`, además de desconectar el `ResizeObserver`. |
-| **Bucle de Redirección ("Back Trap") en `/enviar?tab=puntos`** | Alto (El usuario presiona "Atrás" en `/admin` y queda atrapado volviendo a `/admin`). | El guard devuelve un `UrlTree` dentro de la navegación pendiente y una prueba Playwright valida el historial real; el comportamiento no se da por correcto solo por la forma del guard. |
+| **Bucle de Redirección ("Back Trap") en `/enviar?tab=puntos`** | Alto (El usuario presiona "Atrás" en `/admin` y queda atrapado volviendo a `/admin`). | El guard retorna `new RedirectCommand(router.createUrlTree(['/admin']), { replaceUrl: true })` en lugar de un `UrlTree` simple; al reemplazar la entrada en el historial de navegación, presionar "Atrás" retorna a la pantalla previa sin atrapar al usuario en un bucle, verificado exhaustivamente mediante Playwright E2E. |
 | **Desincronización de Coordenadas al Arrastrar el Pin de Previsualización** | Medio (El formulario de edición de admin no recibe la lat/lng modificada). | El callback `onDragEnd` del marcador auxiliar invoca directamente `adminRef.updatePickedLocation(pos.lat.toFixed(6), pos.lng.toFixed(6))`, manteniendo la sincronía síncrona en el formulario. |
 | **Violación de Fronteras de Módulos (`check:boundaries`)** | Alto (Fallo en gate de CI si `features/admin` importa de `features/home`). | `AdminPageComponent` reside dentro de `features/admin/` y consume exclusivamente servicios de `core/` y componentes de `shared/` (`BottomNavComponent`). No importa nada de `features/home` ni `features/discovery`. |
 | **Degradación Visual en Viewport Móvil (386×912 px)** | Medio (Desalineación del panel o superposición con la navegación inferior). | Reutilización estricta de las clases existentes `.admin-tab-content`, `.admin-sticky-header` y los tokens de espaciado vigentes con `padding-bottom: 80px` para acomodar la barra inferior fija. |
@@ -360,5 +369,28 @@ Para dar por concluido el Checkpoint D y cerrar la fase de desacoplamiento arqui
 > [!NOTE]
 > Tras la auditoría exhaustiva del código fuente y de los consumidores en `mobile-app.component.ts`, `admin.component.ts` y las pruebas existentes, **no existen preguntas abiertas que bloqueen la preservación del comportamiento actual**.
 >
-> 1. `navigateToRegistro` se emite actualmente sin consumidor y no existe un componente de registro en el árbol actual. Se registra como deuda funcional fuera de T29; este plan no muestra éxito ni crea datos ficticios.
-> 2. `requestMapPick` también carece hoy de consumidor, pero sí dispone del contrato necesario (`editFormData` + `updatePickedLocation`). T29c conecta ese contrato al mapa administrativo sin requerir cambios de backend.
+> 1. `navigateToRegistro` se emite actualmente sin consumidor y no existe un componente de registro en el árbol actual. Se conserva registrada como deuda funcional fuera del alcance de T29; este plan no muestra éxito ni crea datos ficticios.
+> 2. `requestMapPick` ya cuenta con consumidor activo en `AdminPageComponent` (`onRequestMapPick`) implementado y validado desde T29c. Conecta el contrato de edición espacial (`editFormData` + `updatePickedLocation`) con el marcador interactivo arrastrable y el centrado en el mapa administrativo sin requerir cambios de backend.
+
+---
+
+## 12. Matriz de Resultados de Cierre T29f
+
+La siguiente matriz documenta la evidencia autoritativa recopilada tras la auditoría técnica integral efectuada por Codex para el cierre del paquete T29 (separación de operaciones de empresas en ruta propia `/admin` y desacoplamiento del shell público):
+
+| Dimensión Auditada | Herramienta / Método | Alcance / Parámetros | Evidencia y Resultado Autoritativo | Estado |
+| :--- | :--- | :--- | :--- | :---: |
+| **Aislamiento de Red** | Playwright (Headless) | Intercepción y conteo de peticiones HTTP en frío | • `/#/` (Inicio / Discovery): `/api/empresas` 0 llamadas, `/api/locations` 1 llamada.<br>• `/#/enviar` (Shell público): `/api/empresas` 0 llamadas, `/api/locations` 1 llamada.<br>• `/#/admin` (Shell administrativo): `/api/empresas` 1 llamada, `/api/locations` 1 llamada. | **VERDE** |
+| **Fronteras Arquitectónicas** | `npm run check:boundaries` | Reglas de importación `core` / `shared` / `features` | • 31/31 pruebas del guard superadas.<br>• 47 archivos productivos analizados.<br>• 0 violaciones detectadas, 0 excepciones configuradas. | **VERDE** |
+| **Contrato de Colores y Tokens** | `npm run check:css-colors` | Validación de SiVoy Signal y paleta CSS | • 14/14 pruebas del guard superadas.<br>• 11 archivos CSS analizados.<br>• 0 violaciones detectadas. | **VERDE** |
+| **Suite Unitaria Completa** | `npm run test:ci` | Totalidad de especificaciones unitarias Angular | • 32 archivos de prueba ejecutados.<br>• 342/342 pruebas superadas (100% verde). | **VERDE** |
+| **Prueba Focalizada AdminPage** | `npx ng test --watch=false --include=src/app/features/admin/admin-page.component.spec.ts` | Contenedor `/admin`, carga de datos y mapa | • 24/24 pruebas unitarias pasadas. | **VERDE** |
+| **Prueba Focalizada Guard Legacy** | `npx ng test --watch=false --include=src/app/core/guards/legacy-admin-redirect.guard.spec.ts` | Redirección de compatibilidad con `RedirectCommand` | • 6/6 pruebas unitarias pasadas. | **VERDE** |
+| **Prueba Focalizada MobileApp** | `npx ng test --watch=false --include=src/app/mobile-app.component.spec.ts` | Shell público purgado de elementos administrativos | • 14/14 pruebas unitarias pasadas (corrige cualquier afirmación previa de 15). | **VERDE** |
+| **Compilación de Producción** | `npm run build` | Compilación AOT, chunks y presupuestos de bundle | • Compilación verde sin errores.<br>• Chunk perezoso `admin-page`: 96.15 kB.<br>• Chunk perezoso `mobile-app`: 242.31 kB.<br>• Advertencia única preexistente: CommonJS en dependencia `mapbox-gl`. | **VERDE** |
+| **Suite E2E Multi-Viewport** | `npm run e2e` | Recorridos completos Playwright en 4 viewports | • 36/36 pruebas superadas en 386×912, 768×1024, 1024×768 y 1440×900 px. | **VERDE** |
+| **Revisión Visual en Móvil** | Inspección visual en navegador real | `/admin` en viewport 386×912 px | • Contenedor renderizado con padding de 20 px.<br>• Barra de navegación inferior fija (`BottomNavComponent`) visible y anclada sin superposición con el contenido. | **VERDE** |
+| **Ciclo de Vida y Teardown** | Pruebas unitarias + E2E instrumentado | Cancelación de observables, observers y timers | • `AdminPageComponent`: cancela la suscripción/carga observable activa al destruirse, desconecta `ResizeObserver` y destruye `MapPort` exactamente una vez mediante `MapLifecycleManager.destroy()`.<br>• `MobileAppComponent`: cancela carga de ubicaciones e intervalo de estados (`statusesIntervalId`); recorrido E2E confirma que el timer de 60 s vuelve a cero al desmontarse o regresar a Inicio. | **VERDE** |
+| **Búsqueda de Consumidores (Consumer Search)** | Búsqueda exhaustiva en código fuente | `MobileAppComponent` (`ts`, `html`, `spec`) | • `MobileAppComponent` no contiene `AdminComponent`, `@ViewChild('adminRef')`, `isMapForcedVisible`, `previewMap`, `<app-admin>` ni rama `'puntos'` en resolución de tabs. | **VERDE** |
+| **Auditoría de Remoto** | Git hash audit | Verificación de integridad en rama de trabajo | • Hashes remotos auditados y validados satisfactoriamente para los cortes T29d y T29e. | **VERDE** |
+| **Delimitación de Partner** | Control de alcance | `/partner` (`PartnerComponent`) | • El módulo Partner permanece estrictamente fuera de alcance; no fue modificado y no se realizó ninguna auditoría funcional o visual sobre él. | **FUERA DE ALCANCE** |

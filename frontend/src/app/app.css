@@ -771,51 +771,6 @@ input:checked + .slider:before { transform: translateX(20px); }
   flex: 1;
 }
 
-.link-input {
-  border: 1px dashed var(--primary);
-}
-.link-input-wrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-.link-input-wrapper .link-input {
-  flex: 1;
-  padding-right: 36px;
-}
-.link-loading, .link-ok {
-  position: absolute;
-  right: 10px;
-  display: flex;
-  align-items: center;
-}
-.link-loading {
-  color: var(--primary);
-}
-.link-ok {
-  color: #22c55e;
-  font-size: 16px;
-  font-weight: 700;
-}
-.spin-icon {
-  animation: spin 0.9s linear infinite;
-}
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-.hint-text {
-  display: block;
-  font-size: 11px;
-  color: var(--text-muted);
-  margin-top: 4px;
-}
-.saved-url-text {
-  color: #22c55e;
-}
-.saved-url-text a {
-  color: var(--primary);
-  text-decoration: underline;
-}
 
 .mini-header h3 {
   font-size: 16px;

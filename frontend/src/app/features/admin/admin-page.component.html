@@ -1,0 +1,38 @@
+<div class="admin-page-container">
+  <div class="admin-tab-content">
+    <app-admin
+      *ngIf="locationsLoaded; else loadingLocations"
+      [locations]="locations"
+      (locationUpdated)="onLocationUpdated()"
+      (previewImageEvent)="onPreviewImage($event)">
+    </app-admin>
+    <ng-template #loadingLocations>
+      <div class="admin-page-loading" role="status" aria-live="polite">
+        Cargando puntos…
+      </div>
+    </ng-template>
+  </div>
+
+  <app-bottom-nav activeTab="puntos"></app-bottom-nav>
+
+  <div
+    *ngIf="previewImageUrl"
+    class="image-preview-overlay"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Vista previa de imagen"
+    (click)="closePreview()">
+    <button
+      type="button"
+      class="image-preview-close"
+      aria-label="Cerrar vista previa"
+      (click)="closePreview()">
+      &times;
+    </button>
+    <img
+      class="image-preview-content"
+      [src]="previewImageUrl"
+      alt="Vista previa ampliada"
+      (click)="$event.stopPropagation()" />
+  </div>
+</div>

@@ -1,0 +1,96 @@
+:host {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  background-color: var(--bg-color);
+}
+
+.admin-page-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.admin-tab-content {
+  flex: 1;
+  height: 100%;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.admin-page-loading {
+  display: grid;
+  min-height: 100%;
+  place-items: center;
+  padding: 24px;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.image-preview-overlay {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  background: color-mix(in srgb, var(--text-main) 85%, transparent);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+  box-sizing: border-box;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.image-preview-close {
+  position: absolute;
+  top: max(20px, env(safe-area-inset-top, 20px));
+  right: max(20px, env(safe-area-inset-right, 20px));
+  background: color-mix(in srgb, var(--white) 20%, transparent);
+  border: 1px solid var(--border);
+  color: var(--white);
+  min-width: 44px;
+  min-height: 44px;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-full);
+  font-size: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10000;
+  transition: background var(--motion-fast) ease, box-shadow var(--motion-fast) ease;
+}
+
+.image-preview-close:hover {
+  background: color-mix(in srgb, var(--white) 30%, transparent);
+}
+
+.image-preview-close:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.image-preview-content {
+  max-width: 90%;
+  max-height: 90%;
+  border-radius: var(--radius-md);
+  object-fit: contain;
+  box-shadow: var(--shadow-lg);
+  cursor: default;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .image-preview-close {
+    transition: none;
+  }
+}

@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef, AfterViewInit, ElementRef, ViewEncapsulation, ViewChild } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, AfterViewInit, ElementRef, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
@@ -14,7 +14,6 @@ import { MapCapabilityService } from './core/maps/map-capability.service';
 import { PublicMapViewState, projectPublicMapViewState } from './features/home/public-map-view-state';
 import { calculateDistanceKm } from './core/maps/geo-distance';
 import { HomeComponent } from './features/home/home.component';
-import { AdminComponent } from './features/admin/admin.component';
 import { BottomNavComponent } from './shared/components/bottom-nav/bottom-nav.component';
 import { PerfilComponent } from './features/perfil/perfil.component';
 
@@ -25,25 +24,23 @@ interface MapMarkerMetadata {
   selected?: boolean;
 }
 
-type MainTab = 'inicio' | 'puntos' | 'perfil' | 'registro';
+type MainTab = 'inicio' | 'perfil';
 
-export function resolveMainTab(requestedTab: unknown, defaultTab: unknown): MainTab {
-  if (requestedTab === 'inicio' || requestedTab === 'puntos' || requestedTab === 'perfil') {
-    return requestedTab;
+export function resolveMainTab(requestedTab?: unknown): MainTab {
+  if (requestedTab === 'perfil') {
+    return 'perfil';
   }
-
-  return defaultTab === 'puntos' || defaultTab === 'perfil' ? defaultTab : 'inicio';
+  return 'inicio';
 }
 
 const AUX_MARKER_KEYS = {
   USER: 'user',
-  CUSTOM_DESTINO: 'custom_destino',
-  PREVIEW: 'preview'
+  CUSTOM_DESTINO: 'custom_destino'
 } as const;
 
 @Component({
   selector: 'app-mobile-layout',
-  imports: [CommonModule, FormsModule, HomeComponent, AdminComponent, BottomNavComponent, PerfilComponent],
+  imports: [CommonModule, FormsModule, HomeComponent, BottomNavComponent, PerfilComponent],
   templateUrl: './mobile-app.component.html',
   styleUrl: './app.css',
   encapsulation: ViewEncapsulation.None
@@ -56,7 +53,6 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
   get mapAvailable(): boolean {
     return this.interactiveMapSupported && !this.mapInitializationFailed;
   }
-  @ViewChild('adminRef') adminRef!: AdminComponent;
   locations: any[] = [];
   filteredLocations: any[] = [];
 
@@ -64,12 +60,9 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
   
   // Navigation State
   activeMainTab: MainTab = 'inicio';
-  isMapForcedVisible: boolean = false;
   isMapResourceMode: boolean = false;
   
   fullScreenImage: string | null = null;
-
-  isPickingLocation: boolean = false;
   
   // Map Interactivity State
   private map: MapPort | null = null;
@@ -107,8 +100,7 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
       this.navigationIntent = { ...params };
       this.setMapResourceMode(params['vista'] === 'mapa');
       const requestedTab = params['tab'];
-      const defaultTab = this.route.snapshot?.data?.['defaultTab'];
-      this.activeMainTab = resolveMainTab(requestedTab, defaultTab);
+      this.activeMainTab = resolveMainTab(requestedTab);
       this.cdr.detectChanges();
     });
     this.locationsSubscription = this.ubicacionesService.getLocations().subscribe(data => {
@@ -750,7 +742,7 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private createMarkerElement(
-    type: 'origin' | 'destination' | 'nearby' | 'user' | 'preview',
+    type: 'origin' | 'destination' | 'nearby' | 'user',
     label = '',
     selected = false
   ): HTMLButtonElement {
@@ -828,27 +820,6 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
           this.map?.fitCoordinates(routeCoordinates, { padding: 50, maxZoom: 15, duration: 850 });
         }, 100);
       }
-    }
-  }
-
-  previewMap(coords: {lat: number, lng: number}) {
-    if (this.map && coords && coords.lat && coords.lng) {
-      setTimeout(() => {
-        if (!this.map) return;
-        this.map.flyTo(coords, { zoom: 18, duration: 750 });
-        
-        const element = this.createMarkerElement(AUX_MARKER_KEYS.PREVIEW, 'Ubicación de vista previa');
-        this.mapLifecycle?.setAuxiliaryMarker(AUX_MARKER_KEYS.PREVIEW, {
-          coordinate: coords,
-          options: { element, draggable: true, anchor: 'bottom' },
-          onDragEnd: (pos) => {
-            if (this.adminRef) {
-               this.adminRef.updatePickedLocation(pos.lat.toFixed(6), pos.lng.toFixed(6));
-            }
-          }
-        });
-        
-      }, 300);
     }
   }
 }

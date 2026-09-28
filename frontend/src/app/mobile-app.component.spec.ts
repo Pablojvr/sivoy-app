@@ -2,15 +2,15 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MobileAppComponent, resolveMainTab } from './mobile-app.component';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
+import { ActivatedRoute, Params } from '@angular/router';
 import { ToastService } from './core/services/toast.service';
 import { MapCapabilityService } from './core/maps/map-capability.service';
 import { HomeComponent } from './features/home/home.component';
-import { AdminComponent } from './features/admin/admin.component';
 import { BottomNavComponent } from './shared/components/bottom-nav/bottom-nav.component';
 import { PerfilComponent } from './features/perfil/perfil.component';
 import { MapPort } from './core/maps/map.port';
 import { MapLifecycleManager } from './core/maps/map-lifecycle.manager';
-import { Subject } from 'rxjs';
+import { Subject, BehaviorSubject } from 'rxjs';
 import { UbicacionesService } from './core/services/ubicaciones.service';
 
 class MockToastService {
@@ -43,7 +43,6 @@ describe('MobileAppComponent (T30a Characterization)', () => {
       ]
     })
     .overrideComponent(HomeComponent, { set: { template: '' } })
-    .overrideComponent(AdminComponent, { set: { template: '' } })
     .overrideComponent(BottomNavComponent, { set: { template: '' } })
     .overrideComponent(PerfilComponent, { set: { template: '' } })
     .compileComponents();
@@ -188,7 +187,6 @@ describe('MobileAppComponent.calculateAgencyStatus (T31c)', () => {
       ]
     })
     .overrideComponent(HomeComponent, { set: { template: '' } })
-    .overrideComponent(AdminComponent, { set: { template: '' } })
     .overrideComponent(BottomNavComponent, { set: { template: '' } })
     .overrideComponent(PerfilComponent, { set: { template: '' } });
 
@@ -266,7 +264,6 @@ describe('MobileAppComponent.onMapHighlightRoute (T31c Characterization)', () =>
       ]
     })
     .overrideComponent(HomeComponent, { set: { template: '' } })
-    .overrideComponent(AdminComponent, { set: { template: '' } })
     .overrideComponent(BottomNavComponent, { set: { template: '' } })
     .overrideComponent(PerfilComponent, { set: { template: '' } });
 
@@ -353,17 +350,81 @@ describe('MobileAppComponent.onMapHighlightRoute (T31c Characterization)', () =>
   });
 });
 
-describe('resolveMainTab (T29a)', () => {
-  it('uses the route default when no explicit tab exists', () => {
-    expect(resolveMainTab(undefined, 'puntos')).toBe('puntos');
+describe('resolveMainTab (T29e)', () => {
+  it('resolves perfil when explicitly requested', () => {
+    expect(resolveMainTab('perfil')).toBe('perfil');
   });
 
-  it('gives a valid explicit tab precedence over the route default', () => {
-    expect(resolveMainTab('perfil', 'puntos')).toBe('perfil');
+  it('resolves inicio when explicitly requested', () => {
+    expect(resolveMainTab('inicio')).toBe('inicio');
   });
 
-  it('keeps the public route on Inicio when neither value is valid', () => {
-    expect(resolveMainTab(undefined, undefined)).toBe('inicio');
-    expect(resolveMainTab('unknown', 'registro')).toBe('inicio');
+  it('resolves foreign values including puntos and registro to inicio', () => {
+    expect(resolveMainTab('puntos')).toBe('inicio');
+    expect(resolveMainTab('registro')).toBe('inicio');
+    expect(resolveMainTab(null)).toBe('inicio');
+    expect(resolveMainTab(undefined)).toBe('inicio');
+    expect(resolveMainTab('unknown')).toBe('inicio');
+  });
+
+});
+
+describe('MobileAppComponent public shell isolation (T29e)', () => {
+  let component: MobileAppComponent;
+  let fixture: ComponentFixture<MobileAppComponent>;
+  let httpMock: HttpTestingController;
+  let queryParams$: BehaviorSubject<Params>;
+
+  beforeEach(async () => {
+    queryParams$ = new BehaviorSubject<Params>({ tab: 'puntos' });
+
+    await TestBed.configureTestingModule({
+      imports: [
+        MobileAppComponent,
+        HttpClientTestingModule,
+        RouterTestingModule
+      ],
+      providers: [
+        { provide: ToastService, useClass: MockToastService },
+        { provide: MapCapabilityService, useClass: MockMapCapabilityService },
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            queryParams: queryParams$.asObservable(),
+            snapshot: { data: {} }
+          }
+        }
+      ]
+    })
+    .overrideComponent(HomeComponent, { set: { template: '' } })
+    .overrideComponent(BottomNavComponent, { set: { template: '' } })
+    .overrideComponent(PerfilComponent, { set: { template: '' } })
+    .compileComponents();
+
+    fixture = TestBed.createComponent(MobileAppComponent);
+    component = fixture.componentInstance;
+    httpMock = TestBed.inject(HttpTestingController);
+  });
+
+  afterEach(() => {
+    if (fixture) {
+      fixture.destroy();
+    }
+    if (httpMock) {
+      httpMock.verify();
+    }
+  });
+
+  it('resolves activeMainTab to inicio and renders no admin elements when query param is puntos', () => {
+    fixture.detectChanges();
+
+    const reqLoc = httpMock.expectOne(req => req.url.includes('/api/locations'));
+    reqLoc.flush([]);
+    const nomReq = httpMock.expectOne(req => req.url.includes('nominatim.openstreetmap.org'));
+    nomReq.flush({ address: { municipality: 'San Salvador' } });
+
+    expect(component.activeMainTab).toBe('inicio');
+    expect(fixture.nativeElement.querySelector('app-admin')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.admin-tab-content')).toBeNull();
   });
 });

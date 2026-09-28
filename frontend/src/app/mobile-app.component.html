@@ -1,13 +1,12 @@
 <div class="app-container mobile-first-layout" [class.map-resource-mode]="isMapResourceMode" [class.list-first-mode]="!isMapResourceMode">
   
-  <div class="inicio-tab-content" [hidden]="activeMainTab !== 'inicio' && !isPickingLocation && !isMapForcedVisible">
+  <div class="inicio-tab-content" [hidden]="activeMainTab !== 'inicio'">
     <app-home
       [mapAvailable]="mapAvailable"
       [locations]="locations"
       [userLocation]="userLocation"
       [initialIntent]="navigationIntent"
       [selectedPin]="selectedPin"
-      [isPickingLocation]="isPickingLocation"
       [highlightedRoute]="highlightedRoute"
       [mapResourceMode]="isMapResourceMode"
       (updateMapMarkers)="updateMapMarkers($event)"
@@ -20,16 +19,6 @@
       (showPinDetails)="viewOnMap($event.location, $event.type)"
       (mapResourceModeChange)="setMapResourceMode($event)"
     ></app-home>
-  </div>
-
-  <div class="admin-tab-content" *ngIf="activeMainTab === 'puntos' && !isPickingLocation">
-    <app-admin #adminRef
-      [locations]="locations"
-      (viewOnMapEvent)="viewOnMap($event)"
-      (minimizeModalEvent)="isMapForcedVisible = $event"
-      (previewMapEvent)="previewMap($event)"
-      (previewImageEvent)="fullScreenImage = $event"
-    ></app-admin>
   </div>
 
   <app-perfil *ngIf="activeMainTab === 'perfil'"></app-perfil>

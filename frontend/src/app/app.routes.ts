@@ -1,16 +1,17 @@
 import { Routes } from '@angular/router';
 import { DiscoveryPageComponent } from './features/discovery/discovery-page.component';
+import { legacyAdminRedirectGuard } from './core/guards/legacy-admin-redirect.guard';
 
 export const routes: Routes = [
   { path: '', component: DiscoveryPageComponent, pathMatch: 'full' },
   {
     path: 'enviar',
+    canActivate: [legacyAdminRedirectGuard],
     loadComponent: () => import('./mobile-app.component').then(module => module.MobileAppComponent)
   },
   {
     path: 'admin',
-    data: { defaultTab: 'puntos' },
-    loadComponent: () => import('./mobile-app.component').then(module => module.MobileAppComponent)
+    loadComponent: () => import('./features/admin/admin-page.component').then(module => module.AdminPageComponent)
   },
   { 
     path: 'partner', 

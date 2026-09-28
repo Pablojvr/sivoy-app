@@ -8,7 +8,8 @@
     "init:pg": "node scripts/pg_init.js",
     "migrate": "node migration-runner.js",
     "migrate:status": "node migration-runner.js --dry-run",
-    "test": "node --test"
+    "test": "node --test",
+    "test:migrations:pg": "node --test integration/migrations.pg.spec.js"
   },
   "keywords": [],
   "author": "",

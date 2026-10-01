@@ -130,7 +130,8 @@ aceptación y comandos exactos de prueba. T13 requiere aprobación explícita.
 ### Checkpoint B
 
 - [ ] Paridad completa del ETA.
-- [ ] Pruebas de integración PostgreSQL verdes.
+- [x] Pruebas de integración PostgreSQL verdes.
+  - Evidencia remota (commit `40e6b960ef399071fb5b2bc0c814a90bcc1cb2e9`, run [36927539440](https://github.com/Pablojvr/sivoy-app/actions/runs/36927539440)): Backend CI en GitHub Actions completó con success en evento push sobre `codex/antigravity-orchestration`; contenedor PostgreSQL inicializado (`Initialize containers`: success) y step `Run ephemeral PostgreSQL migration validation` exitoso, aplicando migraciones 0001–0006 con ledger/checksums idénticos y segunda ejecución no-op (cero migraciones).
 - [ ] Ningún endpoint público cambió sin versión o adaptador.
 
 ## Fase 4 — Sistema visual
@@ -263,7 +264,8 @@ archivos. Codex debe revisar cada diff y ejecutar build y auditoría visual.
 - [ ] T35 Implementar pipeline completo y staging.
   - [x] T35a: multer 2.3.0 accepted by Codex; 122 backend tests, zero production audit findings, registry signatures verified.
   - [x] T35b: CI quality gates accepted by Codex; 122 backend and 239 frontend tests, audits/signatures, production build.
-  - [ ] T35c: validate migrations against ephemeral PostgreSQL in CI.
+  - [x] T35c: validate migrations against ephemeral PostgreSQL in CI.
+    - Evidencia remota en commit `40e6b960ef399071fb5b2bc0c814a90bcc1cb2e9` (run [36927539440](https://github.com/Pablojvr/sivoy-app/actions/runs/36927539440)): Backend CI completó con success en GitHub Actions (push en `codex/antigravity-orchestration`); step `Initialize containers` (success) y step `Run ephemeral PostgreSQL migration validation` (success), aplicando 0001–0006, comparando ledger/checksums y reejecutando con cero migraciones y ledger idéntico. T35 sigue abierto por staging y despliegue/rollback (T36).
 - [ ] T36 Probar despliegue, smoke test y rollback.
   - [x] T36a: arnés local desacoplado de release/rollback y workflow estructural; 17/17 pruebas del arnés, 322/322 backend, dry-run honesto y ensayo real auditado sobre candidato y revisión previa (dos `npm ci`, dos builds de producción, seis sondas HTTP y limpieza total). No usa PostgreSQL real, no autoriza producción y no cierra T36.
 - [x] T37 ADR accepted by Codex: keep ETA inside the modular monolith until measurable extraction triggers are met.
@@ -275,6 +277,6 @@ archivos. Codex debe revisar cada diff y ejecutar build y auditoría visual.
 - [ ] Todos los builds, pruebas y contratos están verdes.
 - [ ] Auditoría de seguridad y dependencias sin hallazgos bloqueantes.
 - [ ] Métricas comparadas contra la línea base.
-  - Reporte comparativo en [docs/ARCHITECTURE_METRICS.md](../docs/ARCHITECTURE_METRICS.md): la evidencia estructural ahora fue recapturada en HEAD ad0f145 (-64.53% shell, -23.95% CSS global, inline styles 0; 342 unitarias, 36 E2E, boundaries/colores verdes, 322 backend); T49 está completo localmente con 0 vulnerabilidades, pero el checkpoint sigue abierto por T14, T35c, T43, T36, T00, T45c y aprobación humana.
+  - Reporte comparativo en [docs/ARCHITECTURE_METRICS.md](../docs/ARCHITECTURE_METRICS.md): la evidencia estructural fue recapturada en HEAD ad0f145 (-64.53% shell, -23.95% CSS global, inline styles 0; 342 unitarias, 36 E2E, boundaries/colores verdes, 322 backend); T49 está completo localmente con 0 vulnerabilidades y T35c quedó probado remotamente en CI; pero el checkpoint sigue abierto por T14, T43, T36, T00, T45c y aprobación humana.
 - [ ] Documentación y rollback verificados.
 - [ ] Aprobación humana antes de producción.

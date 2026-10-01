@@ -19,8 +19,8 @@ Este documento registra la comparación cuantitativa y cualitativa de la reestru
   - El módulo **Partner** (`PartnerComponent`, `src/app/features/partner/` y sus flujos asociados) está formalmente excluido de esta iniciativa y de la auditoría por instrucción explícita del usuario. No ha sido modificado ni auditado.
 - **Entorno de ejecución y contexto de infraestructura local y remota:**
   - La aplicación fue verificada en desarrollo local respondiendo HTTP 200 en `http://127.0.0.1:4303/#/`. Este resultado es exclusivamente evidencia de funcionamiento en el servidor local de desarrollo y **no constituye ni sustituye evidencia de despliegue en staging**.
-  - Auditoría de contenedores locales: `wsl --status` reportó código de salida `50` (WSL no instalado); `docker version` reportó cliente `29.8.0` con `Server=null` (daemon no disponible en el host local); siguen sin evidencia nueva.
-  - Estado remoto del repositorio observado por Codex: no hay Pull Requests y GitHub Actions aún muestra la pantalla inicial en la rama predeterminada; por tanto, no se afirma la ejecución ni aprobación de CI remoto.
+  - Auditoría de contenedores locales: `wsl --status` reportó código de salida `50` (WSL no instalado); `docker version` reportó cliente `29.8.0` con `Server=null` (daemon no disponible en el host local); la validación de contenedores y PostgreSQL efímero se ejecutó en la infraestructura de CI remoto.
+  - Estado remoto del repositorio y CI: ejecución remota auditada en GitHub Actions (run [36927539440](https://github.com/Pablojvr/sivoy-app/actions/runs/36927539440), commit `40e6b960ef399071fb5b2bc0c814a90bcc1cb2e9` en evento push sobre `codex/antigravity-orchestration`). El workflow completo finalizó con conclusión **success** y ambos jobs (**Backend CI** y **Frontend CI**) completaron con **success**. En Backend CI se inicializó el contenedor PostgreSQL efímero (`Initialize containers`: success) y se validaron exitosamente las migraciones con idempotencia y ledger idéntico (`Run ephemeral PostgreSQL migration validation`: success, cubriendo T35c).
 
 ---
 
@@ -54,7 +54,7 @@ Los 5 bindings dinámicos identificados en templates de producción no son atrib
 | **Contrato de colores y tokens CSS** | 0 violaciones toleradas | 14/14 pruebas; 11 archivos CSS evaluados, 0 violaciones | Verde | `corepack npm --prefix frontend run check:css-colors` |
 | **Pruebas Backend** | 322 pruebas (Checkpoint A) | 322 pruebas pasando (10 suites) | Verde (sin regresión, 0 delta) | `corepack npm --prefix backend test` |
 | **Compilación de producción (Frontend build)** | Build verde | Build verde (1 advertencia preexistente) | Verde | `corepack npm --prefix frontend run build` |
-| **Seguridad de dependencias y supply chain (T49)** | 0 vulnerabilidades toleradas en producción | Backend: 0 vulnerabilidades, 231 firmas / 15 atestaciones<br>Frontend: 0 vulnerabilidades, 493 firmas / 158 atestaciones<br>Lockfile Guard: 5/5 pruebas | Verde (T49 completado localmente; checkpoint global abierto por T00/T45c/T35c) | `corepack npm --prefix backend audit --omit=dev`<br>`corepack npm --prefix frontend audit` |
+| **Seguridad de dependencias y supply chain (T49)** | 0 vulnerabilidades toleradas en producción | Backend: 0 vulnerabilidades, 231 firmas / 15 atestaciones<br>Frontend: 0 vulnerabilidades, 493 firmas / 158 atestaciones<br>Lockfile Guard: 5/5 pruebas | Verde (T49 completado localmente; checkpoint global abierto por T00/T45c) | `corepack npm --prefix backend audit --omit=dev`<br>`corepack npm --prefix frontend audit` |
 
 ### Notas de calidad automatizada:
 - **Viewports E2E verificados:** 386×912 (móvil primario), 768×1024 (tablet portrait), 1024×768 (tablet landscape) y 1440×900 (escritorio).
@@ -132,27 +132,31 @@ corepack npm --prefix frontend audit signatures
 
 ---
 
-## 6. Evidencia todavía pendiente
+## 6. Evidencia completada y todavía pendiente
 
-Aunque las dimensiones estáticas de código, CSS, pruebas unitarias, E2E locales y endurecimiento de dependencias muestran mejoras medibles respecto al baseline, la evaluación integral de la línea base arquitectónica **no está completa**. Los siguientes ítems críticos continúan pendientes:
+Aunque las dimensiones estáticas de código, CSS, pruebas unitarias, E2E locales y endurecimiento de dependencias muestran mejoras medibles respecto al baseline, la evaluación integral de la línea base arquitectónica **no está completa**.
 
-1. **T35c — Validación de migraciones en PostgreSQL efímero e idempotencia:**
-   - Aplicar 0001–0006 sobre PostgreSQL efímero limpio y ejecutar de nuevo sobre la MISMA base; la segunda ejecución debe ser no-op, sin mutar ledger/estado.
-   - En el host local actual, WSL no está instalado (exit 50) y el daemon de Docker no se encuentra disponible (Server=null), por lo que no es posible levantar la base de datos efímera localmente sin infraestructura externa.
-   - Estado remoto observado por Codex: actualmente no hay Pull Requests y GitHub Actions aún muestra la pantalla inicial en la rama predeterminada; por tanto, no se afirma la ejecución ni aprobación en CI remoto.
-2. **T14 — Medición de consultas críticas con `EXPLAIN (ANALYZE, BUFFERS)`:**
+### Evidencia remota completada (T35c):
+- **T35c — Validación de migraciones en PostgreSQL efímero e idempotencia (Completada):**
+  - **Commit remoto auditado:** [`40e6b960ef399071fb5b2bc0c814a90bcc1cb2e9`](https://github.com/Pablojvr/sivoy-app/commit/40e6b960ef399071fb5b2bc0c814a90bcc1cb2e9).
+  - **GitHub Actions run:** [36927539440](https://github.com/Pablojvr/sivoy-app/actions/runs/36927539440) (evento push sobre `codex/antigravity-orchestration`).
+  - **Resultado de CI:** El job Backend CI completó con `success`. Step `Initialize containers`: `success`. Step `Run ephemeral PostgreSQL migration validation`: `success`.
+  - **Validación ejecutada:** Aplica las migraciones 0001–0006, compara ledger y checksums, vuelve a ejecutar sobre la misma base de datos y exige cero migraciones pendientes y ledger idéntico.
+  - **Delimitación de alcance:** El workflow completo y el job Frontend CI terminaron con `success`. Sin embargo, esto no equivale a despliegue en staging, validación de despliegue/rollback (T36), aprobación humana previa a producción ni al cierre del checkpoint final.
+
+### Ítems críticos todavía pendientes:
+1. **T14 — Medición de consultas críticas con `EXPLAIN (ANALYZE, BUFFERS)`:**
    - Falta ejecutar y documentar el plan, tiempo real y uso de búferes de las consultas SQL críticas del flujo logístico frente a un volumen representativo de datos.
-3. **T43 — Comparación paralela de ETA antiguo vs nuevo:**
+2. **T43 — Comparación paralela de ETA antiguo vs nuevo:**
    - Falta ejecutar en paralelo el cálculo del motor legacy frente al motor nuevo según el plan, limitándose a certificar la paridad de resultados y las diferencias registradas entre ambos motores.
-4. **Telemetría y validación en Staging (latencia, tasa de error, throughput) y smoke/rollback T36:**
+3. **Telemetría y validación en Staging (latencia, tasa de error, throughput) y smoke/rollback T36:**
    - Falta desplegar en un entorno de staging real para medir percentiles de latencia (p95/p99), tasas de error HTTP y capacidad de throughput bajo concurrencia.
    - Falta ejecutar el smoke test de staging y el simulacro de rollback verificable según lo establecido en T36.
    - El código HTTP 200 verificado localmente en `http://127.0.0.1:4303/#/` no sustituye esta validación.
-5. **Seguridad global (T00, T45c, T35c) y aprobación humana:**
-   - Si bien T49 completó la auditoría de dependencias y el endurecimiento de supply chain en local (backend 0 vulnerabilidades con 231 firmas/15 attestations; frontend 0 vulnerabilidades con 493 firmas/158 attestations; Lockfile Guard 5/5), el **checkpoint global de seguridad permanece formalmente abierto** por los bloqueos preexistentes:
+4. **Seguridad global (T00, T45c) y aprobación humana:**
+   - Si bien T49 completó la auditoría de dependencias y el endurecimiento de supply chain en local (backend 0 vulnerabilidades con 231 firmas/15 attestations; frontend 0 vulnerabilidades con 493 firmas/158 attestations; Lockfile Guard 5/5) y T35c quedó validado remotamente en CI, el **checkpoint global de seguridad permanece formalmente abierto** por los bloqueos preexistentes:
      - **T00:** Rotación y revocación real de credenciales PostgreSQL expuestas en versiones históricas y saneamiento del historial git.
      - **T45c:** Definición y aprobación del cuerpo de error genérico HTTP 500 para la resolución externa de Maps.
-     - **T35c:** Validación remota de migraciones en CI sobre PostgreSQL efímero real (bloqueado localmente por ausencia de Docker/WSL).
    - Falta la revisión y aprobación humana explícita previa a cualquier liberación a producción, tal como estipula la Definition of Done.
 
 ---
@@ -161,4 +165,4 @@ Aunque las dimensiones estáticas de código, CSS, pruebas unitarias, E2E locale
 
 El checkpoint **`- [ ] Métricas comparadas contra la línea base.`** en `tasks/todo.md` **NO puede cerrarse todavía**.
 
-Si bien la evidencia estructural de frontend, desacoplamiento del shell, CSS global, contratos de calidad automatizada, auditoría de dependencias (T49) y empaquetado de producción ha quedado sólidamente establecida, las métricas de base de datos real (T35c, T14), paridad operativa del ETA (T43) y telemetría de staging (T36) permanecen pendientes. Del mismo modo, el checkpoint global de seguridad sigue abierto por T00, T45c y la validación remota T35c, y la aprobación humana previa a producción continúa pendiente. Por tanto, los ítems correspondientes deben mantenerse formalmente abiertos en el checklist del proyecto.
+Si bien la evidencia estructural de frontend, desacoplamiento del shell, CSS global, contratos de calidad automatizada, auditoría de dependencias (T49), empaquetado de producción y la validación remota de migraciones en CI (T35c) han quedado sólidamente registradas, las consultas de base de datos con carga real (T14), paridad operativa del ETA (T43) y telemetría de staging (T36) permanecen pendientes. Del mismo modo, el checkpoint global de seguridad sigue abierto por T00 y T45c, y la aprobación humana previa a producción continúa pendiente. Por tanto, los ítems correspondientes deben mantenerse formalmente abiertos en el checklist del proyecto.

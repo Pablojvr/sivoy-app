@@ -36,6 +36,7 @@
   - No coincide con los patrones automáticos de `node --test`; `npm test` continúa siendo estrictamente offline, hermético y sin conexión a red ni base de datos.
 - **Validación local y en CI**:
   - Localmente solo es ejecutable si existe una instancia local de PostgreSQL. Sin PostgreSQL local, se audita sintaxis (`--check`), tests unitarios offline y configuración; el resultado del workflow en CI constituye la evidencia autorizada de integración.
+  - Las ramas `codex/**` ejecutan los mismos quality gates para producir evidencia antes del PR; no implica merge, staging ni despliegue y puede retirarse sin tocar jobs.
 - **Rollback y contención**:
   - Retirar el job o steps del workflow y los archivos de prueba del slice. No existe estado persistente externo ni migración que deshacer en entornos compartidos.
 - **Archivos autorizados para el slice de implementación (máximo 4)**:

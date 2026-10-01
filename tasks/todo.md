@@ -275,6 +275,6 @@ archivos. Codex debe revisar cada diff y ejecutar build y auditoría visual.
 - [ ] Todos los builds, pruebas y contratos están verdes.
 - [ ] Auditoría de seguridad y dependencias sin hallazgos bloqueantes.
 - [ ] Métricas comparadas contra la línea base.
-  - Reporte comparativo en [docs/ARCHITECTURE_METRICS.md](../docs/ARCHITECTURE_METRICS.md): evidencia estructural (shell -64.53%, CSS global -23.95%, atributos style inline a 0), calidad frontend (342 unitarias, 36 E2E, 0 violaciones de límites/colores), bundles y backend (322 pruebas, sin regresión) capturada en HEAD 6c5b147; pendientes DB efímera/idempotencia (T35c), EXPLAIN de consultas críticas (T14), paridad ETA en paralelo (T43) y telemetría/staging con smoke/rollback (T36); el checkpoint permanece abierto.
+  - Reporte comparativo en [docs/ARCHITECTURE_METRICS.md](../docs/ARCHITECTURE_METRICS.md): la evidencia estructural ahora fue recapturada en HEAD ad0f145 (-64.53% shell, -23.95% CSS global, inline styles 0; 342 unitarias, 36 E2E, boundaries/colores verdes, 322 backend); T49 está completo localmente con 0 vulnerabilidades, pero el checkpoint sigue abierto por T14, T35c, T43, T36, T00, T45c y aprobación humana.
 - [ ] Documentación y rollback verificados.
 - [ ] Aprobación humana antes de producción.

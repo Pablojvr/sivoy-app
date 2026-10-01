@@ -82,6 +82,18 @@ jobs:
           DATABASE_SSL: "false"
           MIGRATION_TEST_SENTINEL: allow_ephemeral_migration_test
         run: corepack npm run test:migrations:pg
+
+      - name: Measure T14 query performance baseline
+        env:
+          DATABASE_URL: postgresql://sivoy_ci_user:sivoy_ephemeral_ci_password@127.0.0.1:5432/sivoy_migrations_ci
+          DATABASE_SSL: "false"
+          MIGRATION_TEST_SENTINEL: allow_ephemeral_migration_test
+          QUERY_PERF_TEST_SENTINEL: allow_ephemeral_query_performance_test
+          QUERY_PERF_REPORT_PATH: ${{ runner.temp }}/t14-query-performance-report.json
+        run: node --test integration/query-performance.pg.spec.js
+
+      - name: Publish T14 query performance baseline
+        run: node integration/publish-query-performance-report.js "${{ runner.temp }}/t14-query-performance-report.json"
         
       - name: Validate server syntax
         run: node --check server.js

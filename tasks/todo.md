@@ -267,6 +267,8 @@ archivos. Codex debe revisar cada diff y ejecutar build y auditoría visual.
 - [ ] T36 Probar despliegue, smoke test y rollback.
   - [x] T36a: arnés local desacoplado de release/rollback y workflow estructural; 17/17 pruebas del arnés, 322/322 backend, dry-run honesto y ensayo real auditado sobre candidato y revisión previa (dos `npm ci`, dos builds de producción, seis sondas HTTP y limpieza total). No usa PostgreSQL real, no autoriza producción y no cierra T36.
 - [x] T37 ADR accepted by Codex: keep ETA inside the modular monolith until measurable extraction triggers are met.
+- [x] T49 Auditoría de seguridad de dependencias y endurecimiento de supply chain.
+  - Resultado auditado: remediadas vulnerabilidades (multer 2.4.0, Angular 21.2.25/21.2.24 y override de piscina 5.3.2); lockfile regenerado limpiamente sin flags de peers; 0 vulnerabilidades en backend (231 firmas, 15 attestations) y frontend (493 firmas, 158 attestations); guard 5/5 y allowlist de scripts de instalación fijada; pipeline CI endurecido (corepack npm 11.11.0, ignore-scripts, rebuild explícito, audit signatures, Playwright local); validación aislada completa (sqlite3 carga, 322/322 backend, 342/342 frontend, 31/31 boundaries, 14/14 colors, build producción y 36/36 E2E; servidor local 4303 HTTP 200). Informe completo en [docs/SECURITY_DEPENDENCY_AUDIT.md](../docs/SECURITY_DEPENDENCY_AUDIT.md).
 
 ### Checkpoint final
 

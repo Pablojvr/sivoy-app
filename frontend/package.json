@@ -11,26 +11,30 @@
     "check:css-colors": "node --test scripts/check-css-color-contract.test.mjs && node scripts/check-css-color-contract.mjs",
     "check:boundaries": "node --test scripts/check-boundaries.test.mjs && node scripts/check-boundaries.mjs",
     "e2e": "playwright test",
-    "e2e:headed": "playwright test --headed"
+    "e2e:headed": "playwright test --headed",
+    "playwright:install": "playwright install --with-deps --only-shell chromium"
   },
   "private": true,
   "packageManager": "npm@11.11.0",
+  "overrides": {
+    "piscina": "5.3.2"
+  },
   "dependencies": {
-    "@angular/common": "^21.2.22",
-    "@angular/compiler": "^21.2.22",
-    "@angular/core": "^21.2.22",
-    "@angular/forms": "^21.2.22",
-    "@angular/platform-browser": "^21.2.22",
-    "@angular/router": "^21.2.22",
+    "@angular/common": "^21.2.25",
+    "@angular/compiler": "^21.2.25",
+    "@angular/core": "^21.2.25",
+    "@angular/forms": "^21.2.25",
+    "@angular/platform-browser": "^21.2.25",
+    "@angular/router": "^21.2.25",
     "mapbox-gl": "^3.30.0",
     "maplibre-gl": "^6.8.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0"
   },
   "devDependencies": {
-    "@angular/build": "^21.2.23",
-    "@angular/cli": "^21.2.23",
-    "@angular/compiler-cli": "^21.2.22",
+    "@angular/build": "^21.2.24",
+    "@angular/cli": "^21.2.24",
+    "@angular/compiler-cli": "^21.2.25",
     "@playwright/test": "1.63.0",
     "jsdom": "^29.1.1",
     "prettier": "^3.8.1",

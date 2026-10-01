@@ -37,7 +37,7 @@ export default defineConfig({
     },
     {
       name: 'frontend',
-      command: 'npm run start -- --host 127.0.0.1 --port 4303',
+      command: 'corepack npm run start -- --host 127.0.0.1 --port 4303',
       url: 'http://127.0.0.1:4303/#/',
       reuseExistingServer: !process.env['CI'],
       timeout: 120_000

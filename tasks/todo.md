@@ -100,6 +100,9 @@ máximo cinco archivos. Un paquete no es autorización para modificar código.
 - [x] T12 Transaccionar actualización de punto y horarios.
 - [ ] T13 Resolver y migrar contrato `id`/`id_destino`.
 - [ ] T14 Optimizar búsquedas después de medir consultas.
+  - [x] T14a Línea base reproducible de consultas críticas en PostgreSQL 16 efímero.
+    - Evidencia remota (commit `76b58f3aa00e66310dd8a2cc11809e7f302e6e00`, run [36930582242](https://github.com/Pablojvr/sivoy-app/actions/runs/36930582242)): workflow completo success, Backend CI success y Frontend CI success en GitHub Actions. Anotación pública `T14 PostgreSQL baseline` emitida en CI. Medición determinista sobre esquema aislado con dataset representativo (10,000 agencias, 70,000 horarios, 20,000 reglas; cinco muestras por consulta, `shared_read` = 0 en caliente). Mediana de ejecución: `agency_lookup_by_name_or_id` 2.243 ms (Seq Scan, plan_rows 100, actual_rows 1, shared_hit 182; cuello de botella confirmado por escaneo secuencial y estimación 100:1); `all_agencies_ordered` 2.158 ms (Sort + Seq Scan, 10,000 filas, shared_hit 182); `all_schedules` 2.359 ms (Seq Scan, 70,000 filas, shared_hit 584); `all_delivery_rules` 0.635 ms (Seq Scan, 20,000 filas, shared_hit 109); `schedules_by_agency` 0.047 ms (Bitmap Heap/Index Scan, 7 filas, shared_hit 9); `delivery_rules_by_agency` 0.027 ms (Index Scan, 2 filas, shared_hit 3). Spec: `tasks/specs/T14-query-performance-baseline.md`.
+    - Pendiente T14b: optimización focalizada y re-medición comparativa. T14b no debe definir todavía la semántica pública de `id`/`id_destino`, ya que depende de T13; no adelantar estrategias sin resolución de T13. T14 permanece abierto.
 - [x] T38 Versionar baseline y ledger de migraciones reproducibles.
 - [x] T39 Añadir constraints e índices de FK con validación previa (pendiente ventana de aplicación).
 - [x] T40 Crear calendarios con múltiples intervalos y excepciones (modelo aditivo; pendiente backfill/cutover).
@@ -277,6 +280,6 @@ archivos. Codex debe revisar cada diff y ejecutar build y auditoría visual.
 - [ ] Todos los builds, pruebas y contratos están verdes.
 - [ ] Auditoría de seguridad y dependencias sin hallazgos bloqueantes.
 - [ ] Métricas comparadas contra la línea base.
-  - Reporte comparativo en [docs/ARCHITECTURE_METRICS.md](../docs/ARCHITECTURE_METRICS.md): la evidencia estructural fue recapturada en HEAD ad0f145 (-64.53% shell, -23.95% CSS global, inline styles 0; 342 unitarias, 36 E2E, boundaries/colores verdes, 322 backend); T49 está completo localmente con 0 vulnerabilidades y T35c quedó probado remotamente en CI; pero el checkpoint sigue abierto por T14, T43, T36, T00, T45c y aprobación humana.
+  - Reporte comparativo en [docs/ARCHITECTURE_METRICS.md](../docs/ARCHITECTURE_METRICS.md): la evidencia estructural fue recapturada en HEAD ad0f145 (-64.53% shell, -23.95% CSS global, inline styles 0; 342 unitarias, 36 E2E, boundaries/colores verdes, 322 backend); T49 está completo localmente con 0 vulnerabilidades, T35c y la línea base de consultas T14a quedaron probados remotamente en CI; pero el checkpoint sigue abierto por T14 (T14b pendiente), T43, T36, T00, T45c y aprobación humana.
 - [ ] Documentación y rollback verificados.
 - [ ] Aprobación humana antes de producción.

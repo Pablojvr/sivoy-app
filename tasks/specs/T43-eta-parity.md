@@ -18,9 +18,23 @@ El proceso se estructura en tres fases estrictamente incrementales e independien
   - Pruebas unitarias de caracterización exhaustivas en `backend/test/eta-parity-comparator.test.js`.
   - Límite estricto de archivos: máximo 3 archivos para T43a (spec, implementación del comparador, suite de test).
 - **Fase T43b**:
-  - Snapshot de referencia legacy congelado en un commit/SHA verificable.
-  - Adaptadores que normalizan las salidas de los servicios actuales a la estructura canónica.
-  - Matriz offline de casos de prueba representativos (agencias, puntos fijos, pins, horarios partidos, festivos, cortes).
+  - Referencia legacy congelada desde `backend/services/logistics.js` en el commit
+    `87684cbbca2f9e959d9c78f7fc3cc02c8e7895a4`, anterior a la extracción del
+    núcleo ETA puro y posterior a la caracterización de horarios. La
+    transcripción conserva la forma pública enumerable y añade únicamente
+    metadatos no enumerables en cada rama ejecutada para observar su semántica
+    sin reconstruirla en el adaptador.
+  - Adaptador de prueba que ejecuta ambos motores con la misma entrada y
+    normaliza sus resultados a la estructura canónica. El adaptador conserva
+    estados semánticos de ingreso (`PIN`, `ACTIVE_TODAY`, `ACTIVE_FUTURE`, `BEFORE_NEXT_INTERVAL`,
+    `CLOSED_UNTIL_NEXT_DAY`, `NO_OPERATING_DAYS`), el siguiente intervalo,
+    estados de validación (`APPROVED`, `REJECTED_CUTOFF`, `NO_DELIVERY`, `PIN`)
+    y la fecha de corte ISO. La clasificación se deriva de datos estructurados
+    y reglas congeladas, nunca del copy localizado.
+  - Matriz offline de casos representativos: agencias, puntos fijos, pins,
+    horarios partidos, cortes, límites de mes y año bisiesto. Los festivos no
+    formaban parte del contrato legacy y quedan fuera de T43b hasta el cutover
+    del calendario operativo.
   - Verificación de paridad estricta al 100%; cualquier divergencia legítima debe ser documentada explícitamente en el spec y nunca silenciada.
 - **Fase T43c**:
   - Comparación en modo shadow-run en staging/producción con feature flag desactivado por defecto (`ETA_SHADOW_PARITY=false`).
@@ -53,13 +67,13 @@ export interface ProjectedRoute {
 }
 
 export interface OfficialEntrySnapshot {
-  status: string;            // Identificador canónico de estado (ej: 'open', 'next_interval', 'next_day')
+  status: string;            // Estado canónico (ej: 'ACTIVE_TODAY', 'BEFORE_NEXT_INTERVAL')
   officialDate: string | null; // Fecha canónica 'YYYY-MM-DD' o null si no aplica
   nextInterval: EtaInterval | null; // Siguiente intervalo relevante o null
 }
 
 export interface RouteValidationSnapshot {
-  status: string;            // Identificador de viabilidad (ej: 'possible', 'cutoff_passed', 'no_service')
+  status: string;            // Viabilidad (ej: 'APPROVED', 'REJECTED_CUTOFF', 'NO_DELIVERY')
   cutoffDate: string | null; // Fecha límite calculada 'YYYY-MM-DD' o null
 }
 
@@ -136,8 +150,9 @@ export interface ComparisonResult {
                                v
 +-------------------------------------------------------------+
 | T43b: Matriz offline de paridad (Golden tests)              |
-| - Adaptador de normalización a canonical snapshot           |
-| - Suite de comparación contra snapshot legacy de prueba     |
+| - Referencia legacy fijada en 87684cbbca2f...                |
+| - Adaptador de salida pública a canonical snapshot          |
+| - Suite comparativa ejecutada en America/El_Salvador        |
 | - 100% de paridad requerida antes de cualquier migración    |
 +------------------------------+------------------------------+
                                |

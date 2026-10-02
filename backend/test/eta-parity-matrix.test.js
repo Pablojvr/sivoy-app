@@ -4,6 +4,8 @@ process.env.TZ = 'America/El_Salvador';
 
 const { test, describe } = require('node:test');
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
 
 const legacyEngine = require('./fixtures/legacy-eta-reference');
 const {
@@ -11,6 +13,9 @@ const {
   runLegacyEtaScenario
 } = require('./support/eta-parity-snapshot');
 const { compareEtaSnapshots } = require('../src/core/eta/eta-parity-comparator');
+const {
+  runLegacyEtaScenario: runRuntimeLegacyEtaScenario
+} = require('../src/core/eta/legacy-shadow-reference');
 
 const REQUIRED_CATEGORIES = [
   'pin',
@@ -653,14 +658,16 @@ describe('T43b - Scenario Matrix Structure & Completeness', () => {
 });
 
 describe('T43b - Scenario Matrix Immutability', () => {
-  test('non-mutation: scenarios remain unchanged after both engine executions', () => {
+  test('non-mutation: scenarios remain unchanged after both engine executions and runtime reference', () => {
     for (const scenario of SCENARIOS) {
       const before = structuredClone(scenario);
       const legacyInput = structuredClone(scenario);
       const currentInput = structuredClone(scenario);
+      const runtimeInput = structuredClone(scenario);
 
       runLegacyEtaScenario(legacyEngine, legacyInput);
       runCurrentEtaScenario(currentInput);
+      runRuntimeLegacyEtaScenario(runtimeInput);
 
       assert.deepEqual(
         legacyInput,
@@ -671,6 +678,11 @@ describe('T43b - Scenario Matrix Immutability', () => {
         currentInput,
         before,
         `Current engine mutated its input for scenario "${scenario.name}"`
+      );
+      assert.deepEqual(
+        runtimeInput,
+        before,
+        `Runtime legacy reference mutated its input for scenario "${scenario.name}"`
       );
       assert.deepEqual(scenario, before, `Scenario "${scenario.name}" was mutated during execution`);
     }
@@ -694,6 +706,35 @@ describe('T43b - ETA Parity Matrix Execution', () => {
 
       const comparison = compareEtaSnapshots(legacySnapshot, currentSnapshot);
       const failureMessage = `Scenario "${scenario.name}" parity mismatch:\n${JSON.stringify(comparison.differences, null, 2)}`;
+
+      assert.equal(comparison.matches, true, failureMessage);
+      assert.deepEqual(comparison.differences, [], failureMessage);
+    });
+  }
+});
+
+describe('T43c1 - Runtime Legacy Reference Parity Execution', () => {
+  test('runtime reference remains isolated from tests, current ETA modules, and logging', () => {
+    const runtimeReferencePath = path.join(
+      __dirname,
+      '../src/core/eta/legacy-shadow-reference.js'
+    );
+    const runtimeReferenceSource = fs.readFileSync(runtimeReferencePath, 'utf8');
+
+    assert.doesNotMatch(runtimeReferenceSource, /\b(?:require|import)\b/);
+    assert.doesNotMatch(runtimeReferenceSource, /\bconsole\s*\./);
+  });
+
+  for (const scenario of SCENARIOS) {
+    test(`runtime legacy scenario parity: ${scenario.name}`, () => {
+      const legacyInput = structuredClone(scenario);
+      const runtimeInput = structuredClone(scenario);
+
+      const expectedSnapshot = runLegacyEtaScenario(legacyEngine, legacyInput);
+      const runtimeSnapshot = runRuntimeLegacyEtaScenario(runtimeInput);
+
+      const comparison = compareEtaSnapshots(expectedSnapshot, runtimeSnapshot);
+      const failureMessage = `Scenario "${scenario.name}" runtime legacy reference parity mismatch:\n${JSON.stringify(comparison.differences, null, 2)}`;
 
       assert.equal(comparison.matches, true, failureMessage);
       assert.deepEqual(comparison.differences, [], failureMessage);

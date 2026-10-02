@@ -7,7 +7,8 @@ Este documento establece el contrato, arquitectura y estrategia de validación p
 El proceso se estructura en tres fases estrictamente incrementales e independientes:
 - **T43a**: Comparador estructural puro inmutable y pruebas de caracterización RED (este contrato y suite de pruebas).
 - **T43b**: Referencia legacy de test con procedencia SHA fija, adaptadores normalizadores a snapshot canónico y matriz offline ("golden dataset") sin alterar respuestas a clientes.
-- **T43c**: Shadow-run en runtime apagado por defecto mediante switch configurable, ejecutable únicamente tras validación completa en staging y sin umbrales de tolerancia permisivos.
+- **T43c1**: Referencia legacy de runtime independiente (`backend/src/core/eta/legacy-shadow-reference.js`) y matriz de procedencia/paridad offline (26 escenarios) comparando el fixture legacy frente a la referencia de runtime, con límite estricto de 3 archivos, rollback aislado y sin integración en flujos de producción.
+- **T43c2**: Runner/cola en background, feature flag estricto (`ETA_SHADOW_PARITY === 'true'`), apagado por defecto, y observabilidad/métricas de divergencias posterior, sin bloquear ni alterar la respuesta al usuario; el costo de CPU se valida en staging.
 
 ## 1. Alcance y Fronteras
 
@@ -36,9 +37,22 @@ El proceso se estructura en tres fases estrictamente incrementales e independien
     formaban parte del contrato legacy y quedan fuera de T43b hasta el cutover
     del calendario operativo.
   - Verificación de paridad estricta al 100%; cualquier divergencia legítima debe ser documentada explícitamente en el spec y nunca silenciada.
-- **Fase T43c**:
-  - Comparación en modo shadow-run en staging/producción con feature flag desactivado por defecto (`ETA_SHADOW_PARITY=false`).
-  - Métricas u observabilidad de divergencias sin impacto en latencia ni en la respuesta al usuario.
+- **Fase T43c1 (Referencia Runtime Independiente y Paridad Estricta)**:
+  - Módulo de referencia legacy para runtime: `backend/src/core/eta/legacy-shadow-reference.js`.
+  - Transcripción productiva congelada desde SHA `87684cbbca2f9e959d9c78f7fc3cc02c8e7895a4`.
+  - Contrato público: exporta `runLegacyEtaScenario(scenario)` y devuelve el mismo `CanonicalEtaSnapshot` generado por `runLegacyEtaScenario(fixtureEngine, scenario)` del soporte de test.
+  - Aislamiento estricto de dependencias:
+    - **Prohibido importar fixtures de test en producción**: no puede importar ningún archivo bajo `backend/test/*`.
+    - **Prohibido importar módulos actuales de producción**: no puede importar `official-entry`, `route-projection` ni ningún otro módulo modularizado actual.
+    - **Operación pura**: no debe registrar logs (`console.*` ni loggers) ni mutar objetos de entrada.
+  - Matriz de procedencia/paridad: verificación offline contra los 26 escenarios del golden dataset comparando el snapshot del fixture legacy esperado frente al snapshot de runtime (`compareEtaSnapshots(expectedSnapshot, runtimeSnapshot)`).
+  - Frontera de integración: **la referencia runtime no se integra todavía en T43c1** a ningún endpoint, servicio ni flujo de cotización/reserva activo. Queda aislada y validada exclusivamente en pruebas.
+  - Límite estricto de archivos: máximo 3 archivos para T43c1 (`tasks/specs/T43-eta-parity.md`, `backend/test/eta-parity-matrix.test.js`, `backend/src/core/eta/legacy-shadow-reference.js`).
+  - Estrategia de rollback: reversión atómica del commit de T43c1 o eliminación física del archivo desacoplado `backend/src/core/eta/legacy-shadow-reference.js` sin impacto colateral.
+- **Fase T43c2 (Runner Asíncrono, Feature Flag Estricto y Observabilidad Posterior)**:
+  - Mecanismo runner/cola en background para ejecutar la referencia legacy en modo shadow de manera asíncrona y no bloqueante.
+  - Feature flag estricto: activación condicionada estrictamente a `process.env.ETA_SHADOW_PARITY === 'true'`. Cualquier otro valor (`'false'`, `undefined`, cadenas vacías u otros) mantiene el shadow-run completamente apagado por defecto.
+  - Métricas e instrumentación de observabilidad para divergencias sin bloquear ni alterar la respuesta al usuario, sanitizando diferencias y omitiendo payloads sensibles. El impacto global de CPU, cola y latencia se mide en staging antes de cualquier activación productiva.
 
 ### Fuera de alcance
 - Respuestas de API y rutas HTTP (se mantienen idénticas para los clientes).
@@ -136,7 +150,29 @@ export interface ComparisonResult {
 
 ---
 
-## 4. Estrategia Incremental y Despliegue
+## 4. Especificación de la Referencia Legacy de Runtime (`legacy-shadow-reference.js` — T43c1)
+
+- **Ubicación del futuro módulo**: `backend/src/core/eta/legacy-shadow-reference.js`
+- **Firma exportada**:
+  ```javascript
+  function runLegacyEtaScenario(scenario): CanonicalEtaSnapshot
+  ```
+- **Origen y procedencia**:
+  - Transcripción productiva congelada a partir del commit `87684cbbca2f9e959d9c78f7fc3cc02c8e7895a4` de `backend/services/logistics.js` (estado previo a la modularización ETA y posterior a la caracterización de horarios).
+- **Contrato de salida**:
+  - Retorna exactamente el mismo `CanonicalEtaSnapshot` generado por `runLegacyEtaScenario(fixtureEngine, scenario)` del soporte de test (`backend/test/support/eta-parity-snapshot.js`).
+- **Restricciones de arquitectura y seguridad**:
+  - **Aislamiento de producción**: Prohibido terminantemente importar archivos desde `backend/test/*` (ningún fixture de prueba debe entrar al runtime de producción).
+  - **Desacoplamiento de módulos actuales**: Prohibido importar módulos del motor modularizado (`official-entry.js`, `route-projection.js`, etc.).
+  - **Inmutabilidad y pureza**: No debe registrar logs (`console.log`, `console.warn`, `console.error` o loggers externos) ni mutar los objetos de entrada (`scenario`, `origin`, `destination`, etc.).
+  - **Sin integración en T43c1**: La referencia de runtime no se integra todavía a rutas, controladores ni servicios de producción en esta fase.
+- **Límite de cambios y rollback**:
+  - Máximo 3 archivos para el slice T43c1 (`tasks/specs/T43-eta-parity.md`, `backend/test/eta-parity-matrix.test.js`, `backend/src/core/eta/legacy-shadow-reference.js`).
+  - Rollback: reversión atómica del commit de T43c1 o eliminación de `backend/src/core/eta/legacy-shadow-reference.js` sin efectos colaterales en el sistema.
+
+---
+
+## 5. Estrategia Incremental y Despliegue
 
 ```
 +-------------------------------------------------------------+
@@ -158,17 +194,30 @@ export interface ComparisonResult {
                                |
                                v
 +-------------------------------------------------------------+
-| T43c: Shadow-run runtime controlado                         |
-| - Switch feature flag (ETA_SHADOW_PARITY=false por defecto) |
-| - Comparación en memoria asíncrona / no bloqueante          |
-| - Cero impacto en SLA de respuesta al cliente               |
+| T43c1: Referencia runtime independiente + matriz offline    |
+| - legacy-shadow-reference.js (congelado en SHA 87684cbb...) |
+| - Contrato runLegacyEtaScenario(scenario) -> CanonicalEta  |
+| - Prohibido importar test/ en runtime o módulos nuevos      |
+| - Matriz de 26 escenarios validando fixture vs runtime      |
+| - Máximo 3 archivos, sin integración a rutas de producción  |
+| - Rollback: reversión de commit o borrado de módulo         |
++------------------------------+------------------------------+
+                               |
+                               v
++-------------------------------------------------------------+
+| T43c2: Shadow-run runtime controlado y observabilidad       |
+| - Flag estricto ETA_SHADOW_PARITY === 'true' (default off)  |
+| - Runner asíncrono/cola en background                       |
+| - Métricas y telemetría de divergencias sin fuga de payload |
+| - No bloquea ni altera respuestas; costo medido en staging  |
 +-------------------------------------------------------------+
 ```
 
-### 4.1 Principio de Paridad del 100%
-No se admitirán márgenes de tolerancia ("fuzziness") ni heurísticas relajadas en la comparación offline de T43b. En caso de que el nuevo motor corrija un bug conocido del motor legacy, dicha discrepancia debe documentarse formalmente como una excepción aprobada en este documento antes de considerarse válida.
+### 5.1 Principio de Paridad del 100%
+No se admitirán márgenes de tolerancia ("fuzziness") ni heurísticas relajadas en la comparación offline de T43b ni T43c1. En caso de que el nuevo motor corrija un bug conocido del motor legacy, dicha discrepancia debe documentarse formalmente como una excepción aprobada en este documento antes de considerarse válida.
 
-### 4.2 Rollback por Slice
-- Cada etapa (T43a, T43b, T43c) cuenta con aislamiento completo.
+### 5.2 Rollback por Slice
+- Cada etapa (T43a, T43b, T43c1, T43c2) cuenta con aislamiento completo.
 - T43a y T43b no tocan flujos de producción ni respuestas HTTP; el rollback consiste en revertir el commit correspondiente.
-- T43c puede deshabilitarse inmediatamente apagando la variable de entorno o feature flag sin necesidad de redespliegue de emergencia.
+- T43c1 añade la referencia runtime sin integrarla al flujo de producción ni a endpoints HTTP; el rollback consiste en eliminar `backend/src/core/eta/legacy-shadow-reference.js` o revertir el commit del slice.
+- T43c2 puede deshabilitarse inmediatamente asegurando que `ETA_SHADOW_PARITY !== 'true'` (la variable de entorno debe ser exactamente igual a `'true'` para activar el runner; cualquier otro valor o su ausencia lo mantiene apagado por defecto) sin necesidad de redespliegue de emergencia.

@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node server.js",
+    "start:local": "node tools/start-local-server.js",
     "init:pg": "node scripts/pg_init.js",
     "catalog:capture": "node tools/public-catalog-snapshot.js",
     "catalog:import": "node tools/import-public-catalog.js",

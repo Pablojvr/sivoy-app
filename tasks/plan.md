@@ -1,8 +1,8 @@
 # Plan de implementación: reinvención arquitectónica de SiVoy
 
-Estado: aprobado para ejecución incremental y reversible. Contratos públicos,
-base de datos y producción requieren sus respectivos gates y aprobaciones; este
-documento no autoriza por sí solo cambios observables ni despliegues.
+Estado: evolución arquitectónica profunda pausada; carril MVP de producto activo.
+Contratos públicos, base de datos y producción requieren sus respectivos gates y
+aprobaciones; este documento no autoriza por sí solo cambios observables ni despliegues.
 
 ## Objetivo
 
@@ -10,6 +10,56 @@ Transformar SiVoy de un frontend concentrado y estilos globales hacia un monolit
 modular con arquitectura limpia, conservando el comportamiento del motor ETA y el
 flujo público sin login. La migración será incremental, reversible y desplegable
 por cortes pequeños.
+
+## Repriorización MVP — 2026-10-05
+
+La reinvención arquitectónica deja de ser el camino crítico del MVP. Se congela
+en el commit verde `a5c9eae`: las salvaguardas ya integradas permanecen, pero no
+se habilitan componentes experimentales ni se continúa una sustitución profunda
+mientras no resuelva una necesidad observable del producto.
+
+### Carril activo: producto utilizable
+
+1. Auditar el recorrido público Inicio → destino → resultados → compartir y mapa
+   opcional, en móvil y escritorio.
+2. Simplificar Inicio para que la búsqueda de destino sea la acción principal.
+3. Compactar las tarjetas de resultado: resumen colapsable, horarios agrupados y
+   acciones inequívocas para buscar origen, compartir y ver en el mapa.
+4. Corregir la ficha/modal móvil: encabezado colapsable, horarios visibles y sin
+   superposición con la navegación inferior.
+5. Consolidar navegación y estado: volver a Inicio, regresar a resultados y
+   conservar la selección sin callejones sin salida.
+6. Aplicar una pasada visual acotada mediante tokens existentes de tipografía,
+   color, espaciado, iconos y movimiento; evitar otra reescritura global de CSS.
+7. Cerrar cada corte con pruebas del flujo principal en 386×912 y escritorio,
+   build verde y revisión humana antes de producción.
+
+### Mínimos técnicos que siguen siendo obligatorios
+
+- Corregir fallos de seguridad, pérdida de datos, contratos públicos o cálculo ETA
+  que bloqueen el recorrido principal.
+- Mantener CI, pruebas, migraciones existentes y auditoría de dependencias verdes.
+- Conservar Partner fuera de alcance y las escrituras públicas desactivadas en
+  producción hasta definir un canal privado.
+- Mantener mapa y Mapbox/MapLibre como recurso auxiliar, no como entrada principal.
+
+### Pospuesto hasta después del MVP
+
+- Integración, exposición y prueba en staging del shadow runtime ETA
+  (`T43c2c`, `T43c2d2`, `T43c2e`). Los componentes ya creados permanecen
+  desactivados por defecto.
+- Evidencia avanzada de rendimiento PostgreSQL (`T14b`) mientras no exista una
+  regresión medible en el flujo público.
+- Formalización completa de staging/rollback (`T35`/`T36`) más allá del arnés y
+  los gates actuales; un despliegue solicitado seguirá requiriendo smoke y ruta
+  de reversión concreta.
+- Microservicios, arquitectura orientada a eventos y nuevas abstracciones que no
+  reduzcan tiempo de entrega o riesgo inmediato del MVP.
+- Ampliación general del modelo de reglas empresariales sin un caso real aprobado.
+
+Estas tareas no se cancelan: quedan en espera y se reactivan por evidencia
+(incidente, cuello de botella, nueva empresa o requisito de operación), no por
+completar arquitectura por sí misma.
 
 ## Supuestos
 

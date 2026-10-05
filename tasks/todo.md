@@ -1,12 +1,50 @@
 # Reinvención arquitectónica — índice de ejecución
 
-Baseline arquitectónico aprobado: `CAPABILITY-MAP.md` y `tasks/plan.md` están
-aprobados para ejecución incremental y reversible.
+Baseline arquitectónico conservado: `CAPABILITY-MAP.md` y `tasks/plan.md` siguen
+siendo la referencia, pero su evolución profunda queda en espera del post-MVP.
 
 T01–T05 son tareas ejecutables de descubrimiento. T06–T37 son paquetes de trabajo:
 antes de iniciar cada uno se debe aprobar el spec de su módulo y descomponerlo en
 tareas S/M con el formato completo de aceptación, verificación, dependencias y
 máximo cinco archivos. Un paquete no es autorización para modificar código.
+
+## Prioridad MVP — activa desde 2026-10-05
+
+La arquitectura queda pausada en el checkpoint verde `a5c9eae`. La prioridad pasa
+a producto y experiencia pública; Partner continúa fuera de alcance.
+
+- [ ] MVP01 Auditar el flujo Inicio → destino → resultados → compartir/mapa.
+  - Aceptación: inventario de fricciones y recorrido objetivo aprobado en móvil y escritorio.
+  - Verificación: navegador real en 386×912 y escritorio, sin modificar producción.
+- [ ] MVP02 Simplificar la pantalla de Inicio alrededor de un único buscador.
+  - Aceptación: copy compacto, empresas/nuevos puntos secundarios y mapa no protagonista.
+  - Verificación: unitarias, build, accesibilidad básica y navegador real.
+- [ ] MVP03 Rediseñar resultados como tarjetas compactas y colapsables.
+  - Aceptación: horarios consecutivos agrupados; acciones claras para buscar origen,
+    compartir y mapa; expansión exclusiva o predecible.
+  - Verificación: unitarias de estado, E2E destino→acción y revisión visual móvil.
+- [ ] MVP04 Ajustar ficha/modal móvil y navegación fija.
+  - Aceptación: encabezado útil al colapsar, contenido completo al expandir y cero
+    superposición con footer o barra del sistema.
+  - Verificación: 386×912, altura reducida, escritorio y navegación por teclado.
+- [ ] MVP05 Consolidar rutas, regreso y persistencia de selección.
+  - Aceptación: volver a Inicio/resultados funciona y un enlace directo restaura
+    contexto válido sin callejones sin salida.
+  - Verificación: pruebas de router y E2E atrás/adelante/recarga.
+- [ ] MVP06 Unificar identidad visual sin reescritura global.
+  - Aceptación: tokens existentes gobiernan color, tipografía, espaciado, iconos y
+    movimiento en las pantallas intervenidas.
+  - Verificación: boundaries/colores, build y comparación visual.
+- [ ] MVP07 Gate de salida del flujo público.
+  - Aceptación: flujo completo, build, auditorías y smoke verdes; aprobación humana
+    antes de desplegar.
+
+### En espera post-MVP
+
+- [ ] POST01 Retomar `T43c2c`, `T43c2d2` y `T43c2e` solo con necesidad operativa.
+- [ ] POST02 Completar `T14b` al contar con PostgreSQL representativo o una regresión medible.
+- [ ] POST03 Completar staging/rollback de `T35`/`T36` antes de una operación que lo requiera.
+- [ ] POST04 Evaluar microservicios/eventos únicamente ante límites medidos del monolito modular.
 
 ## Fase 0 — Línea base
 
@@ -116,11 +154,11 @@ máximo cinco archivos. Un paquete no es autorización para modificar código.
     - Resultado auditado: transcripción histórica fijada en commit `87684cbbca2f...`, adaptador a snapshot canónico, matriz de 26 escenarios representativos en `America/El_Salvador` con 100% de paridad estricta; 58/58 pruebas focalizadas y 420/420 backend verdes.
   - [x] T43c1: Referencia legacy de runtime independiente y matriz de procedencia/paridad offline.
     - Evidencia remota y auditoría: commit `2731f05856eb0669831e421b8576deebeeeea624`, CI GitHub Actions [run 37070686298](https://github.com/Pablojvr/sivoy-app/actions/runs/37070686298) completo success (Backend CI success y Frontend CI success); pruebas focalizadas 59/59, backend suite 421/421 verdes; revisión adversarial Antigravity APPROVE (0 Critical, 0 Required); `legacy-shadow-reference.js` aislado sin importar `backend/test/*` ni módulos actuales, sin integración en flujos de producción. T43 sigue abierto.
-  - [ ] T43c2a: Adaptador runtime puro del motor actual hacia CanonicalEtaSnapshot + matriz offline de 26 escenarios contra el adaptador de test.
+  - [x] T43c2a: Adaptador runtime puro del motor actual hacia CanonicalEtaSnapshot + matriz offline de 26 escenarios contra el adaptador de test.
     - Alcance: traduce salidas de las funciones del core actual (`calculateOfficialEntry`, `validateDesiredDate`, `projectRoutes`) a snapshot canónico profundamente inmutable (`Object.freeze`) y desacoplado, sin importar `backend/test/*`, sin rutas, cola ni observabilidad; archivos exactos: `backend/src/core/eta/current-runtime-adapter.js`, `backend/test/eta-parity-matrix.test.js`, `tasks/specs/T43-eta-parity.md`; máximo 3 archivos y rollback atómico. Depende de T43c1.
-  - [ ] T43c2b: Runner y cola FIFO acotada en background.
+  - [x] T43c2b: Runner y cola FIFO acotada en background.
     - Alcance: runner con dependencias inyectadas, disabled by default con flag exacto `process.env.ETA_SHADOW_PARITY === 'true'`, ejecución diferida en background con cola FIFO acotada y descarte drop-on-full ante saturación (reconociendo que `setImmediate` no elimina contención de CPU en Node.js de hilo único), aislamiento total de excepciones y pruebas unitarias sin integración HTTP; archivos exactos: `backend/src/application/rutas/eta-shadow-runner.js`, `backend/test/eta-shadow-runner.test.js`, `tasks/specs/T43-eta-parity.md`; máximo 3 archivos y rollback operativo cambiando/removiendo la variable con reinicio/redeploy controlado de la plataforma sin requerir revertir código. Depende de T43c2a.
-  - [ ] T43c2d1: Telemetría pura del shadow-run con contadores y cardinalidad fija.
+  - [x] T43c2d1: Telemetría pura del shadow-run con contadores y cardinalidad fija.
     - Alcance: módulo de telemetría puro con factory, singleton runtime `defaultEtaShadowTelemetry`, `resetMetrics`, allowlist cerrada de labels y métricas agregadas; snapshot de métricas retornado profundamente inmutable (`Object.freeze`) y desconectado del estado interno; pruebas que serializan salida confirman ausencia total de `expected`/`actual`, payloads de entrada, IDs de puntos, nombres, fechas, horarios, reglas, timestamps, stack y errores raw; match no emite logs ni métricas de divergencia; archivos exactos: `backend/src/core/eta/eta-shadow-telemetry.js`, `backend/test/eta-shadow-telemetry.test.js`, `tasks/specs/T43-eta-parity.md`; máximo 3 archivos y rollback atómico. Depende de T43c2b y precede obligatoriamente a T43c2c.
   - [ ] T43c2c: Integración del puerto shadow en casos de uso / composition root.
     - Alcance: invocación desacoplada sin await pasando copias defensivas aisladas (nunca referencias mutables del request ni entidades de dominio), con runner y telemetría inyectables para pruebas y singleton runtime `defaultEtaShadowTelemetry`, preservando 100% status/body/headers HTTP; archivos exactos: `backend/src/application/rutas/route-use-cases.js`, `backend/src/domains/rutas/rutas.service.js`, `backend/test/route-use-cases.test.js`; validación ejecuta también `node --test test/rutas-contract.test.js` sin modificar ese cuarto archivo; máximo 3 archivos y rollback atómico. Depende de T43c2b y T43c2d1.

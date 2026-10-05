@@ -4,11 +4,17 @@
 
 Este documento establece el contrato, arquitectura y estrategia de validación para garantizar **100% de paridad** entre el comportamiento actual de proyección/cálculo logístico y la evolución modular del motor ETA en SiVoy.
 
-El proceso se estructura en tres fases estrictamente incrementales e independientes:
-- **T43a**: Comparador estructural puro inmutable y pruebas de caracterización RED (este contrato y suite de pruebas).
-- **T43b**: Referencia legacy de test con procedencia SHA fija, adaptadores normalizadores a snapshot canónico y matriz offline ("golden dataset") sin alterar respuestas a clientes.
-- **T43c1**: Referencia legacy de runtime independiente (`backend/src/core/eta/legacy-shadow-reference.js`) y matriz de procedencia/paridad offline (26 escenarios) comparando el fixture legacy frente a la referencia de runtime, con límite estricto de 3 archivos, rollback aislado y sin integración en flujos de producción.
-- **T43c2**: Runner/cola en background, feature flag estricto (`ETA_SHADOW_PARITY === 'true'`), apagado por defecto, y observabilidad/métricas de divergencias posterior, sin bloquear ni alterar la respuesta al usuario; el costo de CPU se valida en staging.
+El proceso se estructura en fases estrictamente incrementales e independientes:
+- **T43a**: Comparador estructural puro inmutable y pruebas de caracterización RED (completado y auditado).
+- **T43b**: Referencia legacy de test con procedencia SHA fija, adaptadores normalizadores a snapshot canónico y matriz offline ("golden dataset") de 26 escenarios sin alterar respuestas a clientes (completado y auditado).
+- **T43c1**: Referencia legacy de runtime independiente (`backend/src/core/eta/legacy-shadow-reference.js`) y matriz de procedencia/paridad offline (26 escenarios) comparando el fixture legacy frente a la referencia de runtime, con límite estricto de 3 archivos, rollback aislado y sin integración en flujos de producción (completado y auditado; T43 sigue abierto).
+- **T43c2**: Shadow-run runtime controlado y observabilidad, descompuesto en seis sub-slices atómicos (máx. 3 archivos y rollback atómico cada uno):
+  - **T43c2a**: Adaptador runtime puro del motor actual (`calculateOfficialEntry`, `validateDesiredDate`, `projectRoutes`) hacia `CanonicalEtaSnapshot` + matriz offline de 26 escenarios contra el adaptador de test. Sin rutas, cola ni observabilidad. Salida profundamente inmutable y desacoplada; runtime no importa `backend/test/*`. Depende de T43c1.
+  - **T43c2b**: Runner con dependencias inyectadas y cola FIFO acotada en background, disabled by default con flag exacto `process.env.ETA_SHADOW_PARITY === 'true'`, ejecución diferida con política `drop-on-full` ante saturación (reconociendo que `setImmediate` no elimina contención de CPU en Node.js de hilo único), aislamiento total de excepciones y pruebas unitarias. Sin integración HTTP. Depende de T43c2a.
+  - **T43c2d1**: Telemetría pura de shadow-run con factory y singleton `defaultEtaShadowTelemetry` (`resetMetrics` para pruebas), contadores agregados y labels de cardinalidad fija bajo allowlist cerrada; snapshot de métricas profundamente inmutable (`Object.freeze`) y desconectado del estado interno; sin timestamps ni `lastEvaluatedAt`; pruebas que serializan salida confirman ausencia total de `expected`/`actual`, payloads de entrada, IDs de puntos, nombres, fechas, horarios, reglas, stack y errores raw; match no emite logs ni métricas de divergencia. Depende de T43c2b.
+  - **T43c2c**: Integración del puerto shadow en los casos de uso / composition root sin `await` y sin cambiar status/body/headers HTTP. Copias defensivas de entrada al runner (nunca referencias mutables del request ni entidades de dominio). Inyección de runner y telemetría en `createRutasService` para tests; runtime singleton usa `defaultEtaShadowTelemetry` sin reexportarlo desde `rutas.service.js`. Falla de runner/telemetría nunca afecta la respuesta HTTP. Validación ejecuta también `node --test test/rutas-contract.test.js` sin modificar ese cuarto archivo. Depende de T43c2b y T43c2d1.
+  - **T43c2d2**: Exposición y composición de métricas shadow en observabilidad con contrato de `/api/metrics` preservado (autenticado por Bearer token, 404 y `no-store`) y sin nuevos endpoints públicos. Compositor genérico de providers en `observability-routes.js` sin acoplamiento a ETA; `server.js` importa directamente `defaultEtaShadowTelemetry` (sin pasar por `rutas.service.js`); compatibilidad aditiva exacta de raíz con clave reservada fija `etaShadowParity` (ausente si `process.env.ETA_SHADOW_PARITY !== 'true'`, presente con contadores en cero si está activo sin trabajos evaluados); detección de colisiones con error genérico; fail-open a HTTP-only ante fallos de snapshot shadow sin filtrar error ni afectar rutas de negocio; sin datos sensibles. Depende de T43c2c.
+  - **T43c2e**: Staging real: verificar `America/El_Salvador`, CPU, profundidad/descartes de cola, latencia p95/p99 y paridad estricta (0% divergencia). Procedimiento de rollback operativo cambiando/removiendo la variable con reinicio/redeploy controlado de la plataforma sin requerir revertir código. Activación productiva solo tras validación satisfactoria. Depende de todos los slices anteriores (`T43c2a` a `T43c2d2`).
 
 ## 1. Alcance y Fronteras
 
@@ -37,22 +43,30 @@ El proceso se estructura en tres fases estrictamente incrementales e independien
     formaban parte del contrato legacy y quedan fuera de T43b hasta el cutover
     del calendario operativo.
   - Verificación de paridad estricta al 100%; cualquier divergencia legítima debe ser documentada explícitamente en el spec y nunca silenciada.
-- **Fase T43c1 (Referencia Runtime Independiente y Paridad Estricta)**:
+- **Fase T43c1 (Referencia Runtime Independiente y Paridad Estricta — COMPLETADA Y AUDITADA)**:
   - Módulo de referencia legacy para runtime: `backend/src/core/eta/legacy-shadow-reference.js`.
   - Transcripción productiva congelada desde SHA `87684cbbca2f9e959d9c78f7fc3cc02c8e7895a4`.
   - Contrato público: exporta `runLegacyEtaScenario(scenario)` y devuelve el mismo `CanonicalEtaSnapshot` generado por `runLegacyEtaScenario(fixtureEngine, scenario)` del soporte de test.
-  - Aislamiento estricto de dependencias:
-    - **Prohibido importar fixtures de test en producción**: no puede importar ningún archivo bajo `backend/test/*`.
-    - **Prohibido importar módulos actuales de producción**: no puede importar `official-entry`, `route-projection` ni ningún otro módulo modularizado actual.
-    - **Operación pura**: no debe registrar logs (`console.*` ni loggers) ni mutar objetos de entrada.
+  - Aislamiento estricto de dependencias verificado:
+    - **Prohibido importar fixtures de test en producción**: no importa ningún archivo bajo `backend/test/*`.
+    - **Prohibido importar módulos actuales de producción**: no importa `official-entry`, `route-projection` ni ningún otro módulo modularizado actual.
+    - **Operación pura**: no registra logs (`console.*` ni loggers) ni muta objetos de entrada.
   - Matriz de procedencia/paridad: verificación offline contra los 26 escenarios del golden dataset comparando el snapshot del fixture legacy esperado frente al snapshot de runtime (`compareEtaSnapshots(expectedSnapshot, runtimeSnapshot)`).
-  - Frontera de integración: **la referencia runtime no se integra todavía en T43c1** a ningún endpoint, servicio ni flujo de cotización/reserva activo. Queda aislada y validada exclusivamente en pruebas.
-  - Límite estricto de archivos: máximo 3 archivos para T43c1 (`tasks/specs/T43-eta-parity.md`, `backend/test/eta-parity-matrix.test.js`, `backend/src/core/eta/legacy-shadow-reference.js`).
-  - Estrategia de rollback: reversión atómica del commit de T43c1 o eliminación física del archivo desacoplado `backend/src/core/eta/legacy-shadow-reference.js` sin impacto colateral.
-- **Fase T43c2 (Runner Asíncrono, Feature Flag Estricto y Observabilidad Posterior)**:
-  - Mecanismo runner/cola en background para ejecutar la referencia legacy en modo shadow de manera asíncrona y no bloqueante.
-  - Feature flag estricto: activación condicionada estrictamente a `process.env.ETA_SHADOW_PARITY === 'true'`. Cualquier otro valor (`'false'`, `undefined`, cadenas vacías u otros) mantiene el shadow-run completamente apagado por defecto.
-  - Métricas e instrumentación de observabilidad para divergencias sin bloquear ni alterar la respuesta al usuario, sanitizando diferencias y omitiendo payloads sensibles. El impacto global de CPU, cola y latencia se mide en staging antes de cualquier activación productiva.
+  - Frontera de integración: referencia runtime aislada y validada exclusivamente en pruebas, sin integración todavía a endpoints ni servicios en T43c1.
+  - Evidencia auditada de cierre:
+    - Commit: `2731f05856eb0669831e421b8576deebeeeea624`.
+    - CI GitHub Actions: [run 37070686298](https://github.com/Pablojvr/sivoy-app/actions/runs/37070686298) completo success (Backend CI y Frontend CI success).
+    - Pruebas: suite focalizada 59/59, suite backend 421/421 verdes.
+    - Revisión adversarial: Antigravity APPROVE (0 Critical, 0 Required).
+    - T43 permanece abierto para la ejecución de T43c2.
+- **Fase T43c2 (Shadow-Run Runtime Controlado y Observabilidad)**:
+  - Descompuesta en seis sub-slices atómicos (máx. 3 archivos y rollback atómico cada uno):
+  - **T43c2a**: Adaptador runtime puro del motor actual (`calculateOfficialEntry`, `validateDesiredDate`, `projectRoutes`) hacia `CanonicalEtaSnapshot` + matriz offline de 26 escenarios contra el adaptador de test. Sin rutas, cola ni observabilidad. Salida profundamente inmutable y desacoplada; a diferencia de la referencia legacy, el adaptador actual puede importar los módulos ETA actuales (`official-entry.js`, `route-projection.js`), pero tiene prohibido importar `backend/test/*`. Depende de T43c1.
+  - **T43c2b**: Runner con dependencias inyectadas y cola FIFO acotada en background, disabled by default condicionado estrictamente a `process.env.ETA_SHADOW_PARITY === 'true'` (cualquier otro valor o su ausencia lo mantiene apagado), ejecución diferida sin fallback inline (`setImmediate` no elimina contención de CPU en Node.js de hilo único, por lo que la cola acotada y descarte `drop-on-full` son obligatorios), aislamiento total de excepciones y pruebas unitarias. Sin integración HTTP. Depende de T43c2a.
+  - **T43c2d1**: Telemetría pura de shadow-run con factory y singleton `defaultEtaShadowTelemetry` (`resetMetrics` para pruebas), contadores y labels de cardinalidad fija bajo allowlist cerrada. Snapshot de métricas profundamente inmutable (`Object.freeze`) y desconectado del estado interno. Pruebas que serializan salida confirman ausencia total de `expected`/`actual`, payloads de entrada, IDs de puntos, nombres, fechas, horarios, reglas, stack y errores raw; match no emite logs ni métricas de divergencia; sin timestamps ni `lastEvaluatedAt`. Depende de T43c2b.
+  - **T43c2c**: Integración del puerto shadow en los casos de uso / composition root sin `await` y sin alterar status code, body ni headers HTTP. El runner recibe copias defensivas aisladas, nunca referencias mutables del request ni entidades de dominio. Inyección de runner y telemetría en `createRutasService` para pruebas; el singleton productivo consume `defaultEtaShadowTelemetry` sin reexportarlo desde `rutas.service.js` para que `server.js` lo consuma. Falla del runner/telemetría nunca afecta la respuesta HTTP. La contención de CPU, profundidad de cola y latencia se miden en staging. Validación ejecuta también `node --test test/rutas-contract.test.js` sin modificar ese cuarto archivo. Depende de T43c2b y T43c2d1.
+  - **T43c2d2**: Exposición y composición de métricas shadow en observabilidad existente (`observability-routes.js`, `server.js`, `observability-routes.test.js` exactamente), preservando estrictamente el contrato autenticado de `/api/metrics` (Bearer token, 404 y `no-store`) y sin introducir nuevos endpoints públicos. Compositor genérico de providers en `observability-routes.js` sin acoplamiento a ETA; `server.js` importa directamente `defaultEtaShadowTelemetry` (sin pasar por `rutas.service.js`); compatibilidad aditiva de raíz con clave reservada fija `etaShadowParity` (ausente si `ETA_SHADOW_PARITY !== 'true'`, con contadores en cero si activo sin trabajos evaluados), sin colisión silenciosa (error genérico ante colisión), fail-open a HTTP-only si falla el snapshot shadow sin filtrar errores ni afectar rutas de negocio; sin datos sensibles. Depende de T43c2c.
+  - **T43c2e**: Staging real: verificación en zona horaria `America/El_Salvador`, midiendo uso de CPU, profundidad y descartes de cola, latencia p95/p99 y paridad estricta (0% divergencia). Verificación de rollback operativo cambiando/removiendo la variable con reinicio/redeploy controlado de la plataforma sin requerir revertir código. Activación productiva solo tras validación satisfactoria. Depende de todos los slices anteriores (`T43c2a` a `T43c2d2`).
 
 ### Fuera de alcance
 - Respuestas de API y rutas HTTP (se mantienen idénticas para los clientes).
@@ -170,54 +184,220 @@ export interface ComparisonResult {
   - Máximo 3 archivos para el slice T43c1 (`tasks/specs/T43-eta-parity.md`, `backend/test/eta-parity-matrix.test.js`, `backend/src/core/eta/legacy-shadow-reference.js`).
   - Rollback: reversión atómica del commit de T43c1 o eliminación de `backend/src/core/eta/legacy-shadow-reference.js` sin efectos colaterales en el sistema.
 
+### 4.1 Evidencia de Cierre Auditado de T43c1
+- **Commit atómico**: `2731f05856eb0669831e421b8576deebeeeea624`
+- **Integración continua**: GitHub Actions [run 37070686298](https://github.com/Pablojvr/sivoy-app/actions/runs/37070686298) completado con status `success` en todos sus jobs (Backend CI: success, Frontend CI: success).
+- **Pruebas automatizadas**:
+  - Pruebas focalizadas de paridad: 59/59 pasadas (`backend/test/eta-parity-matrix.test.js`).
+  - Suite completa de backend: 421/421 pasadas.
+- **Auditoría adversarial**: Revisión adversarial independiente por Antigravity dictaminada como `APPROVE` con 0 hallazgos Critical y 0 hallazgos Required.
+- **Estado del paquete T43**: T43c1 queda oficialmente cerrado y auditado. El paquete T43 permanece abierto para acometer la fase T43c2 descompuesta en sus slices atómicos.
+
 ---
 
 ## 5. Estrategia Incremental y Despliegue
 
 ```
 +-------------------------------------------------------------+
-| T43a: Comparador puro + pruebas RED                         |
+| T43a: Comparador puro + pruebas RED (COMPLETADO)            |
 | - eta-parity-comparator.js                                  |
 | - eta-parity-comparator.test.js                             |
-| - tasks/specs/T43-eta-parity.md                             |
-| (Sin efectos colaterales, rollback: borrado de archivos)    |
 +------------------------------+------------------------------+
                                |
                                v
 +-------------------------------------------------------------+
-| T43b: Matriz offline de paridad (Golden tests)              |
-| - Referencia legacy fijada en 87684cbbca2f...                |
-| - Adaptador de salida pública a canonical snapshot          |
-| - Suite comparativa ejecutada en America/El_Salvador        |
-| - 100% de paridad requerida antes de cualquier migración    |
+| T43b: Matriz offline de paridad golden (COMPLETADO)         |
+| - Referencia legacy en commit 87684cbb...                   |
+| - 26 escenarios offline, paridad 100% en America/El_Salvador|
 +------------------------------+------------------------------+
                                |
                                v
 +-------------------------------------------------------------+
-| T43c1: Referencia runtime independiente + matriz offline    |
-| - legacy-shadow-reference.js (congelado en SHA 87684cbb...) |
-| - Contrato runLegacyEtaScenario(scenario) -> CanonicalEta  |
-| - Prohibido importar test/ en runtime o módulos nuevos      |
-| - Matriz de 26 escenarios validando fixture vs runtime      |
-| - Máximo 3 archivos, sin integración a rutas de producción  |
-| - Rollback: reversión de commit o borrado de módulo         |
+| T43c1: Referencia runtime independiente (COMPLETADO)        |
+| - legacy-shadow-reference.js desacoplado de test y modular  |
+| - 26 escenarios offline validados contra fixture            |
 +------------------------------+------------------------------+
                                |
                                v
 +-------------------------------------------------------------+
-| T43c2: Shadow-run runtime controlado y observabilidad       |
-| - Flag estricto ETA_SHADOW_PARITY === 'true' (default off)  |
-| - Runner asíncrono/cola en background                       |
-| - Métricas y telemetría de divergencias sin fuga de payload |
-| - No bloquea ni altera respuestas; costo medido en staging  |
+| T43c2a: Adaptador runtime puro del motor actual             |
+| - current-runtime-adapter.js -> CanonicalEtaSnapshot        |
+| - Matriz offline de 26 escenarios vs adaptador de test      |
+| - Exactamente 3 archivos, sin rutas, cola ni observabilidad |
++------------------------------+------------------------------+
+                               |
+                               v
++-------------------------------------------------------------+
+| T43c2b: Runner y cola FIFO acotada en background            |
+| - Inyección de dependencias, ETA_SHADOW_PARITY === 'true'   |
+| - Cola acotada, política drop-on-full, ejecución diferida   |
+| - Aislamiento total de excepciones, sin integración HTTP    |
++------------------------------+------------------------------+
+                               |
+                               v
++-------------------------------------------------------------+
+| T43c2d1: Telemetría pura con allowlist de métricas          |
+| - Cardinalidad fija y snapshot desconectado                 |
+| - Ausencia de datos sensibles                               |
++-------------------------------------------------------------+
+                               |
+                               v
++-------------------------------------------------------------+
+| T43c2c: Integración del puerto shadow en composition root   |
+| - Sin await y respuestas HTTP 100% idénticas                |
+| - Copias defensivas aisladas                                |
++-------------------------------------------------------------+
+                               |
+                               v
++-------------------------------------------------------------+
+| T43c2d2: Exposición en /api/metrics con token               |
+| - Contrato de raíz preservado y sin endpoint público        |
++-------------------------------------------------------------+
+                               |
+                               v
++-------------------------------------------------------------+
+| T43c2e: Verificación en staging real y activación controlada|
+| - Validación en America/El_Salvador (100% paridad)          |
+| - Medición de CPU, cola/drops, latencia p95/p99             |
+| - Rollback operativo cambiando/removiendo variable          |
+| - Activación productiva condicionada a aprobación           |
 +-------------------------------------------------------------+
 ```
 
-### 5.1 Principio de Paridad del 100%
-No se admitirán márgenes de tolerancia ("fuzziness") ni heurísticas relajadas en la comparación offline de T43b ni T43c1. En caso de que el nuevo motor corrija un bug conocido del motor legacy, dicha discrepancia debe documentarse formalmente como una excepción aprobada en este documento antes de considerarse válida.
+### 5.1 Descomposición Detallada de T43c2 (Slices Atómicos)
 
-### 5.2 Rollback por Slice
-- Cada etapa (T43a, T43b, T43c1, T43c2) cuenta con aislamiento completo.
-- T43a y T43b no tocan flujos de producción ni respuestas HTTP; el rollback consiste en revertir el commit correspondiente.
-- T43c1 añade la referencia runtime sin integrarla al flujo de producción ni a endpoints HTTP; el rollback consiste en eliminar `backend/src/core/eta/legacy-shadow-reference.js` o revertir el commit del slice.
-- T43c2 puede deshabilitarse inmediatamente asegurando que `ETA_SHADOW_PARITY !== 'true'` (la variable de entorno debe ser exactamente igual a `'true'` para activar el runner; cualquier otro valor o su ausencia lo mantiene apagado por defecto) sin necesidad de redespliegue de emergencia.
+Cada slice tiene un límite estricto de máximo 3 archivos modificados, hasta 3 criterios de aceptación y una ruta de rollback atómica:
+
+1. **T43c2a — Adaptador runtime puro del motor actual**:
+   - **Propósito**: Adaptar la salida de las funciones del core actual (`calculateOfficialEntry`, `validateDesiredDate`, `projectRoutes`) a `CanonicalEtaSnapshot` en runtime puro.
+   - **Alcance**: Adaptador puro y suite comparativa offline de 26 escenarios contra el adaptador de test. Sin endpoints HTTP, sin cola y sin observabilidad.
+   - **Archivos previstos (exactamente 3)**:
+     - `backend/src/core/eta/current-runtime-adapter.js`
+     - `backend/test/eta-parity-matrix.test.js`
+     - `tasks/specs/T43-eta-parity.md`
+   - **Archivos prohibidos**: Rutas HTTP, controladores, runner, observabilidad, dependencias externas.
+   - **Regla de importación**: A diferencia de la referencia legacy, el adaptador actual **puede** importar los módulos ETA actuales (`official-entry.js`, `route-projection.js`), pero tiene **prohibido terminantemente** importar `backend/test/*`. Salida profundamente inmutable (`Object.freeze`) y desacoplada.
+   - **Criterios de aceptación**:
+     1. Adapta las salidas de las funciones del core actual (`calculateOfficialEntry`, `validateDesiredDate`, `projectRoutes`) produciendo `CanonicalEtaSnapshot` idéntico al adaptador de prueba sobre los 26 escenarios del golden dataset.
+     2. Función pura, determinista y de salida profundamente inmutable (`Object.freeze`) y desacoplada, sin mutar entradas ni emitir logs.
+     3. Módulo runtime sin dependencias de `backend/test/*`, sin rutas HTTP, sin colas y sin observabilidad.
+   - **Rollback**: Eliminación de `current-runtime-adapter.js` y reversión atómica del commit del slice.
+   - **Comandos de verificación**:
+     - `cd backend && npm test -- test/eta-parity-matrix.test.js`
+     - `cd backend && npm test`
+
+2. **T43c2b — Runner y cola FIFO acotada en background**:
+   - **Propósito**: Proveer el runner asíncrono con dependencias inyectadas para ejecutar la referencia legacy en modo shadow de manera segura.
+   - **Alcance**: Runner con dependencias inyectadas y cola FIFO acotada, desactivado por defecto mediante verificación estricta de entorno: `process.env.ETA_SHADOW_PARITY === 'true'`. Cualquier otro valor o ausencia resulta en no-op inmediato.
+   - **Archivos previstos (exactamente 3)**:
+     - `backend/src/application/rutas/eta-shadow-runner.js`
+     - `backend/test/eta-shadow-runner.test.js`
+     - `tasks/specs/T43-eta-parity.md`
+   - **Archivos prohibidos**: Controladores HTTP, routers de Express, esquemas de BD.
+   - **Regla de importación**: Prohibido importar `backend/test/*` desde runtime.
+   - **Criterios de aceptación**:
+     1. Desactivado por defecto: activación condicionada estrictamente a `process.env.ETA_SHADOW_PARITY === 'true'`; cualquier otro valor o ausencia opera como no-op inmediato con dependencias inyectadas.
+     2. Ejecución diferida en background con cola FIFO acotada y descarte `drop-on-full` ante saturación (reconociendo que `setImmediate` difiere el trabajo pero no elimina la contención de CPU en Node.js de hilo único).
+     3. Aislamiento total de excepciones (captura absoluta de errores síncronos y asíncronos sin afectar al llamador ni al proceso) y pruebas unitarias aisladas sin integración HTTP.
+   - **Rollback**: Operativamente, cambiar o remover `ETA_SHADOW_PARITY` y aplicar el reinicio/redeploy controlado que requiera la plataforma (sin requerir revertir código), o reversión atómica del commit.
+   - **Comandos de verificación**:
+     - `cd backend && npm test -- test/eta-shadow-runner.test.js`
+     - `cd backend && npm test`
+
+3. **T43c2d1 — Telemetría pura del shadow-run con contadores y cardinalidad fija**:
+   - **Propósito**: Implementar módulo de telemetría puro con exportación de factory y singleton `defaultEtaShadowTelemetry`, contadores agregados y labels de cardinalidad fija bajo allowlist cerrada para métricas de paridad, sin timestamps.
+   - **Alcance**: Exportación de factory y singleton `defaultEtaShadowTelemetry` con método `resetMetrics` para pruebas. Contadores agregados con labels de cardinalidad estrictamente fija. Snapshot retornado profundamente inmutable (`Object.freeze`) y desconectado del estado interno. Sin timestamps ni `lastEvaluatedAt`.
+   - **Archivos previstos (exactamente 3)**:
+     - `backend/src/core/eta/eta-shadow-telemetry.js`
+     - `backend/test/eta-shadow-telemetry.test.js`
+     - `tasks/specs/T43-eta-parity.md`
+   - **Archivos prohibidos**: Loggers externos no autorizados, endpoints de usuario, dependencias no autorizadas.
+   - **Regla de importación**: Prohibido importar `backend/test/*`.
+   - **Criterios de aceptación**:
+     1. Exporta factory pura y singleton `defaultEtaShadowTelemetry` con contadores agregados y labels de cardinalidad estrictamente fija bajo allowlist cerrada, función `resetMetrics` para pruebas aisladas y sin ningún tipo de timestamp ni `lastEvaluatedAt`.
+     2. Pruebas que serializan la salida confirman la ausencia total de `expected`/`actual`, payloads de entrada, IDs de puntos, nombres, fechas civiles, horarios, reglas, trazas de stack y errores raw; coincidencia (`match: true`) no emite logs ni métricas de divergencia.
+     3. El snapshot de métricas retornado es profundamente inmutable (`Object.freeze`) y desconectado del estado interno.
+   - **Rollback**: Reversión atómica del commit del slice o retiro del módulo puro de telemetría.
+   - **Comandos de verificación**:
+     - `cd backend && npm test -- test/eta-shadow-telemetry.test.js`
+     - `cd backend && npm test`
+
+4. **T43c2c — Integración del puerto shadow en composition root / casos de uso**:
+   - **Propósito**: Conectar el puerto shadow y telemetría en los casos de uso / composition root sin afectar el flujo transaccional.
+   - **Alcance**: Despacho sin `await` al runner asíncrono. Garantía absoluta de cero impacto en el wire format: status code, body JSON y headers HTTP se emiten 100% idénticos con o sin shadow run. En `rutas.service.js`, runner y telemetría se inyectan en `createRutasService` para tests; el singleton productivo de runtime consume `defaultEtaShadowTelemetry` sin reexportarlo desde `rutas.service.js` para que `server.js` lo consuma. La falla del runner o telemetría nunca afecta la respuesta HTTP.
+   - **Archivos previstos (exactamente 3)**:
+     - `backend/src/application/rutas/route-use-cases.js`
+     - `backend/src/domains/rutas/rutas.service.js`
+     - `backend/test/route-use-cases.test.js`
+   - **Archivos prohibidos**: Rutas/controladores de Express (mantener desacoplamiento), esquemas de base de datos, frontend.
+   - **Regla de importación**: Prohibido importar `backend/test/*`.
+   - **Criterios de aceptación**:
+     1. Invocación al puerto shadow completamente desacoplada (sin `await`), enviando copias defensivas aisladas de los datos requeridos y nunca referencias mutables del request ni entidades de dominio; cualquier fallo del runner o telemetría nunca afecta la respuesta HTTP.
+     2. Preservación estricta de respuestas HTTP: status code, body JSON y headers permanecen 100% idénticos con o sin shadow run activo (la contención de CPU, profundidad de cola y latencia se miden en staging).
+     3. Pruebas unitarias de casos de uso y suite de contrato HTTP (`test/rutas-contract.test.js`) verdes sin alterar el comportamiento de producción; runner y telemetría inyectables en `createRutasService` para pruebas, mientras el singleton productivo consume `defaultEtaShadowTelemetry` sin reexportarlo.
+   - **Rollback**: Retiro de la invocación en el composition root o cambio/remoción de `ETA_SHADOW_PARITY` con reinicio/redeploy controlado.
+   - **Comandos de verificación**:
+     - `cd backend && node --test test/route-use-cases.test.js`
+     - `cd backend && node --test test/rutas-contract.test.js`
+     - `cd backend && npm test`
+     *(Nota: `test/rutas-contract.test.js` se ejecuta en la validación sin modificar ese cuarto archivo).*
+
+5. **T43c2d2 — Composición y exposición de métricas shadow en observabilidad**:
+   - **Propósito**: Componer y exponer las métricas shadow en la infraestructura de observabilidad existente conservando el contrato de `/api/metrics` y sin nuevo endpoint público.
+   - **Alcance**: Integración en observabilidad protegida por Bearer token. `observability-routes.js` conserva `registerObservabilityRoutes` y agrega un compositor genérico de providers, sin importar nada de ETA. `server.js` importa directamente el singleton default seguro desde `eta-shadow-telemetry.js`, no desde `rutas.service.js`, evitando circularidad y acoplamiento de dominio. El provider único sigue devolviendo exactamente el snapshot actual; el provider compuesto mantiene todas las claves HTTP existentes en la raíz y añade solo la clave reservada fija `etaShadowParity`. Esta clave está ausente cuando `ETA_SHADOW_PARITY` no es exactamente `'true'`; presente con contadores en cero cuando está activo pero aún no ha procesado trabajos. No crea namespace `http` ni `eta_shadow`, no cambia las claves HTTP existentes y no crea endpoints. La colisión con `etaShadowParity` se detecta deterministamente con error genérico (no sobreescribir silenciosamente). Si el provider shadow falla al tomar snapshot, el compositor conserva el snapshot HTTP y omite la clave shadow sin filtrar el error sensible; esto afecta exclusivamente la observabilidad, nunca las rutas de negocio.
+   - **Archivos previstos (exactamente 3)**:
+     - `backend/src/core/observability/observability-routes.js`
+     - `backend/server.js`
+     - `backend/test/observability-routes.test.js`
+     *(Nota: No se incluye spec como archivo del slice d2 porque el contrato queda fijado en la iteración documental previa).*
+   - **Archivos prohibidos**: Nuevos endpoints públicos, rutas no autenticadas, routers adicionales, módulos de dominio o ETA importados en `observability-routes.js`.
+   - **Regla de importación**: Prohibido importar `backend/test/*`. `observability-routes.js` no importa módulos de ETA. `server.js` importa `defaultEtaShadowTelemetry` directamente de `backend/src/core/eta/eta-shadow-telemetry.js` sin pasar por `rutas.service.js`.
+   - **Criterios de aceptación**:
+     1. Compatibilidad aditiva exacta de raíz + flag estricto: conserva todas las claves HTTP existentes en la raíz de `/api/metrics`, omitiendo `etaShadowParity` cuando `process.env.ETA_SHADOW_PARITY !== 'true'` y exponiéndola como objeto de contadores fijos (en cero inicial) cuando sea exactamente `'true'`, sin namespaces `http` ni `eta_shadow`.
+     2. Seguridad actual de metrics intacta: preserva autenticación obligatoria por token Bearer, respuesta 404 ante token ausente/inválido en router aislado, cabeceras `Cache-Control: no-store` y cero endpoints nuevos.
+     3. Compositor genéricamente probado: compositor genérico en `observability-routes.js` probado con contadores fijos, detección determinista de colisiones con error genérico, fail-open a HTTP-only ante fallos del provider shadow (manteniendo métricas HTTP sin filtrar errores ni afectar rutas de negocio) y ausencia absoluta de datos sensibles (sin timestamps ni `lastEvaluatedAt`, sin fechas, `expected`/`actual`, payloads, IDs, nombres, horarios, reglas, stack ni errores raw).
+   - **Rollback**: Reversión atómica del commit del slice o cambio/remoción de `ETA_SHADOW_PARITY` con reinicio/redeploy controlado.
+   - **Comandos de verificación**:
+     - `cd backend && npm test -- test/observability-routes.test.js`
+     - `cd backend && npm test`
+
+6. **T43c2e — Verificación en staging real y activación controlada**:
+   - **Propósito**: Auditoría integral en entorno staging real antes de cualquier habilitación en producción.
+   - **Alcance**: Despliegue en staging bajo zona horaria `America/El_Salvador`.
+   - **Archivos previstos (máximo 3)**:
+     - `docs/STAGING_ETA_PARITY.md`
+     - `tasks/plan.md`
+     - `tasks/specs/T43-eta-parity.md`
+   - **Criterios de aceptación**:
+     1. Validación en zona horaria oficial `America/El_Salvador` con 100% de paridad estricta (0% de divergencia respecto a la referencia legacy).
+     2. Medición objetiva en staging de porcentaje de CPU, profundidad de cola FIFO y descartes (`drops`), y latencia p95 y p99 en endpoints de rutas.
+     3. Validación del procedimiento operativo de rollback: cambio o remoción de `ETA_SHADOW_PARITY` y aplicación del reinicio/redeploy controlado de la plataforma sin requerir revertir código, confirmando el cese de encolamiento y estabilidad del servicio antes de considerar activación productiva.
+   - **Rollback**: Cambiar o remover `ETA_SHADOW_PARITY` en el entorno staging y aplicar el reinicio/redeploy controlado.
+   - **Comandos de verificación**:
+     - Inspección de métricas agregadas y health check en staging.
+     - Validación de logs estructurados y verificación de latencia p95/p99.
+
+### 5.2 Matriz de Dependencias entre Slices
+- Secuencia obligatoria: `T43c2a` -> `T43c2b` -> `T43c2d1` -> `T43c2c` -> `T43c2d2` -> `T43c2e`.
+- `T43c2a` depende estrictamente de `T43c1`.
+- `T43c2b` depende de `T43c2a`.
+- `T43c2d1` depende de `T43c2b`.
+- `T43c2c` depende de `T43c2b` y `T43c2d1`.
+- `T43c2d2` depende de `T43c2c`.
+- `T43c2e` exige la integración completa de todos los slices anteriores (`T43c2a` a `T43c2d2`).
+
+### 5.3 Principio de Paridad del 100%
+No se admitirán márgenes de tolerancia ("fuzziness") ni heurísticas relajadas en la comparación offline de T43b, T43c1, T43c2a ni en la verificación en staging de T43c2e. En caso de que el nuevo motor corrija un bug conocido del motor legacy, dicha discrepancia debe documentarse formalmente como una excepción aprobada en este documento antes de considerarse válida.
+
+### 5.4 Rollback por Slice
+- Cada etapa y slice (T43a, T43b, T43c1, T43c2a, T43c2b, T43c2d1, T43c2c, T43c2d2, T43c2e) cuenta con aislamiento completo y reversión independiente.
+- **T43a, T43b, T43c1, T43c2a**: No tocan flujos de producción ni respuestas HTTP; el rollback consiste en revertir el commit correspondiente o eliminar los archivos introducidos.
+- **T43c2b, T43c2d1, T43c2c, T43c2d2**: Operativamente, el rollback consiste en cambiar o remover la variable de entorno `ETA_SHADOW_PARITY` y aplicar el reinicio/redeploy controlado que requiera la plataforma; no requiere revertir código. En pruebas in-process puede verificarse el flag dinámico solo si el diseño final lo soporta, pero no se declara como promesa operativa del sistema.
+- **T43c2e**: En staging, el procedimiento de rollback se valida cambiando o removiendo la variable de entorno y aplicando el reinicio/redeploy controlado correspondiente de la plataforma, confirmando el cese de la ejecución shadow y la estabilidad del servicio.
+
+### 5.5 Reglas Obligatorias de Rendimiento, Seguridad y Aislamiento en Runtime
+1. **Impacto en producción y staging**: No prometer "impacto cero". El shadow-run no bloquea ni altera las respuestas al usuario, pero el consumo de CPU, profundidad de cola y latencia p95/p99 deben medirse y validarse en staging antes de cualquier consideración productiva.
+2. **Contención del Event Loop**: En Node.js (monohilo para JavaScript), `setImmediate` no elimina la contención de CPU producida por el cálculo del ETA. Por ello, la cola FIFO acotada y la política de descarte inmediato (`drop-on-full`) son mandatorias para evitar la saturación del proceso ante picos de tráfico.
+3. **Prohibición de importar testing en runtime**: Ningún módulo de runtime (`backend/src/**`) puede importar archivos o utilidades desde `backend/test/**`.
+4. **Reglas de importación del dominio ETA**: El adaptador actual (`T43c2a`) puede importar los módulos del motor actual (`official-entry.js`, `route-projection.js`), mientras que la referencia legacy (`legacy-shadow-reference.js`) permanece totalmente desacoplada sin importar módulos del motor actual.
+5. **Observabilidad segura**: Telemetría basada estrictamente en allowlist cerrada y contadores agregados de cardinalidad fija, sin timestamps ni `lastEvaluatedAt`, con pruebas que serializan la salida para confirmar la ausencia total de datos sensibles: `expected`/`actual`, payloads de entrada, identificadores de puntos, nombres, fechas civiles, horarios, reglas, trazas de stack o errores raw.

@@ -325,6 +325,14 @@ Cada slice tiene un límite estricto de máximo 3 archivos modificados, hasta 3 
      - `tasks/specs/T43-eta-parity.md`
    - **Archivos prohibidos**: Loggers externos no autorizados, endpoints de usuario, dependencias no autorizadas.
    - **Regla de importación**: Prohibido importar `backend/test/*`.
+   - **Contrato fijado en pruebas**:
+     - **Exportaciones CommonJS**: Factory `createEtaShadowTelemetry()` y singleton aislado `defaultEtaShadowTelemetry`.
+     - **API de instancia congelada**: Expone únicamente `recordEvent(event)`, `getSnapshot()` y `resetMetrics()`; no existe alias `onEvent` ni estado mutable público.
+     - **Snapshot exacto de cardinalidad fija**: `{ enqueued, dropped: { QUEUE_FULL }, match, mismatch, errors: { RUNNER, LEGACY, CURRENT, COMPARE }, invalidEvents }`, con todos los contadores inicializados en cero, sin claves derivadas de entrada.
+     - **Allowlist de eventos**: Acepta únicamente `ENQUEUED`, `DROPPED/QUEUE_FULL`, `MATCH`, `MISMATCH` y `ERROR` con etapa `RUNNER|LEGACY|CURRENT|COMPARE`. Cada evento válido incrementa exclusivamente su contador; un evento inválido incrementa `invalidEvents` exactamente una vez.
+     - **Entrada hostil fail-safe**: Nulos, primitivos, arrays, tipos/labels desconocidos, getters que lanzan y proxies revocados nunca propagan excepciones. Las propiedades adicionales se ignoran y no se retienen.
+     - **Privacidad e inmutabilidad**: Cada snapshot es una nueva copia profundamente congelada y desconectada. El módulo no conserva eventos, payloads, diferencias, identificadores, fechas, horarios, reglas, errores o stacks; tampoco usa timestamps, logs, I/O ni dependencias externas.
+     - **Dirección de dependencias**: El módulo core no importa el runner de aplicación, tests, HTTP, base de datos ni observabilidad concreta; las allowlists son locales y cerradas.
    - **Criterios de aceptación**:
      1. Exporta factory pura y singleton `defaultEtaShadowTelemetry` con contadores agregados y labels de cardinalidad estrictamente fija bajo allowlist cerrada, función `resetMetrics` para pruebas aisladas y sin ningún tipo de timestamp ni `lastEvaluatedAt`.
      2. Pruebas que serializan la salida confirman la ausencia total de `expected`/`actual`, payloads de entrada, IDs de puntos, nombres, fechas civiles, horarios, reglas, trazas de stack y errores raw; coincidencia (`match: true`) no emite logs ni métricas de divergencia.
@@ -333,6 +341,7 @@ Cada slice tiene un límite estricto de máximo 3 archivos modificados, hasta 3 
    - **Comandos de verificación**:
      - `cd backend && npm test -- test/eta-shadow-telemetry.test.js`
      - `cd backend && npm test`
+   - **Estado actual**: COMPLETADO Y AUDITADO. La fase RED fue reproducida con `MODULE_NOT_FOUND` antes de cargar el módulo. La suite focalizada está verde 29/29 y la suite backend 504/504. Una mutación temporal que desvió `MATCH` hacia `mismatch` produjo seis fallos y fue restaurada antes de repetir GREEN. Revisión adversarial Antigravity con Gemini 3.8 Flash High: `APPROVE`, 0 Critical y 0 Required.
 
 4. **T43c2c — Integración del puerto shadow en composition root / casos de uso**:
    - **Propósito**: Conectar el puerto shadow y telemetría en los casos de uso / composition root sin afectar el flujo transaccional.

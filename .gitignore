@@ -19,3 +19,4 @@ public/uploads/*
 /backend/scripts/
 *.metadata.json
 *.py
+/.local/

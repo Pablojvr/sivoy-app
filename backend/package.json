@@ -7,6 +7,7 @@
     "start": "node server.js",
     "init:pg": "node scripts/pg_init.js",
     "catalog:capture": "node tools/public-catalog-snapshot.js",
+    "catalog:import": "node tools/import-public-catalog.js",
     "migrate": "node migration-runner.js",
     "migrate:status": "node migration-runner.js --dry-run",
     "test": "node --test",

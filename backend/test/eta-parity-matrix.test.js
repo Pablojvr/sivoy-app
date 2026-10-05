@@ -16,6 +16,9 @@ const { compareEtaSnapshots } = require('../src/core/eta/eta-parity-comparator')
 const {
   runLegacyEtaScenario: runRuntimeLegacyEtaScenario
 } = require('../src/core/eta/legacy-shadow-reference');
+const {
+  runCurrentEtaScenario: runRuntimeCurrentEtaScenario
+} = require('../src/core/eta/current-runtime-adapter');
 
 const REQUIRED_CATEGORIES = [
   'pin',
@@ -628,7 +631,6 @@ describe('T43b - Frozen Legacy Reference Contract', () => {
     assert.equal(result[legacyEngine.LEGACY_PARITY_META].status, 'PIN');
   });
 });
-
 describe('T43b - Scenario Matrix Structure & Completeness', () => {
   test('matrix contains at least 26 scenarios and covers all required categories by name', () => {
     assert.ok(
@@ -735,6 +737,168 @@ describe('T43c1 - Runtime Legacy Reference Parity Execution', () => {
 
       const comparison = compareEtaSnapshots(expectedSnapshot, runtimeSnapshot);
       const failureMessage = `Scenario "${scenario.name}" runtime legacy reference parity mismatch:\n${JSON.stringify(comparison.differences, null, 2)}`;
+
+      assert.equal(comparison.matches, true, failureMessage);
+      assert.deepEqual(comparison.differences, [], failureMessage);
+    });
+  }
+});
+
+describe('T43c2a - Current Runtime Adapter Parity & Isolation', () => {
+  test('runtime current adapter remains isolated from tests, console, HTTP, queue, and observability', () => {
+    const runtimeAdapterPath = path.join(
+      __dirname,
+      '../src/core/eta/current-runtime-adapter.js'
+    );
+    const source = fs.readFileSync(runtimeAdapterPath, 'utf8');
+
+    assert.doesNotMatch(source, /backend\/test|\/test\//);
+    assert.doesNotMatch(source, /\bconsole\s*\./);
+    assert.doesNotMatch(source, /\b(?:express|http|https|req|res|router)\b/i);
+    assert.doesNotMatch(source, /\b(?:runner|queue|fifo|eta-shadow-runner)\b/i);
+    assert.doesNotMatch(source, /\b(?:observability|telemetry|metrics|eta-shadow-telemetry)\b/i);
+
+    const requiredModules = [
+      ...source.matchAll(/require\s*\(\s*['"]([^'"]+)['"]\s*\)/g)
+    ].map((m) => m[1]);
+
+    const allowedModules = new Set([
+      './date',
+      './date.js',
+      './official-entry',
+      './official-entry.js',
+      './route-projection',
+      './route-projection.js'
+    ]);
+
+    for (const mod of requiredModules) {
+      assert.ok(
+        allowedModules.has(mod),
+        `Module "${mod}" is not in the allowed runtime imports list (${[...allowedModules].join(', ')})`
+      );
+    }
+  });
+
+  test('non-mutation and snapshot disconnection: input remains unchanged and snapshot is disconnected from subsequent mutations', () => {
+    for (const scenario of SCENARIOS) {
+      const before = structuredClone(scenario);
+      const input = structuredClone(scenario);
+
+      const snapshot = runRuntimeCurrentEtaScenario(input);
+
+      assert.deepEqual(
+        input,
+        before,
+        `Runtime adapter mutated its input for scenario "${scenario.name}"`
+      );
+
+      const snapshotBeforeMutation = structuredClone(snapshot);
+
+      // Deep mutation of input copy
+      input.dropoffDate = '2099-12-31';
+      input.dropoffTime = '23:59';
+      input.desiredDate = '2099-12-31';
+      input.limit = 999;
+      if (input.origin) {
+        input.origin.tipo = 'MUTATED';
+        input.origin.is_pin = !input.origin.is_pin;
+        if (Array.isArray(input.origin.horarios_operativos)) {
+          input.origin.horarios_operativos.push({
+            dia_semana: 'Domingo',
+            hora_apertura: '00:00',
+            hora_cierre: '23:59'
+          });
+        }
+      }
+      if (input.destination) {
+        input.destination.is_pin = !input.destination.is_pin;
+        if (Array.isArray(input.destination.reglas_entrega)) {
+          input.destination.reglas_entrega.push({
+            dia_entrega: 'Domingo',
+            dia_corte_maximo: 'mismo dia'
+          });
+        }
+        if (Array.isArray(input.destination.horarios_operativos)) {
+          input.destination.horarios_operativos.push({
+            dia_semana: 'Domingo',
+            hora_apertura: '00:00',
+            hora_cierre: '23:59'
+          });
+        }
+      }
+
+      assert.deepEqual(
+        snapshot,
+        snapshotBeforeMutation,
+        `Snapshot for scenario "${scenario.name}" was affected by subsequent input mutation`
+      );
+    }
+  });
+
+  test('deep recursive freeze: snapshot, arrays, and nested objects are frozen using a scenario with routes and intervals', () => {
+    function assertDeeplyFrozen(target, currentPath = 'root') {
+      if (target === null || typeof target !== 'object') {
+        return;
+      }
+      assert.ok(
+        Object.isFrozen(target),
+        `Expected target at ${currentPath} to be frozen with Object.isFrozen`
+      );
+      for (const key of Reflect.ownKeys(target)) {
+        const value = target[key];
+        if (value !== null && typeof value === 'object') {
+          assertDeeplyFrozen(value, `${currentPath}.${String(key)}`);
+        }
+      }
+    }
+
+    const scenarioWithIntervals = SCENARIOS.find(
+      (s) => s.name === 'destino con dos intervalos'
+    );
+    assert.ok(scenarioWithIntervals, 'Scenario "destino con dos intervalos" must exist');
+
+    const input = structuredClone(scenarioWithIntervals);
+    const snapshot = runRuntimeCurrentEtaScenario(input);
+
+    assert.ok(snapshot.officialEntry, 'Snapshot must have officialEntry');
+    assert.ok(Array.isArray(snapshot.projectedRoutes), 'Snapshot must have projectedRoutes array');
+    assert.ok(
+      snapshot.projectedRoutes.length > 0,
+      'Scenario "destino con dos intervalos" must produce at least one projected route'
+    );
+    assert.ok(
+      snapshot.projectedRoutes.some((r) => Array.isArray(r.intervals) && r.intervals.length > 0),
+      'Projected routes must contain intervals'
+    );
+
+    assertDeeplyFrozen(snapshot);
+
+    assert.throws(() => {
+      snapshot.projectedRoutes[0].date = '2099-01-01';
+    }, TypeError);
+    assert.throws(() => {
+      snapshot.projectedRoutes[0].intervals.push({
+        openTime: '00:00',
+        closeTime: '01:00'
+      });
+    }, TypeError);
+    if (snapshot.projectedRoutes[0].intervals.length > 0) {
+      assert.throws(() => {
+        snapshot.projectedRoutes[0].intervals[0].openTime = '00:00';
+      }, TypeError);
+    }
+  });
+
+  for (const scenario of SCENARIOS) {
+    test(`runtime current scenario parity: ${scenario.name}`, () => {
+      const testInput = structuredClone(scenario);
+      const runtimeInput = structuredClone(scenario);
+
+      const expectedSnapshot = runCurrentEtaScenario(testInput);
+      const runtimeSnapshot = runRuntimeCurrentEtaScenario(runtimeInput);
+
+      const comparison = compareEtaSnapshots(expectedSnapshot, runtimeSnapshot);
+      const failureMessage = `Scenario "${scenario.name}" runtime current adapter parity mismatch:\n${JSON.stringify(comparison.differences, null, 2)}`;
 
       assert.equal(comparison.matches, true, failureMessage);
       assert.deepEqual(comparison.differences, [], failureMessage);

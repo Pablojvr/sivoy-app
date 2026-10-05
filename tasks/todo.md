@@ -39,6 +39,29 @@ a producto y experiencia pública; Partner continúa fuera de alcance.
   - Aceptación: flujo completo, build, auditorías y smoke verdes; aprobación humana
     antes de desplegar.
 
+### Datos Pedidos Express — activo para MVP
+
+- [ ] DATA01 Capturar snapshot reproducible del contrato público actual.
+  - Aceptación: manifiesto con 1 empresa, 185 puntos, 530 intervalos y 292 reglas;
+    sin secretos, con checksum y validación de esquema.
+  - Verificación: reimportación determinista y comparación de conteos/IDs.
+- [ ] DATA02 Levantar PostgreSQL local aislado y aplicar migraciones 0001–0006.
+  - Aceptación: puerto no conflictivo, volumen persistente, healthcheck y ninguna
+    credencial real o de producción.
+  - Verificación: ledger/checksums verdes y segunda ejecución sin cambios.
+- [ ] DATA03 Crear importación idempotente del catálogo legacy vigente.
+  - Aceptación: conserva `id_destino`, empresa, ubicación, horarios y reglas; una
+    segunda importación actualiza sin duplicar ni dejar huérfanos.
+  - Verificación: integridad referencial, unicidad, rangos y conteos auditados.
+- [ ] DATA04 Conectar backend y frontend locales al dataset reproducible.
+  - Aceptación: SiVoy API usa un puerto distinto de `3000`; Inicio y búsqueda leen
+    los 185 puntos sin depender de la base de producción.
+  - Verificación: health, `/api/locations` y smoke Inicio→resultados en navegador real.
+- [ ] DATA05 Clasificar brechas de contenido sin bloquear el MVP.
+  - Aceptación: imágenes y enlaces de mapa faltantes se registran como contenido;
+    la UI ofrece fallback y no los confunde con errores estructurales.
+  - Verificación: 181 faltantes reportados y tarjetas funcionales sin esos campos.
+
 ### En espera post-MVP
 
 - [ ] POST01 Retomar `T43c2c`, `T43c2d2` y `T43c2e` solo con necesidad operativa.

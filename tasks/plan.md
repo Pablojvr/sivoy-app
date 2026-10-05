@@ -43,6 +43,34 @@ mientras no resuelva una necesidad observable del producto.
   producción hasta definir un canal privado.
 - Mantener mapa y Mapbox/MapLibre como recurso auxiliar, no como entrada principal.
 
+### Excepción activa: datos actuales de Pedidos Express
+
+Los ajustes de datos necesarios para usar el catálogo real sí forman parte del
+MVP. La verificación pública del 2026-10-05 confirmó 1 empresa, 185 puntos, 530
+intervalos publicados y 292 reglas de entrega; todos los puntos tienen
+`id_destino`, coordenadas, horarios y al menos una regla, sin identificadores
+duplicados. La ausencia de imagen y URL de mapa en 181 puntos es una brecha de
+contenido, no de estructura.
+
+El objetivo inmediato es reproducibilidad local, no sustituir el motor actual:
+
+1. Capturar un snapshot versionado y verificable del contrato público, sin
+   credenciales ni datos internos.
+2. Levantar PostgreSQL local en un puerto no conflictivo y aplicar el ledger de
+   migraciones existente.
+3. Importar de forma idempotente `empresas`, `agencias`, `horarios_operativos` y
+   `reglas_entrega`, conservando identificadores estables y relaciones.
+4. Verificar conteos, ausencia de huérfanos, unicidad de `id_destino`, rangos de
+   coordenadas y validez de intervalos antes de habilitar el backend local.
+5. Ejecutar SiVoy API en un puerto distinto de `3000` y conectar el frontend de
+   desarrollo a ese origen local.
+
+Las migraciones serán aditivas. No se hará backfill ni cutover hacia
+`service_calendars`/`delivery_policies` durante este corte; esos modelos se
+activarán cuando una segunda empresa o una regla real no pueda expresarse con el
+contrato actual. Tampoco se interpretarán procesos internos de Pedidos Express:
+los datos representan únicamente disponibilidad publicada en destino.
+
 ### Pospuesto hasta después del MVP
 
 - Integración, exposición y prueba en staging del shadow runtime ETA
@@ -55,7 +83,8 @@ mientras no resuelva una necesidad observable del producto.
   de reversión concreta.
 - Microservicios, arquitectura orientada a eventos y nuevas abstracciones que no
   reduzcan tiempo de entrega o riesgo inmediato del MVP.
-- Ampliación general del modelo de reglas empresariales sin un caso real aprobado.
+- Ampliación general del modelo de reglas empresariales sin un caso real aprobado;
+  se exceptúa únicamente la reproducción local del catálogo actual descrita arriba.
 
 Estas tareas no se cancelan: quedan en espera y se reactivan por evidencia
 (incidente, cuello de botella, nueva empresa o requisito de operación), no por

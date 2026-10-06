@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { DeliveryPoint } from '../../core/models/location.models';
+import { fuzzySearch } from '../../core/utils/fuzzy-search';
 
 interface CompanySummary {
   name: string;
@@ -26,7 +27,6 @@ export interface MunicipalitySummary {
 export class DiscoveryHomeComponent implements OnChanges {
   @Input() locations: readonly DeliveryPoint[] = [];
 
-  @Output() destinationSearch = new EventEmitter<void>();
   @Output() mapExplore = new EventEmitter<void>();
   @Output() companySelected = new EventEmitter<string>();
   @Output() municipalitySelected = new EventEmitter<MunicipalitySummary>();
@@ -38,8 +38,13 @@ export class DiscoveryHomeComponent implements OnChanges {
   municipalities: MunicipalitySummary[] = [];
   featuredPoints: DeliveryPoint[] = [];
   totalMunicipalities = 0;
+  destinationSearchQuery = '';
+  isDestinationSearchActive = false;
+  filteredMunicipalities: MunicipalitySummary[] = [];
+  filteredPoints: DeliveryPoint[] = [];
 
   private readonly accents = ['#F45B78', '#B8EE4A', '#A9DDF5', '#FFD18A'];
+  private allMunicipalities: MunicipalitySummary[] = [];
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['locations']) this.buildDiscoveryData();
@@ -55,6 +60,46 @@ export class DiscoveryHomeComponent implements OnChanges {
 
   get pointCount(): number {
     return this.locations.length;
+  }
+
+  get hasDestinationSearchResults(): boolean {
+    return this.filteredMunicipalities.length > 0 || this.filteredPoints.length > 0;
+  }
+
+  activateDestinationSearch(): void {
+    this.isDestinationSearchActive = true;
+  }
+
+  updateDestinationSearch(query: string): void {
+    this.destinationSearchQuery = query;
+    this.isDestinationSearchActive = true;
+    this.refreshDestinationSearchResults();
+  }
+
+  onDestinationSearchInput(event: Event): void {
+    const input = event.target;
+    if (input instanceof HTMLInputElement) this.updateDestinationSearch(input.value);
+  }
+
+  clearDestinationSearch(input?: HTMLInputElement): void {
+    this.destinationSearchQuery = '';
+    this.isDestinationSearchActive = true;
+    this.refreshDestinationSearchResults();
+    input?.focus();
+  }
+
+  closeDestinationSearch(): void {
+    this.isDestinationSearchActive = false;
+  }
+
+  selectMunicipalitySuggestion(municipality: MunicipalitySummary): void {
+    this.resetDestinationSearch();
+    this.municipalitySelected.emit(municipality);
+  }
+
+  selectPointSuggestion(point: DeliveryPoint): void {
+    this.resetDestinationSearch();
+    this.pointPreview.emit(point);
   }
 
   pointName(point: DeliveryPoint): string {
@@ -111,10 +156,10 @@ export class DiscoveryHomeComponent implements OnChanges {
       }))
       .sort((a, b) => b.pointCount - a.pointCount || a.name.localeCompare(b.name, 'es'));
 
-    const allMunicipalities = Array.from(municipalityMap.values());
-    this.totalMunicipalities = allMunicipalities.length;
-    this.municipalities = allMunicipalities
-      .sort((a, b) => b.pointCount - a.pointCount || a.municipio.localeCompare(b.municipio, 'es'))
+    this.allMunicipalities = Array.from(municipalityMap.values())
+      .sort((a, b) => b.pointCount - a.pointCount || a.municipio.localeCompare(b.municipio, 'es'));
+    this.totalMunicipalities = this.allMunicipalities.length;
+    this.municipalities = this.allMunicipalities
       .slice(0, 5);
 
     const seenMunicipalities = new Set<string>();
@@ -133,5 +178,30 @@ export class DiscoveryHomeComponent implements OnChanges {
         return true;
       })
       .slice(0, 5);
+
+    this.refreshDestinationSearchResults();
+  }
+
+  private refreshDestinationSearchResults(): void {
+    this.filteredMunicipalities = fuzzySearch(this.allMunicipalities, this.destinationSearchQuery, {
+      fields: item => [item.municipio, item.departamento],
+      limit: 5
+    });
+    this.filteredPoints = fuzzySearch(this.locations, this.destinationSearchQuery, {
+      fields: point => [
+        point.nombre_destino,
+        point.empresa,
+        point.ubicacion?.municipio,
+        point.ubicacion?.departamento
+      ],
+      limit: 5
+    });
+  }
+
+  private resetDestinationSearch(): void {
+    this.destinationSearchQuery = '';
+    this.isDestinationSearchActive = false;
+    this.filteredMunicipalities = [];
+    this.filteredPoints = [];
   }
 }

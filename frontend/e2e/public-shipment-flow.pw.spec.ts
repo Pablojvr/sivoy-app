@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, Page, test } from '@playwright/test';
 
 type IntervalDiagnosticsWindow = Window & {
   __sivoyActiveIntervals?: Map<number, number>;
@@ -15,6 +15,16 @@ declare global {
   }
 }
 
+async function chooseSanSalvadorDestination(page: Page): Promise<void> {
+  const search = page.getByRole('searchbox', { name: 'Buscar municipio o punto de entrega' });
+  await search.fill('san salvdor');
+
+  await expect(page).toHaveURL(/.*\/#\/$/);
+  const municipality = page.getByRole('button', { name: 'San Salvador San Salvador 1 punto' });
+  await expect(municipality).toBeVisible();
+  await municipality.click();
+}
+
 test('destino, compartir, origen y ruta permanecen operativos', async ({ page }) => {
   await page.addInitScript(() => {
     Object.defineProperty(navigator, 'share', {
@@ -28,8 +38,7 @@ test('destino, compartir, origen y ruta permanecen operativos', async ({ page })
   await page.goto('/#/');
   await expect(page.getByRole('heading', { name: 'Envía sin complicarte.' })).toBeVisible();
 
-  await page.getByRole('button', { name: 'Buscar destino' }).click();
-  await page.getByRole('option', { name: 'San Salvador San Salvador 1 punto' }).click();
+  await chooseSanSalvadorDestination(page);
   await expect(page.getByRole('heading', { name: '1 Resultado en San Salvador' })).toBeVisible();
 
   await page.getByRole('button', { name: 'Compartir Agencia Centro' }).click();
@@ -90,8 +99,7 @@ test('buscar y compartir siguen disponibles sin WebGL2', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Envía sin complicarte.' })).toBeVisible();
 
   const mapFallback = page.getByRole('status').filter({ hasText: 'Mapa no disponible' });
-  await page.getByRole('button', { name: 'Buscar destino' }).click();
-  await page.getByRole('option', { name: 'San Salvador San Salvador 1 punto' }).click();
+  await chooseSanSalvadorDestination(page);
 
   const resultsHeading = page.getByRole('heading', { name: '1 Resultado en San Salvador' });
   await expect(resultsHeading).toBeVisible();
@@ -136,7 +144,7 @@ test('salir del flujo de envío libera el intervalo de actualización', async ({
   });
 
   await page.goto('/#/');
-  await page.getByRole('button', { name: 'Buscar destino' }).click();
+  await chooseSanSalvadorDestination(page);
 
   await expect.poll(() => page.evaluate(countActiveIntervalsByDelay, 60_000)).toBe(1);
 

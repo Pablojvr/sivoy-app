@@ -1,4 +1,4 @@
-<main class="discovery-page" (click)="$event.stopPropagation()">
+<main class="discovery-page" (click)="closeDestinationSearch(); $event.stopPropagation()">
   <div class="ambient-orb orb-one" aria-hidden="true"></div>
   <div class="ambient-orb orb-two" aria-hidden="true"></div>
 
@@ -19,15 +19,83 @@
         <p>Encuentra y comparte el punto correcto.</p>
       </div>
 
-      <button type="button" class="destination-command" (click)="destinationSearch.emit()" aria-label="Buscar destino">
-        <span class="command-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
-        </span>
-        <span class="command-placeholder">¿Adónde deseas enviar?</span>
-        <span class="command-go" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m9 18 6-6-6-6"/></svg>
-        </span>
-      </button>
+      <div class="destination-search" [class.is-active]="isDestinationSearchActive" (click)="$event.stopPropagation()">
+        <form class="destination-command" role="search" (submit)="$event.preventDefault()">
+          <span class="command-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+          </span>
+          <label class="visually-hidden" for="destination-search-input">Buscar municipio o punto de entrega</label>
+          <input
+            #destinationSearchInput
+            id="destination-search-input"
+            class="destination-search-input"
+            type="search"
+            inputmode="search"
+            autocomplete="off"
+            placeholder="¿Adónde deseas enviar?"
+            [value]="destinationSearchQuery"
+            aria-controls="destination-search-results"
+            (focus)="activateDestinationSearch()"
+            (input)="onDestinationSearchInput($event)"
+            (keydown.escape)="closeDestinationSearch()">
+          <button
+            *ngIf="destinationSearchQuery"
+            type="button"
+            class="command-clear"
+            aria-label="Limpiar búsqueda"
+            (click)="clearDestinationSearch(destinationSearchInput)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 6 12 12M18 6 6 18"/></svg>
+          </button>
+        </form>
+
+        <div
+          *ngIf="isDestinationSearchActive && destinationSearchQuery.trim()"
+          id="destination-search-results"
+          class="destination-suggestions"
+          aria-live="polite">
+          <ng-container *ngIf="hasDestinationSearchResults; else noDestinationMatches">
+            <section *ngIf="filteredMunicipalities.length > 0" aria-labelledby="municipality-suggestions-title">
+              <h2 id="municipality-suggestions-title">Municipios</h2>
+              <button
+                type="button"
+                *ngFor="let municipality of filteredMunicipalities; trackBy: trackMunicipality"
+                (click)="selectMunicipalitySuggestion(municipality)">
+                <span class="suggestion-icon municipality" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V9l7-5 7 5v12M9 21v-7h6v7"/></svg>
+                </span>
+                <span class="suggestion-copy">
+                  <strong>{{ municipality.municipio }}</strong>
+                  <small>{{ municipality.departamento }}</small>
+                </span>
+                <span class="suggestion-meta">{{ municipality.pointCount }} {{ municipality.pointCount === 1 ? 'punto' : 'puntos' }}</span>
+              </button>
+            </section>
+
+            <section *ngIf="filteredPoints.length > 0" aria-labelledby="point-suggestions-title">
+              <h2 id="point-suggestions-title">Puntos de entrega</h2>
+              <button
+                type="button"
+                *ngFor="let point of filteredPoints; trackBy: trackPoint"
+                (click)="selectPointSuggestion(point)">
+                <span class="suggestion-icon point" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 5.5-8 11-8 11S4 15.5 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>
+                </span>
+                <span class="suggestion-copy">
+                  <strong>{{ pointName(point) }}</strong>
+                  <small>{{ locationLabel(point) }}</small>
+                </span>
+                <svg class="suggestion-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+              </button>
+            </section>
+          </ng-container>
+          <ng-template #noDestinationMatches>
+            <div class="destination-empty" role="status">
+              <strong>No encontramos ese destino</strong>
+              <span>Prueba con otro municipio o punto.</span>
+            </div>
+          </ng-template>
+        </div>
+      </div>
 
       <div class="quick-destinations" *ngIf="municipalities.length > 0" aria-label="Destinos frecuentes">
         <span>Frecuentes</span>

@@ -165,31 +165,46 @@ button {
   line-height: 1.55;
 }
 
+.destination-search {
+  position: relative;
+  z-index: 30;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
 .destination-command {
   width: 100%;
   min-height: 64px;
   display: grid;
-  grid-template-columns: 42px minmax(0, 1fr) 40px;
+  grid-template-columns: 42px minmax(0, 1fr) auto;
   gap: 11px;
   align-items: center;
+  margin: 0;
   padding: 10px 11px;
-  border: 1px solid rgba(29, 30, 28, 0.1);
+  border: 1px solid var(--border);
   border-radius: 20px;
-  background: #fff;
+  background: var(--surface-solid);
   color: var(--text-main);
   text-align: left;
   box-shadow: 0 16px 38px rgba(29, 30, 28, 0.1);
-  cursor: pointer;
-  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+  transition: box-shadow 180ms ease, border-color 180ms ease;
 }
 
-.destination-command:hover {
-  transform: translateY(-2px);
-  border-color: rgba(244, 91, 120, 0.28);
-  box-shadow: 0 20px 44px rgba(29, 30, 28, 0.14);
+.destination-search.is-active .destination-command {
+  border-color: color-mix(in srgb, var(--primary) 52%, transparent);
+  box-shadow: var(--focus-ring), 0 20px 44px rgba(29, 30, 28, 0.14);
 }
 
-.destination-command:focus-visible,
+.command-clear:focus-visible,
+.destination-suggestions button:focus-visible,
 .company-card:focus-visible,
 .quick-destinations button:focus-visible,
 .point-primary-action:focus-visible,
@@ -201,7 +216,8 @@ button {
 }
 
 .command-icon,
-.command-go,
+.command-clear,
+.suggestion-icon,
 .point-pin,
 .map-icon-button,
 .company-monogram,
@@ -223,58 +239,168 @@ button {
   height: 21px;
 }
 
-.command-placeholder {
-  overflow: hidden;
-  color: #252825;
+.destination-search-input {
+  min-width: 0;
+  height: 42px;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--text-main);
+  font: inherit;
   font-size: clamp(15px, 4vw, 18px);
   font-weight: 720;
   letter-spacing: -0.025em;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
-.command-copy {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
+.destination-search-input::placeholder {
+  color: var(--text-muted);
+  opacity: 1;
 }
 
-.command-copy small {
-  margin-bottom: 2px;
-  color: var(--primary-dark);
-  font-size: 10px;
+.destination-search-input::-webkit-search-cancel-button {
+  display: none;
+}
+
+.command-clear {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--text-main) 6%, var(--surface-solid));
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.command-clear svg {
+  width: 20px;
+  height: 20px;
+}
+
+.destination-suggestions {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  left: 0;
+  max-height: min(52vh, 420px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--surface-solid);
+  box-shadow: 0 22px 52px rgba(29, 30, 28, 0.18);
+}
+
+.destination-suggestions section + section {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid var(--border);
+}
+
+.destination-suggestions h2 {
+  margin: 0;
+  padding: 7px 9px 5px;
+  color: var(--text-muted);
+  font-size: 11px;
   font-weight: 800;
-  letter-spacing: 0.09em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
-.command-copy strong {
+.destination-suggestions button {
+  width: 100%;
+  min-height: 58px;
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  padding: 8px 9px;
+  border: 0;
+  border-radius: 14px;
+  background: transparent;
+  color: var(--text-main);
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 180ms ease;
+}
+
+.destination-suggestions button:hover {
+  background: color-mix(in srgb, var(--primary) 7%, var(--surface-solid));
+}
+
+.suggestion-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 13px;
+  background: color-mix(in srgb, var(--signal-lime) 24%, var(--surface-solid));
+  color: var(--text-main);
+}
+
+.suggestion-icon.point {
+  background: color-mix(in srgb, var(--primary) 10%, var(--surface-solid));
+  color: var(--primary-dark);
+}
+
+.suggestion-icon svg,
+.suggestion-arrow {
+  width: 19px;
+  height: 19px;
+}
+
+.suggestion-copy {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.suggestion-copy strong,
+.suggestion-copy small {
   overflow: hidden;
-  font-size: clamp(16px, 4vw, 20px);
-  font-weight: 750;
-  letter-spacing: -0.035em;
-  line-height: 1.2;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.command-copy span {
-  margin-top: 3px;
-  color: #7a7e78;
+.suggestion-copy strong {
+  font-size: 14px;
+  font-weight: 760;
+}
+
+.suggestion-copy small,
+.suggestion-meta {
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+.suggestion-meta {
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text-main) 5%, var(--surface-solid));
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.suggestion-arrow {
+  color: var(--text-muted);
+}
+
+.destination-empty {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 16px 12px;
+  color: var(--text-main);
+}
+
+.destination-empty strong {
+  font-size: 14px;
+}
+
+.destination-empty span {
+  color: var(--text-muted);
   font-size: 12px;
-}
-
-.command-go {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: #191919;
-  color: #fff;
-}
-
-.command-go svg {
-  width: 20px;
-  height: 20px;
 }
 
 .quick-destinations {

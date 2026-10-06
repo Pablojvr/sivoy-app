@@ -228,7 +228,7 @@ const handleRequest = async (req, res) => {
 
 let server = null;
 
-const startServer = (port = 3000) => {
+const startServer = (port = 3001) => {
   return new Promise((resolve, reject) => {
     const s = http.createServer(handleRequest);
     const onError = (err) => {
@@ -238,7 +238,7 @@ const startServer = (port = 3000) => {
       reject(err);
     };
     s.once('error', onError);
-    s.listen(port, 'localhost', () => {
+    s.listen(port, '127.0.0.1', () => {
       s.removeListener('error', onError);
       server = s;
       resolve(server.address().port);
@@ -259,9 +259,9 @@ const stopServer = () => {
 };
 
 if (require.main === module) {
-  startServer(3000)
+  startServer(3001)
     .then(() => {
-      console.log('Fixture server listening on http://localhost:3000');
+      console.log('Fixture server listening on http://127.0.0.1:3001');
     })
     .catch((err) => {
       console.error('Failed to start fixture server:', err);

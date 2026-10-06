@@ -13,7 +13,6 @@ import { DiscoveryHomeComponent, MunicipalitySummary } from './discovery-home.co
   template: `
     <app-discovery-home
       [locations]="locations"
-      (destinationSearch)="openDestinationSearch()"
       (mapExplore)="openMap()"
       (companySelected)="openCompany($event)"
       (municipalitySelected)="openMunicipality($event)"
@@ -51,10 +50,6 @@ export class DiscoveryPageComponent {
         this.cdr.detectChanges();
       }
     });
-  }
-
-  openDestinationSearch() {
-    this.router.navigate(['/enviar'], { queryParams: { buscar: 'destino' } });
   }
 
   openMap() {

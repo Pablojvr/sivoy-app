@@ -197,6 +197,80 @@ describe('DiscoveryHomeComponent (caracterizacion de contrato y logica)', () => 
     });
   });
 
+  describe('busqueda de destino en contexto', () => {
+    const santaAna: MunicipalitySummary = {
+      municipio: 'Santa Ana',
+      departamento: 'Santa Ana',
+      pointCount: 1
+    };
+
+    beforeEach(() => {
+      applyLocations([
+        createDeliveryPoint({
+          id: 'P1',
+          nombre_destino: 'AGENCIA SANTA ANA CENTRO',
+          empresa: 'Pedidos Express',
+          ubicacion: { municipio: 'Santa Ana', departamento: 'Santa Ana' }
+        }),
+        createDeliveryPoint({
+          id: 'P2',
+          nombre_destino: 'AGENCIA SAN SEBASTIÁN',
+          empresa: 'Pedidos Express',
+          ubicacion: { municipio: 'San Sebastián', departamento: 'San Vicente' }
+        })
+      ]);
+    });
+
+    it('activa el buscador sin emitir una navegacion', () => {
+      component.activateDestinationSearch();
+
+      expect(component.isDestinationSearchActive).toBe(true);
+      expect(component.destinationSearchQuery).toBe('');
+    });
+
+    it('filtra municipios y puntos en la misma pantalla tolerando acentos y una transposicion', () => {
+      component.updateDestinationSearch('sebastain');
+
+      expect(component.filteredMunicipalities.map(item => item.municipio)).toEqual(['San Sebastián']);
+      expect(component.filteredPoints.map(item => item.nombre_destino)).toEqual(['AGENCIA SAN SEBASTIÁN']);
+    });
+
+    it('selecciona un municipio solo despues de elegir una sugerencia y cierra el buscador', () => {
+      let selected: MunicipalitySummary | undefined;
+      component.municipalitySelected.subscribe(value => selected = value);
+      component.activateDestinationSearch();
+
+      component.selectMunicipalitySuggestion(santaAna);
+
+      expect(selected).toBe(santaAna);
+      expect(component.isDestinationSearchActive).toBe(false);
+      expect(component.destinationSearchQuery).toBe('');
+    });
+
+    it('abre el punto solo despues de elegir una sugerencia especifica', () => {
+      let selected: DeliveryPoint | undefined;
+      component.pointPreview.subscribe(value => selected = value);
+      component.updateDestinationSearch('santa ana centro');
+
+      component.selectPointSuggestion(component.filteredPoints[0]);
+
+      expect(selected?.id).toBe('P1');
+      expect(component.isDestinationSearchActive).toBe(false);
+      expect(component.filteredPoints).toEqual([]);
+    });
+
+    it('limpia el texto sin navegar y conserva el foco de busqueda activo', () => {
+      component.updateDestinationSearch('santa');
+
+      component.clearDestinationSearch();
+
+      expect(component.destinationSearchQuery).toBe('');
+      expect(component.isDestinationSearchActive).toBe(true);
+      expect(component.filteredMunicipalities).toEqual([]);
+      expect(component.filteredPoints).toEqual([]);
+    });
+  });
+
   describe('puntos destacados (featuredPoints)', () => {
     it('selecciona un unico punto destacado por municipio priorizando imagen y menor distancia', () => {
       const pointWithImageFar = createDeliveryPoint({

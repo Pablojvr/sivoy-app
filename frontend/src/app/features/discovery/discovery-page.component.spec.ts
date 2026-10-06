@@ -134,11 +134,22 @@ describe('DiscoveryPageComponent (architectural slice)', () => {
       component = fixture.componentInstance;
     });
 
-    it('navega a /enviar con queryParams { buscar: "destino" } en openDestinationSearch', () => {
-      component.openDestinationSearch();
-      expect(navigateSpy).toHaveBeenCalledWith(['/enviar'], {
-        queryParams: { buscar: 'destino' }
-      });
+    it('mantiene la busqueda en Inicio hasta que la persona selecciona un resultado', () => {
+      const fixture = TestBed.createComponent(DiscoveryPageComponent);
+      locationsSubject.next([{
+        ...mockDeliveryPoints[0],
+        ubicacion: { municipio: 'San Salvador', departamento: 'San Salvador' }
+      }]);
+      fixture.detectChanges();
+
+      const input = fixture.nativeElement.querySelector('#destination-search-input') as HTMLInputElement;
+      input.dispatchEvent(new Event('focus'));
+      input.value = 'central';
+      input.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+
+      expect(navigateSpy).not.toHaveBeenCalled();
+      expect(fixture.nativeElement.textContent).toContain('Central San Salvador');
     });
 
     it('navega a /enviar con queryParams { vista: "mapa" } en openMap', () => {

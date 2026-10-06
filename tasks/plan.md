@@ -65,6 +65,12 @@ El objetivo inmediato es reproducibilidad local, no sustituir el motor actual:
 5. Ejecutar SiVoy API en un puerto distinto de `3000` y conectar el frontend de
    desarrollo a ese origen local.
 
+Estado del corte (2026-10-06): completado. El catálogo quedó versionado,
+validado e importable; PostgreSQL local conserva sus datos en el disco `A:`, la
+API sirve los 185 puntos y la interfaz local mostró cobertura, resultados,
+horarios agrupados y fallbacks de contenido en una prueba de navegador real.
+La segunda ejecución de migraciones e importación no produjo duplicados.
+
 Las migraciones serán aditivas. No se hará backfill ni cutover hacia
 `service_calendars`/`delivery_policies` durante este corte; esos modelos se
 activarán cuando una segunda empresa o una regla real no pueda expresarse con el

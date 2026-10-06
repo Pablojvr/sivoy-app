@@ -1,0 +1,163 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - "codex/**"
+  pull_request:
+    branches:
+      - main
+      - develop
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend CI
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: ./backend
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: sivoy_migrations_ci
+          POSTGRES_USER: sivoy_ci_user
+          POSTGRES_PASSWORD: sivoy_ephemeral_ci_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U sivoy_ci_user -d sivoy_migrations_ci"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+          
+      - name: Verify npm version
+        run: corepack npm --version | grep -Fx '11.11.0'
+
+      - name: Verify dependency policy
+        run: node ../scripts/check-install-scripts.cjs package-lock.json backend
+
+      - name: Install dependencies without lifecycle scripts
+        run: corepack npm ci --ignore-scripts
+
+      - name: Verify package signatures before lifecycle scripts
+        run: corepack npm audit signatures
+
+      - name: Build approved native dependency
+        run: corepack npm rebuild sqlite3 --ignore-scripts=false
+        
+      - name: Audit production dependencies
+        run: corepack npm audit --omit=dev --audit-level=high
+        
+      - name: Run backend tests
+        run: corepack npm test
+
+      - name: Run ephemeral PostgreSQL migration validation
+        env:
+          DATABASE_URL: postgresql://sivoy_ci_user:sivoy_ephemeral_ci_password@127.0.0.1:5432/sivoy_migrations_ci
+          DATABASE_SSL: "false"
+          MIGRATION_TEST_SENTINEL: allow_ephemeral_migration_test
+        run: corepack npm run test:migrations:pg
+
+      - name: Measure T14 query performance baseline
+        env:
+          DATABASE_URL: postgresql://sivoy_ci_user:sivoy_ephemeral_ci_password@127.0.0.1:5432/sivoy_migrations_ci
+          DATABASE_SSL: "false"
+          MIGRATION_TEST_SENTINEL: allow_ephemeral_migration_test
+          QUERY_PERF_TEST_SENTINEL: allow_ephemeral_query_performance_test
+          QUERY_PERF_REPORT_PATH: ${{ runner.temp }}/t14-query-performance-report.json
+        run: node --test integration/query-performance.pg.spec.js
+
+      - name: Publish T14 query performance baseline
+        run: node integration/publish-query-performance-report.js "${{ runner.temp }}/t14-query-performance-report.json"
+        
+      - name: Validate server syntax
+        run: node --check server.js
+
+  frontend:
+    name: Frontend CI
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: ./frontend
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+          
+      - name: Verify npm version
+        run: corepack npm --version | grep -Fx '11.11.0'
+
+      - name: Verify dependency policy
+        run: node ../scripts/check-install-scripts.cjs package-lock.json frontend
+
+      - name: Install dependencies without lifecycle scripts
+        run: corepack npm ci --ignore-scripts
+
+      - name: Verify package signatures before lifecycle scripts
+        run: corepack npm audit signatures
+
+      - name: Build approved native dependencies
+        # fsevents remains lockfile-validated but is Darwin-only and absent on this Linux runner.
+        run: corepack npm rebuild @parcel/watcher esbuild lmdb msgpackr-extract --ignore-scripts=false
+        
+      - name: Audit dependencies
+        run: corepack npm audit --audit-level=high
+        
+      - name: Verify CSS color contract
+        run: corepack npm run check:css-colors
+
+      - name: Verify architectural boundaries
+        run: corepack npm run check:boundaries
+
+      - name: Run frontend tests
+        run: corepack npm run test:ci
+        
+      - name: Build frontend production
+        run: corepack npm run build -- --configuration production
+
+      - name: Install Chromium for browser smoke
+        run: corepack npm run playwright:install
+
+      - name: Run public shipment browser smoke
+        run: corepack npm run e2e -- --ignore-snapshots
+
+      - name: Upload Playwright report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: frontend/playwright-report/
+          if-no-files-found: ignore
+          retention-days: 14

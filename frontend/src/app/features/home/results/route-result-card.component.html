@@ -1,0 +1,104 @@
+          <button
+            type="button"
+            class="route-card-summary"
+            (click)="onToggle()"
+            [attr.aria-expanded]="route.isExpanded"
+            [attr.aria-label]="(route.isExpanded ? 'Ocultar' : 'Ver') + ' detalles de la ruta de ' + route.origen_nombre + ' a ' + fallbackOrDestName">
+            <span class="route-card-topline">
+              <span class="route-provider">
+                <span class="route-provider-mark" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z"></path><path d="m4.5 7.8 7.5 4.3 7.5-4.3M12 21v-8.9"></path></svg>
+                </span>
+                <span>
+                  <small>Ruta {{ routeNumber }}</small>
+                  <strong>{{ route.empresa }}</strong>
+                </span>
+              </span>
+              <span class="route-available-badge"><i aria-hidden="true"></i> Disponible</span>
+            </span>
+
+            <span class="route-card-path">
+              <span class="route-card-endpoint">
+                <span class="route-endpoint-icon origin" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 21V8l8-5 8 5v13"></path><path d="M9 21v-6h6v6"></path></svg>
+                </span>
+                <small>Origen</small>
+                <strong>{{ formatLocationName(route.origen_nombre, route.origen_tipo) }}</strong>
+              </span>
+
+              <span class="route-path-connector" aria-hidden="true">
+                <i></i>
+                <span>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 17h4V5H2v12h3"></path><path d="M14 9h4l4 4v4h-3"></path><circle cx="7.5" cy="17.5" r="2.5"></circle><circle cx="16.5" cy="17.5" r="2.5"></circle></svg>
+                </span>
+                <i></i>
+              </span>
+
+              <span class="route-card-endpoint destination">
+                <span class="route-endpoint-icon destination" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 5.5-8 11-8 11S4 15.5 4 10a8 8 0 1 1 16 0Z"></path><circle cx="12" cy="10" r="2.5"></circle></svg>
+                </span>
+                <small>Destino</small>
+                <strong>{{ formatLocationName(fallbackOrDestName, route.destino_tipo) }}</strong>
+              </span>
+            </span>
+
+            <span class="route-card-eta">
+              <span class="route-eta-copy">
+                <small>Llegada estimada</small>
+                <ng-container *ngIf="route.opciones_entrega && route.opciones_entrega.length > 0; else fallbackRouteEta">
+                  <strong>{{ route.opciones_entrega[selectedOptionIndex].fecha_llegada }}</strong>
+                  <span>{{ route.opciones_entrega[selectedOptionIndex].horario_recoleccion }}</span>
+                </ng-container>
+                <ng-template #fallbackRouteEta>
+                  <strong>{{ route.fecha_llegada || route.opciones?.[0]?.fecha_llegada }}</strong>
+                  <span>{{ route.horario_recoleccion || route.opciones?.[0]?.horario_recoleccion }}</span>
+                </ng-template>
+              </span>
+              <span class="route-details-label">
+                {{ route.isExpanded ? 'Ocultar' : 'Ver detalles' }}
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" [class.rotated]="route.isExpanded"><path d="m6 9 6 6 6-6"></path></svg>
+              </span>
+            </span>
+          </button>
+
+          <div class="route-card-details" *ngIf="route.isExpanded">
+            <div class="route-closed-alert" *ngIf="route.hasClosedAlert">
+              <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v6M12 17h.01"></path></svg>
+              <span>La agencia ya cerró hoy. Calculamos el próximo día hábil disponible.</span>
+            </div>
+
+            <label class="route-date-selector" *ngIf="route.opciones_entrega && route.opciones_entrega.length > 0">
+              <span>Día para entregar en origen</span>
+              <select class="flight-day-select" (change)="onDayChange($event)" [value]="selectedOptionIndex">
+                <option *ngFor="let opt of route.opciones_entrega; let optionIndex = index" [value]="optionIndex">
+                  {{ formatFriendlyDate(opt.dropoff_date) }}
+                </option>
+              </select>
+              <small *ngIf="route.opciones_entrega[selectedOptionIndex].dropoff_msg || route.origen_msg">
+                {{ route.opciones_entrega[selectedOptionIndex].dropoff_msg || route.origen_msg }}
+              </small>
+            </label>
+
+            <div class="route-data-grid" *ngIf="route.opciones_entrega && route.opciones_entrega.length > 0">
+              <div>
+                <span>Fecha de llegada</span>
+                <strong>{{ route.opciones_entrega[selectedOptionIndex].fecha_llegada }}</strong>
+              </div>
+              <div>
+                <span>Horario de entrega</span>
+                <strong>{{ route.opciones_entrega[selectedOptionIndex].horario_recoleccion }}</strong>
+              </div>
+            </div>
+
+            <div class="route-card-actions">
+              <button type="button" class="route-secondary-action" (click)="onRestartOrigin()">
+                <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"></path><path d="M3 3v5h5"></path></svg>
+                Cambiar origen
+              </button>
+              <button type="button" class="route-primary-action" (click)="onViewMap()">
+                <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 5.5-8 11-8 11S4 15.5 4 10a8 8 0 1 1 16 0Z"></path><circle cx="12" cy="10" r="2.5"></circle></svg>
+                Ver en mapa
+              </button>
+            </div>
+          </div>

@@ -1,10 +1,10 @@
 import { CommonModule } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
 import { ChangeDetectorRef, Component } from '@angular/core';
 import { Router } from '@angular/router';
-import { environment } from '../../../environments/environment';
+import { DeliveryPoint } from '../../core/models/location.models';
+import { UbicacionesService } from '../../core/services/ubicaciones.service';
 import { BottomNavComponent } from '../../shared/components/bottom-nav/bottom-nav.component';
-import { DiscoveryHomeComponent } from '../home/discovery-home.component';
+import { DiscoveryHomeComponent, MunicipalitySummary } from './discovery-home.component';
 
 @Component({
   selector: 'app-discovery-page',
@@ -13,7 +13,6 @@ import { DiscoveryHomeComponent } from '../home/discovery-home.component';
   template: `
     <app-discovery-home
       [locations]="locations"
-      (destinationSearch)="openDestinationSearch()"
       (mapExplore)="openMap()"
       (companySelected)="openCompany($event)"
       (municipalitySelected)="openMunicipality($event)"
@@ -34,10 +33,14 @@ import { DiscoveryHomeComponent } from '../home/discovery-home.component';
   `]
 })
 export class DiscoveryPageComponent {
-  locations: any[] = [];
+  locations: readonly DeliveryPoint[] = [];
 
-  constructor(private http: HttpClient, private router: Router, private cdr: ChangeDetectorRef) {
-    this.http.get<any[]>(`${environment.apiUrl}/api/locations`).subscribe({
+  constructor(
+    private ubicacionesService: UbicacionesService,
+    private router: Router,
+    private cdr: ChangeDetectorRef
+  ) {
+    this.ubicacionesService.getLocations().subscribe({
       next: locations => {
         this.locations = locations || [];
         this.cdr.detectChanges();
@@ -49,10 +52,6 @@ export class DiscoveryPageComponent {
     });
   }
 
-  openDestinationSearch() {
-    this.router.navigate(['/enviar'], { queryParams: { buscar: 'destino' } });
-  }
-
   openMap() {
     this.router.navigate(['/enviar'], { queryParams: { vista: 'mapa' } });
   }
@@ -61,7 +60,7 @@ export class DiscoveryPageComponent {
     this.router.navigate(['/enviar'], { queryParams: { empresa: company } });
   }
 
-  openMunicipality(municipality: any) {
+  openMunicipality(municipality: MunicipalitySummary) {
     this.router.navigate(['/enviar'], {
       queryParams: {
         municipio: municipality.municipio,
@@ -70,7 +69,7 @@ export class DiscoveryPageComponent {
     });
   }
 
-  openPoint(point: any, action: 'select' | 'preview' | 'map') {
+  openPoint(point: DeliveryPoint, action: 'select' | 'preview' | 'map') {
     this.router.navigate(['/enviar'], {
       queryParams: {
         punto: point.id_destino || point.id,

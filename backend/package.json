@@ -5,20 +5,31 @@
   "main": "index.js",
   "scripts": {
     "start": "node server.js",
+    "start:local": "node tools/start-local-server.js",
     "init:pg": "node scripts/pg_init.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "catalog:capture": "node tools/public-catalog-snapshot.js",
+    "catalog:import": "node tools/import-public-catalog.js",
+    "local:db:up": "docker compose -f ../compose.local.yml up -d --wait postgres",
+    "local:db:down": "docker compose -f ../compose.local.yml down",
+    "local:migrate": "node tools/local-migrate.js",
+    "local:setup": "npm run local:db:up && npm run local:migrate && npm run catalog:import",
+    "migrate": "node migration-runner.js",
+    "migrate:status": "node migration-runner.js --dry-run",
+    "test": "node --test",
+    "test:migrations:pg": "node --test integration/migrations.pg.spec.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
+  "packageManager": "npm@11.11.0",
   "dependencies": {
     "cloudinary": "^2.10.0",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "exceljs": "^4.4.0",
     "express": "^5.2.1",
-    "multer": "^2.2.0",
+    "multer": "^2.3.0",
     "pg": "^8.23.0",
     "sqlite": "^5.1.1",
     "sqlite3": "^6.0.1"

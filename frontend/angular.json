@@ -2,7 +2,8 @@
   "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
   "version": 1,
   "cli": {
-    "packageManager": "npm"
+    "packageManager": "npm",
+    "analytics": false
   },
   "newProjectRoot": "projects",
   "projects": {
@@ -38,6 +39,12 @@
       "sourceRoot": "src",
       "prefix": "app",
       "architect": {
+        "test": {
+          "builder": "@angular/build:unit-test",
+          "options": {
+            "tsConfig": "tsconfig.spec.json"
+          }
+        },
         "build": {
           "builder": "@angular/build:application",
           "options": {
@@ -87,6 +94,13 @@
         },
         "serve": {
           "builder": "@angular/build:dev-server",
+          "options": {
+            "prebundle": {
+              "exclude": [
+                "maplibre-gl"
+              ]
+            }
+          },
           "configurations": {
             "production": {
               "buildTarget": "frontend:build:production"

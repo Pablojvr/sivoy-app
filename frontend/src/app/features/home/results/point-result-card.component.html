@@ -1,0 +1,90 @@
+<header class="point-result-provider">
+  <span class="point-provider-mark" aria-hidden="true">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z"></path><path d="m4.5 7.8 7.5 4.3 7.5-4.3M12 21v-8.9"></path></svg>
+  </span>
+  <span><small>Operado por</small><strong>{{ point.empresa }}</strong></span>
+  <span class="point-distance" *ngIf="point.distance !== undefined && point.distance !== 9999">
+    {{ point.distance < 1 ? (point.distance * 1000).toFixed(0) + ' m' : point.distance.toFixed(1) + ' km' }}
+  </span>
+</header>
+
+<button
+  type="button"
+  class="point-result-main point-result-summary"
+  (click)="toggle.emit(point)"
+  [attr.aria-expanded]="expanded"
+  [attr.aria-controls]="'point-details-' + computedId">
+  <span class="point-result-pin" aria-hidden="true">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 5.5-8 11-8 11S4 15.5 4 10a8 8 0 1 1 16 0Z"></path><circle cx="12" cy="10" r="2.5"></circle></svg>
+  </span>
+  <span class="point-result-copy">
+    <small>{{ originDiscoveryMode ? 'Punto de origen' : 'Punto de entrega' }}</small>
+    <strong>{{ point.destino_nombre || point.nombre_destino }}</strong>
+    <span>{{ point.ubicacion?.municipio }}<ng-container *ngIf="point.ubicacion?.departamento">, {{ point.ubicacion?.departamento }}</ng-container></span>
+  </span>
+  <span class="point-result-disclosure" aria-hidden="true">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m6 9 6 6 6-6"></path></svg>
+  </span>
+</button>
+
+<figure
+  class="point-reference-media point-card-expandable"
+  *ngIf="imageAvailable && expanded">
+  <img [src]="imageUrl" [alt]="'Referencia visual de ' + (point.destino_nombre || point.nombre_destino)" loading="lazy" (error)="imageUnavailable.emit(point)">
+  <figcaption>
+    <span><small>Para tu cliente</small><strong>Referencia del punto</strong></span>
+    <button type="button" (click)="copyImage.emit(point); $event.stopPropagation()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M15 9V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h4"></path></svg>
+      Copiar imagen
+    </button>
+  </figcaption>
+</figure>
+
+<section
+  class="point-hours-panel"
+  [id]="'point-details-' + computedId"
+  [class.state-green]="point._status?.color === 'green'"
+  [class.state-orange]="point._status?.color === 'orange'"
+  [class.state-red]="point._status?.color === 'red'"
+  [class.state-gray]="!point._status || point._status.color === 'gray'"
+  aria-label="Horarios de atención">
+  <header class="point-hours-heading">
+    <span class="point-hours-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
+    </span>
+    <span class="point-hours-status">
+      <small>Disponibilidad</small>
+      <si-chip [tone]="point._status?.color === 'green' ? 'success' : (point._status?.color === 'orange' ? 'warning' : (point._status?.color === 'red' ? 'accent' : 'neutral'))">{{ point._status?.mainText || 'Consulta sus horarios' }}</si-chip>
+      <span *ngIf="point._status?.timeText">{{ point._status?.timeText }}</span>
+    </span>
+    <span class="point-hours-count">
+      {{ scheduleCount }}
+      {{ scheduleCount === 1 ? 'horario' : 'horarios' }}
+    </span>
+  </header>
+
+  <ng-container *ngIf="expanded">
+    <app-schedule-display class="point-hours-grid point-card-expandable"
+      *ngIf="point.horarios_operativos?.length; else noPointHours"
+      [schedules]="point.horarios_operativos">
+    </app-schedule-display>
+    <ng-template #noPointHours>
+      <p class="point-hours-empty point-card-expandable">Esta agencia todavía no ha publicado sus horarios.</p>
+    </ng-template>
+  </ng-container>
+</section>
+
+<div class="point-result-actions">
+  <button type="button" siButton variant="primary" class="point-use-action" (click)="use.emit(point)" [attr.aria-label]="originDiscoveryMode ? 'Usar este punto como origen' : 'Elegir desde dónde enviar hacia este punto'">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5" cy="12" r="2.5"></circle><path d="M8 12h11M15 8l4 4-4 4"></path></svg>
+    {{ originDiscoveryMode ? 'Usar como origen' : 'Desde dónde enviar' }}
+  </button>
+  <button type="button" siButton variant="secondary" class="point-share-action" (click)="share.emit(point)" [attr.aria-label]="'Compartir ' + (point.destino_nombre || point.nombre_destino)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"></path></svg>
+    Compartir
+  </button>
+  <button type="button" siButton variant="secondary" class="point-map-action" (click)="map.emit(point)" [attr.aria-label]="'Ver ' + (point.destino_nombre || point.nombre_destino) + ' en el mapa'">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 5.5-8 11-8 11S4 15.5 4 10a8 8 0 1 1 16 0Z"></path><circle cx="12" cy="10" r="2.5"></circle></svg>
+    Ver mapa
+  </button>
+</div>

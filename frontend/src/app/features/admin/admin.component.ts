@@ -1,6 +1,5 @@
 import { environment } from '../../../environments/environment';
-import { Component, Input, Output, EventEmitter, OnInit, ChangeDetectorRef, HostListener, ViewEncapsulation, NgZone } from '@angular/core';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { Component, Input, Output, EventEmitter, OnInit, ChangeDetectorRef, HostListener, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { EmpresasService } from '../../core/services/empresas.service';
@@ -14,7 +13,7 @@ import { EL_SALVADOR_LOCATIONS, DEPARTAMENTOS_EL_SALVADOR } from '../../core/con
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './admin.component.html',
-  encapsulation: ViewEncapsulation.None
+  styleUrls: ['./admin-foundation.css', './admin.component.css']
 })
 export class AdminComponent implements OnInit {
   apiUrl = environment.apiUrl;
@@ -45,7 +44,6 @@ export class AdminComponent implements OnInit {
   editingEmpresaData: any = { id: null, nombre: '', logoUrl: '', logoFile: null };
 
   viewingLocation: any = null;
-  viewingTab: 'info' | 'mapa' | 'horarios' = 'info';
   editingLocation: any = null;
   editFormData: any = {};
   editLocationTab: 'datos' | 'horarios' = 'datos';
@@ -126,14 +124,8 @@ export class AdminComponent implements OnInit {
     private mapasService: MapasService,
     private toastService: ToastService,
     private cdr: ChangeDetectorRef,
-    private ngZone: NgZone,
-    private sanitizer: DomSanitizer
+    private ngZone: NgZone
   ) {}
-
-  getSafeMapUrl(lat: number, lng: number): SafeResourceUrl {
-    const url = `https://www.openstreetmap.org/export/embed.html?bbox=${lng - 0.005}%2C${lat - 0.005}%2C${lng + 0.005}%2C${lat + 0.005}&layer=mapnik&marker=${lat}%2C${lng}`;
-    return this.sanitizer.bypassSecurityTrustResourceUrl(url);
-  }
 
   ngOnInit() {
     this.extractCompanies();
@@ -319,7 +311,6 @@ export class AdminComponent implements OnInit {
 
   viewLocation(loc: any) {
     this.viewingLocation = loc;
-    this.viewingTab = 'info';
   }
 
   closeViewDetails() {

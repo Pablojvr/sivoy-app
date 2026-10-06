@@ -1,23 +1,43 @@
 import { environment } from '../../../environments/environment';
-import { ChangeDetectorRef, Component, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChanges, HostBinding, HostListener, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, Output, EventEmitter, OnInit, OnChanges, OnDestroy, SimpleChanges, HostBinding, HostListener, ViewEncapsulation, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RutasService } from '../../core/services/rutas.service';
 import { ToastService } from '../../core/services/toast.service';
 import { MapasService } from '../../core/services/mapas.service';
+import { SiCardDirective } from '../../shared/ui/ui-primitives';
+import { DestinationSearchComponent, MunicipalityOption } from './destination-search/destination-search.component';
+import { OriginSearchComponent } from './origin-search/origin-search.component';
+import { ShipmentSearchFacade } from './shipment-search.facade';
+import { formatScheduleTime, groupConsecutiveSchedules, GroupedSchedule } from './results/schedule-utils';
+import { PointResultCardComponent } from './results/point-result-card.component';
+import { PointShareService } from './results/point-share.service';
+import { RouteResultCardComponent, RouteResultViewModel, RouteDeliveryDayChange, formatLocationName as rtFormatLoc, formatFriendlyDate as rtFormatDate } from './results/route-result-card.component';
+import { PinDetailCardComponent } from './results/pin-detail-card.component';
+import { applyClosedDropoffFilter } from './shipment-route.filters';
+import { presentSearchRoute, pointRefFromLocation } from './results/route-result.presenter';
+import { PointRef, SEARCH_ERROR_MESSAGES, LocationSelection, ShipmentSearchState } from './shipment-search.models';
+import { PublicMapViewState, projectPublicMapViewState } from './public-map-view-state';
+import { Subscription } from 'rxjs';
+
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, SiCardDirective, DestinationSearchComponent, OriginSearchComponent, PointResultCardComponent, RouteResultCardComponent, PinDetailCardComponent],
   templateUrl: './home.component.html',
+  styleUrl: './home.component.css',
   encapsulation: ViewEncapsulation.None
 })
-export class HomeComponent implements OnInit, OnChanges {
+export class HomeComponent implements OnInit, OnChanges, OnDestroy {
   apiUrl = environment.apiUrl;
   @Input() locations: any[] = [];
   @Input() userLocation: any = null;
+  @Input() mapAvailable = true;
   @Input() initialIntent: Record<string, string> = {};
+
+
+
+  flightResults: RouteResultViewModel[] = [];
   @Input() mapResourceMode = false;
   @HostBinding('class.map-resource-mode') get isMapResourceHost() { return this.mapResourceMode; }
   @HostBinding('class.list-first-mode') get isListFirstHost() { return !this.mapResourceMode; }
@@ -28,8 +48,13 @@ export class HomeComponent implements OnInit, OnChanges {
   private pinCardTouchStartY = 0;
   private suppressPinImagePreview = false;
   private pinCardStateLocked = false;
+  private selectedPinScrollTimer: ReturnType<typeof setTimeout> | null = null;
 
   @Input() set selectedPin(value: any) {
+    if (this.selectedPinScrollTimer !== null) {
+      clearTimeout(this.selectedPinScrollTimer);
+      this.selectedPinScrollTimer = null;
+    }
     const previousPinIdentity = this._selectedPin
       ? String(this._selectedPin.id_destino || this._selectedPin.id_origen || this._selectedPin.id || this.getLocationName(this._selectedPin))
       : '';
@@ -44,9 +69,10 @@ export class HomeComponent implements OnInit, OnChanges {
       }
       this.bottomSheetState = 'hidden';
       this.lastSelectedLocationId = value.id_destino || value.id_origen || value.id;
-      
+
       // Auto-scroll the list to the selected card
-      setTimeout(() => {
+      this.selectedPinScrollTimer = setTimeout(() => {
+        this.selectedPinScrollTimer = null;
         const cardId = 'card-' + this.lastSelectedLocationId;
         const el = document.getElementById(cardId);
         if (el) {
@@ -54,30 +80,30 @@ export class HomeComponent implements OnInit, OnChanges {
           if (container) {
             const elRect = el.getBoundingClientRect();
             const containerRect = container.getBoundingClientRect();
-            
+
             // Calculate element's absolute top relative to the container's scroll content
             const absoluteElTop = container.scrollTop + (elRect.top - containerRect.top);
-            
+
             // Buscar el header sticky si existe, para restar su altura del area visible
             const stickyHeader = container.querySelector('.sheet-header-sticky') as HTMLElement;
             const stickyHeight = stickyHeader ? stickyHeader.offsetHeight : 0;
             const visibleHeight = containerRect.height - stickyHeight;
-            
+
             // Calculate target scroll to center the element within the VISIBLE area
             let targetScrollTop = absoluteElTop - stickyHeight - (visibleHeight / 2) + (elRect.height / 2);
-            
+
             // Prevent the top of the card from hiding under the sticky header
             // If centering pushes the top too far up, clamp it so the top is visible
             const minSafeScroll = absoluteElTop - stickyHeight - 16; // 16px de margen
             if (targetScrollTop > minSafeScroll) {
               targetScrollTop = minSafeScroll;
             }
-            
+
             // Clamp the scroll value to prevent scrolling past bounds (prevents white gaps)
             const maxScroll = container.scrollHeight - container.clientHeight;
             if (targetScrollTop < 0) targetScrollTop = 0;
             if (targetScrollTop > maxScroll) targetScrollTop = maxScroll;
-            
+
             container.scrollTo({ top: targetScrollTop, behavior: 'smooth' });
           } else {
             el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -97,8 +123,8 @@ export class HomeComponent implements OnInit, OnChanges {
   @Output() viewOnMapEvent = new EventEmitter<any>();
   @Input() isPickingLocation: boolean = false;
   @Input() highlightedRoute: any = null;
-  
-  @Output() updateMapMarkers = new EventEmitter<void>();
+
+  @Output() updateMapMarkers = new EventEmitter<PublicMapViewState>();
   @Output() mapHighlightRoute = new EventEmitter<any>();
   @Output() focusLocation = new EventEmitter<any>();
   @Output() showPinDetails = new EventEmitter<{location: any, type: string}>();
@@ -133,6 +159,12 @@ export class HomeComponent implements OnInit, OnChanges {
   placeSearchLoading: boolean = false;
   placeSearchError: string = '';
   private placeSearchTimer: ReturnType<typeof setTimeout> | null = null;
+  private initialIntentTimer: ReturnType<typeof setTimeout> | null = null;
+  private searchInputFocusTimer: ReturnType<typeof setTimeout> | null = null;
+  private searchReturnFocusTimer: ReturnType<typeof setTimeout> | null = null;
+  private searchReturnFocusSelector: string | null = null;
+  private placeSearchSubscription?: Subscription;
+  private placeResolveSubscription?: Subscription;
   private placeSearchSessionToken: string = '';
   bottomSheetState: 'hidden' | 'collapsed' | 'half' | 'expanded' = 'collapsed';
   isSheetScrolled: boolean = false;
@@ -153,16 +185,16 @@ export class HomeComponent implements OnInit, OnChanges {
   arrivalDate: string = '';
   selectedPinDayFilter: string = '';
   lastSelectedLocationId: any = null;
-  
+
   municipalityResults: any[] = [];
-  flightResults: any[] = [];
+
   displayedResults: any[] = [];
   expandedResultCard: any = null;
   activeDetailedCard: any = null;
   private unavailablePointImages = new Set<string>();
-  private groupedScheduleCache = new WeakMap<any[], { dias: string, apertura: string, cierre: string }[]>();
+  private groupedScheduleCache = new WeakMap<any[], GroupedSchedule[]>();
   searchRadius: number = 1.0;
-  
+
   // Autocomplete logic properties
   showAutocomplete: boolean = false;
   filteredModalLocations: any[] = [];
@@ -178,12 +210,70 @@ export class HomeComponent implements OnInit, OnChanges {
   cancelPickingLocation() { this.isPickingLocation = false; }
   confirmPickedLocation() { this.isPickingLocation = false; }
 
+
+  private emitMapProjection() {
+    const projection = projectPublicMapViewState({
+      locations: this.locations,
+      selectedPin: this.selectedPin,
+      flightResults: this.flightResults,
+      displayedResults: this.displayedResults,
+      origen: this.origen,
+      destino: this.destino,
+      origenMunicipio: this.origenMunicipio,
+      destinoMunicipio: this.destinoMunicipio,
+      expandedResultCard: this.expandedResultCard,
+      isOriginDiscoveryMode: this.isOriginDiscoveryMode
+    });
+    this.updateMapMarkers.emit(projection);
+  }
+
   constructor(
-    private rutasService: RutasService,
     private toastService: ToastService,
     private mapasService: MapasService,
-    private cdr: ChangeDetectorRef
-  ) {}
+    private cdr: ChangeDetectorRef,
+    private readonly facade: ShipmentSearchFacade,
+    private pointShareService: PointShareService
+  ) {
+    effect(() => {
+      const state = this.facade.state();
+
+      if (state.mode !== 'municipality-routes' && state.mode !== 'point-routes') {
+        return;
+      }
+
+      if (state.status === 'loading') {
+        this.loading = true;
+        this.bottomSheetState = 'half';
+        this.flightResults = [];
+        this.errorMsg = '';
+        this.result = null;
+        this.emitMapProjection();
+      } else if (state.status === 'success') {
+        this.loading = false;
+        this.errorMsg = '';
+
+        const filteredResults = applyClosedDropoffFilter(state.results, new Date());
+        this.flightResults = filteredResults.map((item, i) => presentSearchRoute(item, i, state.results[i]));
+
+        this.bottomSheetState = 'expanded';
+        this.emitMapProjection();
+      } else if (state.status === 'empty') {
+        this.loading = false;
+        this.flightResults = [];
+        this.errorMsg = '';
+        this.result = null;
+        this.bottomSheetState = 'half';
+        this.emitMapProjection();
+      } else if (state.status === 'error') {
+        this.loading = false;
+        this.flightResults = [];
+        this.errorMsg = state.error?.message ?? SEARCH_ERROR_MESSAGES.SERVER;
+        this.result = null;
+        this.bottomSheetState = 'half';
+        this.emitMapProjection();
+      }
+    });
+  }
 
   get hasListContent(): boolean {
     return this.isOriginChoiceMode || this.loading || Boolean(this.errorMsg) ||
@@ -205,12 +295,40 @@ export class HomeComponent implements OnInit, OnChanges {
     const today = new Date();
     const tzOffset = today.getTimezoneOffset() * 60000;
     const localISODate = new Date(today.getTime() - tzOffset).toISOString().split('T')[0];
-    this.dropoffDate = localISODate;
     this.minDate = localISODate;
-    
-    const hours = String(today.getHours()).padStart(2, '0');
-    const minutes = String(today.getMinutes()).padStart(2, '0');
-    this.dropoffTime = `${hours}:${minutes}`;
+
+    if (this.locations.length > 0) {
+      if (!this.restoreActiveRouteState()) {
+        this.applyInitialIntent();
+      }
+    }
+
+    if (!this.dropoffDate) {
+      this.dropoffDate = localISODate;
+    }
+    if (!this.dropoffTime) {
+      const hours = String(today.getHours()).padStart(2, '0');
+      const minutes = String(today.getMinutes()).padStart(2, '0');
+      this.dropoffTime = `${hours}:${minutes}`;
+    }
+  }
+
+  ngOnDestroy() {
+    if (this.placeSearchTimer !== null) {
+      clearTimeout(this.placeSearchTimer);
+      this.placeSearchTimer = null;
+    }
+    if (this.initialIntentTimer !== null) {
+      clearTimeout(this.initialIntentTimer);
+      this.initialIntentTimer = null;
+    }
+    if (this.selectedPinScrollTimer !== null) {
+      clearTimeout(this.selectedPinScrollTimer);
+      this.selectedPinScrollTimer = null;
+    }
+    this.clearSearchFocusTimers();
+    this.placeSearchSubscription?.unsubscribe();
+    this.placeResolveSubscription?.unsubscribe();
   }
 
   // UI Handlers
@@ -219,24 +337,96 @@ export class HomeComponent implements OnInit, OnChanges {
       this.closeLocationSelector();
       return;
     }
+    if (!this.isSearchExpanded) {
+      this.searchReturnFocusSelector = this.resolveSearchReturnFocusSelector();
+    }
     this.activeInput = type;
     this.isSearchExpanded = true;
     this.showAutocomplete = true;
     this.locationSearchQuery = type === 'origen' ? this.origenInputValue : this.destinoInputValue;
     this.updateAutocompleteFilters();
+    this.scheduleSearchInputFocus(type);
   }
 
   closeLocationSelector() {
+    const returnFocusSelector = this.searchReturnFocusSelector;
+    this.clearSearchFocusTimers();
     this.activeInput = null;
     this.isSearchExpanded = false;
     this.showAutocomplete = false;
+    this.searchReturnFocusSelector = null;
+
+    if (returnFocusSelector) {
+      this.searchReturnFocusTimer = setTimeout(() => {
+        this.searchReturnFocusTimer = null;
+        document.querySelector<HTMLElement>(returnFocusSelector)?.focus();
+      });
+    }
+  }
+
+  onSearchDialogKeydown(event: KeyboardEvent) {
+    if (!this.isSearchExpanded) return;
+
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      event.stopPropagation();
+      this.closeLocationSelector();
+      return;
+    }
+
+    if (event.key !== 'Tab') return;
+    const dialog = document.getElementById('location-search-panel');
+    if (!dialog) return;
+
+    const focusable = Array.from(dialog.querySelectorAll<HTMLElement>(
+      'button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    )).filter(element => element.getClientRects().length > 0);
+    if (focusable.length === 0) return;
+
+    const activeIndex = focusable.indexOf(document.activeElement as HTMLElement);
+    const nextIndex = event.shiftKey
+      ? (activeIndex <= 0 ? focusable.length - 1 : activeIndex - 1)
+      : (activeIndex < 0 || activeIndex === focusable.length - 1 ? 0 : activeIndex + 1);
+
+    event.preventDefault();
+    focusable[nextIndex].focus();
+  }
+
+  private scheduleSearchInputFocus(type: 'origen' | 'destino') {
+    if (this.searchInputFocusTimer !== null) {
+      clearTimeout(this.searchInputFocusTimer);
+    }
+    const inputId = type === 'origen' ? 'origin-location' : 'destination-municipality';
+    this.searchInputFocusTimer = setTimeout(() => {
+      this.searchInputFocusTimer = null;
+      document.getElementById(inputId)?.focus();
+    });
+  }
+
+  private resolveSearchReturnFocusSelector(): string | null {
+    const activeElement = document.activeElement;
+    if (!(activeElement instanceof HTMLElement)) return null;
+    if (activeElement.matches('.destination-search-trigger')) return '.destination-search-trigger';
+    if (activeElement.closest('.list-first-intro')) return '.list-first-intro button';
+    return null;
+  }
+
+  private clearSearchFocusTimers() {
+    if (this.searchInputFocusTimer !== null) {
+      clearTimeout(this.searchInputFocusTimer);
+      this.searchInputFocusTimer = null;
+    }
+    if (this.searchReturnFocusTimer !== null) {
+      clearTimeout(this.searchReturnFocusTimer);
+      this.searchReturnFocusTimer = null;
+    }
   }
 
   @HostListener('document:click', ['$event'])
   clickout(event: any) {
     const clickedInsideSearchBox = event.target.closest('.search-box');
     const clickedInsideList = event.target.closest('.autocomplete-list');
-    
+
     if (!clickedInsideSearchBox && !clickedInsideList) {
       this.showAutocomplete = false;
       this.activeInput = null;
@@ -263,7 +453,7 @@ export class HomeComponent implements OnInit, OnChanges {
     this.municipalityResults = [];
     this.displayedResults = [];
     this.clearMap.emit();
-    this.updateMapMarkers.emit();
+    this.emitMapProjection();
   }
 
   returnToHome() {
@@ -273,26 +463,140 @@ export class HomeComponent implements OnInit, OnChanges {
 
   ngOnChanges(changes: SimpleChanges) {
     if ((changes['locations'] || changes['initialIntent']) && this.locations.length > 0) {
+      if (this.restoreActiveRouteState()) {
+        return;
+      }
+      const state = this.facade.state();
+      if (state.mode === 'municipality-routes' || state.mode === 'point-routes') {
+        this.facade.reset();
+        this.flightResults = [];
+        this.result = null;
+        this.errorMsg = '';
+        this.expandedResultCard = null;
+        this.activeDetailedCard = null;
+      }
       this.applyInitialIntent();
     }
   }
 
+  private findLocationByPointId(pointId: string | null | undefined): any | null {
+    if (!pointId) return null;
+    const target = String(pointId);
+    return this.locations.find(loc =>
+      String(loc.id_destino || '') === target ||
+      String(loc.id_origen || '') === target ||
+      String(loc.id || '') === target ||
+      this.getLocationIdentity(loc) === target
+    ) || null;
+  }
+
+  private matchesActiveRouteIntent(state: ShipmentSearchState): boolean {
+    const intent = this.initialIntent;
+    if (!intent || Object.keys(intent).length === 0) return true;
+    if (intent['buscar'] || intent['empresa'] || intent['accion']) return false;
+    if (intent['punto']) {
+      return String(state.destination.point?.id || '') === String(intent['punto']);
+    }
+    if (!intent['municipio']) return false;
+
+    const storedMunicipality = state.destination.municipality
+      || state.destination.point?.municipality?.municipio
+      || '';
+    const sameMunicipality = this.normalizeSearchText(storedMunicipality)
+      === this.normalizeSearchText(intent['municipio']);
+    const storedDepartment = state.destination.department
+      || state.destination.point?.municipality?.departamento
+      || '';
+    const sameDepartment = !intent['departamento']
+      || this.normalizeSearchText(storedDepartment)
+        === this.normalizeSearchText(intent['departamento']);
+    return sameMunicipality && sameDepartment;
+  }
+
+  private restoreActiveRouteState(): boolean {
+    const state = this.facade.state();
+    if (state.mode !== 'municipality-routes' && state.mode !== 'point-routes') {
+      return false;
+    }
+
+    if (!this.matchesActiveRouteIntent(state)) {
+      return false;
+    }
+
+    if (state.origin) {
+      const pointLocation = this.findLocationByPointId(state.origin.point?.id);
+      this.selectedOriginPoint = pointLocation;
+      this.origenMunicipio = state.origin.municipality
+        || pointLocation?.ubicacion?.municipio
+        || state.origin.point?.municipality?.municipio
+        || '';
+      this.origenDepartamento = state.origin.department
+        || pointLocation?.ubicacion?.departamento
+        || state.origin.point?.municipality?.departamento
+        || '';
+      this.origenInputValue = state.origin.inputValue
+        || (pointLocation ? this.getLocationName(pointLocation) : '')
+        || state.origin.point?.name
+        || this.origenMunicipio;
+      this.origen = this.origenInputValue;
+    }
+
+    if (state.destination) {
+      const pointLocation = this.findLocationByPointId(state.destination.point?.id);
+      this.selectedDestinationPoint = pointLocation;
+      this.destinoMunicipio = state.destination.municipality
+        || pointLocation?.ubicacion?.municipio
+        || state.destination.point?.municipality?.municipio
+        || '';
+      this.destinoDepartamento = state.destination.department
+        || pointLocation?.ubicacion?.departamento
+        || state.destination.point?.municipality?.departamento
+        || '';
+      this.destinoInputValue = state.destination.inputValue
+        || (pointLocation ? this.getLocationName(pointLocation) : '')
+        || state.destination.point?.name
+        || this.destinoMunicipio;
+      this.destino = this.destinoInputValue;
+    }
+
+    if (state.filters) {
+      if (state.filters.dropoffDate) {
+        this.dropoffDate = state.filters.dropoffDate;
+      }
+      if (state.filters.dropoffTime) {
+        this.dropoffTime = state.filters.dropoffTime;
+      }
+    }
+
+    this.appliedIntentKey = JSON.stringify(this.initialIntent);
+    this.cdr.markForCheck();
+    return true;
+  }
+
   private applyInitialIntent() {
+    if (this.restoreActiveRouteState()) return;
     if (Object.keys(this.initialIntent || {}).length === 0) return;
     const intentKey = JSON.stringify(this.initialIntent);
     if (intentKey === this.appliedIntentKey) return;
     this.appliedIntentKey = intentKey;
     const intent = this.initialIntent;
 
-    setTimeout(() => {
+    if (this.initialIntentTimer !== null) {
+      clearTimeout(this.initialIntentTimer);
+    }
+    this.initialIntentTimer = setTimeout(() => {
+      this.initialIntentTimer = null;
       if (intent['buscar'] === 'destino') {
         this.openLocationSelector('destino');
       } else if (intent['empresa']) {
         this.exploreCompanyFromDiscovery(intent['empresa']);
       } else if (intent['municipio']) {
+        const matchingLoc = this.locations.find(location =>
+          this.normalizeSearchText(location.ubicacion?.municipio) === this.normalizeSearchText(intent['municipio'])
+        );
         this.selectMunicipalityFromDiscovery({
           municipio: intent['municipio'],
-          departamento: intent['departamento'] || ''
+          departamento: intent['departamento'] || matchingLoc?.ubicacion?.departamento || ''
         });
       } else if (intent['punto']) {
         const point = this.locations.find(location =>
@@ -308,9 +612,15 @@ export class HomeComponent implements OnInit, OnChanges {
     });
   }
 
-  exploreMapFromDiscovery() {
-    this.mapResourceMode = true;
+  private requestMapMode(): boolean {
     this.mapResourceModeChange.emit(true);
+    return this.mapAvailable;
+  }
+
+  exploreMapFromDiscovery() {
+    if (!this.requestMapMode()) {
+      return;
+    }
     this.bottomSheetState = 'collapsed';
     this.resetMapMarkersEvent.emit();
   }
@@ -337,7 +647,7 @@ export class HomeComponent implements OnInit, OnChanges {
     }));
     this.displayedResults = [...this.municipalityResults];
     this.bottomSheetState = 'half';
-    this.updateMapMarkers.emit();
+    this.emitMapProjection();
   }
 
   selectPointFromDiscovery(point: any) {
@@ -368,9 +678,9 @@ export class HomeComponent implements OnInit, OnChanges {
     const query = this.locationSearchQuery.toLowerCase();
     const normalize = (str: string) => str ? str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase() : '';
     const normQuery = normalize(query);
-    
+
     const matchingLocations = this.locations.filter(l =>
-      normalize(l.nombre_destino).includes(normQuery) || 
+      normalize(l.nombre_destino).includes(normQuery) ||
       normalize(l.ubicacion?.municipio).includes(normQuery) ||
       normalize(l.ubicacion?.departamento).includes(normQuery)
     );
@@ -394,6 +704,29 @@ export class HomeComponent implements OnInit, OnChanges {
       this.origen = locationName;
       this.origenMunicipio = loc.ubicacion?.municipio;
       this.origenDepartamento = loc.ubicacion?.departamento;
+
+      const rawLat = loc.ubicacion?.lat;
+      const rawLng = loc.ubicacion?.lng;
+      const lat = rawLat != null && rawLat !== '' ? parseFloat(String(rawLat)) : NaN;
+      const lng = rawLng != null && rawLng !== '' ? parseFloat(String(rawLng)) : NaN;
+      const validCoords = !isNaN(lat) && !isNaN(lng) && isFinite(lat) && isFinite(lng) ? { lat, lng } : null;
+
+      this.facade.setOrigin({
+        point: {
+          id: this.getLocationIdentity(loc),
+          name: locationName,
+          company: loc.empresa,
+          type: loc.tipo,
+          coordinates: validCoords,
+          municipality: {
+            municipio: loc.ubicacion?.municipio || '',
+            departamento: loc.ubicacion?.departamento || ''
+          }
+        },
+        inputValue: locationName,
+        municipality: loc.ubicacion?.municipio || '',
+        department: loc.ubicacion?.departamento || ''
+      });
     } else {
       this.selectedDestinationPoint = loc;
       this.destinoInputValue = locationName;
@@ -427,6 +760,27 @@ export class HomeComponent implements OnInit, OnChanges {
     }
   }
 
+  onDestinationMunicipalitySelected(mun: MunicipalityOption) {
+    this.facade.setDestination({
+      point: null,
+      inputValue: mun.municipio,
+      municipality: mun.municipio,
+      department: mun.departamento || ''
+    });
+
+    this.selectMunicipality(mun, 'destino');
+  }
+
+  onDestinationClear() {
+    this.clearInput('destino');
+    this.facade.setDestination({
+      point: null,
+      inputValue: '',
+      municipality: '',
+      department: ''
+    });
+  }
+
   onOrigenInput(event: any) {
     const val = typeof event === 'string' ? event : event?.target?.value || '';
     this.origenInputValue = val;
@@ -448,18 +802,28 @@ export class HomeComponent implements OnInit, OnChanges {
     this.placeSearchQuery = value;
     this.placeSuggestions = [];
     this.placeSearchError = '';
-    if (this.placeSearchTimer) clearTimeout(this.placeSearchTimer);
+    if (this.placeSearchTimer !== null) {
+      clearTimeout(this.placeSearchTimer);
+      this.placeSearchTimer = null;
+    }
 
     if (value.trim().length < 3) {
       this.placeSearchLoading = false;
       return;
     }
 
-    this.placeSearchTimer = setTimeout(() => this.searchPlaces(value.trim()), 350);
+    this.placeSearchTimer = setTimeout(() => {
+      this.placeSearchTimer = null;
+      this.searchPlaces(value.trim());
+    }, 350);
   }
 
   clearPlaceSearch() {
-    if (this.placeSearchTimer) clearTimeout(this.placeSearchTimer);
+    if (this.placeSearchTimer !== null) {
+      clearTimeout(this.placeSearchTimer);
+      this.placeSearchTimer = null;
+    }
+    this.placeSearchSubscription?.unsubscribe();
     this.placeSearchQuery = '';
     this.placeSuggestions = [];
     this.placeSearchError = '';
@@ -472,7 +836,8 @@ export class HomeComponent implements OnInit, OnChanges {
     this.placeSearchLoading = true;
     this.placeSearchError = '';
 
-    this.mapasService.resolvePlace(suggestion.placeId, this.placeSearchSessionToken).subscribe({
+    this.placeResolveSubscription?.unsubscribe();
+    this.placeResolveSubscription = this.mapasService.resolvePlace(suggestion.placeId, this.placeSearchSessionToken).subscribe({
       next: response => {
         const municipality = this.matchRegisteredMunicipality(response?.place);
         this.placeSearchLoading = false;
@@ -502,7 +867,8 @@ export class HomeComponent implements OnInit, OnChanges {
     if (!this.placeSearchSessionToken) this.placeSearchSessionToken = this.createPlaceSessionToken();
     this.placeSearchLoading = true;
 
-    this.mapasService.searchPlaces(query, this.placeSearchSessionToken).subscribe({
+    this.placeSearchSubscription?.unsubscribe();
+    this.placeSearchSubscription = this.mapasService.searchPlaces(query, this.placeSearchSessionToken).subscribe({
       next: response => {
         this.placeSuggestions = response?.suggestions || [];
         this.placeSearchLoading = false;
@@ -609,6 +975,7 @@ export class HomeComponent implements OnInit, OnChanges {
       this.origen = '';
       this.origenMunicipio = '';
       this.origenDepartamento = '';
+      this.facade.setOrigin({ point: null, inputValue: '', municipality: '', department: '' });
     } else {
       this.selectedDestinationPoint = null;
       this.destinoInputValue = '';
@@ -626,7 +993,7 @@ export class HomeComponent implements OnInit, OnChanges {
     const query = this.locationSearchQuery ? this.locationSearchQuery.toLowerCase() : '';
     const normalize = (str: string) => str ? str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase() : '';
     const normQuery = normalize(query);
-    
+
     const muns = new Map<string, any>();
     this.locations.forEach(loc => {
       if (loc.ubicacion && loc.ubicacion.municipio) {
@@ -688,6 +1055,12 @@ export class HomeComponent implements OnInit, OnChanges {
     this.origenInputValue = 'Mi Ubicación';
     this.origen = 'Mi Ubicación';
     this.origenMunicipio = this.userMunicipalityName || '';
+    this.facade.setOrigin({
+      point: null,
+      inputValue: 'Mi Ubicación',
+      municipality: this.userMunicipalityName || '',
+      department: ''
+    });
     this.handleSelectionHandoff('origen');
     if (this.destino) {
       this.executeSearch();
@@ -700,10 +1073,16 @@ export class HomeComponent implements OnInit, OnChanges {
 
   selectOriginMunicipality(mun: any) {
     this.selectedOriginPoint = null;
-    this.origen = mun.nombre_display;
-    this.origenInputValue = mun.nombre_display;
+    this.origen = mun.nombre_display || mun.municipio;
+    this.origenInputValue = mun.nombre_display || mun.municipio;
     this.origenMunicipio = mun.municipio;
     this.origenDepartamento = mun.departamento;
+    this.facade.setOrigin({
+      point: null,
+      inputValue: mun.nombre_display || mun.municipio,
+      municipality: mun.municipio,
+      department: mun.departamento || ''
+    });
     this.handleSelectionHandoff('origen');
     if (this.destino) {
       this.executeSearch();
@@ -714,7 +1093,7 @@ export class HomeComponent implements OnInit, OnChanges {
     const tempIn = this.origenInputValue;
     this.origenInputValue = this.destinoInputValue;
     this.destinoInputValue = tempIn;
-    
+
     const temp = this.origen;
     this.origen = this.destino;
     this.destino = temp;
@@ -730,7 +1109,7 @@ export class HomeComponent implements OnInit, OnChanges {
     const tempPoint = this.selectedOriginPoint;
     this.selectedOriginPoint = this.selectedDestinationPoint;
     this.selectedDestinationPoint = tempPoint;
-    
+
     this.executeSearch();
   }
 
@@ -756,90 +1135,32 @@ export class HomeComponent implements OnInit, OnChanges {
         return;
       }
 
-      this.loading = true;
-      this.bottomSheetState = 'half';
-      this.errorMsg = '';
-      this.flightResults = [];
       this.activeDetailedCard = null;
-      
+
       this.isOriginDiscoveryMode = false;
       this.isDiscoveryMode = false;
       this.municipalityResults = [];
       this.displayedResults = [];
-      
-      const params: any = {
-        origen: this.origen,
-        destino: this.destino,
-        origenIsPin: this.origen.includes('(Pin en Mapa)'),
-        dropoffDate: this.dropoffDate,
-        dropoffTime: this.dropoffTime,
-        // Parámetros específicos para searchFlights
-        origen_municipio: this.origenMunicipio || this.origen.split(',')[0]?.trim(),
-        origen_departamento: this.origenDepartamento || this.origen.split(',')[1]?.trim() || '',
-        destino_municipio: this.destinoMunicipio || this.destino.split(',')[0]?.trim(),
-        destino_departamento: this.destinoDepartamento || this.destino.split(',')[1]?.trim() || '',
-        dropoff_date: this.dropoffDate,
-        dropoff_time: this.dropoffTime
-      };
+      this.expandedResultCard = null;
 
-      this.rutasService.searchFlights(params).subscribe({
-        next: (res: any) => {
-          this.loading = false;
-          this.result = res;
-          if (res.success) {
-            let vuelos = res.flights || res.results || [];
-            
-            // Filtrar agencias cerradas por hora hoy
-            const now = new Date();
-            const todayStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
-            const currentHour = now.getHours();
-            const currentMinute = now.getMinutes();
+      const origen_municipio = this.origenMunicipio || this.origen.split(',')[0]?.trim() || '';
+      const origen_departamento = this.origenDepartamento || this.origen.split(',')[1]?.trim() || '';
+      const destino_municipio = this.destinoMunicipio || this.destino.split(',')[0]?.trim() || '';
+      const destino_departamento = this.destinoDepartamento || this.destino.split(',')[1]?.trim() || '';
 
-            vuelos.forEach((vuelo: any) => {
-              if (vuelo.opciones_entrega && vuelo.opciones_entrega.length > 0) {
-                 vuelo.opciones_entrega = vuelo.opciones_entrega.filter((op: any) => {
-                    if (op.dropoff_date === todayStr && op.dropoff_msg) {
-                       const match = op.dropoff_msg.match(/a\s*(\d{1,2}):(\d{2})\s*(AM|PM)/i);
-                       if (match) {
-                          let endHour = parseInt(match[1], 10);
-                          const endMinute = parseInt(match[2], 10);
-                          const ampm = match[3].toUpperCase();
-                          if (ampm === 'PM' && endHour < 12) endHour += 12;
-                          if (ampm === 'AM' && endHour === 12) endHour = 0;
-                          
-                          if (currentHour > endHour || (currentHour === endHour && currentMinute > endMinute)) {
-                             vuelo.hasClosedAlert = true;
-                             return false; 
-                          }
-                       }
-                    }
-                    return true;
-                 });
-                 if (vuelo.opciones_entrega.length > 0) {
-                    vuelo.selectedOption = vuelo.opciones_entrega[0];
-                    if (vuelo.selected_opcion_idx === undefined || vuelo.selected_opcion_idx >= vuelo.opciones_entrega.length) {
-                       vuelo.selected_opcion_idx = 0;
-                    }
-                 }
-              }
-            });
-
-            this.flightResults = vuelos;
-            this.bottomSheetState = 'expanded';
-            this.updateMapMarkers.emit();
-          } else {
-            this.errorMsg = res.message || 'No se encontraron rutas.';
-          }
-        },
-        error: (err: any) => {
-          this.loading = false;
-          this.errorMsg = 'Error de conexión al buscar rutas.';
-        }
+      this.facade.searchMunicipalityRoutes({
+        origin: { municipio: origen_municipio, departamento: origen_departamento },
+        destination: { municipio: destino_municipio, departamento: destino_departamento },
+        filters: { dropoffDate: this.dropoffDate, dropoffTime: this.dropoffTime }
       });
-    } else if (this.origenMunicipio && !this.destinoInputValue) {
-      this.discoveryModeForOriginMunicipality(this.origenMunicipio, this.origenDepartamento);
-    } else if (this.destinoMunicipio && !this.origenInputValue) {
-      this.discoveryModeForMunicipality(this.destinoMunicipio, this.destinoDepartamento);
+    } else {
+      this.facade.reset();
+
+      if (this.origenMunicipio && !this.destinoInputValue) {
+        this.discoveryModeForOriginMunicipality(this.origenMunicipio, this.origenDepartamento);
+      } else if (this.destinoMunicipio && !this.origenInputValue) {
+        this.discoveryModeForMunicipality(this.destinoMunicipio, this.destinoDepartamento);
+      }
     }
   }
 
@@ -853,11 +1174,11 @@ export class HomeComponent implements OnInit, OnChanges {
     this.activeDetailedCard = null;
     this.expandedResultCard = null;
     this.bottomSheetState = 'half';
-    this.isOriginDiscoveryMode = true; 
+    this.isOriginDiscoveryMode = true;
     this.isDiscoveryMode = false;
 
-    const targets = this.locations.filter(l => 
-      l.ubicacion?.municipio === municipio && 
+    const targets = this.locations.filter(l =>
+      l.ubicacion?.municipio === municipio &&
       l.ubicacion?.departamento === departamento
     );
 
@@ -880,7 +1201,7 @@ export class HomeComponent implements OnInit, OnChanges {
     }
 
     this.loading = false;
-    this.updateMapMarkers.emit();
+    this.emitMapProjection();
   }
 
   discoveryModeForMunicipality(municipio: string, departamento: string) {
@@ -895,8 +1216,8 @@ export class HomeComponent implements OnInit, OnChanges {
     this.isDiscoveryMode = true;
     this.isOriginDiscoveryMode = false;
 
-    const targets = this.locations.filter(l => 
-      l.ubicacion?.municipio === municipio && 
+    const targets = this.locations.filter(l =>
+      l.ubicacion?.municipio === municipio &&
       l.ubicacion?.departamento === departamento
     );
 
@@ -919,7 +1240,7 @@ export class HomeComponent implements OnInit, OnChanges {
     }
 
     this.loading = false;
-    this.updateMapMarkers.emit();
+    this.emitMapProjection();
   }
 
   toggleExpandFlight(flight: any) {
@@ -930,11 +1251,20 @@ export class HomeComponent implements OnInit, OnChanges {
     }
   }
 
-  onDeliveryDayChange(flight: any, event: any) {
-    flight.selected_opcion_idx = parseInt(event.target.value);
+  toggleRouteCard(flight: RouteResultViewModel) {
+    this.facade.toggleRouteExpansion(flight.sourceRouteIndex);
+  }
+
+  onDeliveryDayChange(payload: RouteDeliveryDayChange) {
+    const sourceOptionIndex = payload.route.opciones_entrega?.[payload.index]?.sourceOptionIndex;
+    if (sourceOptionIndex == null || sourceOptionIndex === -1) return;
+    this.facade.selectRouteOption(payload.route.sourceRouteIndex, sourceOptionIndex);
   }
 
   highlightRouteOnMap(flight: any) {
+    if (!this.requestMapMode()) {
+      return;
+    }
     this.mapHighlightRoute.emit(flight);
     this.expandedResultCard = null;
     this.bottomSheetState = 'collapsed';
@@ -980,137 +1310,26 @@ export class HomeComponent implements OnInit, OnChanges {
   }
 
   formatTime(timeStr: string): string {
-    if (!timeStr) return '';
-    const [hours, minutes] = timeStr.split(':');
-    let h = parseInt(hours, 10);
-    const ampm = h >= 12 ? 'PM' : 'AM';
-    h = h % 12 || 12;
-    return `${h < 10 ? '0' + h : h}:${minutes} ${ampm}`;
+    return formatScheduleTime(timeStr);
   }
 
-  getGroupedSchedules(horarios: any[]): { dias: string, apertura: string, cierre: string }[] {
+  getGroupedSchedules(horarios: any[]): GroupedSchedule[] {
     if (!horarios || horarios.length === 0) return [];
     const cachedGroups = this.groupedScheduleCache.get(horarios);
     if (cachedGroups) return cachedGroups;
-    
-    const dayOrder = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
-    
-    // 1. Group by time
-    const timeGroups: { [key: string]: { apertura: string, cierre: string, days: number[] } } = {};
-    
-    for (const h of horarios) {
-      if (!h.hora_apertura || !h.hora_cierre) continue;
-      const key = `${h.hora_apertura}-${h.hora_cierre}`;
-      const dayIndex = dayOrder.indexOf(h.dia_semana);
-      if (dayIndex === -1) continue;
-      
-      if (!timeGroups[key]) {
-        timeGroups[key] = { apertura: h.hora_apertura, cierre: h.hora_cierre, days: [] };
-      }
-      timeGroups[key].days.push(dayIndex);
-    }
-    
-    const result: { dias: string, apertura: string, cierre: string }[] = [];
-    
-    // 2. For each time group, find consecutive ranges
-    for (const key in timeGroups) {
-      const group = timeGroups[key];
-      // Sort days
-      group.days.sort((a, b) => a - b);
-      
-      const ranges: string[] = [];
-      let rangeStart = group.days[0];
-      let rangeEnd = group.days[0];
-      
-      for (let i = 1; i < group.days.length; i++) {
-        if (group.days[i] === rangeEnd + 1) {
-          rangeEnd = group.days[i];
-        } else {
-          if (rangeStart === rangeEnd) {
-            ranges.push(dayOrder[rangeStart]);
-          } else if (rangeEnd === rangeStart + 1) {
-            ranges.push(`${dayOrder[rangeStart]} y ${dayOrder[rangeEnd]}`);
-          } else {
-            ranges.push(`${dayOrder[rangeStart]} a ${dayOrder[rangeEnd]}`);
-          }
-          rangeStart = group.days[i];
-          rangeEnd = group.days[i];
-        }
-      }
-      
-      if (rangeStart === rangeEnd) {
-        ranges.push(dayOrder[rangeStart]);
-      } else if (rangeEnd === rangeStart + 1) {
-        ranges.push(`${dayOrder[rangeStart]} y ${dayOrder[rangeEnd]}`);
-      } else {
-        ranges.push(`${dayOrder[rangeStart]} a ${dayOrder[rangeEnd]}`);
-      }
-      
-      // Join ranges with commas
-      let diasLabel = ranges.join(', ');
-      
-      result.push({ dias: diasLabel, apertura: group.apertura, cierre: group.cierre });
-    }
-    
-    // Sort result by the first day of the group (optional, but good for UX)
-    result.sort((a, b) => {
-       const getFirstDay = (label: string) => {
-          for (let i=0; i<dayOrder.length; i++) {
-            if (label.includes(dayOrder[i])) return i;
-          }
-          return 99;
-       };
-       return getFirstDay(a.dias) - getFirstDay(b.dias);
-    });
-    
+
+    const result = groupConsecutiveSchedules(horarios);
+
     this.groupedScheduleCache.set(horarios, result);
     return result;
   }
 
   formatLocationName(name: string, type?: string): string {
-    if (!name) return '';
-    const upperName = name.toUpperCase();
-    
-    // Check if it's already an agency or defined as an agency
-    if (type === 'Agencia' || upperName.includes('AGENCIA')) {
-      return upperName.includes('AGENCIA') ? upperName : `AGENCIA ${upperName}`;
-    }
-    
-    // Check if it's a Domicilio
-    if (type === 'Cobertura Domicilio' || upperName.includes('DOMICILIO')) {
-      return upperName.includes('DOMICILIO') ? upperName : `DOMICILIO ${upperName}`;
-    }
-    
-    // Default fallback: if it's not an agency and doesn't explicitly have a prefix, treat it as a Punto Fijo
-    if (!upperName.includes('PUNTO FIJO') && !upperName.includes('PUNTO')) {
-      return `PUNTO FIJO ${upperName}`;
-    }
-    
-    return upperName;
+    return rtFormatLoc(name, type);
   }
 
   formatFriendlyDate(dateStr: string): string {
-    if (!dateStr) return '';
-    const parts = dateStr.split('-');
-    let date = new Date(dateStr);
-    if (parts.length === 3) {
-      date = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
-    }
-    const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-    const diaNombre = dias[date.getDay()];
-    
-    const today = new Date();
-    const isToday = today.getDate() === date.getDate() && today.getMonth() === date.getMonth() && today.getFullYear() === date.getFullYear();
-    
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const isTomorrow = tomorrow.getDate() === date.getDate() && tomorrow.getMonth() === date.getMonth() && tomorrow.getFullYear() === date.getFullYear();
-    
-    let suffix = '';
-    if (isToday) suffix = ' (Hoy)';
-    else if (isTomorrow) suffix = ' (Mañana)';
-    
-    return `${diaNombre} ${date.getDate()}${suffix}`;
+    return rtFormatDate(dateStr);
   }
 
   recenterMap() {
@@ -1151,136 +1370,13 @@ export class HomeComponent implements OnInit, OnChanges {
   }
 
   async sharePointResource(loc: any) {
-    const title = this.getLocationName(loc);
-    const text = this.buildPointShareText(loc);
-    const mapUrl = loc?.maps_url || this.buildGoogleMapsUrl(loc);
-    const imageUrl = this.hasPointImage(loc) ? this.resolveImageUrl(loc?.imagen_referencia) : '';
-
-    if (navigator.share) {
-      try {
-        if (imageUrl) {
-          try {
-            const pngBlob = await this.loadImageAsPng(imageUrl);
-            const imageFile = new File([pngBlob], `${this.safeFileName(title)}.png`, { type: 'image/png' });
-            const imageShareData: ShareData = { files: [imageFile], title, text };
-            if (!navigator.canShare || navigator.canShare(imageShareData)) {
-              await navigator.share(imageShareData);
-              return;
-            }
-          } catch (error: any) {
-            if (error?.name === 'AbortError') return;
-            console.warn('No se pudo adjuntar la imagen; se compartirá la información del punto.', error);
-          }
-        }
-
-        await navigator.share({ title, text, url: mapUrl });
-        return;
-      } catch (error: any) {
-        if (error?.name === 'AbortError') return;
-        console.warn('No se pudo abrir el menú para compartir; se copiarán las indicaciones.', error);
-      }
-    }
-
-    try {
-      await this.copyText(text);
-      this.toastService.showSuccess('Tu navegador no abrió el menú de compartir; copiamos la información para que puedas pegarla.', 'Información copiada');
-    } catch (error) {
-      console.error('No se pudo compartir la información del punto.', error);
-      this.toastService.showError('Tu navegador bloqueó la acción. Intenta de nuevo desde HTTPS.', 'No se pudo compartir');
-    }
+    const imageUrl = this.hasPointImage(loc) ? this.resolveImageUrl(loc?.imagen_referencia) : undefined;
+    await this.pointShareService.sharePoint(loc, imageUrl);
   }
 
   async copyPointResource(loc: any) {
     const imageUrl = this.resolveImageUrl(loc?.imagen_referencia);
-
-    if (imageUrl) {
-      try {
-        const pngBlob = await this.loadImageAsPng(imageUrl);
-        const ClipboardItemConstructor = (window as any).ClipboardItem;
-        if (navigator.clipboard?.write && ClipboardItemConstructor) {
-          await navigator.clipboard.write([
-            new ClipboardItemConstructor({ 'image/png': pngBlob })
-          ]);
-          this.toastService.showSuccess('La imagen del punto está lista para pegar en tu chat.', 'Imagen copiada');
-          return;
-        }
-
-        const shareFile = new File([pngBlob], `${this.safeFileName(this.getLocationName(loc))}.png`, { type: 'image/png' });
-        const shareData: ShareData = { files: [shareFile], title: this.getLocationName(loc), text: this.buildPointShareText(loc) };
-        if (navigator.share && (!navigator.canShare || navigator.canShare(shareData))) {
-          await navigator.share(shareData);
-          this.toastService.showSuccess('Selecciona dónde enviar la imagen del punto.', 'Imagen lista');
-          return;
-        }
-      } catch (error: any) {
-        if (error?.name === 'AbortError') return;
-        console.warn('No se pudo copiar la imagen; se copiarán las indicaciones.', error);
-      }
-    }
-
-    try {
-      await this.copyText(this.buildPointShareText(loc));
-      this.toastService.showSuccess(
-        imageUrl ? 'No fue posible copiar la imagen; copiamos las indicaciones y el enlace.' : 'Copiamos las indicaciones y el enlace del mapa.',
-        'Información copiada'
-      );
-    } catch (error) {
-      console.error('No se pudo copiar la información del punto.', error);
-      this.toastService.showError('Tu navegador bloqueó el portapapeles. Intenta de nuevo desde HTTPS.', 'No se pudo copiar');
-    }
-  }
-
-  private async loadImageAsPng(url: string): Promise<Blob> {
-    const response = await fetch(url, { mode: 'cors' });
-    if (!response.ok) throw new Error(`No se pudo cargar la imagen (${response.status})`);
-    const sourceBlob = await response.blob();
-    const imageBitmap = await createImageBitmap(sourceBlob);
-    const maximumSide = 1800;
-    const scale = Math.min(1, maximumSide / Math.max(imageBitmap.width, imageBitmap.height));
-    const canvas = document.createElement('canvas');
-    canvas.width = Math.max(1, Math.round(imageBitmap.width * scale));
-    canvas.height = Math.max(1, Math.round(imageBitmap.height * scale));
-    const context = canvas.getContext('2d');
-    if (!context) throw new Error('El navegador no pudo preparar la imagen');
-    context.drawImage(imageBitmap, 0, 0, canvas.width, canvas.height);
-    imageBitmap.close();
-    return await new Promise<Blob>((resolve, reject) => {
-      canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('No se pudo convertir la imagen')), 'image/png');
-    });
-  }
-
-  private buildPointShareText(loc: any): string {
-    const place = [loc?.ubicacion?.municipio, loc?.ubicacion?.departamento].filter(Boolean).join(', ');
-    const address = loc?.direccion_referencia ? `\nDirección: ${loc.direccion_referencia}` : '';
-    const mapUrl = loc?.maps_url || this.buildGoogleMapsUrl(loc);
-    return `${this.getLocationName(loc)}\n${loc?.empresa || 'Punto de entrega'}\n${place || 'El Salvador'}${address}\nMapa: ${mapUrl}`;
-  }
-
-  private buildGoogleMapsUrl(loc: any): string {
-    const lat = loc?.ubicacion?.lat;
-    const lng = loc?.ubicacion?.lng;
-    if (lat && lng) return `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
-    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${this.getLocationName(loc)} ${loc?.ubicacion?.municipio || ''} El Salvador`)}`;
-  }
-
-  private safeFileName(value: string): string {
-    return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '').toLowerCase() || 'punto-sivoy';
-  }
-
-  private async copyText(text: string): Promise<void> {
-    if (navigator.clipboard?.writeText) {
-      await navigator.clipboard.writeText(text);
-      return;
-    }
-    const textarea = document.createElement('textarea');
-    textarea.value = text;
-    textarea.style.position = 'fixed';
-    textarea.style.opacity = '0';
-    document.body.appendChild(textarea);
-    textarea.select();
-    const copied = document.execCommand('copy');
-    textarea.remove();
-    if (!copied) throw new Error('El portapapeles no está disponible');
+    await this.pointShareService.copyPoint(loc, imageUrl || undefined);
   }
 
   resetMapMarkers() {
@@ -1306,8 +1402,7 @@ export class HomeComponent implements OnInit, OnChanges {
     }
   }
 
-  togglePinCard(event: MouseEvent) {
-    event.stopPropagation();
+  togglePinCard() {
     this.isPinCardExpanded = !this.isPinCardExpanded;
     this.pinCardStateLocked = true;
   }
@@ -1447,9 +1542,10 @@ export class HomeComponent implements OnInit, OnChanges {
   }
 
   viewPointOnMap(point: any) {
+    if (!this.requestMapMode()) {
+      return;
+    }
     this.lastSelectedLocationId = point.id_destino || point.id_origen || point.id;
-    this.mapResourceMode = true;
-    this.mapResourceModeChange.emit(true);
     this.showPinDetails.emit({
       location: point,
       type: this.isOriginDiscoveryMode ? 'origen' : 'destino'
@@ -1630,16 +1726,16 @@ export class HomeComponent implements OnInit, OnChanges {
   }
 
   private searchRoutesWithPointConstraints() {
-    this.loading = true;
-    this.bottomSheetState = 'half';
-    this.errorMsg = '';
+    this.isOriginChoiceMode = false;
+    this.isOriginDiscoveryMode = false;
+    this.isDiscoveryMode = false;
+    this.expandedResultCard = null;
+    this.activeDetailedCard = null;
     this.result = null;
     this.flightResults = [];
     this.municipalityResults = [];
     this.displayedResults = [];
-    this.isOriginChoiceMode = false;
-    this.isOriginDiscoveryMode = false;
-    this.isDiscoveryMode = false;
+    this.errorMsg = '';
 
     const originLocations = this.selectedOriginPoint
       ? [this.selectedOriginPoint]
@@ -1648,61 +1744,35 @@ export class HomeComponent implements OnInit, OnChanges {
       ? [this.selectedDestinationPoint]
       : this.getMunicipalityLocations(this.destinoMunicipio, this.destinoDepartamento);
 
-    const originNames = [...new Set<string>(originLocations.map(location => this.getLocationName(location)).filter(Boolean))];
-    const destinationNames = [...new Set<string>(destinationLocations.map(location => this.getLocationName(location)).filter(Boolean))];
+    const originPoints = originLocations.map(pointRefFromLocation).filter((p): p is PointRef => p !== null);
+    const destinationPoints = destinationLocations.map(pointRefFromLocation).filter((p): p is PointRef => p !== null);
 
-    if (originNames.length === 0 || destinationNames.length === 0) {
+    if (originPoints.length === 0 || destinationPoints.length === 0) {
+      this.facade.reset();
       this.loading = false;
       this.errorMsg = 'No encontramos puntos operativos para completar esta combinación.';
       return;
     }
 
-    this.rutasService.getUpcomingRoutes({
-      origen: originNames,
-      destino: destinationNames,
-      dropoff_date: this.dropoffDate,
-      dropoff_time: this.dropoffTime
-    }).subscribe({
-      next: (response: any) => {
-        this.loading = false;
-        this.result = response;
+    const origin: LocationSelection = {
+      point: this.selectedOriginPoint ? pointRefFromLocation(this.selectedOriginPoint) : null,
+      inputValue: this.origenInputValue || this.origen || '',
+      municipality: this.origenMunicipio || this.selectedOriginPoint?.ubicacion?.municipio || this.origen.split(',')[0]?.trim() || '',
+      department: this.origenDepartamento || this.selectedOriginPoint?.ubicacion?.departamento || this.origen.split(',')[1]?.trim() || ''
+    };
+    const destination: LocationSelection = {
+      point: this.selectedDestinationPoint ? pointRefFromLocation(this.selectedDestinationPoint) : null,
+      inputValue: this.destinoInputValue || this.destino || '',
+      municipality: this.destinoMunicipio || this.selectedDestinationPoint?.ubicacion?.municipio || this.destino.split(',')[0]?.trim() || '',
+      department: this.destinoDepartamento || this.selectedDestinationPoint?.ubicacion?.departamento || this.destino.split(',')[1]?.trim() || ''
+    };
 
-        const routes = response.results || [];
-        this.flightResults = routes.map((route: any) => {
-          const originLocation = originLocations.find(location => this.getLocationName(location) === route.origen_nombre);
-          const destinationLocation = destinationLocations.find(location => this.getLocationName(location) === route.destino_nombre);
-          const firstOption = route.opciones_entrega?.[0] || route.opciones?.[0] || null;
-
-          return {
-            ...route,
-            origen_tipo: originLocation?.tipo,
-            origen_lat: originLocation?.ubicacion?.lat,
-            origen_lng: originLocation?.ubicacion?.lng,
-            destino_nombre_destino: route.destino_nombre,
-            destino_tipo: destinationLocation?.tipo,
-            destino_lat: destinationLocation?.ubicacion?.lat,
-            destino_lng: destinationLocation?.ubicacion?.lng,
-            fecha_llegada: route.fecha_llegada || firstOption?.fecha_llegada,
-            horario_recoleccion: route.horario_recoleccion || firstOption?.horario_recoleccion,
-            selectedOption: firstOption,
-            selected_opcion_idx: 0,
-            distance: 0
-          };
-        });
-
-        if (this.flightResults.length === 0) {
-          this.errorMsg = response.origen_msg || 'No hay rutas disponibles para esta combinación.';
-          this.bottomSheetState = 'half';
-          return;
-        }
-
-        this.bottomSheetState = 'expanded';
-        this.updateMapMarkers.emit();
-      },
-      error: () => {
-        this.loading = false;
-        this.errorMsg = 'Error de conexión al buscar la ruta punto a punto.';
-      }
+    this.facade.searchPointRoutes({
+      origin,
+      destination,
+      originPoints,
+      destinationPoints,
+      filters: { dropoffDate: this.dropoffDate, dropoffTime: this.dropoffTime }
     });
   }
 
@@ -1721,7 +1791,7 @@ export class HomeComponent implements OnInit, OnChanges {
 
   openInGoogleMaps() {
     if (!this.selectedPin) return;
-    
+
     if (this.selectedPin.maps_url && this.selectedPin.maps_url.trim() !== '') {
       window.open(this.selectedPin.maps_url, '_blank');
       return;

@@ -11,9 +11,9 @@
   z-index: 4000;
   min-height: calc(72px + env(safe-area-inset-bottom));
   padding: 0 14px env(safe-area-inset-bottom);
-  border-top: 1px solid rgba(29, 30, 28, 0.1);
-  background: rgba(255, 255, 255, 0.96);
-  box-shadow: 0 -12px 32px rgba(29, 30, 28, 0.1);
+  border-top: 1px solid var(--border);
+  background: color-mix(in srgb, var(--white) 96%, transparent);
+  box-shadow: 0 -12px 32px var(--border);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
 }
@@ -39,11 +39,11 @@
   padding: 6px 10px;
   border: 0;
   background: transparent;
-  color: #747a73;
+  color: var(--text-muted);
   font: inherit;
   text-decoration: none;
   cursor: pointer;
-  transition: color 180ms ease, background-color 180ms ease;
+  transition: color var(--motion-fast) ease, background-color var(--motion-fast) ease;
 }
 
 .nav-item::after {
@@ -52,27 +52,27 @@
   bottom: 3px;
   left: 28%;
   height: 3px;
-  border-radius: 999px;
+  border-radius: var(--radius-full);
   background: transparent;
   content: '';
 }
 
 .nav-item:hover {
-  color: #1d1e1c;
+  color: var(--text-main);
 }
 
 .nav-item:focus-visible {
-  outline: 3px solid rgba(244, 91, 120, 0.3);
+  outline: 3px solid color-mix(in srgb, var(--primary) 30%, transparent);
   outline-offset: -3px;
-  border-radius: 16px;
+  border-radius: var(--radius-md);
 }
 
 .nav-item.active:not(.nav-home) {
-  color: #d94262;
+  color: var(--primary-dark);
 }
 
 .nav-item.active:not(.nav-home)::after {
-  background: #f45b78;
+  background: var(--primary);
 }
 
 .nav-icon {
@@ -97,19 +97,19 @@
   min-height: 78px;
   align-self: end;
   padding-top: 0;
-  color: #1d1e1c;
+  color: var(--text-main);
 }
 
 .nav-home .nav-icon {
   width: 52px;
   height: 52px;
   margin-top: -18px;
-  border: 5px solid #fff;
+  border: 5px solid var(--white);
   border-radius: 50%;
-  background: #1d1e1c;
-  color: #fff;
-  box-shadow: 0 9px 24px rgba(29, 30, 28, 0.25);
-  transition: background-color 180ms ease, color 180ms ease, box-shadow 180ms ease;
+  background: var(--text-main);
+  color: var(--white);
+  box-shadow: 0 9px 24px color-mix(in srgb, var(--text-main) 25%, transparent);
+  transition: background-color var(--motion-fast) ease, color var(--motion-fast) ease, box-shadow var(--motion-fast) ease;
 }
 
 .nav-home .nav-icon svg {
@@ -118,13 +118,13 @@
 }
 
 .nav-home.active .nav-icon {
-  background: #f45b78;
-  box-shadow: 0 9px 24px rgba(244, 91, 120, 0.3);
+  background: var(--primary);
+  box-shadow: 0 9px 24px color-mix(in srgb, var(--primary) 30%, transparent);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .nav-item,
-  .nav-home .nav-icon {
-    transition-duration: 0.01ms !important;
+  .persistent-bottom-nav .nav-item,
+  .persistent-bottom-nav .nav-home .nav-icon {
+    transition-duration: 0.01ms;
   }
 }

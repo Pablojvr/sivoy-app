@@ -1,0 +1,52 @@
+name: Release Rehearsal & Safety Verification
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  rehearsal:
+    name: Release & Rollback Rehearsal
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository with full history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Execute rehearsal unit tests
+        run: node --test scripts/release-rehearsal.test.cjs
+
+      - name: Execute structural release & rollback rehearsal
+        run: node scripts/release-rehearsal.cjs --dry-run --verbose
+
+      - name: Record rehearsal safety summary
+        if: always()
+        run: |
+          echo "### Release & Rollback Rehearsal (T36a) Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- **Niveles de Verificación**:" >> $GITHUB_STEP_SUMMARY
+          echo "  1. **Pruebas Unitarias Herméticas**: Ejecutan el ciclo de vida completo simulado (install, build production, boot, probes de health/runtime-config/static-index, parada, rollback y limpieza de temp) con dobles inyectados." >> $GITHUB_STEP_SUMMARY
+          echo "  2. **Ensayo Estructural (Dry-Run)**: Valida la resolución estricta de commits (\`git rev-parse --verify <ref>^{commit}\`), verificación real de límites de rutas temporales (\`pathBoundaryVerified: true\`), adquisición efímera de puertos con riesgo inherente de condición de carrera hasta el enlace (\`listen\`), y entorno hijo de lista blanca sin secretos." >> $GITHUB_STEP_SUMMARY
+          echo "  3. **Ensayo Real Completo**: Ejecutable localmente o en staging; extrae por SHA resuelto (eliminando TOCTOU), aísla la caché de npm con un .npmrc vacío, ejecuta \`npm ci\` y compilación de producción (\`npm run build -- --configuration production\`)." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "> [!IMPORTANT]" >> $GITHUB_STEP_SUMMARY
+          echo "> **Estado en CI (Dry-Run)**: En dry-run \`rollbackProcedureVerified\` reporta \`false\` honestamente, ya que no se ejecutan servidores de fondo ni bases de datos en este paso. El ciclo de vida de rollback queda probado mediante las pruebas unitarias inyectadas." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "> [!NOTE]" >> $GITHUB_STEP_SUMMARY
+          echo "> **Limitaciones y Gobernanza**: Cero dependencias npm adicionales (requiere herramientas del sistema: Git, tar, Node.js y npm). No conecta a PostgreSQL ni ejecuta rutas con dependencia de datos reales. Solo el usuario/propietario puede autorizar el paso a producción; este workflow NO autoriza producción ni cierra la tarea T36 completa." >> $GITHUB_STEP_SUMMARY

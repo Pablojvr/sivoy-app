@@ -13,6 +13,26 @@ los datos ni cambios locales de otras personas.
 - La barra permanente de calidad está en `docs/DEFINITION_OF_DONE.md`.
 - Antes de editar, revisar `git status` y conservar todo cambio preexistente.
 
+## Flujo de ramas obligatorio
+
+- `main` representa producción y debe permanecer desplegable. No se trabaja
+  directamente sobre ella ni se usa como base para funcionalidades ordinarias.
+- `develop` es la rama de integración y la base obligatoria para todo trabajo
+  nuevo. Antes de crear una rama, actualizar referencias remotas y partir de
+  `origin/develop`.
+- Las ramas de trabajo usan el prefijo `codex/` y un nombre corto por objetivo;
+  deben ser temporales, acotadas y auditables.
+- Una rama terminada se integra primero en `develop` después de revisar el diff
+  y ejecutar las validaciones aplicables. No se reescribe historia compartida ni
+  se hace `force push`.
+- La promoción `develop` -> `main` es un lanzamiento de producción: requiere
+  solicitud explícita, gates completos y una estrategia de rollback. No se
+  incluyen cambios adicionales durante esa promoción.
+- Un hotfix urgente nace de `main`; después de publicarlo debe reintegrarse en
+  `develop` para evitar divergencias.
+- Si un worktree tiene cambios locales o conflictos, se preserva intacto y la
+  integración se prepara en un worktree aislado.
+
 ## Uso eficiente del contexto
 
 - Buscar primero con `rg`; abrir únicamente los archivos y fragmentos necesarios.

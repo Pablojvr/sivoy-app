@@ -93,6 +93,7 @@ se activa después de corregir y medir consultas. No autoriza por sí solo un de
 - [ ] SEC05 Probar escrituras 403 y retirar de producción endpoints auxiliares de Partner/prueba.
 
 - [ ] SCALE01 Aprobar identidad y contrato canónico de catálogo.
+  - Spec: [SCALE01-catalog-query-contract.md](specs/SCALE01-catalog-query-contract.md).
   - Aceptación: `companyId`, `pointId`, cursor, filtros, DTO resumen/detalle,
     facetas y error quedan especificados; nombres dejan de ser identidad.
   - Verificación: contrato versionado, fixtures y revisión de compatibilidad legacy.

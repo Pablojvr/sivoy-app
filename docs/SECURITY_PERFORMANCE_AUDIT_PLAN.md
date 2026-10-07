@@ -171,12 +171,14 @@ lecturas globales y establecer la línea base de 10k/100k puntos.
 - `CatalogCachePort` define `get`, `set` e invalidación por revisión de empresa.
   Su implementación inicial puede ser Noop; los casos de uso no conocen Redis ni
   cabeceras de CDN.
-- Claves versionadas: `catalog:v1:{companyId}:{catalogRevision}:{queryHash}`. El
-  cursor, filtros, idioma y proyección forman parte de la clave; nunca se usan
-  headers arbitrarios del cliente.
-- Cada modificación futura del catálogo incrementa una revisión por empresa en la
-  misma transacción. Así se invalida una empresa sin purgar todo SiVoy. Si el
-  canal de escritura se vuelve asíncrono, la revisión se propaga con outbox.
+- Claves versionadas: `catalog:v1:{scope}:{scopeRevision}:{queryHash}`. `scope` es
+  una empresa o `all`; búsquedas transversales usan una revisión global y las
+  limitadas a empresa usan su revisión. Cursor, filtros, idioma y proyección forman
+  parte de la clave; nunca se usan headers arbitrarios del cliente.
+- Cada modificación futura incrementa en la misma transacción la revisión de la
+  empresa y la global. Las búsquedas de una empresa invalidan solo su scope; las
+  transversales cambian de revisión global. Si el canal de escritura se vuelve
+  asíncrono, la revisión se propaga con outbox.
 - Primera capa: caché HTTP/edge para GET públicos ya paginados. Segunda capa:
   Render Key Value/Redis solo cuando existan múltiples instancias o consultas
   calientes que sigan presionando PostgreSQL.
@@ -189,7 +191,8 @@ lecturas globales y establecer la línea base de 10k/100k puntos.
 | Assets Angular con hash | `public, max-age=31536000, immutable` | El nombre cambia en cada build. |
 | `/runtime-config.js` | `no-store` | Ya aplicado; conservar. |
 | `/api/health`, `/api/metrics` | `no-store` | Nunca compartir estado operativo. |
-| Páginas/facetas de catálogo | Navegador 60 s; CDN `s-maxage=300, stale-while-revalidate=60, stale-if-error=86400`; ETag. | Revisión por empresa, deploy o purga operativa. |
+| Páginas con disponibilidad | CDN máximo 60 s o hasta el próximo cambio de estado; disponibilidad se calcula después de la caché estática. | Tiempo + revisión aplicable. |
+| Facetas/catálogo estático | CDN `s-maxage=300, stale-while-revalidate=60, stale-if-error=86400`; ETag. | Revisión por empresa/global, deploy o purga. |
 | Detalle/horarios públicos | TTL corto y clave por `pointId` + revisión de empresa. | Cambio de catálogo de esa empresa. |
 | ETA | `no-store` inicialmente; evaluar caché solo con reloj/entrada incluidos en la clave y evidencia de repetición. | Ventana temporal y revisión de reglas. |
 | Places | `no-store`; no compartir respuestas entre sesiones. | Sesión y facturación de Google. |

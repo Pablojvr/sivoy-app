@@ -9,6 +9,10 @@ function sha256(value) {
   return crypto.createHash('sha256').update(value).digest('hex');
 }
 
+function migrationChecksum(sql) {
+  return sha256(sql.replace(/\r\n/g, '\n'));
+}
+
 function discoverMigrations(directory = path.join(__dirname, 'migrations')) {
   const seenVersions = new Set();
   return fs.readdirSync(directory)
@@ -19,7 +23,7 @@ function discoverMigrations(directory = path.join(__dirname, 'migrations')) {
       if (seenVersions.has(version)) throw new Error(`Duplicate migration version: ${version}`);
       seenVersions.add(version);
       const sql = fs.readFileSync(path.join(directory, fileName), 'utf8');
-      return { version, name, fileName, sql, checksum: sha256(sql), transactional: !nonTransactional };
+      return { version, name, fileName, sql, checksum: migrationChecksum(sql), transactional: !nonTransactional };
     });
 }
 

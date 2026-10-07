@@ -30,7 +30,7 @@ function assertSafeDatabaseUrl(rawUrl) {
   }
 }
 
-test('ephemeral postgres migrations: apply 0001-0006, verify ledger idempotency and schema integrity', async () => {
+test('ephemeral postgres migrations: apply 0001-0007, verify ledger idempotency and schema integrity', async () => {
   const sentinel = process.env.MIGRATION_TEST_SENTINEL;
   if (sentinel !== 'allow_ephemeral_migration_test') {
     throw new Error(
@@ -66,30 +66,30 @@ test('ephemeral postgres migrations: apply 0001-0006, verify ledger idempotency 
     const baselineSql = fs.readFileSync(baselinePath, 'utf8');
     await pool.query(baselineSql);
 
-    // 3. First run: apply exactly 0001-0006
+    // 3. First run: apply exactly 0001-0007
     const migrationsDir = path.join(__dirname, '../migrations');
     const diskMigrations = discoverMigrations(migrationsDir);
-    assert.equal(diskMigrations.length, 6, 'Expected exactly 6 migrations on disk');
+    assert.equal(diskMigrations.length, 7, 'Expected exactly 7 migrations on disk');
     assert.deepEqual(
       diskMigrations.map((m) => m.version),
-      ['0001', '0002', '0003', '0004', '0005', '0006'],
-      'Disk migrations must match versions 0001 through 0006'
+      ['0001', '0002', '0003', '0004', '0005', '0006', '0007'],
+      'Disk migrations must match versions 0001 through 0007'
     );
 
     const firstRun = await runMigrations(pool, { directory: migrationsDir });
-    assert.equal(firstRun.length, 6, 'First run must apply exactly 6 migrations');
+    assert.equal(firstRun.length, 7, 'First run must apply exactly 7 migrations');
     assert.deepEqual(
       firstRun.map((m) => m.version),
-      ['0001', '0002', '0003', '0004', '0005', '0006'],
-      'First run must apply versions 0001 through 0006 in order'
+      ['0001', '0002', '0003', '0004', '0005', '0006', '0007'],
+      'First run must apply versions 0001 through 0007 in order'
     );
 
     // 4. Verify exact ledger matching discoverMigrations()
     const ledgerRes1 = await pool.query(
       'SELECT version, name, checksum, applied_at FROM schema_migrations ORDER BY version'
     );
-    assert.equal(ledgerRes1.rows.length, 6, 'Ledger must contain exactly 6 applied versions');
-    for (let i = 0; i < 6; i++) {
+    assert.equal(ledgerRes1.rows.length, 7, 'Ledger must contain exactly 7 applied versions');
+    for (let i = 0; i < 7; i++) {
       const row = ledgerRes1.rows[i];
       const disk = diskMigrations[i];
       assert.equal(row.version, disk.version, `Ledger version mismatch at index ${i}`);
@@ -125,7 +125,9 @@ test('ephemeral postgres migrations: apply 0001-0006, verify ledger idempotency 
       'agencias_empresa_id_idx',
       'agencias_id_destino_uidx',
       'horarios_operativos_agencia_id_idx',
-      'reglas_entrega_agencia_id_idx'
+      'reglas_entrega_agencia_id_idx',
+      'agencias_catalog_location_idx',
+      'agencias_catalog_name_idx'
     ];
     const indexRes = await pool.query(
       `SELECT c.relname AS index_name, i.indisvalid
@@ -141,6 +143,8 @@ test('ephemeral postgres migrations: apply 0001-0006, verify ledger idempotency 
       indexRes.rows.map((row) => [row.index_name, row.indisvalid])
     );
     assert.deepEqual(actualIndexes, {
+      agencias_catalog_location_idx: true,
+      agencias_catalog_name_idx: true,
       agencias_empresa_id_idx: true,
       agencias_id_destino_uidx: true,
       horarios_operativos_agencia_id_idx: true,

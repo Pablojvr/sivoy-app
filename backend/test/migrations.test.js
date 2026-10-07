@@ -36,6 +36,35 @@ test('migration checksums are stable and sensitive to SQL changes', () => {
   assert.notEqual(sha256('SELECT 1;'), sha256('SELECT 2;'));
 });
 
+test('migration discovery ignores Windows versus Unix line endings', () => {
+  const lfDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'sivoy-migrations-lf-'));
+  const crlfDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'sivoy-migrations-crlf-'));
+  try {
+    fs.writeFileSync(path.join(lfDirectory, '0001_first.sql'), 'SELECT 1;\nSELECT 2;\n');
+    fs.writeFileSync(path.join(crlfDirectory, '0001_first.sql'), 'SELECT 1;\r\nSELECT 2;\r\n');
+
+    assert.equal(
+      discoverMigrations(lfDirectory)[0].checksum,
+      discoverMigrations(crlfDirectory)[0].checksum
+    );
+  } finally {
+    fs.rmSync(lfDirectory, { recursive: true, force: true });
+    fs.rmSync(crlfDirectory, { recursive: true, force: true });
+  }
+});
+
+test('catalog revision migration installs bounded-query indexes and mutation triggers', () => {
+  const migrationPath = path.join(__dirname, '../migrations/0007_catalog_query_foundation.sql');
+  const sql = fs.readFileSync(migrationPath, 'utf8');
+
+  assert.match(sql, /CREATE TABLE(?: IF NOT EXISTS)? catalog_revision_state/i);
+  assert.match(sql, /CREATE TRIGGER empresas_catalog_revision_trigger/i);
+  assert.match(sql, /CREATE TRIGGER agencias_catalog_revision_trigger/i);
+  assert.match(sql, /CREATE TRIGGER horarios_catalog_revision_trigger/i);
+  assert.match(sql, /CREATE INDEX(?: IF NOT EXISTS)? agencias_catalog_location_idx/i);
+  assert.match(sql, /CREATE INDEX(?: IF NOT EXISTS)? agencias_catalog_name_idx/i);
+});
+
 test('dry-run reports pending migrations without creating the ledger', async () => {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'sivoy-migrations-'));
   const queries = [];

@@ -138,6 +138,23 @@ describe('ShipmentSearchFacade (T26b)', () => {
       expect(facade.state().status).toBe('empty');
       expect(facade.state().error?.code).toBe('NO_ROUTES');
     });
+
+    it('sends stable point identifiers instead of display names', () => {
+      mockService.getUpcomingRoutes.mockReturnValue(of({ success: true, results: [] }));
+      const origin = { ...dummyPoint, id: 'ORIGIN-01', name: 'Nombre repetible' };
+      const destination = { ...dummyPoint, id: 'DESTINATION-02', name: 'Nombre repetible' };
+
+      facade.searchPointRoutes({
+        ...dummyCommandPoint,
+        originPoints: [origin],
+        destinationPoints: [destination]
+      });
+
+      expect(mockService.getUpcomingRoutes).toHaveBeenCalledWith(expect.objectContaining({
+        origen: ['ORIGIN-01'],
+        destino: ['DESTINATION-02']
+      }));
+    });
   });
 
   describe('HTTP Errors', () => {

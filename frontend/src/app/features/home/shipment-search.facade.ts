@@ -91,8 +91,8 @@ export class ShipmentSearchFacade {
             return of<InternalSearchOutcome>({ type: 'error', code: 'NO_ROUTES' });
           }
           const params: GetUpcomingRoutesPayload = {
-            origen: request.command.originPoints.map(p => p.name),
-            destino: request.command.destinationPoints.map(p => p.name),
+            origen: request.command.originPoints.map(p => p.id),
+            destino: request.command.destinationPoints.map(p => p.id),
             dropoff_date: request.command.filters.dropoffDate,
             dropoff_time: request.command.filters.dropoffTime
           };

@@ -252,3 +252,74 @@ test('municipality preserves no-income scalar response', async () => {
   });
   assert.deepEqual(result, { success: false, origen_msg: 'Closed today', results: [] });
 });
+
+test('resolves point routes in one identifier batch and compares stable company ids', async () => {
+  let batchCalls = 0;
+  const locations = {
+    getLocationByName: async () => { throw new Error('legacy lookup must not run'); },
+    getAllLocations: async () => { throw new Error('global catalog must not run'); },
+    getLocationsByIdentifiers: async identifiers => {
+      batchCalls += 1;
+      assert.deepEqual(identifiers, ['ORIGIN_ID', 'DESTINATION_ID']);
+      return [
+        { id_destino: 'ORIGIN_ID', nombre_destino: 'Origen', empresa_id: 7, empresa: 'Nombre anterior' },
+        { id_destino: 'DESTINATION_ID', nombre_destino: 'Destino', empresa_id: 7, empresa: 'Nombre actual' }
+      ];
+    }
+  };
+  const routes = createRouteUseCases({
+    locations,
+    eta: {
+      calcularIngresoOficial: (_point, date) => ({ date: new Date(`${date}T00:00:00Z`), msg: 'ok' }),
+      proyectarProximasRutas: () => [{ fecha_llegada_iso: '2026-09-17', fecha_llegada: '17-Sep', horario_recoleccion: '10:00' }]
+    },
+    clock: { now: () => new Date('2026-09-16T10:00:00Z') }
+  });
+
+  const result = await routes.getUpcomingRoutes({
+    origen: 'ORIGIN_ID',
+    destino: 'DESTINATION_ID',
+    dropoff_date: '2026-09-16',
+    dropoff_time: '10:00'
+  });
+
+  assert.equal(result.success, true);
+  assert.equal(batchCalls, 1);
+});
+
+test('searches both municipalities through one bounded repository operation', async () => {
+  let municipalityCalls = 0;
+  const locations = {
+    getLocationByName: async () => null,
+    getAllLocations: async () => { throw new Error('global catalog must not run'); },
+    getLocationsByMunicipalities: async filters => {
+      municipalityCalls += 1;
+      assert.deepEqual(filters, {
+        origin: { municipality: 'M1', department: 'D1' },
+        destination: { municipality: 'M2', department: 'D2' }
+      });
+      return [
+        { ubicacion: { municipio: 'M1', departamento: 'D1' }, empresa_id: 1, empresa: 'Empresa', nombre_destino: 'O', tipo: 'A' },
+        { ubicacion: { municipio: 'M2', departamento: 'D2' }, empresa_id: 1, empresa: 'Empresa', nombre_destino: 'D', tipo: 'A' }
+      ];
+    }
+  };
+  const routes = createRouteUseCases({
+    locations,
+    eta: {
+      calcularIngresoOficial: (_point, date) => ({ date: new Date(`${date}T00:00:00Z`), msg: 'ok' }),
+      proyectarProximasRutas: () => [{ fecha_llegada: '17-Sep', horario_recoleccion: '10:00' }]
+    },
+    clock: { now: () => new Date('2026-09-16T10:00:00Z') }
+  });
+
+  const result = await routes.searchFlights({
+    origen_municipio: 'M1', origen_departamento: 'D1',
+    destino_municipio: 'M2', destino_departamento: 'D2',
+    dropoff_date: '2026-09-16', dropoff_time: '10:00'
+  });
+
+  assert.equal(result.success, true);
+  assert.equal(result.results.length, 1);
+  assert.equal(municipalityCalls, 1);
+});

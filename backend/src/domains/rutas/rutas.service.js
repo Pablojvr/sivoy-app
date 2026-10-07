@@ -2,6 +2,7 @@
 
 const logistics = require('../../../services/logistics');
 const ubicacionesRepo = require('../ubicaciones/ubicaciones.repository');
+const routeLocationsRepo = require('../../infrastructure/postgres/route-locations.repository');
 const { createRouteUseCases } = require('../../application/rutas/route-use-cases');
 const {
   validateUpcomingRoutes,
@@ -25,7 +26,7 @@ function createRutasService({ locations, eta, clock }) {
 }
 
 const service = createRutasService({
-  locations: ubicacionesRepo,
+  locations: { ...ubicacionesRepo, ...routeLocationsRepo },
   eta: logistics,
   clock: { now: () => new Date() }
 });

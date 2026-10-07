@@ -111,6 +111,13 @@ se activa después de corregir y medir consultas. No autoriza por sí solo un de
   - Aceptación: compatibilidad se compara por `empresa_id`; no existen consultas
     N×M ni resolución de relaciones por nombre.
   - Verificación: paridad ETA legacy/nueva, casos multiempresa y contador SQL.
+  - [x] Resolución batch de identificadores.
+  - [x] Comparación por `empresa_id`.
+  - [x] Repositorio PostgreSQL con conteo constante de 3 consultas para puntos/horarios/reglas.
+  - [x] Frontend enviando IDs estables.
+  - [x] Prueba PostgreSQL de escala en 10k/100k: 3 consultas, 0.155 ms en
+    100k para IDs estables y sin `Seq Scan` de `agencias`.
+  - [ ] Retirar la compatibilidad legacy por nombre.
   - Dependencias: SCALE01–SCALE02.
 - [ ] SCALE04 Añadir normalización e índices guiados por consultas.
   - Aceptación: municipio/departamento normalizados e índices siguen filtros/orden

@@ -54,20 +54,57 @@ function createRouteUseCases({ locations, eta, clock } = {}) {
     return { options, firstOption, firstMessage };
   }
 
+  async function resolveIdentifiers(identifiers) {
+    const unique = [...new Set(identifiers.map(value => String(value)))];
+    if (typeof locations.getLocationsByIdentifiers === 'function') {
+      const regular = unique.filter(value => !value.startsWith('📍 Pin'));
+      const resolved = regular.length
+        ? await locations.getLocationsByIdentifiers(regular)
+        : [];
+      return [
+        ...resolved,
+        ...unique.filter(value => value.startsWith('📍 Pin')).map(() => ({
+          is_pin: true,
+          nombre_destino: 'Ubicación Personalizada'
+        }))
+      ];
+    }
+    return (await Promise.all(unique.map(value => locations.getLocationByName(value))))
+      .filter(Boolean);
+  }
+
+  function locationFor(points, identifier) {
+    const target = String(identifier);
+    const normalized = target.toLocaleLowerCase('es-SV');
+    return points.find(point =>
+      String(point.id_destino ?? '') === target ||
+      String(point.id ?? '') === target ||
+      String(point.nombre_destino ?? '').toLocaleLowerCase('es-SV') === normalized
+    ) || (target.startsWith('📍 Pin') ? points.find(point => point.is_pin) : null);
+  }
+
+  function sameCompany(origin, destination) {
+    if (origin.empresa_id != null && destination.empresa_id != null) {
+      return String(origin.empresa_id) === String(destination.empresa_id);
+    }
+    return origin.empresa === destination.empresa;
+  }
+
   async function getUpcomingRoutes(payload) {
     const { origen, destino } = payload;
     if (!origen || !destino) throw new Error('Missing origin or destination');
     const { dropoff_date, dropoff_time } = dropoffFor(payload);
     const origins = Array.isArray(origen) ? origen : [origen];
     const destinations = Array.isArray(destino) ? destino : [destino];
+    const points = await resolveIdentifiers([...origins, ...destinations]);
     const results = [];
 
     for (const originName of origins) {
-      const origin = await locations.getLocationByName(originName);
+      const origin = locationFor(points, originName);
       if (!origin) continue;
       for (const destinationName of destinations) {
-        const destination = await locations.getLocationByName(destinationName);
-        if (!destination || origin.empresa !== destination.empresa) continue;
+        const destination = locationFor(points, destinationName);
+        if (!destination || !sameCompany(origin, destination)) continue;
         const { options, firstOption, firstMessage } = upcomingOptions(
           origin, destination, dropoff_date, dropoff_time
         );
@@ -97,17 +134,19 @@ function createRouteUseCases({ locations, eta, clock } = {}) {
       throw new Error('Missing parameters or destinos is not an array');
     }
     const { dropoff_date, dropoff_time } = dropoffFor(payload);
+    const originIdentifiers = Array.isArray(origen) ? origen : [origen];
+    const points = await resolveIdentifiers([...originIdentifiers, ...destinos]);
 
     if (Array.isArray(origen)) {
       const results = [];
       for (const originName of origen) {
-        const origin = await locations.getLocationByName(originName);
+        const origin = locationFor(points, originName);
         if (!origin) continue;
         const entry = eta.calcularIngresoOficial(origin, dropoff_date, dropoff_time);
         if (!entry.date || entry.date.toISOString().split('T')[0] !== dropoff_date) continue;
         for (const destinationName of destinos) {
-          const destination = await locations.getLocationByName(destinationName);
-          if (!destination || origin.empresa !== destination.empresa) continue;
+          const destination = locationFor(points, destinationName);
+          if (!destination || !sameCompany(origin, destination)) continue;
           const options = filterByArrivalDate(
             eta.proyectarProximasRutas(destination, entry.date, 3), arrival_date
           );
@@ -126,13 +165,13 @@ function createRouteUseCases({ locations, eta, clock } = {}) {
       return { success: true, results };
     }
 
-    const origin = await locations.getLocationByName(origen);
+    const origin = locationFor(points, origen);
     if (!origin) throw new Error('Origen no encontrado');
     const entry = eta.calcularIngresoOficial(origin, dropoff_date, dropoff_time);
     if (!entry.date) return { success: false, origen_msg: entry.msg, results: [] };
     const results = [];
     for (const destinationName of destinos) {
-      const destination = await locations.getLocationByName(destinationName);
+      const destination = locationFor(points, destinationName);
       if (!destination) continue;
       const options = filterByArrivalDate(
         eta.proyectarProximasRutas(destination, entry.date, 3), arrival_date
@@ -163,7 +202,12 @@ function createRouteUseCases({ locations, eta, clock } = {}) {
       throw new Error('Missing origin or destination');
     }
     const { dropoff_date, dropoff_time } = dropoffFor(payload);
-    const allLocations = await locations.getAllLocations();
+    const allLocations = typeof locations.getLocationsByMunicipalities === 'function'
+      ? await locations.getLocationsByMunicipalities({
+          origin: { municipality: origen_municipio, department: origen_departamento },
+          destination: { municipality: destino_municipio, department: destino_departamento }
+        })
+      : await locations.getAllLocations();
     const origins = allLocations.filter(location =>
       location.ubicacion?.municipio === origen_municipio &&
       (!origen_departamento || location.ubicacion.departamento === origen_departamento)
@@ -176,7 +220,7 @@ function createRouteUseCases({ locations, eta, clock } = {}) {
     for (const origin of origins) {
       if (!origin.empresa) continue;
       for (const destination of destinations) {
-        if (destination.empresa !== origin.empresa) continue;
+        if (!sameCompany(origin, destination)) continue;
         const { options, firstOption, firstMessage } = upcomingOptions(
           origin, destination, dropoff_date, dropoff_time
         );

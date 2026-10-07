@@ -5,6 +5,7 @@ const test = require('node:test');
 const { Pool } = require('pg');
 
 const { createCatalogRepository } = require('../src/infrastructure/postgres/catalog.repository');
+const { createRouteLocationsRepository } = require('../src/infrastructure/postgres/route-locations.repository');
 
 const SCHEMA = 't_catalog_scale';
 const SCALES = [10_000, 100_000];
@@ -110,13 +111,34 @@ async function measureScale(client, scale) {
     'filtered catalog page must not sequentially scan agencias'
   );
 
+  calls.length = 0;
+  const routeRepository = createRouteLocationsRepository({ getDB: async () => db });
+  const routePoints = await routeRepository.getLocationsByIdentifiers([
+    'AG_000001',
+    `AG_${String(scale).padStart(6, '0')}`
+  ]);
+  assert.equal(calls.length, 3, 'route resolution must use one point query and two relation batches');
+  assert.equal(routePoints.length, 2);
+  const routePointQuery = calls[0];
+  const routeExplain = await explainQuery(client, routePointQuery.text, routePointQuery.values);
+  assert.ok(routeExplain.executionMs <= MAX_EXECUTION_MS, `route point resolution exceeded ${MAX_EXECUTION_MS}ms`);
+  assert.equal(routeExplain.actualRows, 2);
+  assert.equal(
+    routeExplain.relations.some((node) => node.relation === 'agencias' && node.type === 'Seq Scan'),
+    false,
+    'stable route identifiers must use the destination identity index'
+  );
+
   return {
     scale,
     listQueries: 2,
     facetQueries: 1,
+    routeQueries: 3,
     pageBytes: Buffer.byteLength(JSON.stringify(first), 'utf8'),
     executionMs: explain.executionMs,
-    planNodes: [...new Set(explain.relations.map((node) => node.type))]
+    planNodes: [...new Set(explain.relations.map((node) => node.type))],
+    routeExecutionMs: routeExplain.executionMs,
+    routePlanNodes: [...new Set(routeExplain.relations.map((node) => node.type))]
   };
 }
 
@@ -174,6 +196,12 @@ async function createFixture(client) {
       hora_apertura time NOT NULL,
       hora_cierre time NOT NULL
     );
+    CREATE UNLOGGED TABLE reglas_entrega (
+      id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+      agencia_id integer NOT NULL REFERENCES agencias(id),
+      dia_entrega text NOT NULL,
+      dia_corte_maximo text NOT NULL
+    );
     CREATE UNLOGGED TABLE catalog_revision_state (
       singleton boolean PRIMARY KEY,
       revision bigint NOT NULL
@@ -189,12 +217,13 @@ async function createFixture(client) {
         id_destino
       );
     CREATE INDEX horarios_scale_agency_idx ON horarios_operativos (agencia_id);
+    CREATE INDEX reglas_scale_agency_idx ON reglas_entrega (agencia_id);
   `);
 }
 
 async function populateFixture(client, scale) {
   await client.query(`
-    TRUNCATE horarios_operativos, agencias, empresas RESTART IDENTITY CASCADE;
+    TRUNCATE reglas_entrega, horarios_operativos, agencias, empresas RESTART IDENTITY CASCADE;
     INSERT INTO empresas (id, nombre)
     SELECT series, 'Empresa ' || lpad(series::text, 3, '0')
     FROM generate_series(1, 100) AS series;
@@ -227,9 +256,16 @@ async function populateFixture(client, scale) {
   `, [scale]);
 
   await client.query(`
+    INSERT INTO reglas_entrega (agencia_id, dia_entrega, dia_corte_maximo)
+    SELECT agency_id, 'Lunes', 'Viernes'
+    FROM generate_series(1, $1::integer) AS agency_id;
+  `, [scale]);
+
+  await client.query(`
     ANALYZE empresas;
     ANALYZE agencias;
     ANALYZE horarios_operativos;
+    ANALYZE reglas_entrega;
   `);
 }
 

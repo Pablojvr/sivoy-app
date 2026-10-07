@@ -76,6 +76,27 @@ sin imagen ni enlace externo.
 - [ ] POST03 Completar staging/rollback de `T35`/`T36` antes de una operación que lo requiera.
 - [ ] POST04 Evaluar microservicios/eventos únicamente ante límites medidos del monolito modular.
 
+## Seguridad, caché y rendimiento del MVP — corte propuesto 2026-10-06
+
+Plan y evidencia: [docs/SECURITY_PERFORMANCE_AUDIT_PLAN.md](../docs/SECURITY_PERFORMANCE_AUDIT_PLAN.md).
+Partner queda fuera de alcance; este corte no introduce login, microservicios ni
+Redis y no autoriza por sí solo un despliegue.
+
+- T00 continúa como bloqueo crítico: rotar/revocar la credencial histórica y
+  sanear el historial Git; no se duplica aquí como una segunda tarea.
+- [ ] SEC01 Verificar backup mediante una restauración aislada.
+- [ ] SEC02 Endurecer headers, CSP progresiva, CORS y errores JSON.
+- [ ] SEC03 Reducir cuerpos y fijar timeouts de Node, PostgreSQL y APIs externas.
+- [ ] SEC04 Aplicar rate limits por riesgo, primero en observación.
+- [ ] SEC05 Probar escrituras 403 y retirar de producción endpoints auxiliares de Partner/prueba.
+- [ ] PERF01 Definir caché de edge/browser por recurso y su invalidación.
+- [ ] PERF02 Medir smoke/carga/pico/soak con k6 en staging.
+- [ ] PERF03 Fijar presupuestos Lighthouse/Web Vitals del flujo público.
+- [ ] PERF04 Instrumentar pool/consultas y completar T14b con `EXPLAIN ANALYZE`.
+- [ ] OPS01 Automatizar CodeQL, secretos, ZAP y SBOM/Trivy en CI.
+- [ ] OPS02 Declarar readiness/health, runtime reproducible y monitor externo en Render.
+- [ ] OPS03 Ensayar DB/Google/pool/caché degradados y rollback antes de producción.
+
 ## Fase 0 — Línea base
 
 - [ ] T00 Rotar y revocar las credenciales PostgreSQL expuestas.

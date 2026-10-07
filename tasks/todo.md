@@ -92,7 +92,7 @@ se activa después de corregir y medir consultas. No autoriza por sí solo un de
 - [ ] SEC04 Aplicar rate limits por riesgo, primero en observación.
 - [ ] SEC05 Probar escrituras 403 y retirar de producción endpoints auxiliares de Partner/prueba.
 
-- [ ] SCALE01 Aprobar identidad y contrato canónico de catálogo.
+- [x] SCALE01 Aprobar identidad y contrato canónico de catálogo.
   - Spec: [SCALE01-catalog-query-contract.md](specs/SCALE01-catalog-query-contract.md).
   - Aceptación: `companyId`, `pointId`, cursor, filtros, DTO resumen/detalle,
     facetas y error quedan especificados; nombres dejan de ser identidad.
@@ -103,6 +103,9 @@ se activa después de corregir y medir consultas. No autoriza por sí solo un de
     obtienen por IDs visibles o bajo demanda; límite máximo obligatorio.
   - Verificación: integración PostgreSQL con conteo constante de consultas y
     planes sin full scan no justificado en 10k/100k puntos.
+  - [x] Repositorio canónico acotado: 2 consultas por página y 1 por facetas.
+  - [x] Prueba PostgreSQL reproducible en 10k/100k sin caché.
+  - [ ] Retirar la última lectura pública global mediante la migración de `/enviar`.
   - Dependencias: SCALE01.
 - [ ] SCALE03 Migrar ETA y búsqueda a IDs y resolución batch.
   - Aceptación: compatibilidad se compara por `empresa_id`; no existen consultas
@@ -113,6 +116,9 @@ se activa después de corregir y medir consultas. No autoriza por sí solo un de
   - Aceptación: municipio/departamento normalizados e índices siguen filtros/orden
     canónicos; todo cambio es aditivo y reversible.
   - Verificación: `EXPLAIN (ANALYZE, BUFFERS)` antes/después en 10k y 100k puntos.
+  - [x] Índices aditivos del catálogo y medición posterior en 10k/100k.
+  - [ ] Completar comparación antes/después y normalización persistida si la
+    medición demuestra que sigue siendo necesaria.
   - Dependencias: SCALE01–SCALE03; incorpora T14b.
 - [ ] SCALE05 Migrar el frontend a catálogo incremental.
   - Aceptación: Inicio busca remotamente con debounce/cancelación, usa páginas y

@@ -1,7 +1,8 @@
 # SCALE01 — contrato canónico de catálogo escalable
 
-Estado: aprobado y en ejecución. La implementación se entrega en cortes pequeños,
-manteniendo el contrato legacy durante la migración del consumidor público.
+Estado: aprobado e implementado para catálogo canónico. La migración del consumidor
+público continúa en cortes pequeños, manteniendo el contrato legacy hasta retirar
+su último uso.
 
 ## Objetivo
 
@@ -292,7 +293,12 @@ interface CatalogPage<T> {
 - [x] El contrato soporta búsqueda transversal y filtro por empresa.
 - [x] Listado, detalle, facetas y ETA tienen responsabilidades separadas.
 - [ ] Existe una ruta de migración y retiro del contrato legacy.
-- [ ] Los criterios de prueba cubren 10k/100k puntos y caché desactivada.
+- [x] Los criterios de prueba cubren 10k/100k puntos y caché desactivada.
+
+Evidencia reproducible: `npm run test:catalog-scale:pg` ejecuta el repositorio real
+contra PostgreSQL local, exige una base efímera identificada y verifica páginas de
+20 elementos con dos consultas constantes, facetas con una consulta, payload
+acotado y `EXPLAIN (ANALYZE, BUFFERS)` sin escaneo secuencial de `agencias`.
 
 ## Preguntas para aprobación
 

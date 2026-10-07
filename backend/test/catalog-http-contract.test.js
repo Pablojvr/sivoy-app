@@ -131,6 +131,40 @@ describe('catalog HTTP contract', () => {
       }
     });
   });
+
+  test('GET /api/catalog/facets forwards a validated facet query', async () => {
+    let receivedQuery;
+    const expected = {
+      data: [{ value: 'Soyapango', label: 'Soyapango', count: 3 }],
+      page: { limit: 20, hasMore: false, nextCursor: null },
+      meta: { catalogRevision: 'catalog:1' }
+    };
+    const response = await fetchCatalog({
+      listPoints: async () => ({ data: [] }),
+      listFacets: async (query) => {
+        receivedQuery = query;
+        return expected;
+      }
+    }, '/api/catalog/facets?facet=municipality&department=San%20Salvador&q=soy');
+
+    assert.equal(response.status, 200);
+    assert.equal(receivedQuery.facet, 'municipality');
+    assert.equal(receivedQuery.department, 'San Salvador');
+    assert.deepEqual(response.body, expected);
+  });
+
+  test('rejects unsupported facet dimensions before invoking the service', async () => {
+    let calls = 0;
+    const response = await fetchCatalog({
+      listPoints: async () => ({ data: [] }),
+      listFacets: async () => { calls += 1; }
+    }, '/api/catalog/facets?facet=tableName');
+
+    assert.equal(calls, 0);
+    assert.equal(response.status, 400);
+    assert.deepEqual(response.body.error.fields, ['facet']);
+    assert.equal(response.body.error.requestId, REQUEST_ID);
+  });
 });
 
 function fetchCatalog(service, path, events = []) {

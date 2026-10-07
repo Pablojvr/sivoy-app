@@ -4,6 +4,7 @@ const { CatalogError } = require('../../domains/catalog/catalog.validation');
 
 function queryFingerprint(query) {
   const filters = {
+    facet: query.facet || null,
     companyId: query.companyId,
     department: query.department,
     municipality: query.municipality,

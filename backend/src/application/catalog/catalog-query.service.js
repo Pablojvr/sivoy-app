@@ -1,4 +1,5 @@
 const { decodeCursor, encodeCursor, queryFingerprint } = require('./catalog-cursor');
+const { decodeFacetCursor, encodeFacetCursor } = require('./catalog-facet-cursor');
 const { CatalogError } = require('../../domains/catalog/catalog.validation');
 
 const DAYS = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
@@ -65,7 +66,37 @@ function createCatalogQueryService({ repository, cache, now = () => new Date() }
     };
   }
 
-  return { getPointDetails, listPoints };
+  async function listFacets(query) {
+    if (typeof repository.listFacets !== 'function') {
+      throw new TypeError('Catalog repository does not support facets');
+    }
+    const revision = await repository.getRevision(query.companyId);
+    const position = query.cursor
+      ? decodeFacetCursor(query.cursor, { revision, query })
+      : null;
+    const cacheKey = `catalog:v1:facet:${query.companyId || 'all'}:${revision}:${queryFingerprint(query)}:${query.cursor || 'first'}`;
+    let staticPage = await cache.get(cacheKey);
+    if (!staticPage) {
+      staticPage = await repository.listFacets({ ...query, position });
+      await cache.set(cacheKey, staticPage, 300);
+    }
+    const last = staticPage.items.at(-1);
+    const nextCursor = staticPage.hasMore && last
+      ? encodeFacetCursor({
+          revision,
+          query,
+          position: { normalizedLabel: last.normalizedLabel, value: last.value }
+        })
+      : null;
+    const data = staticPage.items.map(({ normalizedLabel, ...item }) => item);
+    return {
+      data,
+      page: { limit: query.limit, hasMore: staticPage.hasMore, nextCursor },
+      meta: { catalogRevision: revision }
+    };
+  }
+
+  return { getPointDetails, listFacets, listPoints };
 }
 
 function presentPoint(point, instant) {

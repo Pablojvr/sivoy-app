@@ -3,12 +3,17 @@ const { describe, test } = require('node:test');
 
 const {
   CatalogError,
+  parseFacetQuery,
   parseListQuery
 } = require('../src/domains/catalog/catalog.validation');
 const {
   decodeCursor,
   encodeCursor
 } = require('../src/application/catalog/catalog-cursor');
+const {
+  decodeFacetCursor,
+  encodeFacetCursor
+} = require('../src/application/catalog/catalog-facet-cursor');
 const {
   createCatalogQueryService
 } = require('../src/application/catalog/catalog-query.service');
@@ -44,6 +49,31 @@ describe('catalog query contract', () => {
         assert.deepEqual(error.fields, ['limit', 'matchMode', 'q']);
         return true;
       }
+    );
+  });
+
+  test('validates one bounded facet dimension and binds its cursor to the query', () => {
+    const query = parseFacetQuery({
+      facet: 'municipality',
+      department: 'San Salvador',
+      q: 'soy',
+      limit: '10'
+    });
+    assert.equal(query.facet, 'municipality');
+    assert.equal(query.limit, 10);
+
+    const cursor = encodeFacetCursor({
+      revision: 'catalog:7',
+      query,
+      position: { normalizedLabel: 'soyapango', value: 'Soyapango' }
+    });
+    assert.deepEqual(decodeFacetCursor(cursor, { revision: 'catalog:7', query }), {
+      normalizedLabel: 'soyapango',
+      value: 'Soyapango'
+    });
+    assert.throws(
+      () => parseFacetQuery({ facet: 'unknown' }),
+      (error) => error instanceof CatalogError && error.fields.includes('facet')
     );
   });
 
@@ -178,6 +208,33 @@ describe('catalog query contract', () => {
       service.getPointDetails('MISSING'),
       (error) => error.status === 404 && error.code === 'POINT_NOT_FOUND'
     );
+  });
+
+  test('returns a compact facet page without leaking pagination fields', async () => {
+    const repository = {
+      getRevision: async () => 'catalog:7',
+      listPoints: async () => ({ points: [], hasMore: false }),
+      listFacets: async (query) => {
+        assert.equal(query.facet, 'municipality');
+        assert.equal(query.position, null);
+        return {
+          items: [{ value: 'Soyapango', label: 'Soyapango', count: 3, normalizedLabel: 'soyapango' }],
+          hasMore: false
+        };
+      }
+    };
+    const service = createCatalogQueryService({
+      repository,
+      cache: { get: async () => null, set: async () => {} }
+    });
+
+    const result = await service.listFacets(parseFacetQuery({ facet: 'municipality' }));
+
+    assert.deepEqual(result, {
+      data: [{ value: 'Soyapango', label: 'Soyapango', count: 3 }],
+      page: { limit: 20, hasMore: false, nextCursor: null },
+      meta: { catalogRevision: 'catalog:7' }
+    });
   });
 });
 

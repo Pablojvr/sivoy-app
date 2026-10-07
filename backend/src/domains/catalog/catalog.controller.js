@@ -1,5 +1,5 @@
 const crypto = require('node:crypto');
-const { CatalogError, parseListQuery, parsePointId } = require('./catalog.validation');
+const { CatalogError, parseFacetQuery, parseListQuery, parsePointId } = require('./catalog.validation');
 
 function createCatalogController({ service }) {
   if (!service || typeof service.listPoints !== 'function') {
@@ -26,7 +26,17 @@ function createCatalogController({ service }) {
     }
   }
 
-  return { getPointDetails, listPoints };
+  async function listFacets(req, res) {
+    try {
+      const query = parseFacetQuery(req.query);
+      const result = await service.listFacets(query);
+      return res.status(200).json(result);
+    } catch (error) {
+      return sendCatalogError(req, res, error, 'catalog_facets_failed');
+    }
+  }
+
+  return { getPointDetails, listFacets, listPoints };
 }
 
 function sendCatalogError(req, res, error, event) {

@@ -1,6 +1,12 @@
 const { getDB: defaultGetDB } = require('../../config/database');
 
 const NORMALIZED_NAME_SQL = "translate(lower(a.nombre_destino), 'áéíóúüñ', 'aeiouun')";
+const FACET_COLUMNS = Object.freeze({
+  company: { value: 'e.id::text', label: 'e.nombre' },
+  department: { value: 'a.departamento', label: 'a.departamento' },
+  municipality: { value: 'a.municipio', label: 'a.municipio' },
+  pointType: { value: 'a.tipo', label: 'a.tipo' }
+});
 
 function createCatalogRepository({ getDB = defaultGetDB } = {}) {
   if (typeof getDB !== 'function') throw new TypeError('getDB must be a function');
@@ -95,7 +101,54 @@ function createCatalogRepository({ getDB = defaultGetDB } = {}) {
     return mapPoint(row, scheduleMap.get(row.agency_id) || []);
   }
 
-  return { getPointDetails, getRevision, listPoints };
+  async function listFacets(query) {
+    const dimension = FACET_COLUMNS[query.facet];
+    if (!dimension) throw new TypeError('Unsupported catalog facet');
+    const db = await getDB();
+    const values = [];
+    const where = [
+      "a.id_destino IS NOT NULL",
+      "btrim(a.id_destino) <> ''",
+      `${dimension.label} IS NOT NULL`,
+      `btrim(${dimension.label}::text) <> ''`
+    ];
+    const add = (value) => {
+      values.push(value);
+      return `$${values.length}`;
+    };
+    const normalizedLabel = `translate(lower(${dimension.label}::text), 'áéíóúüñ', 'aeiouun')`;
+
+    if (query.companyId) where.push(`e.id::text = ${add(query.companyId)}`);
+    if (query.department) where.push(`lower(a.departamento) = lower(${add(query.department)})`);
+    if (query.municipality) where.push(`lower(a.municipio) = lower(${add(query.municipality)})`);
+    if (query.pointType) where.push(`lower(a.tipo) = lower(${add(query.pointType)})`);
+    if (query.q) where.push(`${normalizedLabel} LIKE ${add(`%${normalizeText(query.q)}%`)}`);
+    if (query.position) {
+      const labelParameter = add(query.position.normalizedLabel);
+      const valueParameter = add(query.position.value);
+      where.push(`(${normalizedLabel}, ${dimension.value}) > (${labelParameter}, ${valueParameter})`);
+    }
+    const limitParameter = add(query.limit + 1);
+    const result = await db.query(`
+      SELECT
+        ${dimension.value} AS value,
+        ${dimension.label} AS label,
+        ${normalizedLabel} AS normalized_label,
+        COUNT(*)::text AS facet_count
+      FROM agencias a
+      JOIN empresas e ON e.id = a.empresa_id
+      WHERE ${where.join('\n        AND ')}
+      GROUP BY ${dimension.value}, ${dimension.label}
+      ORDER BY ${normalizedLabel}, ${dimension.value}
+      LIMIT ${limitParameter}
+    `, values);
+    return {
+      items: result.rows.slice(0, query.limit).map(mapFacet),
+      hasMore: result.rows.length > query.limit
+    };
+  }
+
+  return { getPointDetails, getRevision, listFacets, listPoints };
 }
 
 async function loadSchedules(db, agencyIds) {
@@ -160,12 +213,26 @@ function timeOnly(value) {
   return typeof value === 'string' ? value.slice(0, 5) : String(value).slice(0, 5);
 }
 
+function mapFacet(row) {
+  const count = Number(row.facet_count);
+  if (!Number.isSafeInteger(count) || count < 0) {
+    throw new Error('Catalog facet count is invalid');
+  }
+  return {
+    value: String(row.value),
+    label: String(row.label),
+    normalizedLabel: String(row.normalized_label),
+    count
+  };
+}
+
 const defaultRepository = createCatalogRepository();
 
 module.exports = {
   createCatalogRepository,
   getPointDetails: defaultRepository.getPointDetails,
   getRevision: defaultRepository.getRevision,
+  listFacets: defaultRepository.listFacets,
   listPoints: defaultRepository.listPoints,
   normalizeText
 };

@@ -86,4 +86,18 @@ function parsePointId(value) {
   return value;
 }
 
-module.exports = { CatalogError, parseListQuery, parsePointId };
+function parseFacetQuery(query = {}) {
+  const parsed = parseListQuery(query);
+  const facet = singleString(query.facet);
+  if (!['company', 'department', 'municipality', 'pointType'].includes(facet)) {
+    throw new CatalogError(
+      400,
+      'VALIDATION_ERROR',
+      'La faceta solicitada no es válida.',
+      ['facet']
+    );
+  }
+  return { facet, ...parsed };
+}
+
+module.exports = { CatalogError, parseFacetQuery, parseListQuery, parsePointId };

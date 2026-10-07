@@ -113,6 +113,48 @@ test('catalog repository gets one point by public identity with its full schedul
   ]);
 });
 
+test('catalog repository returns one bounded facet page using a whitelisted dimension', async () => {
+  const calls = [];
+  const db = {
+    query: async (text, values) => {
+      calls.push({ text, values });
+      assert.match(text, /a\.municipio AS value/);
+      assert.match(text, /GROUP BY a\.municipio/);
+      assert.doesNotMatch(text, /SELECT\s+\*/i);
+      assert.equal(values.at(-1), 3);
+      assert.ok(values.includes('%soy%'));
+      return {
+        rows: [
+          { value: 'Soyapango', label: 'Soyapango', normalized_label: 'soyapango', facet_count: '3' },
+          { value: 'Soyapango Norte', label: 'Soyapango Norte', normalized_label: 'soyapango norte', facet_count: '2' },
+          { value: 'Soyapango Sur', label: 'Soyapango Sur', normalized_label: 'soyapango sur', facet_count: '1' }
+        ]
+      };
+    }
+  };
+  const repository = createCatalogRepository({ getDB: async () => db });
+
+  const result = await repository.listFacets({
+    facet: 'municipality',
+    companyId: null,
+    department: 'San Salvador',
+    municipality: null,
+    pointType: null,
+    q: 'soy',
+    matchMode: 'CONTAINS',
+    limit: 2,
+    cursor: null,
+    position: null
+  });
+
+  assert.equal(calls.length, 1);
+  assert.equal(result.hasMore, true);
+  assert.deepEqual(result.items, [
+    { value: 'Soyapango', label: 'Soyapango', normalizedLabel: 'soyapango', count: 3 },
+    { value: 'Soyapango Norte', label: 'Soyapango Norte', normalizedLabel: 'soyapango norte', count: 2 }
+  ]);
+});
+
 function agencyRow(id, pointId, name) {
   return {
     agency_id: id,

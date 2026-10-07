@@ -1,0 +1,41 @@
+<article siCard [elevated]="true" class="catalog-point-card">
+  <div class="card-header">
+    <span class="company-name">{{ point.company.name }}</span>
+    <h3 class="point-name">{{ point.name }}</h3>
+    <p class="point-location">{{ point.location.municipality }}, {{ point.location.department }}</p>
+  </div>
+
+  <button type="button"
+          class="card-status"
+          [attr.aria-expanded]="expanded ? 'true' : 'false'"
+          [attr.aria-controls]="'schedule-content-' + point.pointId"
+          (click)="toggle.emit(point)">
+
+    <si-chip [tone]="point.availability.status === 'OPEN' ? 'success' : 'neutral'">
+      {{ point.availability.status === 'OPEN' ? 'Abierto' : 'Cerrado' }}
+    </si-chip>
+
+    <span *ngIf="expanded" [id]="'schedule-content-' + point.pointId" class="schedule-summary">
+      <ng-container *ngIf="point.schedulePreview.length > 0; else noSchedule">
+        <span class="schedule-line" *ngFor="let schedule of point.schedulePreview | slice:0:2">
+          {{ schedule.daysLabel }}: {{ schedule.opensAt }} - {{ schedule.closesAt }}
+        </span>
+      </ng-container>
+      <ng-template #noSchedule>
+        <span class="schedule-line empty">Sin horarios registrados</span>
+      </ng-template>
+    </span>
+  </button>
+
+  <div class="card-actions">
+    <button siButton variant="primary" (click)="use.emit(point)" [attr.aria-label]="'Elegir desde dónde enviar hacia ' + point.name">
+      Desde dónde enviar
+    </button>
+    <button siButton variant="secondary" (click)="share.emit(point)" [attr.aria-label]="'Compartir ubicación de ' + point.name">
+      Compartir
+    </button>
+    <button siButton variant="secondary" (click)="map.emit(point)" [attr.aria-label]="'Ver en el mapa ' + point.name">
+      Ver mapa
+    </button>
+  </div>
+</article>

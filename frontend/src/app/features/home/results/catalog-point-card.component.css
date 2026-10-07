@@ -1,0 +1,84 @@
+.catalog-point-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.card-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.company-name {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.point-name {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--text-main);
+  line-height: 1.2;
+}
+
+.point-location {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.card-status {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-hover);
+  cursor: pointer;
+  min-height: 44px;
+  text-align: left;
+  width: 100%;
+  font-family: inherit;
+  color: inherit;
+}
+
+.card-status:focus-visible {
+  outline: 0;
+  box-shadow: var(--focus-ring);
+}
+
+.schedule-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.schedule-line {
+  display: block;
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-main);
+}
+
+.schedule-line.empty {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.card-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+@media (min-width: 768px) {
+  .card-actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+}

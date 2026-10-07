@@ -1,12 +1,12 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
-import { DeliveryPoint } from '../../core/models/location.models';
-import { fuzzySearch } from '../../core/utils/fuzzy-search';
+import { ChangeDetectorRef, Component, EventEmitter, OnDestroy, OnInit, Output } from '@angular/core';
+import { Subject, Subscription, catchError, distinctUntilChanged, forkJoin, map, of, switchMap, timer } from 'rxjs';
+import { CatalogFacet, CatalogPage, CatalogPoint } from '../../core/models/catalog.models';
+import { CatalogService } from '../../core/services/catalog.service';
 
 interface CompanySummary {
   name: string;
   pointCount: number;
-  municipalityCount: number;
   monogram: string;
   accent: string;
 }
@@ -24,34 +24,65 @@ export interface MunicipalitySummary {
   templateUrl: './discovery-home.component.html',
   styleUrl: './discovery-home.component.css'
 })
-export class DiscoveryHomeComponent implements OnChanges {
-  @Input() locations: readonly DeliveryPoint[] = [];
-
+export class DiscoveryHomeComponent implements OnInit, OnDestroy {
   @Output() mapExplore = new EventEmitter<void>();
   @Output() companySelected = new EventEmitter<string>();
   @Output() municipalitySelected = new EventEmitter<MunicipalitySummary>();
-  @Output() pointSelected = new EventEmitter<DeliveryPoint>();
-  @Output() pointPreview = new EventEmitter<DeliveryPoint>();
-  @Output() pointMap = new EventEmitter<DeliveryPoint>();
+  @Output() pointSelected = new EventEmitter<CatalogPoint>();
+  @Output() pointPreview = new EventEmitter<CatalogPoint>();
+  @Output() pointMap = new EventEmitter<CatalogPoint>();
 
   companies: CompanySummary[] = [];
   municipalities: MunicipalitySummary[] = [];
-  featuredPoints: DeliveryPoint[] = [];
+  featuredPoints: CatalogPoint[] = [];
   totalMunicipalities = 0;
+  totalPoints = 0;
+  hasMoreCompanies = false;
+  hasMoreMunicipalities = false;
+  loading = true;
   destinationSearchQuery = '';
   isDestinationSearchActive = false;
+  searching = false;
   filteredMunicipalities: MunicipalitySummary[] = [];
-  filteredPoints: DeliveryPoint[] = [];
+  filteredPoints: CatalogPoint[] = [];
 
   private readonly accents = ['#F45B78', '#B8EE4A', '#A9DDF5', '#FFD18A'];
-  private allMunicipalities: MunicipalitySummary[] = [];
+  private readonly searchQueries = new Subject<string>();
+  private readonly subscriptions = new Subscription();
 
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes['locations']) this.buildDiscoveryData();
+  constructor(
+    private readonly catalog: CatalogService,
+    private readonly cdr: ChangeDetectorRef
+  ) {}
+
+  ngOnInit(): void {
+    this.loadDiscoveryData();
+    this.subscriptions.add(this.searchQueries.pipe(
+      map(query => query.trim()),
+      distinctUntilChanged(),
+      switchMap(query => query.length >= 2
+        ? timer(200).pipe(switchMap(() => forkJoin({
+              municipalities: this.catalog.listFacets({ facet: 'municipality', q: query, limit: 5 }),
+              points: this.catalog.listPoints({ q: query, limit: 5 })
+            }).pipe(catchError(() => of(null)))))
+        : of(null))
+    ).subscribe(result => {
+      this.searching = false;
+      this.filteredMunicipalities = result
+        ? result.municipalities.data.map(facet => this.toMunicipality(facet))
+        : [];
+      this.filteredPoints = result?.points.data || [];
+      this.cdr.detectChanges();
+    }));
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.unsubscribe();
+    this.searchQueries.complete();
   }
 
   get isLoading(): boolean {
-    return this.locations.length === 0;
+    return this.loading;
   }
 
   get companyCount(): number {
@@ -59,7 +90,7 @@ export class DiscoveryHomeComponent implements OnChanges {
   }
 
   get pointCount(): number {
-    return this.locations.length;
+    return this.totalPoints;
   }
 
   get hasDestinationSearchResults(): boolean {
@@ -73,7 +104,12 @@ export class DiscoveryHomeComponent implements OnChanges {
   updateDestinationSearch(query: string): void {
     this.destinationSearchQuery = query;
     this.isDestinationSearchActive = true;
-    this.refreshDestinationSearchResults();
+    this.searching = query.trim().length >= 2;
+    if (query.trim().length < 2) {
+      this.filteredMunicipalities = [];
+      this.filteredPoints = [];
+    }
+    this.searchQueries.next(query);
   }
 
   onDestinationSearchInput(event: Event): void {
@@ -84,7 +120,10 @@ export class DiscoveryHomeComponent implements OnChanges {
   clearDestinationSearch(input?: HTMLInputElement): void {
     this.destinationSearchQuery = '';
     this.isDestinationSearchActive = true;
-    this.refreshDestinationSearchResults();
+    this.filteredMunicipalities = [];
+    this.filteredPoints = [];
+    this.searching = false;
+    this.searchQueries.next('');
     input?.focus();
   }
 
@@ -97,18 +136,18 @@ export class DiscoveryHomeComponent implements OnChanges {
     this.municipalitySelected.emit(municipality);
   }
 
-  selectPointSuggestion(point: DeliveryPoint): void {
+  selectPointSuggestion(point: CatalogPoint): void {
     this.resetDestinationSearch();
     this.pointPreview.emit(point);
   }
 
-  pointName(point: DeliveryPoint): string {
-    return (point?.nombre_destino || 'Punto de entrega')
+  pointName(point: CatalogPoint): string {
+    return (point?.name || 'Punto de entrega')
       .replace(/^AGENCIA\s+/i, '');
   }
 
-  locationLabel(point: DeliveryPoint): string {
-    return [point?.ubicacion?.municipio, point?.ubicacion?.departamento].filter(Boolean).join(', ');
+  locationLabel(point: CatalogPoint): string {
+    return [point?.location?.municipality, point?.location?.department].filter(Boolean).join(', ');
   }
 
   trackCompany(_: number, company: CompanySummary): string {
@@ -119,89 +158,57 @@ export class DiscoveryHomeComponent implements OnChanges {
     return `${municipality.municipio}-${municipality.departamento}`;
   }
 
-  trackPoint(_: number, point: DeliveryPoint): string | number {
-    return point?.id_destino || point?.id || point?.nombre_destino;
+  trackPoint(_: number, point: CatalogPoint): string {
+    return point.pointId;
   }
 
-  private buildDiscoveryData() {
-    const companyMap = new Map<string, { points: number; municipalities: Set<string> }>();
-    const municipalityMap = new Map<string, MunicipalitySummary>();
-
-    this.locations.forEach(location => {
-      const companyName = location.empresa || 'Empresa logística';
-      const municipality = location.ubicacion?.municipio || '';
-      const department = location.ubicacion?.departamento || '';
-      const municipalityKey = `${municipality}|${department}`;
-
-      if (!companyMap.has(companyName)) {
-        companyMap.set(companyName, { points: 0, municipalities: new Set<string>() });
-      }
-      const company = companyMap.get(companyName)!;
-      company.points += 1;
-      if (municipality) company.municipalities.add(municipalityKey);
-
-      if (municipality && !municipalityMap.has(municipalityKey)) {
-        municipalityMap.set(municipalityKey, { municipio: municipality, departamento: department, pointCount: 0 });
-      }
-      if (municipality) municipalityMap.get(municipalityKey)!.pointCount += 1;
-    });
-
-    this.companies = Array.from(companyMap.entries())
-      .map(([name, data], index) => ({
-        name,
-        pointCount: data.points,
-        municipalityCount: data.municipalities.size,
-        monogram: name.split(/\s+/).filter(Boolean).slice(0, 2).map(word => word[0]).join('').toUpperCase(),
+  private loadDiscoveryData(): void {
+    this.subscriptions.add(forkJoin({
+      companies: this.catalog.listFacets({ facet: 'company', limit: 50 })
+        .pipe(catchError(() => of(emptyPage<CatalogFacet>()))),
+      municipalities: this.catalog.listFacets({ facet: 'municipality', limit: 5 })
+        .pipe(catchError(() => of(emptyPage<CatalogFacet>()))),
+      points: this.catalog.listPoints({ limit: 5 })
+        .pipe(catchError(() => of(emptyPage<CatalogPoint>())))
+    }).subscribe(result => {
+      this.companies = result.companies.data.map((facet, index) => ({
+        name: facet.label,
+        pointCount: facet.count,
+        monogram: facet.label.split(/\s+/).filter(Boolean).slice(0, 2).map(word => word[0]).join('').toUpperCase(),
         accent: this.accents[index % this.accents.length]
-      }))
-      .sort((a, b) => b.pointCount - a.pointCount || a.name.localeCompare(b.name, 'es'));
-
-    this.allMunicipalities = Array.from(municipalityMap.values())
-      .sort((a, b) => b.pointCount - a.pointCount || a.municipio.localeCompare(b.municipio, 'es'));
-    this.totalMunicipalities = this.allMunicipalities.length;
-    this.municipalities = this.allMunicipalities
-      .slice(0, 5);
-
-    const seenMunicipalities = new Set<string>();
-    this.featuredPoints = [...this.locations]
-      .sort((a, b) => {
-        const imagePriority = Number(Boolean(b.imagen_referencia)) - Number(Boolean(a.imagen_referencia));
-        if (imagePriority !== 0) return imagePriority;
-        const distanceA = typeof a.distance === 'number' ? a.distance : Number.MAX_SAFE_INTEGER;
-        const distanceB = typeof b.distance === 'number' ? b.distance : Number.MAX_SAFE_INTEGER;
-        return distanceA - distanceB || Number(b.id || 0) - Number(a.id || 0);
-      })
-      .filter(location => {
-        const key = `${location.ubicacion?.municipio}|${location.ubicacion?.departamento}`;
-        if (!location.ubicacion?.municipio || seenMunicipalities.has(key)) return false;
-        seenMunicipalities.add(key);
-        return true;
-      })
-      .slice(0, 5);
-
-    this.refreshDestinationSearchResults();
+      }));
+      this.municipalities = result.municipalities.data.map(facet => this.toMunicipality(facet));
+      this.featuredPoints = result.points.data;
+      this.totalPoints = this.companies.reduce((total, company) => total + company.pointCount, 0);
+      this.totalMunicipalities = this.municipalities.length;
+      this.hasMoreCompanies = result.companies.page.hasMore;
+      this.hasMoreMunicipalities = result.municipalities.page.hasMore;
+      this.loading = false;
+      this.cdr.detectChanges();
+    }));
   }
 
-  private refreshDestinationSearchResults(): void {
-    this.filteredMunicipalities = fuzzySearch(this.allMunicipalities, this.destinationSearchQuery, {
-      fields: item => [item.municipio, item.departamento],
-      limit: 5
-    });
-    this.filteredPoints = fuzzySearch(this.locations, this.destinationSearchQuery, {
-      fields: point => [
-        point.nombre_destino,
-        point.empresa,
-        point.ubicacion?.municipio,
-        point.ubicacion?.departamento
-      ],
-      limit: 5
-    });
+  private toMunicipality(facet: CatalogFacet): MunicipalitySummary {
+    return {
+      municipio: facet.label,
+      departamento: facet.context?.department || '',
+      pointCount: facet.count
+    };
   }
 
   private resetDestinationSearch(): void {
     this.destinationSearchQuery = '';
     this.isDestinationSearchActive = false;
+    this.searching = false;
     this.filteredMunicipalities = [];
     this.filteredPoints = [];
   }
+}
+
+function emptyPage<T>(): CatalogPage<T> {
+  return {
+    data: [],
+    page: { limit: 0, hasMore: false, nextCursor: null },
+    meta: { catalogRevision: 'unavailable' }
+  };
 }

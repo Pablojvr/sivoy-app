@@ -1,8 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component } from '@angular/core';
+import { Component } from '@angular/core';
 import { Router } from '@angular/router';
-import { DeliveryPoint } from '../../core/models/location.models';
-import { UbicacionesService } from '../../core/services/ubicaciones.service';
+import { CatalogPoint } from '../../core/models/catalog.models';
 import { BottomNavComponent } from '../../shared/components/bottom-nav/bottom-nav.component';
 import { DiscoveryHomeComponent, MunicipalitySummary } from './discovery-home.component';
 
@@ -12,7 +11,6 @@ import { DiscoveryHomeComponent, MunicipalitySummary } from './discovery-home.co
   imports: [CommonModule, DiscoveryHomeComponent, BottomNavComponent],
   template: `
     <app-discovery-home
-      [locations]="locations"
       (mapExplore)="openMap()"
       (companySelected)="openCompany($event)"
       (municipalitySelected)="openMunicipality($event)"
@@ -33,24 +31,7 @@ import { DiscoveryHomeComponent, MunicipalitySummary } from './discovery-home.co
   `]
 })
 export class DiscoveryPageComponent {
-  locations: readonly DeliveryPoint[] = [];
-
-  constructor(
-    private ubicacionesService: UbicacionesService,
-    private router: Router,
-    private cdr: ChangeDetectorRef
-  ) {
-    this.ubicacionesService.getLocations().subscribe({
-      next: locations => {
-        this.locations = locations || [];
-        this.cdr.detectChanges();
-      },
-      error: () => {
-        this.locations = [];
-        this.cdr.detectChanges();
-      }
-    });
-  }
+  constructor(private router: Router) {}
 
   openMap() {
     this.router.navigate(['/enviar'], { queryParams: { vista: 'mapa' } });
@@ -69,10 +50,10 @@ export class DiscoveryPageComponent {
     });
   }
 
-  openPoint(point: DeliveryPoint, action: 'select' | 'preview' | 'map') {
+  openPoint(point: CatalogPoint, action: 'select' | 'preview' | 'map') {
     this.router.navigate(['/enviar'], {
       queryParams: {
-        punto: point.id_destino || point.id,
+        punto: point.pointId,
         accion: action,
         vista: action === 'map' ? 'mapa' : null
       }

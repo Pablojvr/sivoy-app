@@ -4,7 +4,7 @@ const test = require('node:test');
 const { configureLocalEnvironment } = require('../tools/start-local-server');
 
 test('configures safe loopback defaults without reading production credentials', () => {
-  const env = {};
+  const env = { FRONTEND_URL: 'https://production.example.com' };
 
   const configured = configureLocalEnvironment(env);
 
@@ -13,6 +13,10 @@ test('configures safe loopback defaults without reading production credentials',
   assert.equal(env.PORT, '3001');
   assert.equal(env.DATABASE_SSL, 'false');
   assert.match(env.DATABASE_URL, /@127\.0\.0\.1:5433\/sivoy$/);
+  assert.equal(
+    env.FRONTEND_URL,
+    'http://127.0.0.1:4303,http://localhost:4303,http://127.0.0.1:4200,http://localhost:4200'
+  );
 });
 
 test('preserves an explicit local port and rejects a remote database', () => {

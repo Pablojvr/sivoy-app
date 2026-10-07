@@ -1,6 +1,12 @@
 const { assertLocalDatabaseUrl } = require('./import-public-catalog');
 
 const DEFAULT_DATABASE_URL = 'postgresql://sivoy:sivoy_local_only@127.0.0.1:5433/sivoy';
+const LOCAL_FRONTEND_URLS = [
+  'http://127.0.0.1:4303',
+  'http://localhost:4303',
+  'http://127.0.0.1:4200',
+  'http://localhost:4200'
+].join(',');
 
 function configureLocalEnvironment(env) {
   if (!env || typeof env !== 'object' || Array.isArray(env)) {
@@ -10,6 +16,7 @@ function configureLocalEnvironment(env) {
   env.PORT = env.PORT || '3001';
   env.DATABASE_URL = assertLocalDatabaseUrl(env.DATABASE_URL || DEFAULT_DATABASE_URL);
   env.DATABASE_SSL = 'false';
+  env.FRONTEND_URL = LOCAL_FRONTEND_URLS;
   return env;
 }
 

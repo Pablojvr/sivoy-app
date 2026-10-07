@@ -12,6 +12,7 @@ const empresasRoutes = require('./src/domains/empresas/empresas.routes');
 const ubicacionesRoutes = require('./src/domains/ubicaciones/ubicaciones.routes');
 const rutasRoutes = require('./src/domains/rutas/rutas.routes');
 const mapasRoutes = require('./src/domains/mapas/mapas.routes');
+const catalogRoutes = require('./src/domains/catalog/catalog.routes');
 
 const app = express();
 const corsOptions = {
@@ -57,6 +58,7 @@ app.use('/api/empresas', empresasRoutes);
 app.use('/api', ubicacionesRoutes); // Includes /locations, /agencias, /test-location
 app.use('/api', rutasRoutes); // Includes /get-upcoming-routes, /search-routes-by-municipality, /search-flights
 app.use('/api', mapasRoutes); // Includes /resolve-maps-link
+app.use('/api/catalog', catalogRoutes);
 
 // Catch-all: serve Angular app for any non-API route
 app.get('/{*splat}', (req, res) => {

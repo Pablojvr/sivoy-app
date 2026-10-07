@@ -236,6 +236,88 @@ describe('catalog query contract', () => {
       meta: { catalogRevision: 'catalog:7' }
     });
   });
+
+  test('uses a cached static page while evaluating availability at request time', async () => {
+    const cachedPage = { points: [pointWithWeekSchedule()], hasMore: false };
+    let listCalls = 0;
+    let instant = new Date('2026-10-05T21:00:00.000Z');
+    const service = createCatalogQueryService({
+      repository: {
+        getRevision: async () => 'catalog:7',
+        listPoints: async () => {
+          listCalls += 1;
+          return cachedPage;
+        }
+      },
+      cache: { get: async () => cachedPage, set: async () => assert.fail('cache hit must not be written') },
+      now: () => instant
+    });
+
+    const open = await service.listPoints(parseListQuery({ companyId: '2' }));
+    instant = new Date('2026-10-05T23:00:00.000Z');
+    const closed = await service.listPoints(parseListQuery({ companyId: '2' }));
+
+    assert.equal(listCalls, 0);
+    assert.equal(open.data[0].availability.status, 'OPEN');
+    assert.equal(closed.data[0].availability.status, 'CLOSED');
+  });
+
+  test('isolates list cache entries by company, filters, cursor and revision', async () => {
+    const keys = [];
+    const revisions = ['catalog:1', 'catalog:1', 'catalog:1', 'catalog:2'];
+    const repository = {
+      getRevision: async () => revisions.shift(),
+      listPoints: async () => ({ points: [], hasMore: false })
+    };
+    const service = createCatalogQueryService({
+      repository,
+      cache: {
+        get: async (key) => {
+          keys.push(key);
+          return null;
+        },
+        set: async () => {}
+      }
+    });
+    const cursor = encodeCursor({
+      revision: 'catalog:1',
+      query: parseListQuery({ companyId: '2', municipality: 'Soyapango' }),
+      position: { normalizedName: 'agencia centro', pointId: 'AG_01' }
+    });
+
+    await service.listPoints(parseListQuery({ companyId: '1', municipality: 'Soyapango' }));
+    await service.listPoints(parseListQuery({ companyId: '2', municipality: 'Soyapango' }));
+    await service.listPoints(parseListQuery({ companyId: '2', municipality: 'Soyapango', cursor }));
+    await service.listPoints(parseListQuery({ companyId: '2', municipality: 'Soyapango' }));
+
+    assert.equal(new Set(keys).size, 4);
+    assert.match(keys[0], /^catalog:v1:1:catalog:1:/);
+    assert.match(keys[1], /^catalog:v1:2:catalog:1:/);
+    assert.ok(keys[2].endsWith(`:${cursor}`));
+    assert.match(keys[3], /^catalog:v1:2:catalog:2:/);
+  });
+
+  test('falls back to the repository when cache reads or writes fail', async () => {
+    let repositoryCalls = 0;
+    const repository = {
+      getRevision: async () => 'catalog:7',
+      listPoints: async () => {
+        repositoryCalls += 1;
+        return { points: [pointWithWeekSchedule()], hasMore: false };
+      }
+    };
+
+    for (const cache of [
+      { get: async () => { throw new Error('cache read unavailable'); }, set: async () => {} },
+      { get: async () => null, set: async () => { throw new Error('cache write unavailable'); } }
+    ]) {
+      const service = createCatalogQueryService({ repository, cache });
+      const result = await service.listPoints(parseListQuery({}));
+      assert.equal(result.data.length, 1);
+    }
+
+    assert.equal(repositoryCalls, 2);
+  });
 });
 
 function pointWithWeekSchedule() {

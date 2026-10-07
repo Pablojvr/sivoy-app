@@ -20,10 +20,10 @@ function createCatalogQueryService({ repository, cache, now = () => new Date() }
       ? decodeCursor(query.cursor, { revision, query })
       : null;
     const cacheKey = `catalog:v1:${query.companyId || 'all'}:${revision}:${queryFingerprint(query)}:${query.cursor || 'first'}`;
-    let staticPage = await cache.get(cacheKey);
+    let staticPage = await readCache(cache, cacheKey);
     if (!staticPage) {
       staticPage = await repository.listPoints({ ...query, position });
-      await cache.set(cacheKey, staticPage, 300);
+      await writeCache(cache, cacheKey, staticPage, 300);
     }
 
     const evaluatedAt = now();
@@ -50,13 +50,13 @@ function createCatalogQueryService({ repository, cache, now = () => new Date() }
     }
     const revision = await repository.getRevision();
     const cacheKey = `catalog:v1:point:${revision}:${pointId}`;
-    let point = await cache.get(cacheKey);
+    let point = await readCache(cache, cacheKey);
     if (!point) {
       point = await repository.getPointDetails(pointId);
       if (!point) {
         throw new CatalogError(404, 'POINT_NOT_FOUND', 'No encontramos el punto solicitado.');
       }
-      await cache.set(cacheKey, point, 300);
+      await writeCache(cache, cacheKey, point, 300);
     }
 
     const schedules = (point.schedules || []).map((schedule) => ({ ...schedule }));
@@ -75,10 +75,10 @@ function createCatalogQueryService({ repository, cache, now = () => new Date() }
       ? decodeFacetCursor(query.cursor, { revision, query })
       : null;
     const cacheKey = `catalog:v1:facet:${query.companyId || 'all'}:${revision}:${queryFingerprint(query)}:${query.cursor || 'first'}`;
-    let staticPage = await cache.get(cacheKey);
+    let staticPage = await readCache(cache, cacheKey);
     if (!staticPage) {
       staticPage = await repository.listFacets({ ...query, position });
-      await cache.set(cacheKey, staticPage, 300);
+      await writeCache(cache, cacheKey, staticPage, 300);
     }
     const last = staticPage.items.at(-1);
     const nextCursor = staticPage.hasMore && last
@@ -97,6 +97,22 @@ function createCatalogQueryService({ repository, cache, now = () => new Date() }
   }
 
   return { getPointDetails, listFacets, listPoints };
+}
+
+async function readCache(cache, key) {
+  try {
+    return await cache.get(key);
+  } catch {
+    return null;
+  }
+}
+
+async function writeCache(cache, key, value, ttlSeconds) {
+  try {
+    await cache.set(key, value, ttlSeconds);
+  } catch {
+    // Cache is an optional accelerator; PostgreSQL remains the source of truth.
+  }
 }
 
 function presentPoint(point, instant) {

@@ -140,10 +140,13 @@ se activa después de corregir y medir consultas. No autoriza por sí solo un de
   - Aceptación: SQL/contratos cumplen budgets antes de introducir cache hits.
   - Verificación: reporte actual/10k/100k y revisión de planes/índices.
 
-- [ ] CACHE01 Definir puerto, claves e invalidación de caché por empresa.
+- [x] CACHE01 Definir puerto, claves e invalidación de caché por empresa.
   - Aceptación: claves incluyen versión/revisión/filtros/cursor y no pueden mezclar
     empresas; el sistema funciona con implementación Noop.
   - Verificación: pruebas de colisión, cambio de revisión y caída de caché.
+  - Evidencia: claves versionadas aíslan empresa/filtros/cursor/revisión; la
+    disponibilidad se recalcula por petición y una caída de caché degrada hacia
+    PostgreSQL. Producción continúa con la implementación `Noop`.
 - [ ] CACHE02 Activar caché de borde sobre GET paginados.
   - Aceptación: assets, catálogo, detalle, ETA y observabilidad tienen políticas
     explícitas; ETA/Places permanecen `no-store` inicialmente.

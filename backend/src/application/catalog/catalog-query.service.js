@@ -114,10 +114,32 @@ function availabilityFor(schedules, instant) {
   return {
     status: open ? 'OPEN' : 'CLOSED',
     closesAt: open ? open.closesAt : null,
-    nextOpeningAt: null,
+    nextOpeningAt: open ? null : findNextOpening(schedules, local),
     evaluatedAt: local.iso,
     timeZone: TIME_ZONE
   };
+}
+
+function findNextOpening(schedules, local) {
+  const [year, month, day] = local.date.split('-').map(Number);
+  const current = minutes(local.time);
+  for (let offset = 0; offset <= 7; offset += 1) {
+    const dayName = DAYS[(local.dayIndex + offset) % DAYS.length];
+    const intervals = (schedules || [])
+      .filter((item) => item.day === dayName)
+      .sort((left, right) => left.opensAt.localeCompare(right.opensAt));
+    const next = intervals.find((item) => offset > 0 || minutes(item.opensAt) > current);
+    if (!next) continue;
+
+    const date = new Date(Date.UTC(year, month - 1, day + offset));
+    const dateOnly = [
+      date.getUTCFullYear(),
+      String(date.getUTCMonth() + 1).padStart(2, '0'),
+      String(date.getUTCDate()).padStart(2, '0')
+    ].join('-');
+    return `${dateOnly}T${next.opensAt}:00-06:00`;
+  }
+  return null;
 }
 
 function minutes(value) {

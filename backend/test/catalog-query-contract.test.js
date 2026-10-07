@@ -117,6 +117,28 @@ describe('catalog query contract', () => {
     assert.deepEqual(result.meta, { catalogRevision: 'catalog:7' });
     assert.equal('schedules' in result.data[0], false);
   });
+
+  test('reports the next opening when the point is currently closed', async () => {
+    const repository = {
+      getRevision: async () => 'catalog:7',
+      listPoints: async () => ({ points: [pointWithWeekSchedule()], hasMore: false })
+    };
+    const service = createCatalogQueryService({
+      repository,
+      cache: { get: async () => null, set: async () => {} },
+      now: () => new Date('2026-10-05T23:00:00.000Z')
+    });
+
+    const result = await service.listPoints(parseListQuery({}));
+
+    assert.deepEqual(result.data[0].availability, {
+      status: 'CLOSED',
+      closesAt: null,
+      nextOpeningAt: '2026-10-06T09:00:00-06:00',
+      evaluatedAt: '2026-10-05T17:00:00-06:00',
+      timeZone: 'America/El_Salvador'
+    });
+  });
 });
 
 function pointWithWeekSchedule() {

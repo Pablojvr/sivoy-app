@@ -65,7 +65,37 @@ function createCatalogRepository({ getDB = defaultGetDB } = {}) {
     };
   }
 
-  return { getRevision, listPoints };
+  async function getPointDetails(pointId) {
+    const db = await getDB();
+    const result = await db.query(`
+      SELECT
+        a.id AS agency_id,
+        a.id_destino AS point_id,
+        ${NORMALIZED_NAME_SQL} AS normalized_name,
+        e.id AS company_id,
+        e.nombre AS company_name,
+        e.logo_url AS company_logo_url,
+        a.nombre_destino AS point_name,
+        a.tipo AS point_type,
+        a.departamento AS department,
+        a.municipio AS municipality,
+        a.direccion_referencia AS address,
+        a.lat AS latitude,
+        a.lng AS longitude,
+        a.imagen_referencia AS image_url,
+        a.maps_url
+      FROM agencias a
+      JOIN empresas e ON e.id = a.empresa_id
+      WHERE a.id_destino = $1
+      LIMIT 1
+    `, [pointId]);
+    const row = result.rows[0];
+    if (!row) return null;
+    const scheduleMap = await loadSchedules(db, [row.agency_id]);
+    return mapPoint(row, scheduleMap.get(row.agency_id) || []);
+  }
+
+  return { getPointDetails, getRevision, listPoints };
 }
 
 async function loadSchedules(db, agencyIds) {
@@ -134,6 +164,7 @@ const defaultRepository = createCatalogRepository();
 
 module.exports = {
   createCatalogRepository,
+  getPointDetails: defaultRepository.getPointDetails,
   getRevision: defaultRepository.getRevision,
   listPoints: defaultRepository.listPoints,
   normalizeText

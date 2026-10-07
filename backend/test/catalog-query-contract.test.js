@@ -139,6 +139,46 @@ describe('catalog query contract', () => {
       timeZone: 'America/El_Salvador'
     });
   });
+
+  test('returns full schedules only from the point detail use case', async () => {
+    const point = pointWithWeekSchedule();
+    const repository = {
+      getRevision: async () => 'catalog:7',
+      listPoints: async () => ({ points: [], hasMore: false }),
+      getPointDetails: async (pointId) => {
+        assert.equal(pointId, 'AG_01');
+        return point;
+      }
+    };
+    const service = createCatalogQueryService({
+      repository,
+      cache: { get: async () => null, set: async () => {} },
+      now: () => new Date('2026-10-05T16:00:00.000Z')
+    });
+
+    const result = await service.getPointDetails('AG_01');
+
+    assert.equal(result.pointId, 'AG_01');
+    assert.equal(result.schedules.length, 6);
+    assert.equal('normalizedName' in result, false);
+    assert.equal(result.schedulePreview.length, 2);
+  });
+
+  test('returns a safe not-found error for an unknown point', async () => {
+    const service = createCatalogQueryService({
+      repository: {
+        getRevision: async () => 'catalog:7',
+        listPoints: async () => ({ points: [], hasMore: false }),
+        getPointDetails: async () => null
+      },
+      cache: { get: async () => null, set: async () => {} }
+    });
+
+    await assert.rejects(
+      service.getPointDetails('MISSING'),
+      (error) => error.status === 404 && error.code === 'POINT_NOT_FOUND'
+    );
+  });
 });
 
 function pointWithWeekSchedule() {

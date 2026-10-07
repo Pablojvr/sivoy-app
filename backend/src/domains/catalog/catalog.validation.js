@@ -74,4 +74,16 @@ function parseListQuery(query = {}) {
   };
 }
 
-module.exports = { CatalogError, parseListQuery };
+function parsePointId(value) {
+  if (typeof value !== 'string' || value.length < 1 || value.length > 160 || value.trim() !== value) {
+    throw new CatalogError(
+      400,
+      'VALIDATION_ERROR',
+      'El identificador del punto no es válido.',
+      ['pointId']
+    );
+  }
+  return value;
+}
+
+module.exports = { CatalogError, parseListQuery, parsePointId };

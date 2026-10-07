@@ -13,6 +13,7 @@ function createCatalogRouter({ service } = {}) {
   const router = express.Router();
 
   router.get('/points', controller.listPoints);
+  router.get('/points/:pointId', controller.getPointDetails);
   return router;
 }
 

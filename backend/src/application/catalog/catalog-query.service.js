@@ -1,4 +1,5 @@
 const { decodeCursor, encodeCursor, queryFingerprint } = require('./catalog-cursor');
+const { CatalogError } = require('../../domains/catalog/catalog.validation');
 
 const DAYS = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 const TIME_ZONE = 'America/El_Salvador';
@@ -42,7 +43,29 @@ function createCatalogQueryService({ repository, cache, now = () => new Date() }
     };
   }
 
-  return { listPoints };
+  async function getPointDetails(pointId) {
+    if (typeof repository.getPointDetails !== 'function') {
+      throw new TypeError('Catalog repository does not support point details');
+    }
+    const revision = await repository.getRevision();
+    const cacheKey = `catalog:v1:point:${revision}:${pointId}`;
+    let point = await cache.get(cacheKey);
+    if (!point) {
+      point = await repository.getPointDetails(pointId);
+      if (!point) {
+        throw new CatalogError(404, 'POINT_NOT_FOUND', 'No encontramos el punto solicitado.');
+      }
+      await cache.set(cacheKey, point, 300);
+    }
+
+    const schedules = (point.schedules || []).map((schedule) => ({ ...schedule }));
+    return {
+      ...presentPoint(point, now()),
+      schedules
+    };
+  }
+
+  return { getPointDetails, listPoints };
 }
 
 function presentPoint(point, instant) {

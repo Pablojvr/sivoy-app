@@ -96,6 +96,41 @@ describe('catalog HTTP contract', () => {
     assert.deepEqual(events, [['catalog_list_failed', 'catalog_query_error']]);
     assert.doesNotMatch(JSON.stringify(response.body), /password|postgres|secret/i);
   });
+
+  test('GET /api/catalog/points/:pointId returns the canonical point detail', async () => {
+    let receivedPointId;
+    const expected = { pointId: 'AG_SOYAPANGO_01', schedules: [] };
+    const response = await fetchCatalog({
+      listPoints: async () => ({ data: [] }),
+      getPointDetails: async (pointId) => {
+        receivedPointId = pointId;
+        return expected;
+      }
+    }, '/api/catalog/points/AG_SOYAPANGO_01');
+
+    assert.equal(response.status, 200);
+    assert.equal(receivedPointId, 'AG_SOYAPANGO_01');
+    assert.deepEqual(response.body, expected);
+  });
+
+  test('rejects an invalid point identity before invoking the detail service', async () => {
+    let calls = 0;
+    const response = await fetchCatalog({
+      listPoints: async () => ({ data: [] }),
+      getPointDetails: async () => { calls += 1; }
+    }, `/api/catalog/points/${'A'.repeat(161)}`);
+
+    assert.equal(calls, 0);
+    assert.equal(response.status, 400);
+    assert.deepEqual(response.body, {
+      error: {
+        code: 'VALIDATION_ERROR',
+        message: 'El identificador del punto no es válido.',
+        requestId: REQUEST_ID,
+        fields: ['pointId']
+      }
+    });
+  });
 });
 
 function fetchCatalog(service, path, events = []) {

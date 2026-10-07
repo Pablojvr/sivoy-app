@@ -80,6 +80,39 @@ test('catalog repository reads the opaque global revision', async () => {
   assert.equal(await repository.getRevision(), 'catalog:18');
 });
 
+test('catalog repository gets one point by public identity with its full schedule', async () => {
+  const calls = [];
+  const db = {
+    query: async (text, values) => {
+      calls.push({ text, values });
+      if (text.includes('FROM agencias a')) {
+        assert.deepEqual(values, ['AG_01']);
+        assert.match(text, /a\.id_destino = \$1/);
+        assert.match(text, /LIMIT 1/);
+        return { rows: [agencyRow(1, 'AG_01', 'AGENCIA A')] };
+      }
+      if (text.includes('FROM horarios_operativos')) {
+        assert.deepEqual(values, [[1]]);
+        return {
+          rows: [
+            { agencia_id: 1, dia_semana: 'Lunes', hora_apertura: '09:00:00', hora_cierre: '16:00:00' }
+          ]
+        };
+      }
+      throw new Error('Unexpected query');
+    }
+  };
+  const repository = createCatalogRepository({ getDB: async () => db });
+
+  const result = await repository.getPointDetails('AG_01');
+
+  assert.equal(calls.length, 2);
+  assert.equal(result.pointId, 'AG_01');
+  assert.deepEqual(result.schedules, [
+    { day: 'Lunes', opensAt: '09:00', closesAt: '16:00' }
+  ]);
+});
+
 function agencyRow(id, pointId, name) {
   return {
     agency_id: id,

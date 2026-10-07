@@ -4,7 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { ToastService } from './core/services/toast.service';
-import { UbicacionesService } from './core/services/ubicaciones.service';
+import { CatalogService } from './core/services/catalog.service';
+import { catalogPointToLocation } from './core/models/catalog-location.adapter';
 import { UserGeolocationService } from './core/services/user-geolocation.service';
 import { MapPort, MapCoordinate } from './core/maps/map.port';
 import { MapLibreMapAdapter } from './core/maps/maplibre-map.adapter';
@@ -84,7 +85,7 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
   private nomSub?: Subscription;
 
   constructor(
-    private ubicacionesService: UbicacionesService,
+    private catalogService: CatalogService,
     private userGeolocationService: UserGeolocationService,
     private cdr: ChangeDetectorRef,
     private elRef: ElementRef,
@@ -103,24 +104,25 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
       this.activeMainTab = resolveMainTab(requestedTab);
       this.cdr.detectChanges();
     });
-    this.locationsSubscription = this.ubicacionesService.getLocations().subscribe(data => {
-      if (this.destroyed) return;
-      this.locations = data;
-      this.filteredLocations = [...this.locations];
+    this.locationsSubscription = this.catalogService.listPoints({ limit: 50 }).subscribe({
+      next: page => {
+        if (this.destroyed) return;
+        this.locations = page.data.map(catalogPointToLocation);
+        this.filteredLocations = [...this.locations];
 
-      this.updateAgencyStatuses();
-      // Update statuses every minute
-      if (this.statusesIntervalId !== null) {
-        clearInterval(this.statusesIntervalId);
+        if (this.userLocation) {
+          this.sortLocationsByDistance();
+        }
+
+        this.updateMapMarkers();
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        if (this.destroyed) return;
+        this.locations = [];
+        this.filteredLocations = [];
+        this.cdr.detectChanges();
       }
-      this.statusesIntervalId = setInterval(() => this.updateAgencyStatuses(), 60000);
-
-      if (this.userLocation) {
-        this.sortLocationsByDistance();
-      }
-
-      this.updateMapMarkers();
-      this.cdr.detectChanges();
     });
 
     // Default to El Salvador immediately so marker renders even if GPS hangs

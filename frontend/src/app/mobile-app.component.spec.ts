@@ -11,7 +11,7 @@ import { PerfilComponent } from './features/perfil/perfil.component';
 import { MapPort } from './core/maps/map.port';
 import { MapLifecycleManager } from './core/maps/map-lifecycle.manager';
 import { Subject, BehaviorSubject } from 'rxjs';
-import { UbicacionesService } from './core/services/ubicaciones.service';
+import { CatalogService } from './core/services/catalog.service';
 
 class MockToastService {
   showInfo() {}
@@ -78,23 +78,35 @@ describe('MobileAppComponent (T30a Characterization)', () => {
 
   // Helper to flush implicit requests triggered by ngOnInit
   const flushInitRequests = () => {
-    const reqLoc = httpMock.expectOne(req => req.url.includes('/api/locations'));
-    reqLoc.flush([
-      { id: 10, nombre_destino: 'Agencia San Miguel', empresa: 'SiVoyExpress', ubicacion: { municipio: 'San Miguel', departamento: 'San Miguel' } }
-    ]);
+    const reqLoc = httpMock.expectOne(req => req.url.includes('/api/catalog/points'));
+    reqLoc.flush({
+      data: [{
+        pointId: 'AG_10',
+        company: { companyId: '1', name: 'SiVoyExpress', logoUrl: null },
+        name: 'Agencia San Miguel',
+        pointType: 'AGENCIA',
+        location: { department: 'San Miguel', municipality: 'San Miguel', address: null, coordinates: { lat: null, lng: null } },
+        media: { imageUrl: null, mapsUrl: null },
+        availability: { status: 'CLOSED', closesAt: null, nextOpeningAt: null, evaluatedAt: '2026-10-07T10:00:00-06:00', timeZone: 'America/El_Salvador' },
+        schedulePreview: []
+      }],
+      page: { limit: 50, hasMore: false, nextCursor: null },
+      meta: { catalogRevision: 'catalog:1' }
+    });
 
     // Explicitly handle the default Nominatim call made in ngOnInit for map center
     const nomReq = httpMock.expectOne(req => req.url.includes('nominatim.openstreetmap.org') && req.urlWithParams.includes('lat=13.69'));
     nomReq.flush({ address: { municipality: 'San Salvador' } });
   };
 
-  it('should initialize and fetch /api/locations properly', () => {
+  it('should initialize from one bounded catalog page without /api/locations', () => {
     fixture.detectChanges(); // Act: Trigger ngOnInit
 
     // Assert explicit requests via helper
     flushInitRequests();
 
     httpMock.expectNone(req => req.url.includes('/api/empresas'));
+    httpMock.expectNone(req => req.url.includes('/api/locations'));
 
     // Ensure the shell updated its state meant for handoff to HomeComponent
     expect(component.locations.length).toBe(1);
@@ -127,36 +139,28 @@ describe('MobileAppComponent (T30a Characterization)', () => {
     }
   });
 
-  it('should clear updateAgencyStatuses interval on destroy', () => {
+  it('should not start the legacy status interval for server-evaluated catalog availability', () => {
     vi.useFakeTimers();
     try {
-      fixture.detectChanges(); // inicializa componente
+      fixture.detectChanges();
       const updateSpy = vi.spyOn(component, 'updateAgencyStatuses');
 
-      flushInitRequests(); // flushea requests existentes
-
-      // confirma la primera actualización de estados (al resolverse los requests)
-      expect(updateSpy).toHaveBeenCalledTimes(1);
-      updateSpy.mockClear();
-
-      // destruye el fixture/componente
+      flushInitRequests();
       fixture.destroy();
-
-      // avanza 60s
       vi.advanceTimersByTime(60000);
 
-      // prueba que updateAgencyStatuses no vuelve a ejecutarse
       expect(updateSpy).not.toHaveBeenCalled();
+      expect((component as any).statusesIntervalId).toBeNull();
     } finally {
       vi.useRealTimers();
       vi.restoreAllMocks();
     }
   });
 
-  it('should unsubscribe from a pending locations request on destroy', () => {
-    const locationsSubject = new Subject<any[]>();
-    const ubicacionesService = TestBed.inject(UbicacionesService);
-    vi.spyOn(ubicacionesService, 'getLocations').mockReturnValue(locationsSubject.asObservable());
+  it('should unsubscribe from a pending catalog request on destroy', () => {
+    const locationsSubject = new Subject<any>();
+    const catalogService = TestBed.inject(CatalogService);
+    vi.spyOn(catalogService, 'listPoints').mockReturnValue(locationsSubject.asObservable());
 
     fixture.detectChanges();
 
@@ -168,7 +172,7 @@ describe('MobileAppComponent (T30a Characterization)', () => {
     fixture.destroy();
 
     expect(locationsSubject.observed).toBe(false);
-    locationsSubject.next([{ id: 99, nombre_destino: 'Respuesta tardía' }]);
+    locationsSubject.next({ data: [], page: { limit: 50, hasMore: false, nextCursor: null }, meta: { catalogRevision: 'catalog:1' } });
     expect(component.locations).toEqual([]);
     expect((component as any).statusesIntervalId).toBeNull();
   });
@@ -418,8 +422,8 @@ describe('MobileAppComponent public shell isolation (T29e)', () => {
   it('resolves activeMainTab to inicio and renders no admin elements when query param is puntos', () => {
     fixture.detectChanges();
 
-    const reqLoc = httpMock.expectOne(req => req.url.includes('/api/locations'));
-    reqLoc.flush([]);
+    const reqLoc = httpMock.expectOne(req => req.url.includes('/api/catalog/points'));
+    reqLoc.flush({ data: [], page: { limit: 50, hasMore: false, nextCursor: null }, meta: { catalogRevision: 'catalog:1' } });
     const nomReq = httpMock.expectOne(req => req.url.includes('nominatim.openstreetmap.org'));
     nomReq.flush({ address: { municipality: 'San Salvador' } });
 

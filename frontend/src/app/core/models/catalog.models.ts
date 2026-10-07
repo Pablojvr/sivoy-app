@@ -58,6 +58,7 @@ export interface CatalogFacet {
   value: string;
   label: string;
   count: number;
+  context?: { department?: string };
 }
 
 export interface CatalogPage<T> {

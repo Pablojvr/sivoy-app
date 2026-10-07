@@ -125,9 +125,9 @@ test('catalog repository returns one bounded facet page using a whitelisted dime
       assert.ok(values.includes('%soy%'));
       return {
         rows: [
-          { value: 'Soyapango', label: 'Soyapango', normalized_label: 'soyapango', facet_count: '3' },
-          { value: 'Soyapango Norte', label: 'Soyapango Norte', normalized_label: 'soyapango norte', facet_count: '2' },
-          { value: 'Soyapango Sur', label: 'Soyapango Sur', normalized_label: 'soyapango sur', facet_count: '1' }
+          { value: 'Soyapango', label: 'Soyapango', normalized_label: 'soyapango', cursor_key: 'San Salvador\u001fSoyapango', context_department: 'San Salvador', facet_count: '3' },
+          { value: 'Soyapango Norte', label: 'Soyapango Norte', normalized_label: 'soyapango norte', cursor_key: 'San Salvador\u001fSoyapango Norte', context_department: 'San Salvador', facet_count: '2' },
+          { value: 'Soyapango Sur', label: 'Soyapango Sur', normalized_label: 'soyapango sur', cursor_key: 'San Salvador\u001fSoyapango Sur', context_department: 'San Salvador', facet_count: '1' }
         ]
       };
     }
@@ -150,8 +150,8 @@ test('catalog repository returns one bounded facet page using a whitelisted dime
   assert.equal(calls.length, 1);
   assert.equal(result.hasMore, true);
   assert.deepEqual(result.items, [
-    { value: 'Soyapango', label: 'Soyapango', normalizedLabel: 'soyapango', count: 3 },
-    { value: 'Soyapango Norte', label: 'Soyapango Norte', normalizedLabel: 'soyapango norte', count: 2 }
+    { value: 'Soyapango', label: 'Soyapango', normalizedLabel: 'soyapango', cursorKey: 'San Salvador\u001fSoyapango', count: 3, context: { department: 'San Salvador' } },
+    { value: 'Soyapango Norte', label: 'Soyapango Norte', normalizedLabel: 'soyapango norte', cursorKey: 'San Salvador\u001fSoyapango Norte', count: 2, context: { department: 'San Salvador' } }
   ]);
 });
 

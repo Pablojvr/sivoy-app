@@ -1,7 +1,7 @@
 # SCALE01 — contrato canónico de catálogo escalable
 
-Estado: propuesta para aprobación humana. No autoriza implementación ni cambios
-observables hasta su aprobación.
+Estado: aprobado y en ejecución. La implementación se entrega en cortes pequeños,
+manteniendo el contrato legacy durante la migración del consumidor público.
 
 ## Objetivo
 
@@ -148,6 +148,19 @@ Devuelve una sola dimensión paginada (`company`, `department`, `municipality` o
 construir “Empresas registradas”, municipios disponibles y conteos sin descargar
 los puntos ni generar una respuesta de facetas ilimitada.
 
+La faceta `municipality` añade `context.department` para distinguir municipios
+homónimos sin obligar al cliente a interpretar `value`. Es un campo contextual
+aditivo; las demás dimensiones pueden omitir `context`.
+
+```json
+{
+  "value": "San Antonio Pajonal",
+  "label": "San Antonio Pajonal",
+  "count": 2,
+  "context": { "department": "Santa Ana" }
+}
+```
+
 ### Error uniforme
 
 ```json
@@ -274,10 +287,10 @@ interface CatalogPage<T> {
 
 ## Criterios de éxito
 
-- [ ] Las decisiones de identidad, cursor, página y preview están aprobadas.
-- [ ] Cada request/response/error tiene forma y límites explícitos.
-- [ ] El contrato soporta búsqueda transversal y filtro por empresa.
-- [ ] Listado, detalle, facetas y ETA tienen responsabilidades separadas.
+- [x] Las decisiones de identidad, cursor, página y preview están aprobadas.
+- [x] Cada request/response/error tiene forma y límites explícitos.
+- [x] El contrato soporta búsqueda transversal y filtro por empresa.
+- [x] Listado, detalle, facetas y ETA tienen responsabilidades separadas.
 - [ ] Existe una ruta de migración y retiro del contrato legacy.
 - [ ] Los criterios de prueba cubren 10k/100k puntos y caché desactivada.
 

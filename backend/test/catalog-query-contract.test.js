@@ -218,7 +218,7 @@ describe('catalog query contract', () => {
         assert.equal(query.facet, 'municipality');
         assert.equal(query.position, null);
         return {
-          items: [{ value: 'Soyapango', label: 'Soyapango', count: 3, normalizedLabel: 'soyapango' }],
+          items: [{ value: 'Soyapango', label: 'Soyapango', count: 3, normalizedLabel: 'soyapango', cursorKey: 'San Salvador\u001fSoyapango', context: { department: 'San Salvador' } }],
           hasMore: false
         };
       }
@@ -231,7 +231,7 @@ describe('catalog query contract', () => {
     const result = await service.listFacets(parseFacetQuery({ facet: 'municipality' }));
 
     assert.deepEqual(result, {
-      data: [{ value: 'Soyapango', label: 'Soyapango', count: 3 }],
+      data: [{ value: 'Soyapango', label: 'Soyapango', count: 3, context: { department: 'San Salvador' } }],
       page: { limit: 20, hasMore: false, nextCursor: null },
       meta: { catalogRevision: 'catalog:7' }
     });

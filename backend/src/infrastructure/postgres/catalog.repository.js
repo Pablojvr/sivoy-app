@@ -2,10 +2,15 @@ const { getDB: defaultGetDB } = require('../../config/database');
 
 const NORMALIZED_NAME_SQL = "translate(lower(a.nombre_destino), 'áéíóúüñ', 'aeiouun')";
 const FACET_COLUMNS = Object.freeze({
-  company: { value: 'e.id::text', label: 'e.nombre' },
-  department: { value: 'a.departamento', label: 'a.departamento' },
-  municipality: { value: 'a.municipio', label: 'a.municipio' },
-  pointType: { value: 'a.tipo', label: 'a.tipo' }
+  company: { value: 'e.id::text', label: 'e.nombre', cursor: 'e.id::text', context: null },
+  department: { value: 'a.departamento', label: 'a.departamento', cursor: 'a.departamento', context: null },
+  municipality: {
+    value: 'a.municipio',
+    label: 'a.municipio',
+    cursor: "concat(a.departamento, chr(31), a.municipio)",
+    context: 'a.departamento'
+  },
+  pointType: { value: 'a.tipo', label: 'a.tipo', cursor: 'a.tipo', context: null }
 });
 
 function createCatalogRepository({ getDB = defaultGetDB } = {}) {
@@ -126,7 +131,7 @@ function createCatalogRepository({ getDB = defaultGetDB } = {}) {
     if (query.position) {
       const labelParameter = add(query.position.normalizedLabel);
       const valueParameter = add(query.position.value);
-      where.push(`(${normalizedLabel}, ${dimension.value}) > (${labelParameter}, ${valueParameter})`);
+      where.push(`(${normalizedLabel}, ${dimension.cursor}) > (${labelParameter}, ${valueParameter})`);
     }
     const limitParameter = add(query.limit + 1);
     const result = await db.query(`
@@ -134,12 +139,14 @@ function createCatalogRepository({ getDB = defaultGetDB } = {}) {
         ${dimension.value} AS value,
         ${dimension.label} AS label,
         ${normalizedLabel} AS normalized_label,
+        ${dimension.cursor} AS cursor_key,
+        ${dimension.context || 'NULL::text'} AS context_department,
         COUNT(*)::text AS facet_count
       FROM agencias a
       JOIN empresas e ON e.id = a.empresa_id
       WHERE ${where.join('\n        AND ')}
-      GROUP BY ${dimension.value}, ${dimension.label}
-      ORDER BY ${normalizedLabel}, ${dimension.value}
+      GROUP BY ${dimension.value}, ${dimension.label}${dimension.context ? `, ${dimension.context}` : ''}
+      ORDER BY ${normalizedLabel}, ${dimension.cursor}
       LIMIT ${limitParameter}
     `, values);
     return {
@@ -218,12 +225,17 @@ function mapFacet(row) {
   if (!Number.isSafeInteger(count) || count < 0) {
     throw new Error('Catalog facet count is invalid');
   }
-  return {
+  const facet = {
     value: String(row.value),
     label: String(row.label),
     normalizedLabel: String(row.normalized_label),
+    cursorKey: String(row.cursor_key),
     count
   };
+  if (typeof row.context_department === 'string' && row.context_department.length > 0) {
+    facet.context = { department: row.context_department };
+  }
+  return facet;
 }
 
 const defaultRepository = createCatalogRepository();

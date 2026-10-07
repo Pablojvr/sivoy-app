@@ -85,10 +85,10 @@ function createCatalogQueryService({ repository, cache, now = () => new Date() }
       ? encodeFacetCursor({
           revision,
           query,
-          position: { normalizedLabel: last.normalizedLabel, value: last.value }
+          position: { normalizedLabel: last.normalizedLabel, value: last.cursorKey }
         })
       : null;
-    const data = staticPage.items.map(({ normalizedLabel, ...item }) => item);
+    const data = staticPage.items.map(({ normalizedLabel, cursorKey, ...item }) => item);
     return {
       data,
       page: { limit: query.limit, hasMore: staticPage.hasMore, nextCursor },

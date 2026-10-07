@@ -17,9 +17,7 @@ import { applyClosedDropoffFilter } from './shipment-route.filters';
 import { presentSearchRoute, pointRefFromLocation } from './results/route-result.presenter';
 import { PointRef, SEARCH_ERROR_MESSAGES, LocationSelection, ShipmentSearchState } from './shipment-search.models';
 import { PublicMapViewState, projectPublicMapViewState } from './public-map-view-state';
-import { CatalogService } from '../../core/services/catalog.service';
-import { CatalogFacet, CatalogPage } from '../../core/models/catalog.models';
-import { catalogPointToLocation } from '../../core/models/catalog-location.adapter';
+import { HomeCatalogFacade } from './home-catalog.facade';
 import { Subject, Subscription, catchError, distinctUntilChanged, of, switchMap, timer } from 'rxjs';
 
 
@@ -243,7 +241,7 @@ export class HomeComponent implements OnInit, OnChanges, OnDestroy {
     private cdr: ChangeDetectorRef,
     private readonly facade: ShipmentSearchFacade,
     private pointShareService: PointShareService,
-    private readonly catalog: CatalogService
+    private readonly catalog: HomeCatalogFacade
   ) {
     effect(() => {
       const state = this.facade.state();
@@ -349,27 +347,14 @@ export class HomeComponent implements OnInit, OnChanges, OnDestroy {
     this.catalogSubscriptions.add(this.catalogMunicipalityQueries.pipe(
       distinctUntilChanged(),
       switchMap(query => timer(query ? 200 : 0).pipe(
-        switchMap(() => this.catalog.listFacets({
-          facet: 'municipality',
-          ...(query.length >= 2 ? { q: query } : {}),
-          limit: 8
-        }).pipe(catchError(() => of(null))))
+        switchMap(() => this.catalog.searchMunicipalities(query).pipe(catchError(() => of(null))))
       ))
-    ).subscribe(page => {
-      if (!this.catalogMode || !page) return;
-      this.applyMunicipalityFacets(page);
+    ).subscribe(municipalities => {
+      if (!this.catalogMode || !municipalities) return;
+      this.filteredMunicipalities = municipalities;
+      this.filteredOriginMunicipalities = [...municipalities];
       this.cdr.detectChanges();
     }));
-  }
-
-  private applyMunicipalityFacets(page: CatalogPage<CatalogFacet>) {
-    this.filteredMunicipalities = page.data.map(facet => ({
-      nombre_display: facet.label,
-      municipio: facet.label,
-      departamento: facet.context?.department || '',
-      pointCount: facet.count
-    }));
-    this.filteredOriginMunicipalities = [...this.filteredMunicipalities];
   }
 
   // UI Handlers
@@ -646,14 +631,10 @@ export class HomeComponent implements OnInit, OnChanges, OnDestroy {
         if (point) {
           this.applyPointIntent(point, intent['accion']);
         } else if (this.catalogMode) {
-          this.catalogSubscriptions.add(this.catalog.getPointDetails(String(intent['punto'])).subscribe({
-            next: detail => {
-              const mapped = {
-                ...catalogPointToLocation(detail),
-                catalogDetailLoaded: true
-              };
-              this.mergeCatalogLocations([mapped]);
-              this.applyPointIntent(mapped, intent['accion']);
+          this.catalogSubscriptions.add(this.catalog.getPoint(String(intent['punto'])).subscribe({
+            next: pointResult => {
+              this.mergeCatalogLocations([pointResult]);
+              this.applyPointIntent(pointResult, intent['accion']);
               this.cdr.detectChanges();
             },
             error: () => {
@@ -1353,18 +1334,13 @@ export class HomeComponent implements OnInit, OnChanges, OnDestroy {
       this.catalogPointsHasMore = false;
     }
 
-    this.catalogSubscriptions.add(this.catalog.listPoints({
+    this.catalogSubscriptions.add(this.catalog.listMunicipalityPoints({
       municipality: municipio,
       ...(departamento ? { department: departamento } : {}),
-      limit: 20,
       ...(cursor ? { cursor } : {})
     }).subscribe({
       next: page => {
-        const points = page.data.map(catalogPointToLocation).map(point => ({
-          ...point,
-          destino_nombre: point.nombre_destino,
-          distance: 9999
-        }));
+        const points = page.points;
         this.mergeCatalogLocations(points);
         this.municipalityResults = append
           ? [...this.municipalityResults, ...points]
@@ -1372,8 +1348,8 @@ export class HomeComponent implements OnInit, OnChanges, OnDestroy {
         this.displayedResults = this.activeEmpresa
           ? this.municipalityResults.filter(point => point.empresa === this.activeEmpresa)
           : [...this.municipalityResults];
-        this.catalogPointsNextCursor = page.page.nextCursor;
-        this.catalogPointsHasMore = page.page.hasMore;
+        this.catalogPointsNextCursor = page.nextCursor;
+        this.catalogPointsHasMore = page.hasMore;
         this.loading = false;
         this.catalogPointsLoadingMore = false;
         this.emitMapProjection();
@@ -1512,12 +1488,9 @@ export class HomeComponent implements OnInit, OnChanges, OnDestroy {
     }
 
     point.catalogDetailLoading = true;
-    this.catalogSubscriptions.add(this.catalog.getPointDetails(point.catalogPointId).subscribe({
+    this.catalogSubscriptions.add(this.catalog.getPoint(point.catalogPointId).subscribe({
       next: detail => {
-        const mapped = catalogPointToLocation(detail);
-        Object.assign(point, mapped, {
-          destino_nombre: mapped.nombre_destino,
-          catalogDetailLoaded: true,
+        Object.assign(point, detail, {
           catalogDetailLoading: false
         });
         this.cdr.detectChanges();

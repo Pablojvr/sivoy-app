@@ -88,6 +88,7 @@ button {
   font-weight: 800;
   letter-spacing: -0.04em;
   text-decoration: none;
+  min-height: 44px;
 }
 
 .brand-mark {
@@ -203,6 +204,7 @@ button {
   box-shadow: var(--focus-ring), 0 20px 44px rgba(29, 30, 28, 0.14);
 }
 
+.brand-lockup:focus-visible,
 .command-clear:focus-visible,
 .destination-suggestions button:focus-visible,
 .company-card:focus-visible,
@@ -241,7 +243,7 @@ button {
 
 .destination-search-input {
   min-width: 0;
-  height: 42px;
+  height: 44px;
   padding: 0;
   border: 0;
   outline: 0;
@@ -424,7 +426,7 @@ button {
 }
 
 .quick-destinations button {
-  min-height: 36px;
+  min-height: 44px;
   flex: 0 0 auto;
   padding: 0 13px;
   border: 1px solid rgba(29, 30, 28, 0.09);
@@ -762,11 +764,28 @@ button {
 }
 
 .company-loading,
-.point-loading {
+.point-loading,
+.suggestion-loading {
   overflow: hidden;
   background: linear-gradient(105deg, #fff 30%, #eceeea 45%, #fff 60%);
   background-size: 220% 100%;
   animation: loading-shimmer 1.3s ease-in-out infinite;
+}
+
+.suggestion-loading {
+  width: 100%;
+  min-height: 58px;
+  border-radius: 14px;
+}
+
+.destination-searching {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.destination-searching .destination-empty {
+  padding-bottom: 8px;
 }
 
 .point-rail {
@@ -935,7 +954,8 @@ button {
   .destination-command,
   .company-card,
   .company-loading,
-  .point-loading {
+  .point-loading,
+  .suggestion-loading {
     transition: none;
     animation: none;
   }

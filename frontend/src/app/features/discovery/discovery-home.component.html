@@ -97,9 +97,14 @@
             </ng-template>
           </ng-container>
           <ng-template #searchingDestinations>
-            <div class="destination-empty" role="status">
-              <strong>Buscando destinos…</strong>
-              <span>Revisando municipios y puntos disponibles.</span>
+            <div class="destination-searching" role="status">
+              <div class="destination-empty">
+                <strong>Buscando destinos…</strong>
+                <span>Revisando municipios y puntos disponibles.</span>
+              </div>
+              <div class="suggestion-loading" aria-hidden="true"></div>
+              <div class="suggestion-loading" aria-hidden="true"></div>
+              <div class="suggestion-loading" aria-hidden="true"></div>
             </div>
           </ng-template>
         </div>

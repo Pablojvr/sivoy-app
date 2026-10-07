@@ -72,15 +72,17 @@ sin imagen ni enlace externo.
 ### En espera post-MVP
 
 - [ ] POST01 Retomar `T43c2c`, `T43c2d2` y `T43c2e` solo con necesidad operativa.
-- [ ] POST02 Completar `T14b` al contar con PostgreSQL representativo o una regresión medible.
+- [ ] POST02/T14b Completar optimización y re-medición; se activa dentro de
+  SCALE04/PERF04 una vez aprobado el contrato canónico de identidad y búsqueda.
 - [ ] POST03 Completar staging/rollback de `T35`/`T36` antes de una operación que lo requiera.
 - [ ] POST04 Evaluar microservicios/eventos únicamente ante límites medidos del monolito modular.
 
-## Seguridad, caché y rendimiento del MVP — corte propuesto 2026-10-06
+## Seguridad, escalabilidad, caché y rendimiento del MVP — corte revisado 2026-10-06
 
 Plan y evidencia: [docs/SECURITY_PERFORMANCE_AUDIT_PLAN.md](../docs/SECURITY_PERFORMANCE_AUDIT_PLAN.md).
-Partner queda fuera de alcance; este corte no introduce login, microservicios ni
-Redis y no autoriza por sí solo un despliegue.
+Partner queda fuera de alcance; este corte no introduce login ni microservicios.
+La caché se diseña como puerto e invalidación por empresa, pero su infraestructura
+se activa después de corregir y medir consultas. No autoriza por sí solo un despliegue.
 
 - T00 continúa como bloqueo crítico: rotar/revocar la credencial histórica y
   sanear el historial Git; no se duplica aquí como una segunda tarea.
@@ -89,13 +91,69 @@ Redis y no autoriza por sí solo un despliegue.
 - [ ] SEC03 Reducir cuerpos y fijar timeouts de Node, PostgreSQL y APIs externas.
 - [ ] SEC04 Aplicar rate limits por riesgo, primero en observación.
 - [ ] SEC05 Probar escrituras 403 y retirar de producción endpoints auxiliares de Partner/prueba.
-- [ ] PERF01 Definir caché de edge/browser por recurso y su invalidación.
-- [ ] PERF02 Medir smoke/carga/pico/soak con k6 en staging.
+
+- [ ] SCALE01 Aprobar identidad y contrato canónico de catálogo.
+  - Aceptación: `companyId`, `pointId`, cursor, filtros, DTO resumen/detalle,
+    facetas y error quedan especificados; nombres dejan de ser identidad.
+  - Verificación: contrato versionado, fixtures y revisión de compatibilidad legacy.
+  - Dependencias: SEC02; bloquea SCALE02–SCALE05.
+- [ ] SCALE02 Implementar repositorios paginados y filtrados.
+  - Aceptación: ninguna lista pública lee tablas completas; horarios/reglas se
+    obtienen por IDs visibles o bajo demanda; límite máximo obligatorio.
+  - Verificación: integración PostgreSQL con conteo constante de consultas y
+    planes sin full scan no justificado en 10k/100k puntos.
+  - Dependencias: SCALE01.
+- [ ] SCALE03 Migrar ETA y búsqueda a IDs y resolución batch.
+  - Aceptación: compatibilidad se compara por `empresa_id`; no existen consultas
+    N×M ni resolución de relaciones por nombre.
+  - Verificación: paridad ETA legacy/nueva, casos multiempresa y contador SQL.
+  - Dependencias: SCALE01–SCALE02.
+- [ ] SCALE04 Añadir normalización e índices guiados por consultas.
+  - Aceptación: municipio/departamento normalizados e índices siguen filtros/orden
+    canónicos; todo cambio es aditivo y reversible.
+  - Verificación: `EXPLAIN (ANALYZE, BUFFERS)` antes/después en 10k y 100k puntos.
+  - Dependencias: SCALE01–SCALE03; incorpora T14b.
+- [ ] SCALE05 Migrar el frontend a catálogo incremental.
+  - Aceptación: Inicio busca remotamente con debounce/cancelación, usa páginas y
+    facetas y carga detalle al expandir; no descarga todo el catálogo al arrancar.
+  - Verificación: unitarias, E2E del flujo público, red sin request global y
+    revisión móvil/escritorio.
+  - Dependencias: SCALE01–SCALE03.
+
+- [ ] PERF01 Instrumentar pool, consultas, payload y RED por ruta.
+  - Aceptación: métricas de baja cardinalidad permiten detectar saturación y N+1.
+  - Verificación: prueba de métricas/redacción y dashboard de staging.
+- [ ] PERF02 Medir smoke, crecimiento, escala, pico y soak con k6.
+  - Aceptación: escenarios actual/10k/100k tienen umbrales p95/error/payload.
+  - Verificación: artefacto comparable y fallo de CI/staging al superar el budget.
 - [ ] PERF03 Fijar presupuestos Lighthouse/Web Vitals del flujo público.
-- [ ] PERF04 Instrumentar pool/consultas y completar T14b con `EXPLAIN ANALYZE`.
+  - Aceptación: LCP, INP, CLS, bundle y peticiones tienen umbral aprobado.
+  - Verificación: Lighthouse CI y RUM sin texto de búsqueda ni datos sensibles.
+- [ ] PERF04 Publicar comparación sin caché y cerrar T14b.
+  - Aceptación: SQL/contratos cumplen budgets antes de introducir cache hits.
+  - Verificación: reporte actual/10k/100k y revisión de planes/índices.
+
+- [ ] CACHE01 Definir puerto, claves e invalidación de caché por empresa.
+  - Aceptación: claves incluyen versión/revisión/filtros/cursor y no pueden mezclar
+    empresas; el sistema funciona con implementación Noop.
+  - Verificación: pruebas de colisión, cambio de revisión y caída de caché.
+- [ ] CACHE02 Activar caché de borde sobre GET paginados.
+  - Aceptación: assets, catálogo, detalle, ETA y observabilidad tienen políticas
+    explícitas; ETA/Places permanecen `no-store` inicialmente.
+  - Verificación: `CF-Cache-Status`, caché fría/caliente, stale e invalidación.
+- [ ] CACHE03 Evaluar Key Value/Redis y escala horizontal con evidencia.
+  - Aceptación: solo se aprovisiona ante múltiples instancias o hotspot demostrado;
+    pool global permanece bajo el presupuesto de conexiones.
+  - Verificación: carga comparativa sin/con caché y degradación del almacén.
+- [ ] CACHE04 Dimensionar conexiones para escala horizontal.
+  - Aceptación: pool por instancia respeta el límite global; PgBouncer/réplica se
+    incorpora únicamente ante saturación o lecturas medidas.
+  - Verificación: prueba con número objetivo de instancias, pool saturado y failover.
+
 - [ ] OPS01 Automatizar CodeQL, secretos, ZAP y SBOM/Trivy en CI.
-- [ ] OPS02 Declarar readiness/health, runtime reproducible y monitor externo en Render.
-- [ ] OPS03 Ensayar DB/Google/pool/caché degradados y rollback antes de producción.
+- [ ] OPS02 Declarar readiness/health y runtime reproducible en Render.
+- [ ] OPS03 Configurar monitor externo, alertas accionables, retención y runbooks.
+- [ ] OPS04 Ensayar DB/Google/pool/caché degradados y rollback antes de producción.
 
 ## Fase 0 — Línea base
 

@@ -1,4 +1,4 @@
-# Reconocimiento y plan MVP de seguridad, caché y rendimiento
+# Reconocimiento y plan MVP de seguridad, escalabilidad y rendimiento
 
 Fecha: 2026-10-06
 
@@ -16,16 +16,24 @@ obtendrán en staging durante las fases siguientes.
 SiVoy tiene una base técnica mejor de lo que su superficie HTTP sugiere: las
 dependencias están limpias, las consultas usan parámetros, el pool está acotado,
 las migraciones son verificables, las métricas requieren token y las escrituras
-operativas están desactivadas en producción. No hace falta introducir
-microservicios, Redis ni Kubernetes para lanzar el MVP.
+operativas están desactivadas en producción. Sin embargo, el catálogo actual no
+está preparado para N empresas y N puntos: una petición carga agencias, horarios
+y reglas completas, y parte del motor filtra y cruza esos datos en memoria.
+
+La escala no se resolverá con caché. Primero se crearán contratos paginados,
+identidad estable, consultas acotadas por empresa/municipio y acceso batch a
+horarios/reglas. La caché sí forma parte de la arquitectura objetivo, pero como
+un puerto reemplazable y una optimización posterior a consultas correctas y
+medidas. No hace falta introducir microservicios ni Kubernetes para conseguirlo.
 
 El siguiente corte debe concentrarse en cinco defensas de alto retorno:
 
 1. resolver la credencial histórica pendiente;
 2. endurecer HTTP y reducir el cuerpo máximo aceptado;
 3. limitar el consumo de API, especialmente Google Places;
-4. configurar caché de CDN para catálogo y assets sin cachear ETA ni secretos;
-5. medir carga y consultas con umbrales antes de añadir índices o más servidores.
+4. sustituir lecturas globales por catálogo paginado y búsquedas SQL acotadas;
+5. medir carga/consultas en volúmenes crecientes y después activar caché e
+   infraestructura horizontal donde las métricas lo justifiquen.
 
 ## Evidencia recabada
 
@@ -58,8 +66,9 @@ Prueba corta, no equivalente a capacidad de producción, realizada contra
 | `/api/locations` | 80 | 20 | 0 | 102.57 ms | 210.61 ms | 217.71 ms |
 
 `/api/locations` devuelve aproximadamente 125,771 bytes sin comprimir y ejecuta
-tres lecturas completas. A este tamaño sigue siendo aceptable, pero es el mejor
-candidato para caché de borde y para una futura API resumida si el catálogo crece.
+tres lecturas completas. Esta cifra solo describe el catálogo actual; no es el
+objetivo arquitectónico. El endpoint debe dejar de crecer linealmente antes de
+incorporar nuevas empresas, aun si hoy su latencia resulta aceptable.
 
 ### Hallazgos priorizados
 
@@ -71,7 +80,10 @@ candidato para caché de borde y para una futura API resumida si el catálogo cr
 | P0 | Faltan cabeceras de seguridad y se publica `X-Powered-By: Express`. | XSS/clickjacking/MIME sniffing y configuración débil. |
 | P0 | JSON y formularios admiten 10 MB globalmente; no hay límites por endpoint ni para cabeceras/tiempos del servidor. | Agotamiento de memoria, conexiones lentas y event-loop ocupado. |
 | P0 | La política CORS vuelve a `*` si falta `FRONTEND_URL`. | Un error de configuración amplía el acceso desde navegadores. |
-| P1 | No hay política explícita de caché salvo `runtime-config.js` y métricas. | Cada lectura de catálogo llega al proceso y PostgreSQL; assets no expresan inmutabilidad. |
+| P0 | `/api/locations` lee y devuelve todas las agencias, horarios y reglas; `searchFlights` filtra el catálogo completo en memoria. | Tiempo, memoria, red y costo de CPU crecen con cada empresa/punto. |
+| P0 | Rutas resuelven puntos repetidamente por nombre y comparan la empresa por texto. | Nombres no son identidad estable y los bucles generan consultas N×M. |
+| P1 | El contrato público carece de paginación, filtros, proyección resumida e identidad canónica de empresa/punto. | No existe un límite estable de trabajo por solicitud. |
+| P1 | No hay política explícita de caché salvo `runtime-config.js` y métricas. | No existe aún una capa de aceleración, pero añadirla ahora ocultaría lecturas globales. |
 | P1 | `statement_timeout` e `idle_in_transaction_session_timeout` están en 0. | Una consulta o transacción atascada puede retener pool, locks y recursos. |
 | P1 | Las métricas viven en memoria por proceso y no hay alertas ni monitor externo. | Se pierden al reiniciar y no representan múltiples instancias. |
 | P1 | `render.yaml` no declara `healthCheckPath`, versión de Node ni hook de migración. | Despliegues menos reproducibles y readiness superficial. |
@@ -86,10 +98,90 @@ Render ya aporta TLS, HTTP/2, Brotli y protección DDoS. Eso reduce ataques
 volumétricos, pero no sustituye límites por endpoint, validación ni protección de
 flujos con costo, como Places.
 
-## Estrategia de caché
+## Arquitectura objetivo para N empresas y N puntos
 
-La caché será HTTP/CDN primero. Redis no se justifica con 185 puntos y una sola
-instancia.
+La arquitectura objetivo conserva el monolito modular, pero separa explícitamente
+lecturas de catálogo, detalle de punto, cálculo ETA y futuras escrituras privadas.
+
+```text
+Angular
+  ├─ búsqueda/listado ──> CatalogQuery API ──> CatalogQueryService
+  │                                              ├─ CatalogRepository ──> PostgreSQL
+  │                                              └─ CatalogCachePort ───> Noop/Edge/Key Value
+  ├─ detalle/horarios ──> PointDetail API ──────┘
+  └─ estimación ETA ────> EtaApplicationService ─> consultas batch por IDs
+
+Canal privado futuro ──> CatalogCommandService ─> transacción PostgreSQL
+                                                   └─ revisión de catálogo/invalidez
+```
+
+### Contratos de lectura
+
+- Definir `companyId`, `pointId` y `agencyId` como identidades distintas. Los
+  nombres quedan para presentación/búsqueda, nunca para relaciones o joins.
+- Resolver mediante ADR si `pointId` público es global o único dentro de empresa;
+  no cambiar `id_destino` hasta cerrar esa decisión y su migración compatible.
+- Crear un contrato canónico de catálogo con paginación por cursor estable y
+  filtros `companyId`, departamento, municipio, tipo y texto normalizado.
+- Separar el DTO resumido de resultados del detalle. El listado no carga reglas
+  ni la semana completa de horarios; al expandir una tarjeta se consulta el
+  detalle por ID o un batch de los IDs visibles.
+- Añadir endpoints de facetas/conteos por municipio y empresa para que el frontend
+  no descargue el catálogo para construir filtros.
+- Mantener el contrato legacy mediante un adaptador transitorio, migrar primero
+  el único consumidor público y retirar el endpoint global en un corte auditado;
+  no sostener dos APIs permanentes.
+
+### Acceso a datos
+
+- Toda consulta de lista debe tener filtro, orden total y límite máximo. Ninguna
+  ruta pública puede ejecutar `SELECT *` sin `WHERE/LIMIT` sobre el catálogo.
+- Empujar filtros de municipio, departamento y empresa a PostgreSQL. El frontend
+  no es el motor de selección de N puntos.
+- Sustituir los bucles `getLocationByName` por resolución batch de IDs y consultas
+  acotadas. El número de consultas por request debe ser constante, no N×M.
+- Cargar horarios/reglas con `WHERE agencia_id = ANY($1)` para el conjunto visible
+  o bajo demanda por punto, conservando el agrupamiento en la capa de aplicación.
+- Comparar compatibilidad por `empresa_id`, no por el texto denormalizado
+  `empresa`; mantener el texto únicamente como proyección legacy durante el corte.
+- El frontend cancela búsquedas anteriores, aplica debounce y conserva solo la
+  página visible, selecciones y detalles expandidos; usa virtualización/infinite
+  scroll si el resultado visible supera el presupuesto de DOM.
+
+### Matriz de capacidad
+
+La palabra “N” se convierte en escenarios reproducibles, no en una promesa
+abstracta. Los tamaños iniciales propuestos se ajustarán con datos comerciales:
+
+| Escenario | Empresas | Puntos | Horarios | Reglas | Propósito |
+|---|---:|---:|---:|---:|---|
+| Actual | 1 | 185 | 530 | 292 | Compatibilidad funcional |
+| Crecimiento | 10 | 10,000 | 70,000 | 20,000 | CI de consultas y API |
+| Escala | 100 | 100,000 | 700,000 | 200,000 | Staging/carga programada |
+
+Gate estructural: el tiempo y la memoria por página permanecen acotados al tamaño
+de página; una empresa adicional no aumenta el trabajo de una consulta filtrada
+de otra empresa.
+
+## Estrategia de caché eventual
+
+La caché se diseñará desde el contrato, pero se activará después de eliminar
+lecturas globales y establecer la línea base de 10k/100k puntos.
+
+- `CatalogCachePort` define `get`, `set` e invalidación por revisión de empresa.
+  Su implementación inicial puede ser Noop; los casos de uso no conocen Redis ni
+  cabeceras de CDN.
+- Claves versionadas: `catalog:v1:{companyId}:{catalogRevision}:{queryHash}`. El
+  cursor, filtros, idioma y proyección forman parte de la clave; nunca se usan
+  headers arbitrarios del cliente.
+- Cada modificación futura del catálogo incrementa una revisión por empresa en la
+  misma transacción. Así se invalida una empresa sin purgar todo SiVoy. Si el
+  canal de escritura se vuelve asíncrono, la revisión se propaga con outbox.
+- Primera capa: caché HTTP/edge para GET públicos ya paginados. Segunda capa:
+  Render Key Value/Redis solo cuando existan múltiples instancias o consultas
+  calientes que sigan presionando PostgreSQL.
+- Evitar estampidas con `stale-while-revalidate`, coalescencia y TTL con jitter.
+  No usar una TTL larga como sustituto de invalidación.
 
 | Recurso | Política propuesta | Invalidez |
 |---|---|---|
@@ -97,9 +189,10 @@ instancia.
 | Assets Angular con hash | `public, max-age=31536000, immutable` | El nombre cambia en cada build. |
 | `/runtime-config.js` | `no-store` | Ya aplicado; conservar. |
 | `/api/health`, `/api/metrics` | `no-store` | Nunca compartir estado operativo. |
-| `/api/locations`, `/api/empresas` | Navegador 60 s; CDN `s-maxage=300, stale-while-revalidate=60, stale-if-error=86400`; conservar ETag. | Deploy purga el edge de Render; una futura escritura operativa debe purgar o versionar catálogo. |
-| ETA y búsquedas `POST` | `no-store` | Dependen de entrada y fecha/hora. |
-| Places/autocomplete/resolve | `no-store`; no compartir respuestas entre sesiones. | Sesión y facturación de Google. |
+| Páginas/facetas de catálogo | Navegador 60 s; CDN `s-maxage=300, stale-while-revalidate=60, stale-if-error=86400`; ETag. | Revisión por empresa, deploy o purga operativa. |
+| Detalle/horarios públicos | TTL corto y clave por `pointId` + revisión de empresa. | Cambio de catálogo de esa empresa. |
+| ETA | `no-store` inicialmente; evaluar caché solo con reloj/entrada incluidos en la clave y evidencia de repetición. | Ventana temporal y revisión de reglas. |
+| Places | `no-store`; no compartir respuestas entre sesiones. | Sesión y facturación de Google. |
 
 Antes de habilitar “todos los tipos de archivo” en el edge de Render, cada
 respuesta dinámica debe declarar explícitamente si es pública o `no-store`.
@@ -165,17 +258,27 @@ respuesta dinámica debe declarar explícitamente si es pública o `no-store`.
 
 ### Índices: solo después de medir
 
-1. Separar la búsqueda por ID de la búsqueda por nombre, preservando contrato, y
-   repetir la línea base T14.
-2. Si la búsqueda exacta por nombre continúa en servidor, evaluar un índice de
-   expresión sobre `lower(nombre_destino)`.
-3. Para fuzzy search futuro, primero definir endpoint, normalización y umbral. Solo
-   con volumen/latencia demostrados evaluar `pg_trgm` y un GIN sobre la expresión
-   normalizada; con 185 filas puede ser más barato filtrar en memoria.
-4. No indexar cada columna. Conservar los índices relacionales actuales y revisar
-   `pg_stat_user_indexes` antes de eliminar o agregar alguno.
-5. Si el catálogo supera el presupuesto de red, crear un DTO resumido/paginado;
-   no ocultar 125 KiB de datos detrás de más índices.
+1. Definir las consultas canónicas antes de la migración: listado por empresa y
+   municipio, búsqueda normalizada, detalle por `pointId`, horarios/reglas por
+   conjunto de agencias y ETA por pares de IDs.
+2. Medir por separado los dos accesos centrales: búsqueda transversal de todos los
+   operadores en un municipio y navegación dentro de una empresa. Evaluar índices
+   acordes, por ejemplo `(municipio_normalizado, nombre_normalizado, id)` y
+   `(empresa_id, municipio_normalizado, nombre_normalizado, id)`. No fijar el DDL
+   final hasta tener `EXPLAIN ANALYZE` de cada consulta.
+3. Separar búsqueda por ID de búsqueda por nombre para retirar el `OR` que hoy
+   fuerza `Seq Scan`; medir contra 10k y 100k puntos.
+4. Considerar `(agencia_id, dia_semana, hora_apertura)` y
+   `(agencia_id, dia_entrega)` si el orden/filtro de los contratos los usa. Los
+   índices simples existentes se conservan hasta demostrar que son redundantes.
+5. Para fuzzy search, definir normalización y umbral. Con datos suficientes,
+   evaluar `pg_trgm` + GIN/GiST sobre la expresión normalizada; el cursor y un
+   límite estricto siguen siendo obligatorios.
+6. Mantener códigos/columnas normalizadas para municipio/departamento sin perder
+   las etiquetas de presentación. PostGIS solo entra si existe búsqueda real por
+   radio o viewport; el mapa auxiliar no lo justifica por sí solo.
+7. Revisar `pg_stat_user_indexes`, escrituras y tamaño antes de conservar un índice.
+   La caché nunca se acepta como evidencia de que una consulta es eficiente.
 
 ## Rendimiento y observabilidad
 
@@ -183,10 +286,12 @@ respuesta dinámica debe declarar explícitamente si es pública o `no-store`.
 
 | Señal | Objetivo inicial de staging |
 |---|---|
-| API pública | errores < 1%; p95 catálogo < 300 ms; p95 ETA < 500 ms |
+| API pública | errores < 1%; p95 página de catálogo < 300 ms; p95 ETA < 500 ms |
 | PostgreSQL | adquisición de pool p95 < 100 ms; espera = 0 estable; consulta p95 < 100 ms |
 | Web móvil | LCP ≤ 2.5 s, INP ≤ 200 ms, CLS ≤ 0.1 |
-| Carga | 20 usuarios virtuales durante 5 min sin superar los umbrales anteriores |
+| Payload | página resumida ≤ 100 KiB; detalle solo bajo demanda |
+| Complejidad | consultas DB por request acotadas y sin crecimiento N×M |
+| Carga | crecimiento y escala con 20/50 usuarios virtuales sin superar presupuestos aprobados |
 | Disponibilidad | definir después de abandonar el cold start del plan gratuito; no prometer un SLO falso |
 
 Instrumentar RED (rate, errors, duration) por plantilla de ruta y USE
@@ -218,9 +323,14 @@ después se elige una plataforma de observabilidad según costo y operación rea
 
 ## Plan de ejecución por cortes auditables
 
+SEC01–SEC05 y SCALE01 pueden avanzar en paralelo porque no comparten contratos de
+datos. Dentro del carril de escalabilidad el orden sí es estricto:
+SCALE01 → SCALE02/SCALE03 → SCALE04/SCALE05 → PERF → CACHE. Esto evita que el
+endurecimiento HTTP vuelva a detener la evolución visible del MVP.
+
 ### Fase 0 — urgente, fuera de código
 
-- [ ] SEC00 Cerrar la tarea existente T00: rotar/revocar la credencial histórica,
+- [ ] T00 Cerrar la tarea existente: rotar/revocar la credencial histórica,
   revisar sesiones y sanear Git.
 - [ ] SEC01 Confirmar backups automáticos y ejecutar una restauración en una base
   aislada, con tiempo de recuperación documentado.
@@ -239,24 +349,55 @@ Gate: la credencial anterior falla y el secret scan de árbol/historial está ve
 Gate: unitarias y contratos verdes; ZAP sin hallazgos altos; no se rompe MapLibre,
 Cloudinary ni el flujo Inicio → destino → compartir.
 
-### Fase 2 — caché y rendimiento medible
+### Fase 2 — núcleo escalable de catálogo y ETA
 
-- [ ] PERF01 Aplicar políticas de caché por recurso y verificar `CF-Cache-Status`.
-- [ ] PERF02 Añadir k6 con smoke, carga promedio, pico y soak en staging.
+- [ ] SCALE01 Aprobar identidad `companyId`/`pointId`, cursor y contratos de
+  resumen, detalle, facetas y error; documentar compatibilidad legacy.
+- [ ] SCALE02 Implementar consultas paginadas/filtradas de catálogo, horarios y
+  reglas por IDs, sin lecturas completas ni `SELECT *` público sin límite.
+- [ ] SCALE03 Migrar búsqueda/ETA a IDs y resolución batch por empresa; retirar
+  comparación por nombre de empresa y bucles de consultas N×M.
+- [ ] SCALE04 Crear migraciones aditivas de normalización/índices y medirlas con
+  10k y 100k puntos antes de aceptar el DDL.
+- [ ] SCALE05 Migrar el frontend a búsqueda remota cancelable, páginas/facetas y
+  detalle bajo demanda; retirar el bootstrap del catálogo completo.
+
+Gate: el flujo público conserva su comportamiento, una página no supera el límite
+acordado y el costo de una consulta filtrada no depende del total de otras
+empresas. El contrato legacy solo permanece durante el cutover documentado.
+
+### Fase 3 — rendimiento medible
+
+- [ ] PERF01 Instrumentar pool/DB, conteo de consultas y payload por ruta.
+- [ ] PERF02 Añadir k6 con smoke, crecimiento, escala, pico y soak en staging.
 - [ ] PERF03 Añadir Lighthouse CI/Web Vitals con budgets del flujo público.
-- [ ] PERF04 Instrumentar pool/DB y ejecutar T14b sin cambiar contratos.
+- [ ] PERF04 Completar T14b y publicar comparación actual/10k/100k sin caché.
 
-Gate: p95/error dentro del presupuesto; comparación antes/después; rollback de
-headers/caché/rate-limit documentado.
+Gate: p95/error/payload y consultas por request dentro del presupuesto, con
+comparación antes/después y sin usar caché para aprobar SQL deficiente.
 
-### Fase 3 — seguridad continua y operación
+### Fase 4 — caché y escala horizontal
+
+- [ ] CACHE01 Definir `CatalogCachePort`, claves versionadas, revisión por empresa,
+  política de datos cacheables y pruebas de invalidación/aislamiento.
+- [ ] CACHE02 Activar edge cache para catálogo paginado y verificar
+  `CF-Cache-Status`, coalescencia y comportamiento stale.
+- [ ] CACHE03 Incorporar Key Value/Redis solo si la prueba sin caché demuestra un
+  hotspot o si existen varias instancias; repetir carga con caché fría/caliente.
+- [ ] CACHE04 Dimensionar pools por instancia y evaluar PgBouncer/réplica de
+  lectura únicamente al acercarse al presupuesto de conexiones/lecturas.
+
+Gate: cero mezcla entre empresas o revisiones, invalidación demostrada y mejora
+medible frente a la línea base sin caché. El sistema sigue correcto con caché caída.
+
+### Fase 5 — seguridad continua y operación
 
 - [ ] OPS01 CodeQL, Gitleaks, ZAP, Trivy/SBOM y Dependabot en CI.
 - [ ] OPS02 Health de readiness que compruebe DB con timeout corto; declarar
   `healthCheckPath`, fijar Node/npm y usar instalación reproducible equivalente a
   CI en Render.
 - [ ] OPS03 Monitor externo, alertas accionables, retención y runbooks.
-- [ ] OPS04 Ensayo de degradación: DB lenta, Google caído, pool saturado, caché fría
+- [ ] OPS04 Ensayo de degradación: DB lenta, Google caído, pool saturado, caché caída/fría
   y rollback de despliegue.
 
 Gate: CI y staging verdes, restauración probada, aprobación humana antes de
@@ -264,8 +405,10 @@ producción.
 
 ## Qué se pospone
 
-- Redis/PgBouncer hasta observar múltiples instancias, saturación o una tasa de
-  aciertos que justifique la operación adicional.
+- El aprovisionamiento de Key Value/Redis, PgBouncer y réplicas se pospone hasta
+  observar múltiples instancias, saturación o una tasa de aciertos que justifique
+  la operación. El puerto de caché, revisión por empresa y pruebas de invalidez sí
+  se diseñan antes para evitar acoplamiento futuro.
 - WAF propio adicional: Render ya incluye DDoS mediante Cloudflare. Evaluar reglas
   administradas únicamente si aparecen ataques de aplicación que el código y rate
   limit no cubran.

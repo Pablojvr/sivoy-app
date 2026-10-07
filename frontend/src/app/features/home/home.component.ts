@@ -17,7 +17,10 @@ import { applyClosedDropoffFilter } from './shipment-route.filters';
 import { presentSearchRoute, pointRefFromLocation } from './results/route-result.presenter';
 import { PointRef, SEARCH_ERROR_MESSAGES, LocationSelection, ShipmentSearchState } from './shipment-search.models';
 import { PublicMapViewState, projectPublicMapViewState } from './public-map-view-state';
-import { Subscription } from 'rxjs';
+import { CatalogService } from '../../core/services/catalog.service';
+import { CatalogFacet, CatalogPage } from '../../core/models/catalog.models';
+import { catalogPointToLocation } from '../../core/models/catalog-location.adapter';
+import { Subject, Subscription, catchError, distinctUntilChanged, of, switchMap, timer } from 'rxjs';
 
 
 @Component({
@@ -33,6 +36,7 @@ export class HomeComponent implements OnInit, OnChanges, OnDestroy {
   @Input() locations: any[] = [];
   @Input() userLocation: any = null;
   @Input() mapAvailable = true;
+  @Input() catalogMode = false;
   @Input() initialIntent: Record<string, string> = {};
 
 
@@ -165,6 +169,8 @@ export class HomeComponent implements OnInit, OnChanges, OnDestroy {
   private searchReturnFocusSelector: string | null = null;
   private placeSearchSubscription?: Subscription;
   private placeResolveSubscription?: Subscription;
+  private readonly catalogMunicipalityQueries = new Subject<string>();
+  private readonly catalogSubscriptions = new Subscription();
   private placeSearchSessionToken: string = '';
   bottomSheetState: 'hidden' | 'collapsed' | 'half' | 'expanded' = 'collapsed';
   isSheetScrolled: boolean = false;
@@ -194,6 +200,10 @@ export class HomeComponent implements OnInit, OnChanges, OnDestroy {
   private unavailablePointImages = new Set<string>();
   private groupedScheduleCache = new WeakMap<any[], GroupedSchedule[]>();
   searchRadius: number = 1.0;
+  catalogPointsHasMore = false;
+  catalogPointsLoadingMore = false;
+  private catalogPointsNextCursor: string | null = null;
+  private catalogPointsContext: { municipio: string; departamento: string; origin: boolean } | null = null;
 
   // Autocomplete logic properties
   showAutocomplete: boolean = false;
@@ -232,7 +242,8 @@ export class HomeComponent implements OnInit, OnChanges, OnDestroy {
     private mapasService: MapasService,
     private cdr: ChangeDetectorRef,
     private readonly facade: ShipmentSearchFacade,
-    private pointShareService: PointShareService
+    private pointShareService: PointShareService,
+    private readonly catalog: CatalogService
   ) {
     effect(() => {
       const state = this.facade.state();
@@ -292,6 +303,7 @@ export class HomeComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   ngOnInit() {
+    this.setupCatalogMunicipalitySearch();
     const today = new Date();
     const tzOffset = today.getTimezoneOffset() * 60000;
     const localISODate = new Date(today.getTime() - tzOffset).toISOString().split('T')[0];
@@ -329,6 +341,35 @@ export class HomeComponent implements OnInit, OnChanges, OnDestroy {
     this.clearSearchFocusTimers();
     this.placeSearchSubscription?.unsubscribe();
     this.placeResolveSubscription?.unsubscribe();
+    this.catalogMunicipalityQueries.complete();
+    this.catalogSubscriptions.unsubscribe();
+  }
+
+  private setupCatalogMunicipalitySearch() {
+    this.catalogSubscriptions.add(this.catalogMunicipalityQueries.pipe(
+      distinctUntilChanged(),
+      switchMap(query => timer(query ? 200 : 0).pipe(
+        switchMap(() => this.catalog.listFacets({
+          facet: 'municipality',
+          ...(query.length >= 2 ? { q: query } : {}),
+          limit: 8
+        }).pipe(catchError(() => of(null))))
+      ))
+    ).subscribe(page => {
+      if (!this.catalogMode || !page) return;
+      this.applyMunicipalityFacets(page);
+      this.cdr.detectChanges();
+    }));
+  }
+
+  private applyMunicipalityFacets(page: CatalogPage<CatalogFacet>) {
+    this.filteredMunicipalities = page.data.map(facet => ({
+      nombre_display: facet.label,
+      municipio: facet.label,
+      departamento: facet.context?.department || '',
+      pointCount: facet.count
+    }));
+    this.filteredOriginMunicipalities = [...this.filteredMunicipalities];
   }
 
   // UI Handlers
@@ -603,13 +644,33 @@ export class HomeComponent implements OnInit, OnChanges, OnDestroy {
           String(location.id_destino || location.id) === String(intent['punto'])
         );
         if (point) {
-          if (intent['accion'] === 'select') this.selectPointFromDiscovery(point);
-          else if (intent['accion'] === 'map') this.viewPointOnMap(point);
-          else this.previewPointFromDiscovery(point);
+          this.applyPointIntent(point, intent['accion']);
+        } else if (this.catalogMode) {
+          this.catalogSubscriptions.add(this.catalog.getPointDetails(String(intent['punto'])).subscribe({
+            next: detail => {
+              const mapped = {
+                ...catalogPointToLocation(detail),
+                catalogDetailLoaded: true
+              };
+              this.mergeCatalogLocations([mapped]);
+              this.applyPointIntent(mapped, intent['accion']);
+              this.cdr.detectChanges();
+            },
+            error: () => {
+              this.errorMsg = 'No pudimos cargar el punto solicitado.';
+              this.cdr.detectChanges();
+            }
+          }));
         }
       }
       this.cdr.detectChanges();
     });
+  }
+
+  private applyPointIntent(point: any, action?: string) {
+    if (action === 'select') this.selectPointFromDiscovery(point);
+    else if (action === 'map') this.viewPointOnMap(point);
+    else this.previewPointFromDiscovery(point);
   }
 
   private requestMapMode(): boolean {
@@ -1018,6 +1079,9 @@ export class HomeComponent implements OnInit, OnChanges, OnDestroy {
       normalize(`${m.municipio} ${m.departamento}`).includes(normQuery)
     );
     this.filteredOriginMunicipalities = [...this.filteredMunicipalities];
+    if (this.catalogMode) {
+      this.catalogMunicipalityQueries.next(this.locationSearchQuery.trim());
+    }
   }
 
   selectFirstDestinationMunicipality() {
@@ -1165,6 +1229,10 @@ export class HomeComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   discoveryModeForOriginMunicipality(municipio: string, departamento: string) {
+    if (this.catalogMode) {
+      this.loadCatalogMunicipality(municipio, departamento, true);
+      return;
+    }
     this.loading = true;
     this.result = null;
     this.errorMsg = '';
@@ -1205,6 +1273,10 @@ export class HomeComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   discoveryModeForMunicipality(municipio: string, departamento: string) {
+    if (this.catalogMode) {
+      this.loadCatalogMunicipality(municipio, departamento, false);
+      return;
+    }
     this.loading = true;
     this.result = null;
     this.errorMsg = '';
@@ -1241,6 +1313,89 @@ export class HomeComponent implements OnInit, OnChanges, OnDestroy {
 
     this.loading = false;
     this.emitMapProjection();
+  }
+
+  loadMoreCatalogPoints() {
+    const context = this.catalogPointsContext;
+    if (!context || !this.catalogPointsNextCursor || this.catalogPointsLoadingMore) return;
+    this.loadCatalogMunicipality(
+      context.municipio,
+      context.departamento,
+      context.origin,
+      this.catalogPointsNextCursor,
+      true
+    );
+  }
+
+  private loadCatalogMunicipality(
+    municipio: string,
+    departamento: string,
+    origin: boolean,
+    cursor?: string,
+    append = false
+  ) {
+    if (append) {
+      this.catalogPointsLoadingMore = true;
+    } else {
+      this.loading = true;
+      this.result = null;
+      this.errorMsg = '';
+      this.flightResults = [];
+      this.municipalityResults = [];
+      this.displayedResults = [];
+      this.activeDetailedCard = null;
+      this.expandedResultCard = null;
+      this.bottomSheetState = 'half';
+      this.isOriginDiscoveryMode = origin;
+      this.isDiscoveryMode = !origin;
+      this.catalogPointsContext = { municipio, departamento, origin };
+      this.catalogPointsNextCursor = null;
+      this.catalogPointsHasMore = false;
+    }
+
+    this.catalogSubscriptions.add(this.catalog.listPoints({
+      municipality: municipio,
+      ...(departamento ? { department: departamento } : {}),
+      limit: 20,
+      ...(cursor ? { cursor } : {})
+    }).subscribe({
+      next: page => {
+        const points = page.data.map(catalogPointToLocation).map(point => ({
+          ...point,
+          destino_nombre: point.nombre_destino,
+          distance: 9999
+        }));
+        this.mergeCatalogLocations(points);
+        this.municipalityResults = append
+          ? [...this.municipalityResults, ...points]
+          : points;
+        this.displayedResults = this.activeEmpresa
+          ? this.municipalityResults.filter(point => point.empresa === this.activeEmpresa)
+          : [...this.municipalityResults];
+        this.catalogPointsNextCursor = page.page.nextCursor;
+        this.catalogPointsHasMore = page.page.hasMore;
+        this.loading = false;
+        this.catalogPointsLoadingMore = false;
+        this.emitMapProjection();
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.loading = false;
+        this.catalogPointsLoadingMore = false;
+        if (!append) {
+          this.errorMsg = origin
+            ? 'No pudimos cargar los puntos de origen de este municipio.'
+            : 'No pudimos cargar los puntos de entrega de este municipio.';
+        }
+        this.cdr.detectChanges();
+      }
+    }));
+  }
+
+  private mergeCatalogLocations(points: any[]) {
+    const byId = new Map(this.locations.map(point => [this.getLocationIdentity(point), point]));
+    for (const point of points) byId.set(this.getLocationIdentity(point), point);
+    this.locations = [...byId.values()];
   }
 
   toggleExpandFlight(flight: any) {
@@ -1346,7 +1501,32 @@ export class HomeComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   togglePointCard(point: any) {
-    this.expandedResultCard = this.isPointCardExpanded(point) ? null : point;
+    if (this.isPointCardExpanded(point)) {
+      this.expandedResultCard = null;
+      return;
+    }
+
+    this.expandedResultCard = point;
+    if (!this.catalogMode || !point?.catalogPointId || point.catalogDetailLoaded || point.catalogDetailLoading) {
+      return;
+    }
+
+    point.catalogDetailLoading = true;
+    this.catalogSubscriptions.add(this.catalog.getPointDetails(point.catalogPointId).subscribe({
+      next: detail => {
+        const mapped = catalogPointToLocation(detail);
+        Object.assign(point, mapped, {
+          destino_nombre: mapped.nombre_destino,
+          catalogDetailLoaded: true,
+          catalogDetailLoading: false
+        });
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        point.catalogDetailLoading = false;
+        this.cdr.detectChanges();
+      }
+    }));
   }
 
   resolveImageUrl(url: string | null | undefined): string {

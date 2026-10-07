@@ -5,6 +5,7 @@ import { RutasService } from '../../core/services/rutas.service';
 import { MapasService } from '../../core/services/mapas.service';
 import { ToastService } from '../../core/services/toast.service';
 import { PointShareService } from './results/point-share.service';
+import { CatalogService } from '../../core/services/catalog.service';
 import { By } from '@angular/platform-browser';
 import { of } from 'rxjs';
 import { describe, it, expect, beforeEach, afterEach, vi, Mock } from 'vitest';
@@ -81,6 +82,14 @@ describe('Home Flow Characterization (T05a)', () => {
         { provide: MapasService, useValue: mapasServiceMock },
         { provide: ToastService, useValue: toastMock },
         { provide: PointShareService, useValue: shareServiceMock },
+        {
+          provide: CatalogService,
+          useValue: {
+            listFacets: vi.fn().mockReturnValue(of({ data: [], page: { limit: 0, hasMore: false, nextCursor: null }, meta: { catalogRevision: 'catalog:1' } })),
+            listPoints: vi.fn().mockReturnValue(of({ data: [], page: { limit: 0, hasMore: false, nextCursor: null }, meta: { catalogRevision: 'catalog:1' } })),
+            getPointDetails: vi.fn()
+          }
+        },
       ],
     }).compileComponents();
   });

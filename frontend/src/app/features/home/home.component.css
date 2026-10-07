@@ -878,3 +878,57 @@ app-home.list-first-mode .map-wrapper {
   height: 40px;
   flex-basis: 40px;
 }
+
+/* Catalog Load More */
+.catalog-load-more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 44px;
+  padding: 0 16px;
+  margin: 16px auto;
+  border: 1px solid rgba(29, 30, 28, 0.12);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.84);
+  color: var(--text-main);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 750;
+  cursor: pointer;
+  transition: background 180ms ease, border-color 180ms ease, transform 180ms ease;
+}
+
+.catalog-load-more:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.94);
+  border-color: rgba(29, 30, 28, 0.15);
+  transform: translateY(-1px);
+}
+
+.catalog-load-more:focus-visible {
+  outline: 0;
+  box-shadow: var(--focus-ring);
+}
+
+.catalog-load-more:disabled {
+  background: #eef0ed;
+  color: var(--text-muted);
+  border-color: rgba(29, 30, 28, 0.07);
+  cursor: not-allowed;
+  transform: none;
+}
+
+@media (min-width: 768px) {
+  .catalog-load-more {
+    width: auto;
+    min-width: 220px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .catalog-load-more,
+  .catalog-load-more:hover:not(:disabled) {
+    transition: none;
+    transform: none;
+  }
+}

@@ -5,6 +5,8 @@ import { MapasService } from '../../core/services/mapas.service';
 import { ToastService } from '../../core/services/toast.service';
 import { ShipmentSearchFacade } from './shipment-search.facade';
 import { PointShareService } from './results/point-share.service';
+import { CatalogService } from '../../core/services/catalog.service';
+import { CatalogPoint } from '../../core/models/catalog.models';
 import { signal } from '@angular/core';
 import { of, Subject } from 'rxjs';
 
@@ -15,6 +17,7 @@ describe('HomeComponent (T31d)', () => {
   let facadeMock: Record<string, unknown>;
   let toastMock: Record<string, unknown>;
   let shareMock: Record<string, unknown>;
+  let catalogMock: { listFacets: Mock; listPoints: Mock; getPointDetails: Mock };
 
   beforeEach(async () => {
     mapasServiceMock = {
@@ -34,6 +37,11 @@ describe('HomeComponent (T31d)', () => {
     shareMock = {
       share: vi.fn()
     };
+    catalogMock = {
+      listFacets: vi.fn().mockReturnValue(of(emptyCatalogPage())),
+      listPoints: vi.fn().mockReturnValue(of(emptyCatalogPage())),
+      getPointDetails: vi.fn()
+    };
 
     await TestBed.configureTestingModule({
       imports: [HomeComponent],
@@ -41,7 +49,8 @@ describe('HomeComponent (T31d)', () => {
         { provide: MapasService, useValue: mapasServiceMock },
         { provide: ShipmentSearchFacade, useValue: facadeMock },
         { provide: ToastService, useValue: toastMock },
-        { provide: PointShareService, useValue: shareMock }
+        { provide: PointShareService, useValue: shareMock },
+        { provide: CatalogService, useValue: catalogMock }
       ]
     }).compileComponents();
   });
@@ -146,6 +155,69 @@ describe('HomeComponent (T31d)', () => {
     vi.advanceTimersByTime(150);
 
     expect(getElementByIdSpy).not.toHaveBeenCalledWith('card-point-1');
+  });
+
+  it('searches municipality facets remotely with debounce in catalog mode', () => {
+    vi.useFakeTimers();
+    catalogMock.listFacets.mockReturnValue(of({
+      data: [{ value: 'Soyapango', label: 'Soyapango', count: 3, context: { department: 'San Salvador' } }],
+      page: { limit: 8, hasMore: false, nextCursor: null },
+      meta: { catalogRevision: 'catalog:1' }
+    }));
+    component.catalogMode = true;
+
+    component.onDestinoInput('soya');
+    expect(catalogMock.listFacets).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(200);
+
+    expect(catalogMock.listFacets).toHaveBeenCalledWith({ facet: 'municipality', q: 'soya', limit: 8 });
+    expect(component.filteredMunicipalities).toEqual([
+      { nombre_display: 'Soyapango', municipio: 'Soyapango', departamento: 'San Salvador', pointCount: 3 }
+    ]);
+  });
+
+  it('loads one bounded municipality page and full schedules only when a card expands', () => {
+    const point = catalogPoint();
+    catalogMock.listPoints.mockReturnValue(of({
+      data: [point],
+      page: { limit: 20, hasMore: false, nextCursor: null },
+      meta: { catalogRevision: 'catalog:1' }
+    }));
+    catalogMock.getPointDetails.mockReturnValue(of({
+      ...point,
+      schedules: [{ day: 'Lunes', opensAt: '09:00', closesAt: '16:00' }]
+    }));
+    component.catalogMode = true;
+
+    component.discoveryModeForMunicipality('Soyapango', 'San Salvador');
+
+    expect(catalogMock.listPoints).toHaveBeenCalledWith({
+      municipality: 'Soyapango', department: 'San Salvador', limit: 20
+    });
+    expect(component.displayedResults).toHaveLength(1);
+    expect(component.displayedResults[0].horarios_operativos).toEqual([]);
+
+    component.togglePointCard(component.displayedResults[0]);
+
+    expect(catalogMock.getPointDetails).toHaveBeenCalledWith('AG_01');
+    expect(component.displayedResults[0].horarios_operativos).toEqual([
+      { dia_semana: 'Lunes', hora_apertura: '09:00', hora_cierre: '16:00' }
+    ]);
+  });
+
+  it('resolves a direct point intent by canonical id when it is outside the bootstrap page', () => {
+    vi.useFakeTimers();
+    const point = catalogPoint();
+    catalogMock.getPointDetails.mockReturnValue(of({ ...point, schedules: [] }));
+    component.catalogMode = true;
+    component.initialIntent = { punto: 'AG_01', accion: 'preview' };
+
+    (component as any).applyInitialIntent();
+    vi.runOnlyPendingTimers();
+
+    expect(catalogMock.getPointDetails).toHaveBeenCalledWith('AG_01');
+    expect(component.displayedResults).toHaveLength(1);
+    expect(component.expandedResultCard).toEqual(expect.objectContaining({ id_destino: 'AG_01' }));
   });
 
   it('focuses the destination combobox and closes the dialog after Escape', () => {
@@ -287,3 +359,35 @@ describe('HomeComponent (T31d)', () => {
     });
   });
 });
+
+function emptyCatalogPage<T = never>() {
+  return {
+    data: [] as T[],
+    page: { limit: 0, hasMore: false, nextCursor: null },
+    meta: { catalogRevision: 'catalog:1' }
+  };
+}
+
+function catalogPoint(): CatalogPoint {
+  return {
+    pointId: 'AG_01',
+    company: { companyId: '2', name: 'Pedidos Express', logoUrl: null },
+    name: 'AGENCIA CENTRO',
+    pointType: 'AGENCIA',
+    location: {
+      department: 'San Salvador',
+      municipality: 'Soyapango',
+      address: 'Centro',
+      coordinates: { lat: 13.7, lng: -89.1 }
+    },
+    media: { imageUrl: null, mapsUrl: null },
+    availability: {
+      status: 'OPEN',
+      closesAt: '16:00',
+      nextOpeningAt: null,
+      evaluatedAt: '2026-10-07T10:00:00-06:00',
+      timeZone: 'America/El_Salvador'
+    },
+    schedulePreview: [{ daysLabel: 'Lunes a viernes', opensAt: '09:00', closesAt: '16:00' }]
+  };
+}

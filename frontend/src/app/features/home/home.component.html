@@ -498,6 +498,16 @@
           (share)="sharePointResource($event)"
           (map)="viewPointOnMap($event)">
         </article>
+        <button
+          *ngIf="catalogPointsHasMore"
+          type="button"
+          siButton
+          variant="secondary"
+          class="catalog-load-more"
+          [disabled]="catalogPointsLoadingMore"
+          (click)="loadMoreCatalogPoints()">
+          {{ catalogPointsLoadingMore ? 'Cargando…' : 'Ver más puntos' }}
+        </button>
       </div>
 
       <!-- Result from routing (if a specific route is requested) -->

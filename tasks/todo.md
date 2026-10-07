@@ -125,6 +125,12 @@ se activa después de corregir y medir consultas. No autoriza por sí solo un de
     facetas y carga detalle al expandir; no descarga todo el catálogo al arrancar.
   - Verificación: unitarias, E2E del flujo público, red sin request global y
     revisión móvil/escritorio.
+  - [x] Inicio y `/enviar` arrancan con catálogo acotado, sin `/api/locations`.
+  - [x] Municipio usa facetas remotas, páginas por cursor y detalle bajo demanda.
+  - [x] Deep-links de punto resuelven el detalle por identidad canónica.
+  - [ ] Migrar la resolución de rutas/orígenes a IDs batch y retirar el último
+    uso transitorio del modelo legacy.
+  - [ ] Añadir E2E de búsqueda, expansión, compartir y paginación.
   - Dependencias: SCALE01–SCALE03.
 
 - [ ] PERF01 Instrumentar pool, consultas, payload y RED por ruta.

@@ -3,6 +3,7 @@
   <div class="inicio-tab-content" [hidden]="activeMainTab !== 'inicio'">
     <app-home
       [mapAvailable]="mapAvailable"
+      [catalogMode]="true"
       [locations]="locations"
       [userLocation]="userLocation"
       [initialIntent]="navigationIntent"

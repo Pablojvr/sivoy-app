@@ -43,20 +43,8 @@ async function createAgencia(req, res) {
     }
 }
 
-// In api.js we had GET /test-location
-async function testLocation(req, res) {
-    try {
-        const testLoc = await ubicacionService.getLocationByName("Agencia Lourdes");
-        res.json(testLoc);
-    } catch (e) {
-        req.log.error('test_location_failed', 'internal_error');
-        res.status(500).json({ error: "Database error" });
-    }
-}
-
 module.exports = {
     getAllLocations,
     updateLocation,
-    createAgencia,
-    testLocation
+    createAgencia
 };

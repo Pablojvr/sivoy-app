@@ -29,13 +29,28 @@ const observability = createHttpObservability();
 registerObservabilityRoutes(app, observability);
 app.use('/api', observability.middleware);
 
+function isProductionEnvironment() {
+    return (process.env.NODE_ENV || '').toLowerCase() === 'production';
+}
+
 function restrictOperationalWrites(req, res, next) {
-    if (process.env.NODE_ENV === 'production') {
+    if (isProductionEnvironment()) {
         return res.status(403).json({ error: 'Operational writes are disabled' });
     }
     next();
 }
 
+function retireLegacyCatalogRead(req, res, next) {
+    if (!isProductionEnvironment()) return next();
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+    return res.status(410).json({
+        error: 'Gone',
+        message: 'GET /api/locations is retired. Use bounded /api/catalog endpoints.',
+        code: 'ENDPOINT_RETIRED'
+    });
+}
+
+app.get('/api/locations', retireLegacyCatalogRead);
 app.post('/api/empresas', restrictOperationalWrites);
 app.put('/api/empresas/:id', restrictOperationalWrites);
 app.post('/api/agencias', restrictOperationalWrites);
@@ -60,7 +75,7 @@ app.use('/uploads', express.static(path.join(__dirname, '..', 'public', 'uploads
 
 // Register API routes
 app.use('/api/empresas', empresasRoutes);
-app.use('/api', ubicacionesRoutes); // Includes /locations, /agencias, /test-location
+app.use('/api', ubicacionesRoutes); // Includes /locations and /agencias
 app.use('/api', rutasRoutes); // Includes /get-upcoming-routes, /search-routes-by-municipality, /search-flights
 app.use('/api', mapasRoutes); // Includes /resolve-maps-link
 app.use('/api/catalog', catalogRoutes);

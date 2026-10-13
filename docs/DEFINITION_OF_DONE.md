@@ -19,6 +19,8 @@ esta lista permanente. La presión de tiempo no reduce este estándar.
 - Validar entradas y respuestas externas en la frontera.
 - Usar SQL parametrizado y transacciones para escrituras relacionadas.
 - Mantener compatibilidad o proveer adaptador/deprecación explícita.
+- Retirar endpoints legacy con prueba HTTP, respuesta explícita sin caché y sin
+  acceder a persistencia; documentar su reemplazo y ventana de compatibilidad.
 - Usar IDs estables, errores con código y fechas ISO 8601 con offset.
 - No filtrar credenciales, stack traces ni detalles internos en respuestas.
 

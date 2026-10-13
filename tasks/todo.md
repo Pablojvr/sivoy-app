@@ -101,7 +101,7 @@ se activa después de corregir y medir consultas. No autoriza por sí solo un de
     facetas y error quedan especificados; nombres dejan de ser identidad.
   - Verificación: contrato versionado, fixtures y revisión de compatibilidad legacy.
   - Dependencias: SEC02; bloquea SCALE02–SCALE05.
-- [ ] SCALE02 Implementar repositorios paginados y filtrados.
+- [x] SCALE02 Implementar repositorios paginados y filtrados.
   - Aceptación: ninguna lista pública lee tablas completas; horarios/reglas se
     obtienen por IDs visibles o bajo demanda; límite máximo obligatorio.
   - Verificación: integración PostgreSQL con conteo constante de consultas y
@@ -110,8 +110,9 @@ se activa después de corregir y medir consultas. No autoriza por sí solo un de
   - [x] Prueba PostgreSQL reproducible en 10k/100k sin caché.
   - [x] Migrar `/enviar`: la suite E2E confirma que el flujo público no solicita
     `/api/locations` en móvil, tablet ni escritorio.
-  - [ ] Retirar el endpoint HTTP legacy `/api/locations` después de su ventana de
-    compatibilidad; mientras exista, todavía permite una lectura global manual.
+  - [x] Retirar de producción el endpoint HTTP legacy `/api/locations`: responde
+    `410` y `no-store` antes de PostgreSQL; la compatibilidad queda limitada a
+    desarrollo para Admin/Partner fuera de alcance.
   - Dependencias: SCALE01.
 - [ ] SCALE03 Migrar ETA y búsqueda a IDs y resolución batch.
   - Aceptación: compatibilidad se compara por `empresa_id`; no existen consultas

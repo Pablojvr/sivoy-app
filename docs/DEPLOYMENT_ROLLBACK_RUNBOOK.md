@@ -91,7 +91,10 @@ Si durante un ensayo o despliegue en el entorno de **staging** se detecta una de
 
 ### 3.1 Criterios de Disparo de Rollback
 - `/api/health` responde códigos `5xx` o no responde dentro del timeout de observabilidad.
-- Incremento anómalo en la tasa de errores de endpoints críticos (`/api/get-upcoming-routes`, `/api/locations`).
+- Incremento anómalo en la tasa de errores de endpoints críticos
+  (`/api/get-upcoming-routes`, `/api/catalog/points`). En producción,
+  `/api/locations` debe responder `410`; un `200` indica una regresión de la
+  frontera legacy y también dispara rollback.
 - Falla en la carga de assets estáticos o discrepancia en `runtime-config.js`.
 - Registro de excepciones graves en `server_startup_failed` o `db_pool_failed`.
 
@@ -106,6 +109,8 @@ Si durante un ensayo o despliegue en el entorno de **staging** se detecta una de
    curl -i http://127.0.0.1:<PORT>/api/health
    curl -i http://127.0.0.1:<PORT>/runtime-config.js
    curl -i http://127.0.0.1:<PORT>/index.html
+   curl -i "http://127.0.0.1:<PORT>/api/catalog/points?limit=1"
+   curl -i http://127.0.0.1:<PORT>/api/locations
    ```
 4. **Gestión en el control de versiones**:
    Si el candidato ha sido descartado formalmente por el equipo, preparar el ajuste o reversión en la rama correspondiente de staging de forma atómica y revisada.

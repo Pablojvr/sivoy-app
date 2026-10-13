@@ -16,23 +16,24 @@ obtendrán en staging durante las fases siguientes.
 SiVoy tiene una base técnica mejor de lo que su superficie HTTP sugiere: las
 dependencias están limpias, las consultas usan parámetros, el pool está acotado,
 las migraciones son verificables, las métricas requieren token y las escrituras
-operativas están desactivadas en producción. Sin embargo, el catálogo actual no
-está preparado para N empresas y N puntos: una petición carga agencias, horarios
-y reglas completas, y parte del motor filtra y cruza esos datos en memoria.
+operativas están desactivadas en producción. El catálogo público ya usa
+paginación, facetas, detalle bajo demanda, identidad estable y consultas batch;
+la lectura global quedó retirada de producción. Persisten defensas operativas,
+medición de carga y compatibilidad legacy del motor ETA antes de considerar el
+plan terminado para N empresas y N puntos.
 
-La escala no se resolverá con caché. Primero se crearán contratos paginados,
-identidad estable, consultas acotadas por empresa/municipio y acceso batch a
-horarios/reglas. La caché sí forma parte de la arquitectura objetivo, pero como
-un puerto reemplazable y una optimización posterior a consultas correctas y
-medidas. No hace falta introducir microservicios ni Kubernetes para conseguirlo.
+La escala no se resolverá con caché. Los contratos paginados, la identidad
+estable y el acceso batch ya son la base vigente. La caché forma parte de la
+arquitectura como puerto reemplazable y sigue siendo una optimización posterior
+a consultas correctas y medidas. No hace falta introducir microservicios ni
+Kubernetes para conseguirlo.
 
-El siguiente corte debe concentrarse en cinco defensas de alto retorno:
+Los siguientes cortes deben concentrarse en cuatro defensas de alto retorno:
 
 1. resolver la credencial histórica pendiente;
 2. endurecer HTTP y reducir el cuerpo máximo aceptado;
 3. limitar el consumo de API, especialmente Google Places;
-4. sustituir lecturas globales por catálogo paginado y búsquedas SQL acotadas;
-5. medir carga/consultas en volúmenes crecientes y después activar caché e
+4. medir carga/consultas en volúmenes crecientes y después activar caché e
    infraestructura horizontal donde las métricas lo justifiquen.
 
 ## Evidencia recabada
@@ -55,7 +56,7 @@ El siguiente corte debe concentrarse en cinco defensas de alto retorno:
 - PostgreSQL local contiene 1 empresa, 185 agencias, 530 horarios y 292 reglas,
   sin necesidad actual de particionado.
 
-### Medición local de referencia
+### Medición local histórica de referencia
 
 Prueba corta, no equivalente a capacidad de producción, realizada contra
 `127.0.0.1:3001` con Node 24.14.1:
@@ -65,10 +66,10 @@ Prueba corta, no equivalente a capacidad de producción, realizada contra
 | `/api/health` | 200 | 20 | 0 | 7.65 ms | 30.71 ms | 35.94 ms |
 | `/api/locations` | 80 | 20 | 0 | 102.57 ms | 210.61 ms | 217.71 ms |
 
-`/api/locations` devuelve aproximadamente 125,771 bytes sin comprimir y ejecuta
-tres lecturas completas. Esta cifra solo describe el catálogo actual; no es el
-objetivo arquitectónico. El endpoint debe dejar de crecer linealmente antes de
-incorporar nuevas empresas, aun si hoy su latencia resulta aceptable.
+En esa línea base, `/api/locations` devolvía aproximadamente 125,771 bytes sin
+comprimir y ejecutaba tres lecturas completas. La medición motivó el catálogo
+acotado actual; no describe la frontera pública vigente, donde producción
+responde `410` antes de consultar PostgreSQL.
 
 ### Hallazgos priorizados
 
@@ -76,13 +77,13 @@ incorporar nuevas empresas, aun si hoy su latencia resulta aceptable.
 |---|---|---|
 | P0 | Rotación/revocación y saneamiento histórico de la credencial PostgreSQL siguen pendientes (T00). | Acceso no autorizado aun cuando el árbol actual ya no exponga el valor. |
 | P0 | No hay límite de frecuencia. Google Places, Maps y consultas ETA pueden consumirse sin cota. | Denegación de servicio y costos de terceros; OWASP API4. |
-| P0 | `GET /api/empresas/excel-template` y `/api/test-location` siguen públicos aunque Partner está fuera de alcance. | Superficie y trabajo de CPU innecesarios para el MVP público. |
-| P0 | Faltan cabeceras de seguridad y se publica `X-Powered-By: Express`. | XSS/clickjacking/MIME sniffing y configuración débil. |
+| P0 | `GET /api/empresas/excel-template` sigue público aunque Partner está fuera de alcance. `/api/test-location` ya fue eliminado. | El Excel aún mantiene superficie y trabajo de CPU innecesarios para el MVP público. |
+| Resuelto | Se deshabilitó `X-Powered-By` y se añadieron CSP progresiva, anti-clickjacking, `nosniff`, referrer/permissions policy y HSTS en producción. | La CSP continúa en Report-Only hasta medir incompatibilidades antes de hacerla coercitiva. |
 | P0 | JSON y formularios admiten 10 MB globalmente; no hay límites por endpoint ni para cabeceras/tiempos del servidor. | Agotamiento de memoria, conexiones lentas y event-loop ocupado. |
-| P0 | La política CORS vuelve a `*` si falta `FRONTEND_URL`. | Un error de configuración amplía el acceso desde navegadores. |
-| P0 | `/api/locations` lee y devuelve todas las agencias, horarios y reglas; `searchFlights` filtra el catálogo completo en memoria. | Tiempo, memoria, red y costo de CPU crecen con cada empresa/punto. |
-| P0 | Rutas resuelven puntos repetidamente por nombre y comparan la empresa por texto. | Nombres no son identidad estable y los bucles generan consultas N×M. |
-| P1 | El contrato público carece de paginación, filtros, proyección resumida e identidad canónica de empresa/punto. | No existe un límite estable de trabajo por solicitud. |
+| Resuelto | CORS usa allowlist y el arranque de producción falla si `FRONTEND_URL` falta o es inválida. | Evita ampliar orígenes por una configuración incompleta. |
+| Resuelto en producción | `/api/locations` leía y devolvía todas las agencias, horarios y reglas. El flujo público migró a `/api/catalog` y producción responde `410` antes de PostgreSQL; el adaptador continúa solo en desarrollo para Admin/Partner. | La lectura global dejó de ser una superficie pública; resta eliminar la compatibilidad local cuando se migren esas áreas. |
+| Parcial | Rutas ya resuelven IDs en batch y comparan `empresa_id`; permanece un fallback legacy acotado por nombre hasta completar SCALE03. | El camino canónico evita N×M, pero la compatibilidad debe retirarse tras probar paridad. |
+| Resuelto | El catálogo público posee paginación, filtros, proyección resumida, detalle bajo demanda e identidad canónica de empresa/punto. | El trabajo por página tiene límite estable. |
 | P1 | No hay política explícita de caché salvo `runtime-config.js` y métricas. | No existe aún una capa de aceleración, pero añadirla ahora ocultaría lecturas globales. |
 | P1 | `statement_timeout` e `idle_in_transaction_session_timeout` están en 0. | Una consulta o transacción atascada puede retener pool, locks y recursos. |
 | P1 | Las métricas viven en memoria por proceso y no hay alertas ni monitor externo. | Se pierden al reiniciar y no representan múltiples instancias. |
@@ -342,27 +343,32 @@ Gate: la credencial anterior falla y el secret scan de árbol/historial está ve
 
 ### Fase 1 — frontera HTTP segura
 
-- [ ] SEC02 Añadir headers/CSP progresiva, CORS fail-closed y errores JSON.
+- [x] SEC02 Añadir headers/CSP progresiva, CORS fail-closed y errores JSON.
 - [ ] SEC03 Reducir cuerpos y fijar timeouts de Node/externos.
 - [ ] SEC04 Rate limit por riesgo, con observación antes de bloqueo.
 - [ ] SEC05 Inventariar OpenAPI/contratos, desactivar en producción
   `/api/test-location` y el Excel de Partner mientras no se utilicen, y probar que
   toda escritura responde 403 en producción.
+  - Parcial: `/api/test-location` eliminado; escrituras 403 verificadas; el Excel
+    de Partner continúa pendiente.
 
 Gate: unitarias y contratos verdes; ZAP sin hallazgos altos; no se rompe MapLibre,
 Cloudinary ni el flujo Inicio → destino → compartir.
 
 ### Fase 2 — núcleo escalable de catálogo y ETA
 
-- [ ] SCALE01 Aprobar identidad `companyId`/`pointId`, cursor y contratos de
+- [x] SCALE01 Aprobar identidad `companyId`/`pointId`, cursor y contratos de
   resumen, detalle, facetas y error; documentar compatibilidad legacy.
-- [ ] SCALE02 Implementar consultas paginadas/filtradas de catálogo, horarios y
+- [x] SCALE02 Implementar consultas paginadas/filtradas de catálogo, horarios y
   reglas por IDs, sin lecturas completas ni `SELECT *` público sin límite.
 - [ ] SCALE03 Migrar búsqueda/ETA a IDs y resolución batch por empresa; retirar
   comparación por nombre de empresa y bucles de consultas N×M.
+  - Parcial: camino canónico por IDs y batch completo; fallback por nombre pendiente.
 - [ ] SCALE04 Crear migraciones aditivas de normalización/índices y medirlas con
   10k y 100k puntos antes de aceptar el DDL.
-- [ ] SCALE05 Migrar el frontend a búsqueda remota cancelable, páginas/facetas y
+  - Parcial: índices aditivos medidos; comparación antes/después y decisión de
+    normalización persistida pendientes.
+- [x] SCALE05 Migrar el frontend a búsqueda remota cancelable, páginas/facetas y
   detalle bajo demanda; retirar el bootstrap del catálogo completo.
 
 Gate: el flujo público conserva su comportamiento, una página no supera el límite
@@ -381,7 +387,7 @@ comparación antes/después y sin usar caché para aprobar SQL deficiente.
 
 ### Fase 4 — caché y escala horizontal
 
-- [ ] CACHE01 Definir `CatalogCachePort`, claves versionadas, revisión por empresa,
+- [x] CACHE01 Definir `CatalogCachePort`, claves versionadas, revisión por empresa,
   política de datos cacheables y pruebas de invalidación/aislamiento.
 - [ ] CACHE02 Activar edge cache para catálogo paginado y verificar
   `CF-Cache-Status`, coalescencia y comportamiento stale.

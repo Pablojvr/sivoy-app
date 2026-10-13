@@ -515,14 +515,12 @@ test('HTTP Observability Middleware', async (t) => {
         const origGetAllLocations = ubicacionesService.getAllLocations;
         const origUpdateLocation = ubicacionesService.updateLocation;
         const origCreateAgencia = ubicacionesService.createAgencia;
-        const origGetLocationByName = ubicacionesService.getLocationByName;
 
         st.after(() => {
             console.error = origConsoleError;
             ubicacionesService.getAllLocations = origGetAllLocations;
             ubicacionesService.updateLocation = origUpdateLocation;
             ubicacionesService.createAgencia = origCreateAgencia;
-            ubicacionesService.getLocationByName = origGetLocationByName;
         });
 
         const reqMock = (params = {}, body = {}) => {
@@ -611,19 +609,6 @@ test('HTTP Observability Middleware', async (t) => {
             assert.strictEqual(logs.length, 1);
             assert.strictEqual(logs[0].level, 'error');
             assert.deepStrictEqual(logs[0].args, ['create_agencia_failed', 'internal_error']);
-        });
-
-        await st.test('testLocation - internal error (silent catch)', async () => {
-            ubicacionesService.getLocationByName = async () => { throw new Error("DB Error"); };
-            const req = reqMock();
-            const res = resMock();
-            await ubicacionesController.testLocation(req, res);
-            assert.strictEqual(res.getStatus(), 500);
-            assert.deepStrictEqual(res.getBody(), { error: "Database error" });
-            const logs = req.getLogs();
-            assert.strictEqual(logs.length, 1);
-            assert.strictEqual(logs[0].level, 'error');
-            assert.deepStrictEqual(logs[0].args, ['test_location_failed', 'internal_error']);
         });
 
         await st.test('assert zero console.error calls', () => {

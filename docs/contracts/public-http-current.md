@@ -10,9 +10,9 @@ prueba HTTP local; `[código]` que la forma se deriva del controller/servicio;
 | Ruta | Éxito | Error / condición | Consumidor y evidencia |
 | --- | --- | --- | --- |
 | `GET /api/empresas` | `200 { success: true, empresas: [...] }` | `500 { error: "Database error" }` | `EmpresasService.getEmpresas()` → `AdminComponent` [código, cliente]. La forma de cada empresa depende del repositorio y no tiene prueba HTTP aquí. |
-| `GET /api/locations` | `200` con arreglo directo; el repositorio proyecta `id`, `id_destino`, nombre, empresa, ubicación, horarios y reglas | `500 { error: "Database error" }` | `UbicacionesService.getLocations()` → `MobileAppComponent` [código, cliente]. El frontend valida/mapea la respuesta; no hay prueba HTTP de la proyección contra PostgreSQL real. |
+| `GET /api/locations` | Solo en desarrollo: `200` con arreglo directo para las superficies locales Admin/Partner durante la transición | En producción: `410 { error: "Gone", message, code: "ENDPOINT_RETIRED" }` y `Cache-Control: no-store, no-cache, must-revalidate`, antes de consultar PostgreSQL [HTTP]. Un fallo del adaptador en desarrollo conserva `500 { error: "Database error" }`. | El flujo público ya consume `/api/catalog`; `AdminPageComponent` y Partner conservan temporalmente el adaptador local [código, cliente]. |
 | `GET /api/empresas/excel-template` | `200` binario XLSX con `Content-Disposition: attachment` | `500 { success: false, message: "Failed to generate excel template" }` | No se audita su consumidor Partner [código]. |
-| `GET /api/test-location` | `200` con el resultado de buscar “Agencia Lourdes”, posiblemente `null` | `500 { error: "Database error" }` | Sin consumidor Angular localizado [código]. Es una ruta de diagnóstico pública, no un contrato de catálogo. |
+| `GET /api/test-location` | Ruta eliminada | `404 { error: "API endpoint not found" }` en todos los entornos [HTTP] | Sin consumidor Angular; la consulta diagnóstica dejó de formar parte del servidor. |
 
 Fuentes: `backend/src/domains/empresas/empresas.routes.js`,
 `empresas.controller.js`, `empresas.excel.controller.js` y
@@ -78,11 +78,18 @@ corre con `NODE_ENV=production`**, antes de parsear el cuerpo [HTTP:
 `backend/test/operational-write-guard.test.js`]. En desarrollo llegan a los
 controllers existentes; T44a no audita su negocio ni modifica Partner.
 
+La lectura global `GET /api/locations` también se intercepta en producción antes
+del repositorio con el `410` documentado arriba. `HEAD` sigue la misma política;
+el catálogo canónico paginado permanece accesible bajo `/api/catalog`. El
+adaptador global solo continúa en desarrollo para no bloquear Admin/Partner
+mientras esas superficies están fuera de este corte.
+
 ## Diferencias que T44 debe resolver, sin cambiar aún el wire format
 
-1. El catálogo de ubicaciones es un arreglo directo, empresas usa
+1. El adaptador local de ubicaciones todavía es un arreglo directo, empresas usa
    `{ success, empresas }`, rutas tienen variantes y Places usa
-   `{ success, suggestions/place }`.
+   `{ success, suggestions/place }`; el catálogo público canónico ya usa
+   respuestas paginadas bajo `/api/catalog`.
 2. Un `200` puede significar “sin ruta” con `success: false`; otros casos usan
    404. Los errores no comparten un código estable ni un único envelope.
 3. `id` y `id_destino` coexisten en puntos. Las rutas también identifican

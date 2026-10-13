@@ -14,6 +14,7 @@ const {
     createSecurityHeaders,
     validateProductionCors
 } = require('./src/core/http/http-security');
+const { applyHttpServerLimits, createHttpRuntimeConfig } = require('./src/core/http/http-runtime');
 
 const empresasRoutes = require('./src/domains/empresas/empresas.routes');
 const ubicacionesRoutes = require('./src/domains/ubicaciones/ubicaciones.routes');
@@ -22,6 +23,7 @@ const mapasRoutes = require('./src/domains/mapas/mapas.routes');
 const catalogRoutes = require('./src/domains/catalog/catalog.routes');
 
 const app = express();
+const httpRuntimeConfig = createHttpRuntimeConfig(process.env);
 app.disable('x-powered-by');
 app.use(createSecurityHeaders(process.env));
 app.use(cors(createCorsOptions(process.env)));
@@ -63,8 +65,8 @@ app.put('/api/empresas/:id', restrictOperationalWrites);
 app.post('/api/agencias', restrictOperationalWrites);
 app.put('/api/locations/:id', restrictOperationalWrites);
 
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ limit: '10mb', extended: true }));
+app.use(express.json({ limit: httpRuntimeConfig.jsonBodyLimitBytes }));
+app.use(express.urlencoded({ limit: httpRuntimeConfig.urlencodedBodyLimitBytes, extended: true }));
 
 // Serve compiled Angular frontend
 const DIST_PATH = path.join(__dirname, '..', 'frontend', 'dist', 'frontend', 'browser');
@@ -128,6 +130,7 @@ function startServer(options = {}) {
                 // Ignore logger errors
             }
         });
+        applyHttpServerLimits(server, createHttpRuntimeConfig(env));
         return server;
     }).catch(err => {
         try {

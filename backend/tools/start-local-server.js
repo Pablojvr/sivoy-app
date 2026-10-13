@@ -17,6 +17,7 @@ function configureLocalEnvironment(env) {
   env.DATABASE_URL = assertLocalDatabaseUrl(env.DATABASE_URL || DEFAULT_DATABASE_URL);
   env.DATABASE_SSL = 'false';
   env.FRONTEND_URL = LOCAL_FRONTEND_URLS;
+  env.HTTP_JSON_LIMIT_BYTES = env.HTTP_JSON_LIMIT_BYTES || String(5 * 1024 * 1024);
   return env;
 }
 

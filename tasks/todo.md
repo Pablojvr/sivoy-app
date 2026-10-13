@@ -92,6 +92,12 @@ se activa después de corregir y medir consultas. No autoriza por sí solo un de
     HSTS solo en producción, CORS allowlist que falla cerrado y errores API JSON
     genéricos. Prueba HTTP real y suite backend 551/551 verdes.
 - [ ] SEC03 Reducir cuerpos y fijar timeouts de Node, PostgreSQL y APIs externas.
+  - [x] SEC03a Limitar JSON/urlencoded y tiempos/cabeceras del servidor Node con
+    configuración acotada; preservar hasta 5 MB solo en el arranque local para
+    el flujo administrativo base64 fuera de producción.
+  - [ ] SEC03b Añadir `statement_timeout`, `query_timeout` e
+    `idle_in_transaction_session_timeout` al pool PostgreSQL.
+  - [ ] SEC03c Limitar uploads y cerrar timeouts de Cloudinary/Maps/Places.
 - [ ] SEC04 Aplicar rate limits por riesgo, primero en observación.
 - [x] SEC05 Probar escrituras 403 y retirar de producción endpoints auxiliares de Partner/prueba.
   - Evidencia: escrituras operativas responden 403 antes de parsers en producción;

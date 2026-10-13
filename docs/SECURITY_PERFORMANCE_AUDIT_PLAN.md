@@ -79,7 +79,7 @@ responde `410` antes de consultar PostgreSQL.
 | P0 | No hay límite de frecuencia. Google Places, Maps y consultas ETA pueden consumirse sin cota. | Denegación de servicio y costos de terceros; OWASP API4. |
 | Resuelto en producción | `GET/HEAD /api/empresas/excel-template` responde 404 y `no-store` en producción antes del router Excel; `/api/test-location` ya fue eliminado. Partner continúa fuera de alcance. | La descarga auxiliar de Excel ya no expone superficie ni trabajo de CPU en producción; permanece disponible solo en desarrollo. |
 | Resuelto | Se deshabilitó `X-Powered-By` y se añadieron CSP progresiva, anti-clickjacking, `nosniff`, referrer/permissions policy y HSTS en producción. | La CSP continúa en Report-Only hasta medir incompatibilidades antes de hacerla coercitiva. |
-| P0 | JSON y formularios admiten 10 MB globalmente; no hay límites por endpoint ni para cabeceras/tiempos del servidor. | Agotamiento de memoria, conexiones lentas y event-loop ocupado. |
+| Parcial | Producción limita JSON a 256 KB, urlencoded a 64 KB, solicitudes a 30 s, cabeceras a 10 s, keep-alive a 5 s y 100 cabeceras. El arranque local permite hasta 5 MB JSON para preservar temporalmente imágenes base64 de Admin. | La frontera HTTP ya está acotada; faltan límites de upload y timeouts PostgreSQL/Cloudinary para cerrar SEC03. |
 | Resuelto | CORS usa allowlist y el arranque de producción falla si `FRONTEND_URL` falta o es inválida. | Evita ampliar orígenes por una configuración incompleta. |
 | Resuelto en producción | `/api/locations` leía y devolvía todas las agencias, horarios y reglas. El flujo público migró a `/api/catalog` y producción responde `410` antes de PostgreSQL; el adaptador continúa solo en desarrollo para Admin/Partner. | La lectura global dejó de ser una superficie pública; resta eliminar la compatibilidad local cuando se migren esas áreas. |
 | Parcial | Rutas ya resuelven IDs en batch y comparan `empresa_id`; permanece un fallback legacy acotado por nombre hasta completar SCALE03. | El camino canónico evita N×M, pero la compatibilidad debe retirarse tras probar paridad. |
@@ -345,6 +345,12 @@ Gate: la credencial anterior falla y el secret scan de árbol/historial está ve
 
 - [x] SEC02 Añadir headers/CSP progresiva, CORS fail-closed y errores JSON.
 - [ ] SEC03 Reducir cuerpos y fijar timeouts de Node/externos.
+  - [x] SEC03a: JSON 256 KB y urlencoded 64 KB en runtime normal; Node limita
+    solicitud/cabeceras/keep-alive a 30/10/5 s y 100 cabeceras. Overrides de env
+    son enteros acotados. Desarrollo local conserva temporalmente 5 MB JSON para
+    imágenes base64 de Admin; producción mantiene 256 KB.
+  - [ ] SEC03b: timeouts de consulta/transacción PostgreSQL.
+  - [ ] SEC03c: límites de upload, Cloudinary y cierre de timeouts externos.
 - [ ] SEC04 Rate limit por riesgo, con observación antes de bloqueo.
 - [x] SEC05 Inventariar OpenAPI/contratos, desactivar en producción
   `/api/test-location` y el Excel de Partner mientras no se utilicen, y probar que

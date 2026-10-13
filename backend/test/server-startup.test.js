@@ -35,7 +35,13 @@ test('success assigns db, listen, exact log with canonical port', async () => {
     assert.strictEqual(fakeApp.locals.db, fakeDb);
     assert.strictEqual(listenPort, '3000');
     assert.deepEqual(logs, [{ e: 'server_startup_success', c: 'none', f: { port: 3000 } }]);
-    assert.deepEqual(result, { fakeServer: true });
+    assert.deepEqual(result, {
+        fakeServer: true,
+        requestTimeout: 30_000,
+        headersTimeout: 10_000,
+        keepAliveTimeout: 5_000,
+        maxHeadersCount: 100
+    });
 });
 
 test('omits port from log if invalid, but still passes it to listen untouched', async () => {
@@ -44,7 +50,7 @@ test('omits port from log if invalid, but still passes it to listen untouched', 
         const logs = [];
         const fakeLogger = { info: (e, c, f) => logs.push({ e, c, f }) };
         let listenPort;
-        const fakeApp = { locals: {}, listen: (p, cb) => { listenPort = p; cb(); } };
+        const fakeApp = { locals: {}, listen: (p, cb) => { listenPort = p; cb(); return {}; } };
         
         await startServer({
             application: fakeApp,

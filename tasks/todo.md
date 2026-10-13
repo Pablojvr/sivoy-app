@@ -108,7 +108,10 @@ se activa después de corregir y medir consultas. No autoriza por sí solo un de
     planes sin full scan no justificado en 10k/100k puntos.
   - [x] Repositorio canónico acotado: 2 consultas por página y 1 por facetas.
   - [x] Prueba PostgreSQL reproducible en 10k/100k sin caché.
-  - [ ] Retirar la última lectura pública global mediante la migración de `/enviar`.
+  - [x] Migrar `/enviar`: la suite E2E confirma que el flujo público no solicita
+    `/api/locations` en móvil, tablet ni escritorio.
+  - [ ] Retirar el endpoint HTTP legacy `/api/locations` después de su ventana de
+    compatibilidad; mientras exista, todavía permite una lectura global manual.
   - Dependencias: SCALE01.
 - [ ] SCALE03 Migrar ETA y búsqueda a IDs y resolución batch.
   - Aceptación: compatibilidad se compara por `empresa_id`; no existen consultas
@@ -130,7 +133,7 @@ se activa después de corregir y medir consultas. No autoriza por sí solo un de
   - [ ] Completar comparación antes/después y normalización persistida si la
     medición demuestra que sigue siendo necesaria.
   - Dependencias: SCALE01–SCALE03; incorpora T14b.
-- [ ] SCALE05 Migrar el frontend a catálogo incremental.
+- [x] SCALE05 Migrar el frontend a catálogo incremental.
   - Aceptación: Inicio busca remotamente con debounce/cancelación, usa páginas y
     facetas y carga detalle al expandir; no descarga todo el catálogo al arrancar.
   - Verificación: unitarias, E2E del flujo público, red sin request global y
@@ -138,9 +141,13 @@ se activa después de corregir y medir consultas. No autoriza por sí solo un de
   - [x] Inicio y `/enviar` arrancan con catálogo acotado, sin `/api/locations`.
   - [x] Municipio usa facetas remotas, páginas por cursor y detalle bajo demanda.
   - [x] Deep-links de punto resuelven el detalle por identidad canónica.
-  - [ ] Migrar la resolución de rutas/orígenes a IDs batch y retirar el último
-    uso transitorio del modelo legacy.
-  - [ ] Añadir E2E de búsqueda, expansión, compartir y paginación.
+  - [x] Migrar la resolución de rutas/orígenes a IDs batch; el E2E comprueba los
+    IDs `POINT_AGENCIA_NORTE` → `POINT_AGENCIA_CENTRO` en el request real.
+  - [x] Añadir E2E de búsqueda, detalle bajo demanda, compartir, fallback de mapa
+    y paginación 20→25 sin duplicados en 386, 768, 1024 y 1440 px.
+  - Evidencia (2026-10-13): fixture canónico 17/17, frontend 358/358, build,
+    boundaries y colores verdes; Playwright 16/16 y cero requests a
+    `/api/locations` durante el flujo público.
   - Dependencias: SCALE01–SCALE03.
 
 - [ ] PERF01 Instrumentar pool, consultas, payload y RED por ruta.

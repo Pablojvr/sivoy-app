@@ -31,7 +31,7 @@ export default defineConfig({
     {
       name: 'fixture-api',
       command: 'node e2e/fixture-api.cjs',
-      url: 'http://127.0.0.1:3001/api/locations',
+      url: 'http://127.0.0.1:3001/api/catalog/points?limit=1',
       reuseExistingServer: !process.env['CI'],
       timeout: 30_000
     },

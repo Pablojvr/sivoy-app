@@ -7,6 +7,13 @@ const { registerObservabilityRoutes } = require('./src/core/observability/observ
 const { getDB, closeDB } = require('./src/config/database');
 const { createProcessLogger } = require('./src/core/observability/process-logger');
 const { registerShutdownHandlers } = require('./src/core/lifecycle/shutdown');
+const {
+    apiErrorHandler,
+    apiNotFound,
+    createCorsOptions,
+    createSecurityHeaders,
+    validateProductionCors
+} = require('./src/core/http/http-security');
 
 const empresasRoutes = require('./src/domains/empresas/empresas.routes');
 const ubicacionesRoutes = require('./src/domains/ubicaciones/ubicaciones.routes');
@@ -15,11 +22,9 @@ const mapasRoutes = require('./src/domains/mapas/mapas.routes');
 const catalogRoutes = require('./src/domains/catalog/catalog.routes');
 
 const app = express();
-const corsOptions = {
-    origin: process.env.FRONTEND_URL ? process.env.FRONTEND_URL.split(',') : '*',
-    optionsSuccessStatus: 200
-};
-app.use(cors(corsOptions));
+app.disable('x-powered-by');
+app.use(createSecurityHeaders(process.env));
+app.use(cors(createCorsOptions(process.env)));
 const observability = createHttpObservability();
 registerObservabilityRoutes(app, observability);
 app.use('/api', observability.middleware);
@@ -60,10 +65,13 @@ app.use('/api', rutasRoutes); // Includes /get-upcoming-routes, /search-routes-b
 app.use('/api', mapasRoutes); // Includes /resolve-maps-link
 app.use('/api/catalog', catalogRoutes);
 
+app.use('/api', apiNotFound);
+
 // Catch-all: serve Angular app for any non-API route
 app.get('/{*splat}', (req, res) => {
     res.sendFile(path.join(DIST_PATH, 'index.html'));
 });
+app.use(apiErrorHandler);
 
 function startServer(options = {}) {
     const application = options.application || app;
@@ -71,12 +79,13 @@ function startServer(options = {}) {
     const logger = options.logger || createProcessLogger({ entryPoint: 'server' });
     const port = options.port !== undefined ? options.port : (process.env.PORT || 3000);
     const exit = options.exit !== undefined ? options.exit : process.exit;
+    const env = options.env || process.env;
 
     if (typeof getDatabase !== 'function') throw new TypeError('getDatabase must be a function');
     if (typeof exit !== 'function') throw new TypeError('exit must be a function');
     if (typeof application.listen !== 'function') throw new TypeError('application.listen must be a function');
 
-    return Promise.resolve().then(() => getDatabase()).then((db) => {
+    return Promise.resolve().then(() => validateProductionCors(env)).then(() => getDatabase()).then((db) => {
         application.locals.db = db;
 
         const server = application.listen(port, () => {

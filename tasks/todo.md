@@ -87,7 +87,10 @@ se activa después de corregir y medir consultas. No autoriza por sí solo un de
 - T00 continúa como bloqueo crítico: rotar/revocar la credencial histórica y
   sanear el historial Git; no se duplica aquí como una segunda tarea.
 - [ ] SEC01 Verificar backup mediante una restauración aislada.
-- [ ] SEC02 Endurecer headers, CSP progresiva, CORS y errores JSON.
+- [x] SEC02 Endurecer headers, CSP progresiva, CORS y errores JSON.
+  - Evidencia: CSP Report-Only compatible con mapas, anti-clickjacking/nosniff,
+    HSTS solo en producción, CORS allowlist que falla cerrado y errores API JSON
+    genéricos. Prueba HTTP real y suite backend 550/550 verdes.
 - [ ] SEC03 Reducir cuerpos y fijar timeouts de Node, PostgreSQL y APIs externas.
 - [ ] SEC04 Aplicar rate limits por riesgo, primero en observación.
 - [ ] SEC05 Probar escrituras 403 y retirar de producción endpoints auxiliares de Partner/prueba.

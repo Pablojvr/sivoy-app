@@ -77,7 +77,7 @@ responde `410` antes de consultar PostgreSQL.
 |---|---|---|
 | P0 | Rotación/revocación y saneamiento histórico de la credencial PostgreSQL siguen pendientes (T00). | Acceso no autorizado aun cuando el árbol actual ya no exponga el valor. |
 | P0 | No hay límite de frecuencia. Google Places, Maps y consultas ETA pueden consumirse sin cota. | Denegación de servicio y costos de terceros; OWASP API4. |
-| P0 | `GET /api/empresas/excel-template` sigue público aunque Partner está fuera de alcance. `/api/test-location` ya fue eliminado. | El Excel aún mantiene superficie y trabajo de CPU innecesarios para el MVP público. |
+| Resuelto en producción | `GET/HEAD /api/empresas/excel-template` responde 404 y `no-store` en producción antes del router Excel; `/api/test-location` ya fue eliminado. Partner continúa fuera de alcance. | La descarga auxiliar de Excel ya no expone superficie ni trabajo de CPU en producción; permanece disponible solo en desarrollo. |
 | Resuelto | Se deshabilitó `X-Powered-By` y se añadieron CSP progresiva, anti-clickjacking, `nosniff`, referrer/permissions policy y HSTS en producción. | La CSP continúa en Report-Only hasta medir incompatibilidades antes de hacerla coercitiva. |
 | P0 | JSON y formularios admiten 10 MB globalmente; no hay límites por endpoint ni para cabeceras/tiempos del servidor. | Agotamiento de memoria, conexiones lentas y event-loop ocupado. |
 | Resuelto | CORS usa allowlist y el arranque de producción falla si `FRONTEND_URL` falta o es inválida. | Evita ampliar orígenes por una configuración incompleta. |
@@ -346,11 +346,13 @@ Gate: la credencial anterior falla y el secret scan de árbol/historial está ve
 - [x] SEC02 Añadir headers/CSP progresiva, CORS fail-closed y errores JSON.
 - [ ] SEC03 Reducir cuerpos y fijar timeouts de Node/externos.
 - [ ] SEC04 Rate limit por riesgo, con observación antes de bloqueo.
-- [ ] SEC05 Inventariar OpenAPI/contratos, desactivar en producción
+- [x] SEC05 Inventariar OpenAPI/contratos, desactivar en producción
   `/api/test-location` y el Excel de Partner mientras no se utilicen, y probar que
   toda escritura responde 403 en producción.
-  - Parcial: `/api/test-location` eliminado; escrituras 403 verificadas; el Excel
-    de Partner continúa pendiente.
+  - Evidencia: escrituras operativas `POST/PUT` responden 403 antes de parsers;
+    `/api/test-location` eliminado (404); `GET/HEAD /api/empresas/excel-template`
+    oculto en producción con 404 y `no-store` antes del router Excel. Partner
+    continúa fuera de alcance. Suite backend y pruebas de guardia verificadas.
 
 Gate: unitarias y contratos verdes; ZAP sin hallazgos altos; no se rompe MapLibre,
 Cloudinary ni el flujo Inicio → destino → compartir.

@@ -90,10 +90,14 @@ se activa después de corregir y medir consultas. No autoriza por sí solo un de
 - [x] SEC02 Endurecer headers, CSP progresiva, CORS y errores JSON.
   - Evidencia: CSP Report-Only compatible con mapas, anti-clickjacking/nosniff,
     HSTS solo en producción, CORS allowlist que falla cerrado y errores API JSON
-    genéricos. Prueba HTTP real y suite backend 550/550 verdes.
+    genéricos. Prueba HTTP real y suite backend 551/551 verdes.
 - [ ] SEC03 Reducir cuerpos y fijar timeouts de Node, PostgreSQL y APIs externas.
 - [ ] SEC04 Aplicar rate limits por riesgo, primero en observación.
-- [ ] SEC05 Probar escrituras 403 y retirar de producción endpoints auxiliares de Partner/prueba.
+- [x] SEC05 Probar escrituras 403 y retirar de producción endpoints auxiliares de Partner/prueba.
+  - Evidencia: escrituras operativas responden 403 antes de parsers en producción;
+    `/api/test-location` eliminado (404); `GET/HEAD /api/empresas/excel-template`
+    oculto en producción con 404 y `no-store`. Partner permanece fuera de alcance.
+    Pruebas HTTP en `backend/test/operational-write-guard.test.js`.
 
 - [x] SCALE01 Aprobar identidad y contrato canónico de catálogo.
   - Spec: [SCALE01-catalog-query-contract.md](specs/SCALE01-catalog-query-contract.md).

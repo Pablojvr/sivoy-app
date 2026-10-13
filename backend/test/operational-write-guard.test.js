@@ -13,7 +13,8 @@ async function request(server, method, path, body = '{invalid', contentType = 'a
         status: response.status,
         body: await response.text(),
         requestId: response.headers.get('x-request-id'),
-        cacheControl: response.headers.get('cache-control')
+        cacheControl: response.headers.get('cache-control'),
+        contentType: response.headers.get('content-type')
     };
 }
 
@@ -52,6 +53,17 @@ test('production disables only operational company and point writes before body 
 
     const preflight = await request(server, 'OPTIONS', '/api/empresas');
     assert.equal(preflight.status, 200, 'CORS preflight remains enabled');
+
+    const partnerTemplate = await request(server, 'GET', '/api/empresas/excel-template');
+    assert.equal(partnerTemplate.status, 404, 'the unused Partner download is hidden in production');
+    assert.deepEqual(JSON.parse(partnerTemplate.body), { error: 'API endpoint not found' });
+    assert.equal(partnerTemplate.cacheControl, 'no-store, no-cache, must-revalidate');
+
+    const partnerTemplateHead = await request(server, 'HEAD', '/api/empresas/excel-template');
+    assert.equal(partnerTemplateHead.status, 404, 'HEAD request is also hidden in production');
+    assert.equal(partnerTemplateHead.body, '');
+    assert.equal(partnerTemplateHead.cacheControl, 'no-store, no-cache, must-revalidate');
+    assert.match(partnerTemplateHead.requestId, /^[0-9a-f-]{36}$/i);
 });
 
 test('production retires the unbounded legacy catalog read before database access', async (t) => {
@@ -149,4 +161,8 @@ test('development keeps operational routes available', async (t) => {
 
     const removedDiagnostic = await request(server, 'GET', '/api/test-location');
     assert.equal(removedDiagnostic.status, 404);
+
+    const partnerTemplate = await request(server, 'GET', '/api/empresas/excel-template');
+    assert.equal(partnerTemplate.status, 200, 'Partner remains available in development');
+    assert.match(partnerTemplate.contentType, /^application\/vnd\.openxmlformats-officedocument\.spreadsheetml\.sheet/);
 });

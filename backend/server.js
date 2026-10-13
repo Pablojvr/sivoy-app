@@ -50,7 +50,14 @@ function retireLegacyCatalogRead(req, res, next) {
     });
 }
 
+function hideProductionPartnerSurface(req, res, next) {
+    if (!isProductionEnvironment()) return next();
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+    return res.status(404).json({ error: 'API endpoint not found' });
+}
+
 app.get('/api/locations', retireLegacyCatalogRead);
+app.get('/api/empresas/excel-template', hideProductionPartnerSurface);
 app.post('/api/empresas', restrictOperationalWrites);
 app.put('/api/empresas/:id', restrictOperationalWrites);
 app.post('/api/agencias', restrictOperationalWrites);

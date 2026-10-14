@@ -206,6 +206,107 @@ Objetivo: reemplazar estilos globales impredecibles por una capa visual mantenib
 Salida: ninguna regresión visual en los viewports objetivo y reducción medible de
 CSS global. Esta fase es delegable parcialmente a Antigravity.
 
+### Subplan UI-REB-01 — `native-visual-foundation`
+
+Estado: propuesta técnica pendiente de aprobación humana. La especificación
+aprobada es `tasks/specs/UI-REB-01-native-visual-foundation.md`. Este subplan
+extiende `MVP06`; no reactiva los paquetes arquitectónicos pospuestos ni autoriza
+cambios en producción.
+
+#### Decisiones de implementación
+
+- Mantener `styles.css` como único punto de entrada global y hacer que importe
+  `styles/native-tokens.css` antes de `styles/native-primitives.css`.
+- Introducir los roles `--si-*` de forma aditiva. Los nombres legacy continúan
+  disponibles como aliases hasta que las pantallas consumidoras sean migradas.
+- Extraer la apariencia de los primitives sin renombrar selectores, inputs,
+  variantes ni atributos `data-*`; la API Angular permanece estable.
+- Retirar la solicitud remota de Manrope y usar exclusivamente la pila nativa
+  aprobada. No se agrega fuente, dependencia ni framework visual.
+- Tratar los cinco viewports, teclado, contraste, zoom y reducción de movimiento
+  como gate de aceptación, no como una fase de pulido opcional.
+
+#### Grafo de dependencias
+
+```text
+Caracterización y contratos actuales
+                |
+                v
+       Tokens nativos + aliases
+                |
+                v
+      Primitives visuales `si-*`
+                |
+                v
+     Auditoría visual + documentación
+                |
+                v
+   Habilitar módulos UI-REB posteriores
+```
+
+La extracción de primitives depende de que los tokens y aliases estén estables.
+La validación final depende de ambas capas. El borrador de documentación puede
+prepararse en paralelo con los tokens, pero se integra solo después de auditar los
+valores realmente implementados.
+
+#### Incrementos previstos
+
+1. **Caracterizar el contrato vigente.** Capturar los tokens, aliases, selectores
+   y estados públicos que ya consumen las pantallas; ampliar primero las pruebas
+   de contrato para que una extracción accidental o un cambio de API falle antes
+   de alterar estilos.
+2. **Instalar la capa de tokens nativos.** Crear la fuente única para tipografía,
+   color, espacios, geometría, sombras, movimiento y safe areas; conectarla a
+   `styles.css`, redirigir aliases legacy y actualizar el contrato de colores.
+3. **Extraer y recalibrar primitives.** Mover las reglas `.si-*` a su hoja dedicada
+   y aplicar el contrato aprobado a Button, IconButton, Input, Chip, Card, Sheet y
+   Modal, conservando DOM y comportamiento. Los tests cubren variantes, estados,
+   tamaño táctil, foco, disabled/busy y nombres accesibles.
+4. **Cerrar el fundamento.** Documentar uso y anti-patrones, ejecutar contratos,
+   suite y build, y revisar visualmente las pantallas consumidoras actuales en los
+   cinco viewports antes de habilitar `native-app-shell`.
+
+Cada incremento se descompondrá en tareas S/M de máximo cinco archivos después de
+aprobar este plan. Cada tarea dejará build verde y tendrá un commit reversible;
+`tasks/todo.md` se actualizará en la fase de tareas, no durante esta revisión.
+
+#### Checkpoints
+
+- **Checkpoint A — contrato protegido:** las pruebas fallan si desaparece un token
+  obligatorio, un alias compatible o un estado público de los primitives.
+- **Checkpoint B — tokens integrados:** `check:css-colors`, `check:boundaries`,
+  suite completa y build verdes; cero peticiones a Google Fonts.
+- **Checkpoint C — primitives integrados:** API `.si-*` intacta, objetivos táctiles
+  de 44 px, foco visible y `prefers-reduced-motion` verificados.
+- **Checkpoint D — aceptación visual:** 320×568, 386×912, 768×1024, 1024×900 y
+  1440×900 sin scroll horizontal, contenido tapado ni regresión del flujo público;
+  aprobación humana antes de continuar al siguiente módulo.
+
+#### Delegación y auditoría
+
+- Antigravity puede ejecutar la extracción mecánica de CSS o el reemplazo de
+  valores por tokens en un encargo cerrado de hasta cinco archivos.
+- Codex conserva la definición del contrato, revisa el diff completo, comprueba
+  consumidores y vuelve a ejecutar todas las validaciones; el reporte del agente
+  no sustituye evidencia local.
+- Cambios Angular de API, estructura DOM, navegación, datos, dependencias, Git o
+  despliegue quedan fuera de la delegación de este módulo.
+
+#### Riesgos específicos
+
+| Riesgo | Impacto | Mitigación |
+|---|---|---|
+| La pila nativa cambia métricas y saltos de línea | Alto | Probar nombres largos y 320/386 px antes de aceptar tokens |
+| El orden de imports altera especificidad | Alto | Tokens primero, primitives después y comparación visual de consumidores |
+| Un alias legacy deja de resolver | Alto | Pruebas de contrato y eliminación únicamente con cero consumidores confirmados |
+| La extracción duplica reglas o aumenta CSS | Medio | Búsqueda de selectores, diff de bundle y borrado solo tras suite verde |
+| Estados suaves pierden contraste | Alto | Medición AA y revisión de foco/iconos en cada tono |
+| Una animación afecta accesibilidad o rendimiento | Medio | Solo opacity/transform y gate explícito de reduced motion |
+
+Rollback: revertir en orden inverso el commit de primitives y luego el commit de
+tokens. Como templates y contratos Angular no cambian, el flujo vuelve a la hoja
+global anterior sin migración de datos ni intervención de backend.
+
 ## Fase 5 — Flujo de búsqueda como feature independiente
 
 Objetivo: encapsular destino → origen → rutas → compartir.

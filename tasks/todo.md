@@ -41,20 +41,20 @@ a producto y experiencia pública; Partner continúa fuera de alcance.
   Spec: `tasks/specs/UI-REB-01-native-visual-foundation.md`.
   Plan: `tasks/plan.md`, Fase 4, subplan UI-REB-01.
 
-  - [ ] UI-REB-01a Instalar el contrato de tokens nativos.
+  - [x] UI-REB-01a Instalar el contrato de tokens nativos.
     - Descripción: introducir la fuente única de tokens semánticos, mantener los
       aliases legacy y proteger el orden de imports y la eliminación de Manrope.
     - Criterios de aceptación:
-      - [ ] `native-tokens.css` contiene la escala aprobada de tipografía, color,
+      - [x] `native-tokens.css` contiene la escala aprobada de tipografía, color,
         espacios, radios, elevación, movimiento y safe areas.
-      - [ ] `styles.css` importa tokens antes de primitives, no solicita fuentes
+      - [x] `styles.css` importa tokens antes de primitives, no solicita fuentes
         remotas y los aliases existentes resuelven hacia roles `--si-*`.
-      - [ ] El contrato automatizado falla al faltar un token/alias requerido o
+      - [x] El contrato automatizado falla al faltar un token/alias requerido o
         reaparecer una fuente remota, y acepta únicamente los colores aprobados.
     - Verificación:
-      - [ ] `cd frontend && npm run check:css-colors`
-      - [ ] `cd frontend && npm run check:boundaries`
-      - [ ] `cd frontend && npm run test:ci && npm run build`
+      - [x] `cd frontend && npm run check:css-colors`
+      - [x] `cd frontend && npm run check:boundaries`
+      - [x] `cd frontend && npm run test:ci && npm run build`
     - Dependencias: spec y plan UI-REB-01 aprobados.
     - Archivos previstos:
       - `frontend/src/styles/native-tokens.css`
@@ -63,6 +63,9 @@ a producto y experiencia pública; Partner continúa fuera de alcance.
       - `frontend/scripts/check-css-color-contract.test.mjs`
     - Alcance estimado: M, cuatro archivos.
     - Ejecución: Codex; las decisiones del contrato no se delegan.
+    - Evidencia 2026-10-14: contrato 15/15, boundaries 31/31, frontend
+      358/358 y build de producción verdes. Smoke local sin errores de consola ni
+      desbordamiento horizontal; fondo `rgb(244, 244, 241)` y pila nativa activos.
 
   - [ ] UI-REB-01b Caracterizar y completar la API presentacional de primitives.
     - Descripción: fijar mediante pruebas los selectores, inputs, variantes,

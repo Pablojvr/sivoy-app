@@ -476,3 +476,101 @@ test('CSS Color Contract - 14. un subdirectorio ilegible no se omite silenciosam
     fs.rmSync(tempDir, { recursive: true, force: true });
   }
 });
+
+test('CSS Color Contract - 15. la base nativa exige tokens, aliases y tipografia local', () => {
+  const stylesPath = path.join(frontendDir, 'src', 'styles.css');
+  const tokensPath = path.join(frontendDir, 'src', 'styles', 'native-tokens.css');
+
+  assert.ok(fs.existsSync(tokensPath), 'native-tokens.css must be the single token source');
+
+  const styles = fs.readFileSync(stylesPath, 'utf8');
+  const tokens = fs.readFileSync(tokensPath, 'utf8');
+  const { rootCustomProperties } = extractColorsAndTokens(tokens);
+  const requiredTokens = [
+    '--si-color-canvas',
+    '--si-color-surface',
+    '--si-color-ink',
+    '--si-color-ink-muted',
+    '--si-color-border',
+    '--si-color-brand',
+    '--si-color-brand-strong',
+    '--si-color-brand-soft',
+    '--si-color-success-ink',
+    '--si-color-success-soft',
+    '--si-color-info-ink',
+    '--si-color-info-soft',
+    '--si-color-warning-ink',
+    '--si-color-warning-soft',
+    '--si-color-danger-ink',
+    '--si-color-danger-soft',
+    '--si-font-text',
+    '--si-font-display',
+    '--si-type-page',
+    '--si-type-title',
+    '--si-type-section',
+    '--si-type-card',
+    '--si-type-body',
+    '--si-type-meta',
+    '--si-space-1',
+    '--si-space-2',
+    '--si-space-3',
+    '--si-space-4',
+    '--si-space-5',
+    '--si-space-6',
+    '--si-space-8',
+    '--si-space-10',
+    '--si-radius-control',
+    '--si-radius-content',
+    '--si-radius-card',
+    '--si-radius-sheet',
+    '--si-radius-round',
+    '--si-shadow-level-0',
+    '--si-shadow-level-1',
+    '--si-shadow-level-2',
+    '--si-shadow-sheet',
+    '--si-focus-ring',
+    '--si-motion-feedback',
+    '--si-motion-standard',
+    '--si-motion-sheet',
+    '--si-ease-native',
+    '--si-safe-area-top',
+    '--si-safe-area-bottom'
+  ];
+
+  for (const token of requiredTokens) {
+    assert.ok(rootCustomProperties.includes(token), `Missing required native token ${token}`);
+  }
+
+  const requiredAliases = new Map([
+    ['--primary', '--si-color-brand'],
+    ['--primary-dark', '--si-color-brand-strong'],
+    ['--bg-color', '--si-color-canvas'],
+    ['--surface-solid', '--si-color-surface'],
+    ['--text-main', '--si-color-ink'],
+    ['--text-muted', '--si-color-ink-muted'],
+    ['--border', '--si-color-border'],
+    ['--font-family', '--si-font-text'],
+    ['--motion-fast', '--si-motion-feedback'],
+    ['--motion-standard', '--si-motion-standard'],
+    ['--motion-sheet', '--si-motion-sheet'],
+    ['--ease-out', '--si-ease-native']
+  ]);
+
+  for (const [alias, target] of requiredAliases) {
+    const escapedAlias = alias.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const escapedTarget = target.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    assert.match(
+      tokens,
+      new RegExp(`${escapedAlias}\\s*:\\s*var\\(${escapedTarget}\\)\\s*;`),
+      `${alias} must resolve directly to ${target}`
+    );
+  }
+
+  assert.match(tokens, /--si-font-text\s*:[^;]*-apple-system[^;]*BlinkMacSystemFont[^;]*system-ui[^;]*;/);
+  assert.doesNotMatch(styles + tokens, /fonts\.googleapis\.com|@import\s+url\(/i);
+
+  const tokenImportIndex = styles.indexOf("@import './styles/native-tokens.css';");
+  const primitiveRuleIndex = styles.indexOf('.si-button');
+  assert.ok(tokenImportIndex >= 0, 'styles.css must import native-tokens.css');
+  assert.ok(primitiveRuleIndex < 0 || tokenImportIndex < primitiveRuleIndex, 'tokens must load before primitive rules');
+});

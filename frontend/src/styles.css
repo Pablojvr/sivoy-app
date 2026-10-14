@@ -1,50 +1,10 @@
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap');
-
-:root {
-  /* BRAND MANUAL CSS VARIABLES */
-  --primary: #F45B78;
-  --primary-dark: #D94262;
-  --signal-lime: #B8EE4A;
-  --signal-blue: #A9DDF5;
-  --signal-amber: #FFD18A;
-  --bg-color: #F2F4F2;
-  --surface: rgba(255, 255, 255, 0.85);
-  --white: #FFFFFF;
-  --surface-solid: var(--white);
-  --text-main: #1D1E1C;
-  --text-muted: #626760;
-  --border: rgba(29, 30, 28, 0.10);
-  --radius-lg: 28px;
-  --radius-md: 16px;
-  --radius-sm: 8px;
-  --radius-pill: 100px;
-  --radius-full: 999px;
-  --shadow-sm: 0 4px 14px rgba(29, 30, 28, 0.06);
-  --shadow-md: 0 18px 48px rgba(29, 30, 28, 0.12);
-  --shadow-lg: 0 22px 64px rgba(29, 30, 28, 0.17);
-  --focus-ring: 0 0 0 4px rgba(244, 91, 120, 0.22);
-  --danger: #C93655;
-  --success: #347A35;
-
-  /* Aliases for variables used in CSS but previously undefined */
-  --border-color: rgba(0, 0, 0, 0.08);
-  --surface-color: var(--surface);
-  --surface-bg: var(--bg-color);
-  --text-color: var(--text-main);
-  --surface-hover: #f1f5f9;
-
-  --font-family: 'Manrope', system-ui, sans-serif;
-  --motion-fast: 180ms;
-  --motion-standard: 220ms;
-  --motion-sheet: 260ms;
-  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
-}
+@import './styles/native-tokens.css';
 
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  font-family: var(--font-family);
+  font-family: var(--si-font-text);
 }
 
 html, body {
@@ -54,8 +14,8 @@ html, body {
   position: fixed;
   margin: 0;
   padding: 0;
-  background-color: var(--bg-color, #F7F7F7);
-  color: var(--text-main, #222222);
+  background-color: var(--si-color-canvas);
+  color: var(--si-color-ink);
 }
 
 /* SiVoy UI primitives: behavioral classes are attached by standalone directives. */

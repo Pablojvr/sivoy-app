@@ -1,0 +1,94 @@
+:root {
+  /* Native type families and scale. */
+  --si-font-text: -apple-system, BlinkMacSystemFont, "SF Pro Text", Inter, system-ui, sans-serif;
+  --si-font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", Inter, system-ui, sans-serif;
+  --si-type-page: 700 2rem/2.25rem var(--si-font-display);
+  --si-type-title: 700 1.5rem/1.75rem var(--si-font-display);
+  --si-type-section: 700 1.25rem/1.5rem var(--si-font-display);
+  --si-type-card: 650 1.0625rem/1.375rem var(--si-font-text);
+  --si-type-body: 400 0.9375rem/1.375rem var(--si-font-text);
+  --si-type-meta: 500 0.8125rem/1.125rem var(--si-font-text);
+
+  /* Semantic color roles. */
+  --si-color-canvas: #F4F4F1;
+  --si-color-surface: #FFFFFF;
+  --si-color-ink: #171817;
+  --si-color-ink-muted: #626760;
+  --si-color-border: rgba(23, 24, 23, 0.10);
+  --si-color-brand: #F45B78;
+  --si-color-brand-strong: #D94262;
+  --si-color-brand-soft: #FFF0F3;
+  --si-color-success-ink: #41651B;
+  --si-color-success-soft: #F2F8E5;
+  --si-color-info-ink: #21657D;
+  --si-color-info-soft: #EAF7FC;
+  --si-color-warning-ink: #754D0C;
+  --si-color-warning-soft: #FFF7E8;
+  --si-color-danger-ink: #C93655;
+  --si-color-danger-soft: #FFF1F4;
+
+  /* Spacing and geometry. */
+  --si-space-1: 0.25rem;
+  --si-space-2: 0.5rem;
+  --si-space-3: 0.75rem;
+  --si-space-4: 1rem;
+  --si-space-5: 1.25rem;
+  --si-space-6: 1.5rem;
+  --si-space-8: 2rem;
+  --si-space-10: 2.5rem;
+  --si-radius-control: 0.75rem;
+  --si-radius-content: 1rem;
+  --si-radius-card: 1.375rem;
+  --si-radius-sheet: 1.75rem;
+  --si-radius-round: 999px;
+
+  /* Elevation and focus. */
+  --si-shadow-level-0: none;
+  --si-shadow-level-1: 0 1px 2px rgba(23, 24, 23, 0.06);
+  --si-shadow-level-2: 0 12px 32px rgba(23, 24, 23, 0.10);
+  --si-shadow-sheet: 0 -16px 48px rgba(23, 24, 23, 0.14);
+  --si-focus-ring: 0 0 0 4px rgba(244, 91, 120, 0.22);
+
+  /* Motion and device insets. */
+  --si-motion-feedback: 160ms;
+  --si-motion-standard: 240ms;
+  --si-motion-sheet: 320ms;
+  --si-ease-native: cubic-bezier(0.22, 1, 0.36, 1);
+  --si-safe-area-top: env(safe-area-inset-top, 0px);
+  --si-safe-area-bottom: env(safe-area-inset-bottom, 0px);
+
+  /* Temporary compatibility aliases. Remove only after zero consumers remain. */
+  --primary: var(--si-color-brand);
+  --primary-dark: var(--si-color-brand-strong);
+  --signal-lime: var(--si-color-success-soft);
+  --signal-blue: var(--si-color-info-soft);
+  --signal-amber: var(--si-color-warning-soft);
+  --bg-color: var(--si-color-canvas);
+  --surface: color-mix(in srgb, var(--si-color-surface) 85%, transparent);
+  --white: var(--si-color-surface);
+  --surface-solid: var(--si-color-surface);
+  --text-main: var(--si-color-ink);
+  --text-muted: var(--si-color-ink-muted);
+  --border: var(--si-color-border);
+  --radius-lg: var(--si-radius-sheet);
+  --radius-md: var(--si-radius-content);
+  --radius-sm: var(--si-radius-control);
+  --radius-pill: var(--si-radius-round);
+  --radius-full: var(--si-radius-round);
+  --shadow-sm: var(--si-shadow-level-1);
+  --shadow-md: var(--si-shadow-level-2);
+  --shadow-lg: var(--si-shadow-sheet);
+  --focus-ring: var(--si-focus-ring);
+  --danger: var(--si-color-danger-ink);
+  --success: var(--si-color-success-ink);
+  --border-color: var(--si-color-border);
+  --surface-color: var(--surface);
+  --surface-bg: var(--si-color-canvas);
+  --text-color: var(--si-color-ink);
+  --surface-hover: color-mix(in srgb, var(--si-color-ink) 4%, var(--si-color-surface));
+  --font-family: var(--si-font-text);
+  --motion-fast: var(--si-motion-feedback);
+  --motion-standard: var(--si-motion-standard);
+  --motion-sheet: var(--si-motion-sheet);
+  --ease-out: var(--si-ease-native);
+}

@@ -360,8 +360,11 @@ Gate: la credencial anterior falla y el secret scan de árbol/historial está ve
     - [x] SEC03c-A: logos multipart limitados a 2 MB (override 64 KB–10 MB),
       un archivo, diez campos y doce partes; solo JPEG/PNG/WebP con extensión
       coherente. Errores seguros 400/413/415 probados sobre HTTP real.
-    - [ ] SEC03c-B: límites y errores tipados para Cloudinary/Places; conservar
-      los límites SSRF, redirecciones, cuerpo y timeout ya presentes en Maps.
+    - [x] SEC03c-B1: Data URI limitadas a JPEG/PNG/WebP y 3 MiB (override
+      64 KiB–5 MiB); Cloudinary con timeout SDK de 8 s (2–30 s) y errores
+      seguros 400/502/504, sin cambiar respuestas exitosas.
+    - [ ] SEC03c-B2: límites de entrada/respuesta y errores tipados para Places;
+      conservar los límites SSRF, redirecciones, cuerpo y timeout de Maps.
 - [ ] SEC04 Rate limit por riesgo, con observación antes de bloqueo.
 - [x] SEC05 Inventariar OpenAPI/contratos, desactivar en producción
   `/api/test-location` y el Excel de Partner mientras no se utilicen, y probar que

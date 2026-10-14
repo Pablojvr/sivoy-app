@@ -95,7 +95,7 @@ test('Ubicaciones Service', async (t) => {
             repo: dummyRepo, cloudinary: {}, logger: { warn: () => {} }, env: { CLOUDINARY_URL: 'yes' }, idClock: () => 1
         });
         
-        await assert.rejects(svc.updateLocation('loc1', { imagen_referencia: 'data:image/png;base64,123' }), /cloudinary.uploader.upload is not a function/);
+        await assert.rejects(svc.updateLocation('loc1', { imagen_referencia: 'data:image/png;base64,MTIz' }), /cloudinary.uploader.upload is not a function/);
     });
     
     await t.test('createAgencia validates cloudinary.uploader.upload exists before uploading', async () => {
@@ -104,7 +104,7 @@ test('Ubicaciones Service', async (t) => {
             repo: dummyRepo, cloudinary: {}, logger: { warn: () => {} }, env: { CLOUDINARY_URL: 'yes' }, idClock: () => 1
         });
         
-        await assert.rejects(svc.createAgencia({ nombre_destino: 'x', empresa_id: '1', tipo: 'y', imagen_referencia: 'data:image/png;base64,123' }), /cloudinary.uploader.upload is not a function/);
+        await assert.rejects(svc.createAgencia({ nombre_destino: 'x', empresa_id: '1', tipo: 'y', imagen_referencia: 'data:image/png;base64,MTIz' }), /cloudinary.uploader.upload is not a function/);
     });
 
     await t.test('Isolation: process.env has CLOUDINARY_URL but injected env does not -> no upload and warning', async (t) => {
@@ -140,11 +140,11 @@ test('Ubicaciones Service', async (t) => {
             idClock: () => 123
         });
 
-        const res = await svc.updateLocation('loc1', { imagen_referencia: 'data:image/png;base64,123' });
+        const res = await svc.updateLocation('loc1', { imagen_referencia: 'data:image/png;base64,MTIz' });
         assert.strictEqual(res, true);
         assert.strictEqual(loggedEvent, 'cloudinary_config_missing');
         assert.strictEqual(loggedCode, 'configuration_missing');
-        assert.strictEqual(updateChanges.imagen_referencia, 'data:image/png;base64,123'); // Should preserve raw base64
+        assert.strictEqual(updateChanges.imagen_referencia, 'data:image/png;base64,MTIz'); // Should preserve raw base64
     });
 
     await t.test('Isolation: process.env lacks value but injected env has it -> upload', async (t) => {
@@ -181,10 +181,10 @@ test('Ubicaciones Service', async (t) => {
             idClock: () => 123
         });
 
-        const res = await svc.updateLocation('loc1', { imagen_referencia: 'data:image/png;base64,123' });
+        const res = await svc.updateLocation('loc1', { imagen_referencia: 'data:image/png;base64,MTIz' });
         assert.strictEqual(res, true);
-        assert.strictEqual(uploadedImage, 'data:image/png;base64,123');
-        assert.deepStrictEqual(uploadOptions, { folder: 'sivoy_agencias' });
+        assert.strictEqual(uploadedImage, 'data:image/png;base64,MTIz');
+        assert.deepStrictEqual(uploadOptions, { folder: 'sivoy_agencias', timeout: 8000 });
         assert.strictEqual(updateChanges.imagen_referencia, 'https://secure.url/image2.png');
     });
 
@@ -226,14 +226,14 @@ test('Ubicaciones Service', async (t) => {
             lat: 10,
             lng: 20,
             horarios: [{ day: 'Mon' }],
-            imagen_referencia: 'data:image/png;base64,abc'
+            imagen_referencia: 'data:image/png;base64,YWJj'
         };
 
         const id = await svc.createAgencia(payload);
         assert.strictEqual(id, 'mi_agencia__999');
         assert.strictEqual(createdId, 'mi_agencia__999');
-        assert.strictEqual(uploadedImage, 'data:image/png;base64,abc');
-        assert.deepStrictEqual(uploadOptions, { folder: 'sivoy_agencias' });
+        assert.strictEqual(uploadedImage, 'data:image/png;base64,YWJj');
+        assert.deepStrictEqual(uploadOptions, { folder: 'sivoy_agencias', timeout: 8000 });
         assert.deepStrictEqual(createdPayload, {
             nombre_destino: 'Mi Agencia!',
             tipo: 'Agencia',
@@ -285,6 +285,73 @@ test('Ubicaciones Service', async (t) => {
         assert.strictEqual(loggedCode, 'invalid_schedule_data');
         assert.deepStrictEqual(createdPayload.horariosArr, []); // paridad
     });
+
+    await t.test('rechaza Data URI inseguro o demasiado grande antes de Cloudinary y repositorio', async () => {
+        let uploads = 0;
+        let writes = 0;
+        const svc = ubicacionesService.createUbicacionesService({
+            repo: {
+                getEmpresaNameById: async () => 'empresa',
+                createAgencia: async () => { writes++; }
+            },
+            cloudinary: { uploader: { upload: async () => { uploads++; } } },
+            logger: { warn: () => {} },
+            env: {
+                CLOUDINARY_URL: 'configured',
+                CLOUDINARY_MAX_DATA_URI_BYTES: '65536'
+            },
+            idClock: () => 1
+        });
+
+        for (const imagen_referencia of [
+            'data:image/svg+xml;base64,PHN2Zz4=',
+            'data:text/html;base64,PHNjcmlwdD4=',
+            'data:image/png;base64,A==',
+            `data:image/png;base64,${'A'.repeat(65536)}`
+        ]) {
+            await assert.rejects(
+                svc.createAgencia({ nombre_destino: 'x', empresa_id: '1', tipo: 'y', imagen_referencia }),
+                (error) => error.statusCode === 400
+                    && error.code === 'INVALID_IMAGE_DATA'
+                    && error.message === 'Invalid image format or size'
+            );
+        }
+        assert.equal(uploads, 0);
+        assert.equal(writes, 0);
+    });
+
+    await t.test('acota timeout Cloudinary y traduce timeout/upstream sin filtrar error original', async () => {
+        const create = (upload, env = {}) => ubicacionesService.createUbicacionesService({
+            repo: { updateLocation: async () => true },
+            cloudinary: { uploader: { upload } },
+            logger: { warn: () => {} },
+            env: { CLOUDINARY_URL: 'configured', ...env },
+            idClock: () => 1
+        });
+        let receivedOptions;
+        await create(async (image, options) => {
+            receivedOptions = options;
+            return { secure_url: 'https://example.test/image.png' };
+        }, { CLOUDINARY_TIMEOUT_MS: '2000' }).updateLocation('loc', {
+            imagen_referencia: 'data:image/png;base64,AA=='
+        });
+        assert.deepEqual(receivedOptions, { folder: 'sivoy_agencias', timeout: 2000 });
+
+        await assert.rejects(
+            create(async () => { throw Object.assign(new Error('socket ETIMEDOUT secret'), { code: 'ETIMEDOUT' }); })
+                .updateLocation('loc', { imagen_referencia: 'data:image/png;base64,AA==' }),
+            (error) => error.statusCode === 504
+                && error.code === 'CLOUDINARY_TIMEOUT'
+                && error.message === 'Image upload service timed out'
+        );
+        await assert.rejects(
+            create(async () => { throw new Error('upstream secret'); })
+                .updateLocation('loc', { imagen_referencia: 'data:image/png;base64,AA==' }),
+            (error) => error.statusCode === 502
+                && error.code === 'CLOUDINARY_UPSTREAM_ERROR'
+                && error.message === 'Image upload service failed'
+        );
+    });
     
     await t.test('logger failures do not alter service result', async () => {
         let createdPayload;
@@ -311,13 +378,13 @@ test('Ubicaciones Service', async (t) => {
             empresa_id: 'emp1',
             tipo: 'Agencia',
             horarios: 'invalid-json',
-            imagen_referencia: 'data:image/png;base64,123'
+            imagen_referencia: 'data:image/png;base64,MTIz'
         };
 
         const id = await svc.createAgencia(payload);
         assert.strictEqual(id, 'destino3_111');
         assert.deepStrictEqual(createdPayload.horariosArr, []);
-        assert.strictEqual(createdPayload.imagen_referencia, 'data:image/png;base64,123');
+        assert.strictEqual(createdPayload.imagen_referencia, 'data:image/png;base64,MTIz');
     });
 
     await t.test('updateLocation complete payload preserves original and maps arguments exactly', async () => {

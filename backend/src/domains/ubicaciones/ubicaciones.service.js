@@ -2,6 +2,23 @@ const defaultRepo = require('./ubicaciones.repository');
 const defaultCloudinary = require('cloudinary').v2;
 const { createProcessLogger } = require('../../core/observability/process-logger');
 
+const DATA_IMAGE_PATTERN = /^data:image\/(?:jpeg|png|webp);base64,(?=[A-Za-z0-9+/])(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/;
+
+function boundedEnvInteger(value, fallback, minimum, maximum) {
+    if (typeof value !== 'string' || !/^[1-9]\d*$/.test(value)) return fallback;
+    const parsed = Number(value);
+    return Number.isSafeInteger(parsed) && parsed >= minimum && parsed <= maximum
+        ? parsed
+        : fallback;
+}
+
+function createServiceError(message, statusCode, code) {
+    const error = new Error(message);
+    error.statusCode = statusCode;
+    error.code = code;
+    return error;
+}
+
 function createUbicacionesService(options) {
     if (!options || typeof options !== 'object') throw new Error("Missing options");
     const { repo, cloudinary, logger, env, idClock } = options;
@@ -11,12 +28,52 @@ function createUbicacionesService(options) {
     if (typeof logger.warn !== 'function') throw new Error("logger.warn is not a function");
     if (!env || typeof env !== 'object') throw new Error("Missing env");
     if (typeof idClock !== 'function') throw new Error("idClock is not a function");
+    const cloudinaryTimeoutMs = boundedEnvInteger(env.CLOUDINARY_TIMEOUT_MS, 8000, 2000, 30000);
+    const maxDataUriBytes = boundedEnvInteger(
+        env.CLOUDINARY_MAX_DATA_URI_BYTES,
+        3145728,
+        65536,
+        5242880
+    );
 
     const safeLog = (level, event, code) => {
         try {
             logger[level](event, code);
         } catch (e) {}
     };
+
+    async function uploadReferenceImage(value) {
+        if (typeof value !== 'string' || !value.startsWith('data:')) return value;
+        if (Buffer.byteLength(value, 'utf8') > maxDataUriBytes || !DATA_IMAGE_PATTERN.test(value)) {
+            throw createServiceError('Invalid image format or size', 400, 'INVALID_IMAGE_DATA');
+        }
+        if (!env.CLOUDINARY_URL) {
+            safeLog('warn', 'cloudinary_config_missing', 'configuration_missing');
+            return value;
+        }
+        if (typeof cloudinary.uploader?.upload !== 'function') {
+            throw new Error("cloudinary.uploader.upload is not a function");
+        }
+        try {
+            const response = await cloudinary.uploader.upload(value, {
+                folder: 'sivoy_agencias',
+                timeout: cloudinaryTimeoutMs
+            });
+            if (typeof response?.secure_url !== 'string' || !response.secure_url) {
+                throw new Error('Cloudinary response missing secure URL');
+            }
+            return response.secure_url;
+        } catch (error) {
+            const code = typeof error?.code === 'string' ? error.code.toUpperCase() : '';
+            const message = typeof error?.message === 'string' ? error.message : '';
+            const timedOut = ['ETIMEDOUT', 'ESOCKETTIMEDOUT', 'ECONNABORTED'].includes(code)
+                || /timed?\s*out|timeout/i.test(message);
+            if (timedOut) {
+                throw createServiceError('Image upload service timed out', 504, 'CLOUDINARY_TIMEOUT');
+            }
+            throw createServiceError('Image upload service failed', 502, 'CLOUDINARY_UPSTREAM_ERROR');
+        }
+    }
 
     async function getAllLocations() {
         if (typeof repo.getAllLocations !== 'function') throw new Error("repo.getAllLocations is not a function");
@@ -50,17 +107,7 @@ function createUbicacionesService(options) {
             if (ubicacion.lng) changes.lng = ubicacion.lng;
         }
 
-        if (imagen_referencia && imagen_referencia.startsWith('data:image')) {
-            if (!env.CLOUDINARY_URL) {
-                safeLog('warn', 'cloudinary_config_missing', 'configuration_missing');
-            } else {
-                if (typeof cloudinary.uploader?.upload !== 'function') throw new Error("cloudinary.uploader.upload is not a function");
-                const uploadResponse = await cloudinary.uploader.upload(imagen_referencia, {
-                    folder: 'sivoy_agencias'
-                });
-                imagen_referencia = uploadResponse.secure_url;
-            }
-        }
+        imagen_referencia = await uploadReferenceImage(imagen_referencia);
 
         if (imagen_referencia) {
             changes.imagen_referencia = imagen_referencia;
@@ -83,17 +130,7 @@ function createUbicacionesService(options) {
             throw new Error("Missing required fields");
         }
 
-        if (imagen_referencia && imagen_referencia.startsWith('data:image')) {
-            if (!env.CLOUDINARY_URL) {
-                safeLog('warn', 'cloudinary_config_missing', 'configuration_missing');
-            } else {
-                if (typeof cloudinary.uploader?.upload !== 'function') throw new Error("cloudinary.uploader.upload is not a function");
-                const uploadResponse = await cloudinary.uploader.upload(imagen_referencia, {
-                    folder: 'sivoy_agencias'
-                });
-                imagen_referencia = uploadResponse.secure_url;
-            }
-        }
+        imagen_referencia = await uploadReferenceImage(imagen_referencia);
 
         const empresaNombre = await repo.getEmpresaNameById(empresa_id);
 

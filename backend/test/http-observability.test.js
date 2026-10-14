@@ -585,6 +585,27 @@ test('HTTP Observability Middleware', async (t) => {
             assert.deepStrictEqual(logs[0].args, ['update_location_failed', 'internal_error']);
         });
 
+        await st.test('updateLocation - external image errors preserve safe status', async () => {
+            for (const expected of [
+                { statusCode: 400, code: 'INVALID_IMAGE_DATA', message: 'Invalid image format or size', level: 'warn' },
+                { statusCode: 502, code: 'CLOUDINARY_UPSTREAM_ERROR', message: 'Image upload service failed', level: 'error' },
+                { statusCode: 504, code: 'CLOUDINARY_TIMEOUT', message: 'Image upload service timed out', level: 'error' }
+            ]) {
+                ubicacionesService.updateLocation = async () => {
+                    throw Object.assign(new Error(expected.message), {
+                        statusCode: expected.statusCode,
+                        code: expected.code
+                    });
+                };
+                const req = reqMock({ id: '123' }, {});
+                const res = resMock();
+                await ubicacionesController.updateLocation(req, res);
+                assert.equal(res.getStatus(), expected.statusCode);
+                assert.deepEqual(res.getBody(), { error: expected.message });
+                assert.equal(req.getLogs()[0].level, expected.level);
+            }
+        });
+
         await st.test('createAgencia - validation error', async () => {
             ubicacionesService.createAgencia = async () => { throw new Error("Missing required fields"); };
             const req = reqMock({}, { name: 'test' });
@@ -596,6 +617,24 @@ test('HTTP Observability Middleware', async (t) => {
             assert.strictEqual(logs.length, 1);
             assert.strictEqual(logs[0].level, 'warn');
             assert.deepStrictEqual(logs[0].args, ['create_agencia_failed', 'validation_error']);
+        });
+
+        await st.test('createAgencia - image timeout', async () => {
+            ubicacionesService.createAgencia = async () => {
+                throw Object.assign(new Error('Image upload service timed out'), {
+                    statusCode: 504,
+                    code: 'CLOUDINARY_TIMEOUT'
+                });
+            };
+            const req = reqMock({}, { name: 'test' });
+            const res = resMock();
+            await ubicacionesController.createAgencia(req, res);
+            assert.strictEqual(res.getStatus(), 504);
+            assert.deepStrictEqual(res.getBody(), { error: 'Image upload service timed out' });
+            assert.deepStrictEqual(req.getLogs()[0], {
+                level: 'error',
+                args: ['create_agencia_failed', 'image_provider_timeout']
+            });
         });
 
         await st.test('createAgencia - internal error', async () => {

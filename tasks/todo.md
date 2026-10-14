@@ -103,8 +103,10 @@ se activa después de corregir y medir consultas. No autoriza por sí solo un de
   - [ ] SEC03c Limitar uploads y cerrar timeouts de Cloudinary/Maps/Places.
     - [x] SEC03c-A Acotar logos multipart a 2 MB, un archivo y tipos raster
       JPEG/PNG/WebP; traducir rechazos a envelopes genéricos 400/413/415.
-    - [ ] SEC03c-B Acotar Data URI/Cloudinary y respuestas/entradas de Places;
-      conservar y documentar los límites existentes del resolvedor Maps.
+    - [x] SEC03c-B1 Acotar Data URI a 3 MiB y JPEG/PNG/WebP, configurar timeout
+      Cloudinary 8 s y traducir validación/upstream a errores 400/502/504.
+    - [ ] SEC03c-B2 Acotar respuestas/entradas de Places; conservar y documentar
+      los límites existentes del resolvedor Maps.
 - [ ] SEC04 Aplicar rate limits por riesgo, primero en observación.
 - [x] SEC05 Probar escrituras 403 y retirar de producción endpoints auxiliares de Partner/prueba.
   - Evidencia: escrituras operativas responden 403 antes de parsers en producción;

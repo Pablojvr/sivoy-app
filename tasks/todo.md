@@ -67,24 +67,26 @@ a producto y experiencia pública; Partner continúa fuera de alcance.
       358/358 y build de producción verdes. Smoke local sin errores de consola ni
       desbordamiento horizontal; fondo `rgb(244, 244, 241)` y pila nativa activos.
 
-  - [ ] UI-REB-01b Caracterizar y completar la API presentacional de primitives.
+  - [x] UI-REB-01b Caracterizar y completar la API presentacional de primitives.
     - Descripción: fijar mediante pruebas los selectores, inputs, variantes,
       atributos accesibles y estados públicos de los primitives Angular.
     - Criterios de aceptación:
-      - [ ] Button, IconButton, Input, Chip, Card, Sheet y Modal conservan sus
+      - [x] Button, IconButton, Input, Chip, Card, Sheet y Modal conservan sus
         selectores y variantes actuales; cualquier estado nuevo es aditivo.
-      - [ ] Disabled/busy, `aria-busy`, `aria-invalid`, labels y atributos
+      - [x] Disabled/busy, `aria-busy`, `aria-invalid`, labels y atributos
         `data-*` quedan cubiertos por pruebas de host sin lógica de negocio.
-      - [ ] Todos los templates consumidores continúan compilando sin cambios.
+      - [x] Todos los templates consumidores continúan compilando sin cambios.
     - Verificación:
-      - [ ] `cd frontend && npm run test:ci -- --include src/app/shared/ui/ui-primitives.spec.ts`
-      - [ ] `cd frontend && npm run test:ci && npm run build`
+      - [x] `cd frontend && npm run test:ci -- --include src/app/shared/ui/ui-primitives.spec.ts`
+      - [x] `cd frontend && npm run test:ci && npm run build`
     - Dependencias: UI-REB-01a.
     - Archivos previstos:
       - `frontend/src/app/shared/ui/ui-primitives.ts`
       - `frontend/src/app/shared/ui/ui-primitives.spec.ts`
     - Alcance estimado: S, dos archivos.
     - Ejecución: Codex; no se delegan contratos Angular.
+    - Evidencia 2026-10-14: ciclo RED por ausencia de `[busy]` en IconButton;
+      GREEN con 3/3 pruebas focalizadas, 361/361 frontend y build exitoso.
 
   - [ ] UI-REB-01c Extraer y recalibrar la apariencia de primitives.
     - Descripción: mover las reglas `.si-*` a su hoja dedicada y aplicar los

@@ -33,14 +33,16 @@ export class SiButtonDirective {
     '[class.si-icon-button--ghost]': "variant() === 'ghost'",
     '[attr.data-size]': 'size()',
     '[attr.aria-label]': 'ariaLabel()',
-    '[disabled]': 'disabled()',
-    '[class.si-control--disabled]': 'disabled()'
+    '[attr.aria-busy]': 'busy() || null',
+    '[disabled]': 'disabled() || busy()',
+    '[class.si-control--disabled]': 'disabled() || busy()'
   }
 })
 export class SiIconButtonDirective {
   readonly ariaLabel = input.required<string>({ alias: 'aria-label' });
   readonly variant = input<SiButtonVariant>('primary');
   readonly size = input<SiControlSize>('md');
+  readonly busy = input(false, { transform: booleanAttribute });
   readonly disabled = input(false, { transform: booleanAttribute });
 }
 

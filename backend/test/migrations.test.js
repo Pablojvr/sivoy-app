@@ -4,7 +4,12 @@ const os = require('node:os');
 const path = require('node:path');
 const test = require('node:test');
 
-const { discoverMigrations, runMigrations, sha256 } = require('../migration-runner');
+const {
+  discoverMigrations,
+  resolveMigrationDatabaseUrl,
+  runMigrations,
+  sha256
+} = require('../migration-runner');
 
 test('discovers numbered SQL migrations in deterministic order', () => {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'sivoy-migrations-'));
@@ -65,6 +70,42 @@ test('catalog revision migration installs bounded-query indexes and mutation tri
   assert.match(sql, /CREATE INDEX(?: IF NOT EXISTS)? agencias_catalog_name_idx/i);
 });
 
+test('database timeout migration persists role defaults without hardcoded identities', () => {
+  const migrationPath = path.join(__dirname, '../migrations/0008_database_timeout_defaults.sql');
+  const sql = fs.readFileSync(migrationPath, 'utf8');
+
+  assert.match(sql, /current_user/i);
+  assert.match(sql, /current_database\(\)/i);
+  assert.match(sql, /statement_timeout/i);
+  assert.match(sql, /idle_in_transaction_session_timeout/i);
+  assert.doesNotMatch(sql, /neondb_owner/i);
+});
+
+test('migration runner prioritizes a direct URL and rejects pooled Neon endpoints', () => {
+  assert.equal(resolveMigrationDatabaseUrl({
+    DIRECT_DATABASE_URL: 'postgresql://user:pass@ep-example.us-east-2.aws.neon.tech/db',
+    DATABASE_URL: 'postgresql://user:pass@ep-example-pooler.us-east-2.aws.neon.tech/db'
+  }), 'postgresql://user:pass@ep-example.us-east-2.aws.neon.tech/db');
+
+  assert.equal(resolveMigrationDatabaseUrl({
+    DATABASE_URL: 'postgresql://user:pass@127.0.0.1:5432/db'
+  }), 'postgresql://user:pass@127.0.0.1:5432/db');
+
+  assert.throws(
+    () => resolveMigrationDatabaseUrl({
+      DATABASE_URL: 'postgresql://user:pass@ep-example-pooler.us-east-2.aws.neon.tech/db'
+    }),
+    /DIRECT_DATABASE_URL/
+  );
+  assert.throws(
+    () => resolveMigrationDatabaseUrl({
+      DATABASE_URL: 'postgresql://user:pass@db.example.com/app?pgbouncer=true'
+    }),
+    /DIRECT_DATABASE_URL/
+  );
+  assert.throws(() => resolveMigrationDatabaseUrl({}), /required/i);
+});
+
 test('dry-run reports pending migrations without creating the ledger', async () => {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'sivoy-migrations-'));
   const queries = [];
@@ -82,6 +123,10 @@ test('dry-run reports pending migrations without creating the ledger', async () 
     const result = await runMigrations({ connect: async () => client }, { directory, dryRun: true });
 
     assert.equal(result[0].status, 'pending');
+    assert.deepEqual(queries.slice(0, 2), [
+      "SET statement_timeout = '0'",
+      "SET idle_in_transaction_session_timeout = '0'"
+    ]);
     assert.equal(queries.some((sql) => sql.includes('CREATE TABLE schema_migrations')), false);
     assert.equal(queries.includes('SELECT 1;'), false);
   } finally {

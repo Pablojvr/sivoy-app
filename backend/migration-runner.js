@@ -5,6 +5,26 @@ const path = require('node:path');
 const MIGRATION_PATTERN = /^(\d{4})_([a-z0-9_]+)(\.notx)?\.sql$/;
 const LOCK_KEY = 'sivoy_schema_migrations';
 
+function resolveMigrationDatabaseUrl(env = process.env) {
+  const connectionString = env.DIRECT_DATABASE_URL || env.DATABASE_URL;
+  if (!connectionString) throw new Error('DIRECT_DATABASE_URL or DATABASE_URL is required');
+
+  let parsed;
+  try {
+    parsed = new URL(connectionString);
+  } catch (error) {
+    throw new Error(`Invalid migration database URL: ${error.message}`);
+  }
+  if (!new Set(['postgres:', 'postgresql:']).has(parsed.protocol)) {
+    throw new Error('Migration database URL must use postgres: or postgresql:');
+  }
+  const firstHostLabel = parsed.hostname.split('.')[0].toLowerCase();
+  if (firstHostLabel.endsWith('-pooler') || parsed.searchParams.get('pgbouncer') === 'true') {
+    throw new Error('Migrations require DIRECT_DATABASE_URL; transaction-pooled endpoints are unsafe for session advisory locks');
+  }
+  return connectionString;
+}
+
 function sha256(value) {
   return crypto.createHash('sha256').update(value).digest('hex');
 }
@@ -32,6 +52,8 @@ async function runMigrations(pool, { directory, dryRun = false } = {}) {
   const client = await pool.connect();
   const appliedNow = [];
   try {
+    await client.query("SET statement_timeout = '0'");
+    await client.query("SET idle_in_transaction_session_timeout = '0'");
     await client.query('SELECT pg_advisory_lock(hashtext($1))', [LOCK_KEY]);
     const ledgerResult = await client.query("SELECT to_regclass('public.schema_migrations') AS ledger");
     const ledgerExists = Boolean(ledgerResult.rows[0].ledger);
@@ -80,10 +102,9 @@ async function runMigrations(pool, { directory, dryRun = false } = {}) {
 
 async function main() {
   require('dotenv').config();
-  if (!process.env.DATABASE_URL) throw new Error('DATABASE_URL is required');
   const { Pool } = require('pg');
   const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
+    connectionString: resolveMigrationDatabaseUrl(process.env),
     ssl: process.env.DATABASE_SSL === 'false' ? false : { rejectUnauthorized: false }
   });
   try {
@@ -102,4 +123,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { discoverMigrations, runMigrations, sha256 };
+module.exports = { discoverMigrations, resolveMigrationDatabaseUrl, runMigrations, sha256 };

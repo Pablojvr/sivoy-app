@@ -19,6 +19,15 @@ function createDatabaseRuntime(options = {}) {
     let poolInstance = null;
     let closingPromise = null;
     let closed = false;
+    const statementTimeout = boundedEnvInteger(env.DB_STATEMENT_TIMEOUT_MS, 5000, 500, 60000);
+    const configuredQueryTimeout = boundedEnvInteger(env.DB_QUERY_TIMEOUT_MS, 6000, 500, 65000);
+    const queryTimeout = Math.max(configuredQueryTimeout, statementTimeout + 1000);
+    const idleTransactionTimeout = boundedEnvInteger(
+        env.DB_IDLE_TRANSACTION_TIMEOUT_MS,
+        10000,
+        1000,
+        60000
+    );
 
     async function getDB() {
         if (closed) throw new Error('Database runtime closed');
@@ -32,7 +41,10 @@ function createDatabaseRuntime(options = {}) {
             ssl: isProd ? { rejectUnauthorized: false } : false,
             max: boundedEnvInteger(env.DB_POOL_MAX, 10, 1, 20),
             connectionTimeoutMillis: boundedEnvInteger(env.DB_CONNECT_TIMEOUT_MS, 5000, 100, 30000),
-            idleTimeoutMillis: boundedEnvInteger(env.DB_IDLE_TIMEOUT_MS, 10000, 1000, 60000)
+            idleTimeoutMillis: boundedEnvInteger(env.DB_IDLE_TIMEOUT_MS, 10000, 1000, 60000),
+            statement_timeout: statementTimeout,
+            query_timeout: queryTimeout,
+            idle_in_transaction_session_timeout: idleTransactionTimeout
         });
 
         poolInstance = newPool;
@@ -55,9 +67,13 @@ function createDatabaseRuntime(options = {}) {
         return closingPromise;
     }
 
-    async function runInTransaction(client, work) {
+    async function runInTransaction(client, work, options = {}) {
         await client.query('BEGIN');
         try {
+            await client.query(
+                "SELECT set_config('statement_timeout', $1, true), set_config('idle_in_transaction_session_timeout', $2, true)",
+                [String(statementTimeout), String(idleTransactionTimeout)]
+            );
             const result = await work(client);
             await client.query('COMMIT');
             return result;
@@ -65,6 +81,9 @@ function createDatabaseRuntime(options = {}) {
             try {
                 await client.query('ROLLBACK');
             } catch (rollbackError) {
+                if (typeof options.onRollbackFailure === 'function') {
+                    options.onRollbackFailure();
+                }
                 try {
                     logger.error('db_rollback_failed', 'database_error');
                 } catch (logErr) {
@@ -78,10 +97,13 @@ function createDatabaseRuntime(options = {}) {
     async function withTransaction(work) {
         const pool = await getDB();
         const client = await pool.connect();
+        let discardClient = false;
         try {
-            return await runInTransaction(client, work);
+            return await runInTransaction(client, work, {
+                onRollbackFailure: () => { discardClient = true; }
+            });
         } finally {
-            client.release();
+            client.release(discardClient ? new Error('Discarding client after rollback failure') : undefined);
         }
     }
 

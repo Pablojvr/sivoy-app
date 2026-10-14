@@ -85,7 +85,7 @@ responde `410` antes de consultar PostgreSQL.
 | Parcial | Rutas ya resuelven IDs en batch y comparan `empresa_id`; permanece un fallback legacy acotado por nombre hasta completar SCALE03. | El camino canónico evita N×M, pero la compatibilidad debe retirarse tras probar paridad. |
 | Resuelto | El catálogo público posee paginación, filtros, proyección resumida, detalle bajo demanda e identidad canónica de empresa/punto. | El trabajo por página tiene límite estable. |
 | P1 | No hay política explícita de caché salvo `runtime-config.js` y métricas. | No existe aún una capa de aceleración, pero añadirla ahora ocultaría lecturas globales. |
-| P1 | `statement_timeout` e `idle_in_transaction_session_timeout` están en 0. | Una consulta o transacción atascada puede retener pool, locks y recursos. |
+| Resuelto en código | `query_timeout` protege al cliente; la migración 0008 fija defaults de rol de `statement_timeout` 5 s e `idle_in_transaction_session_timeout` 10 s para nuevas sesiones físicas; las transacciones aplican además `SET LOCAL`. El runner exige URL directa frente a Neon pooled. | Evita la falsa protección de parámetros startup que PgBouncer transaccional ignora. La aplicación productiva de 0008 pertenece al gate de despliegue. |
 | P1 | Las métricas viven en memoria por proceso y no hay alertas ni monitor externo. | Se pierden al reiniciar y no representan múltiples instancias. |
 | P1 | `render.yaml` no declara `healthCheckPath`, versión de Node ni hook de migración. | Despliegues menos reproducibles y readiness superficial. |
 | P1 | Render construye con `npm install`, mientras CI usa Node 22, npm 11.11 y `npm ci`; local usa Node 24. | La revisión probada en CI no es necesariamente el mismo runtime/árbol que producción. |
@@ -349,7 +349,13 @@ Gate: la credencial anterior falla y el secret scan de árbol/historial está ve
     solicitud/cabeceras/keep-alive a 30/10/5 s y 100 cabeceras. Overrides de env
     son enteros acotados. Desarrollo local conserva temporalmente 5 MB JSON para
     imágenes base64 de Admin; producción mantiene 256 KB.
-  - [ ] SEC03b: timeouts de consulta/transacción PostgreSQL.
+  - [x] SEC03b: `query_timeout` cliente de 6 s con margen mínimo de 1 s;
+    migración 0008 con defaults de rol `statement_timeout` 5 s e
+    `idle_in_transaction_session_timeout` 10 s; `SET LOCAL` seguro en
+    transacciones; runner con URL directa para advisory locks. Verificado en
+    PostgreSQL efímero (cancelación `57014` y conexión reutilizable) y contra
+    Neon pooled para el aislamiento transaccional. Aplicar 0008 en producción
+    permanece dentro del gate T35/T36, no de este cambio de código.
   - [ ] SEC03c: límites de upload, Cloudinary y cierre de timeouts externos.
 - [ ] SEC04 Rate limit por riesgo, con observación antes de bloqueo.
 - [x] SEC05 Inventariar OpenAPI/contratos, desactivar en producción

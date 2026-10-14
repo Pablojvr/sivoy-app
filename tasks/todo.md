@@ -95,8 +95,11 @@ se activa después de corregir y medir consultas. No autoriza por sí solo un de
   - [x] SEC03a Limitar JSON/urlencoded y tiempos/cabeceras del servidor Node con
     configuración acotada; preservar hasta 5 MB solo en el arranque local para
     el flujo administrativo base64 fuera de producción.
-  - [ ] SEC03b Añadir `statement_timeout`, `query_timeout` e
-    `idle_in_transaction_session_timeout` al pool PostgreSQL.
+  - [x] SEC03b Añadir `query_timeout` cliente (6 s), defaults persistentes de rol
+    para `statement_timeout` (5 s) e `idle_in_transaction_session_timeout`
+    (10 s), `SET LOCAL` transaccional y URL directa para migraciones. Verificado
+    con cancelación real `57014`, recuperación de conexión y Neon pooled sin
+    fuga de estado; aplicación productiva pertenece al gate T35/T36.
   - [ ] SEC03c Limitar uploads y cerrar timeouts de Cloudinary/Maps/Places.
 - [ ] SEC04 Aplicar rate limits por riesgo, primero en observación.
 - [x] SEC05 Probar escrituras 403 y retirar de producción endpoints auxiliares de Partner/prueba.

@@ -46,12 +46,39 @@ test('commits a successful database unit of work', async () => {
     const fakeLogger = { info: () => {}, error: () => {} };
     const runtime = createDatabaseRuntime({ logger: fakeLogger });
     const calls = [];
-    const client = { query: async (sql) => calls.push(sql) };
+    const client = { query: async (sql, values) => calls.push({ sql, values }) };
 
     const result = await runtime.runInTransaction(client, async () => 'updated');
 
     assert.equal(result, 'updated');
-    assert.deepEqual(calls, ['BEGIN', 'COMMIT']);
+    assert.deepEqual(calls, [
+        { sql: 'BEGIN', values: undefined },
+        {
+            sql: "SELECT set_config('statement_timeout', $1, true), set_config('idle_in_transaction_session_timeout', $2, true)",
+            values: ['5000', '10000']
+        },
+        { sql: 'COMMIT', values: undefined }
+    ]);
+});
+
+test('aplica timeouts transaccionales configurados con SET LOCAL parametrizado', async () => {
+    const runtime = createDatabaseRuntime({
+        logger: { info: () => {}, error: () => {} },
+        env: {
+            DB_STATEMENT_TIMEOUT_MS: '12000',
+            DB_QUERY_TIMEOUT_MS: '13000',
+            DB_IDLE_TRANSACTION_TIMEOUT_MS: '20000'
+        }
+    });
+    const calls = [];
+    const client = { query: async (sql, values) => calls.push({ sql, values }) };
+
+    await runtime.runInTransaction(client, async () => 'ok');
+
+    assert.deepEqual(calls[1], {
+        sql: "SELECT set_config('statement_timeout', $1, true), set_config('idle_in_transaction_session_timeout', $2, true)",
+        values: ['12000', '20000']
+    });
 });
 
 test('rolls back and preserves the original failure', async () => {
@@ -65,7 +92,11 @@ test('rolls back and preserves the original failure', async () => {
         runtime.runInTransaction(client, async () => { throw expected; }),
         (error) => error === expected
     );
-    assert.deepEqual(calls, ['BEGIN', 'ROLLBACK']);
+    assert.deepEqual(calls, [
+        'BEGIN',
+        "SELECT set_config('statement_timeout', $1, true), set_config('idle_in_transaction_session_timeout', $2, true)",
+        'ROLLBACK'
+    ]);
 });
 
 test('rollback fallido preserva error original y loguea seguro sin Error crudo', async () => {
@@ -234,6 +265,86 @@ test('configura límites de pool: valores por defecto, overrides válidos y fall
         await check(env, 10, 5000, 10000);
     }
     await check({ DB_POOL_MAX: '6', DB_CONNECT_TIMEOUT_MS: '0' }, 6, 5000, 10000);
+});
+
+test('withTransaction descarta la conexión si ROLLBACK falla', async () => {
+    let releaseArgument;
+    const expected = new Error('work failed');
+    const client = {
+        query: async (sql) => {
+            if (sql === 'ROLLBACK') throw new Error('rollback failed');
+        },
+        release: (error) => { releaseArgument = error; }
+    };
+    class FakePool {
+        connect() { return client; }
+    }
+    const runtime = createDatabaseRuntime({
+        PoolCtor: FakePool,
+        env: {},
+        logger: { info: () => {}, error: () => {} }
+    });
+
+    await assert.rejects(
+        runtime.withTransaction(async () => { throw expected; }),
+        (error) => error === expected
+    );
+    assert.ok(releaseArgument instanceof Error);
+    assert.equal(releaseArgument.message, 'Discarding client after rollback failure');
+});
+
+test('configura timeouts PostgreSQL por defecto, overrides acotados y fallbacks seguros (SEC03b)', async () => {
+    let lastConfig;
+    class FakePool {
+        constructor(config) {
+            lastConfig = config;
+        }
+    }
+    const fakeLogger = { info: () => {}, error: () => {} };
+
+    const check = async (env, expected) => {
+        const runtime = createDatabaseRuntime({ PoolCtor: FakePool, logger: fakeLogger, env });
+        await runtime.getDB();
+        assert.equal(lastConfig.statement_timeout, expected.statement);
+        assert.equal(lastConfig.query_timeout, expected.query);
+        assert.equal(lastConfig.idle_in_transaction_session_timeout, expected.idleTransaction);
+    };
+
+    await check({}, { statement: 5000, query: 6000, idleTransaction: 10000 });
+    await check({
+        DB_STATEMENT_TIMEOUT_MS: '12000',
+        DB_QUERY_TIMEOUT_MS: '13000',
+        DB_IDLE_TRANSACTION_TIMEOUT_MS: '20000'
+    }, { statement: 12000, query: 13000, idleTransaction: 20000 });
+    await check({
+        DB_STATEMENT_TIMEOUT_MS: '500',
+        DB_QUERY_TIMEOUT_MS: '500',
+        DB_IDLE_TRANSACTION_TIMEOUT_MS: '1000'
+    }, { statement: 500, query: 1500, idleTransaction: 1000 });
+    await check({
+        DB_STATEMENT_TIMEOUT_MS: '10000',
+        DB_QUERY_TIMEOUT_MS: '2000'
+    }, { statement: 10000, query: 11000, idleTransaction: 10000 });
+
+    await check({
+        DB_STATEMENT_TIMEOUT_MS: '499',
+        DB_QUERY_TIMEOUT_MS: '499',
+        DB_IDLE_TRANSACTION_TIMEOUT_MS: '999'
+    }, { statement: 5000, query: 6000, idleTransaction: 10000 });
+
+    for (const value of ['0', '-1', '01', '1.5', ' 1000', '1000 ', 'NaN', '', undefined]) {
+        await check({
+            DB_STATEMENT_TIMEOUT_MS: value,
+            DB_QUERY_TIMEOUT_MS: value,
+            DB_IDLE_TRANSACTION_TIMEOUT_MS: value
+        }, { statement: 5000, query: 6000, idleTransaction: 10000 });
+    }
+
+    await check({
+        DB_STATEMENT_TIMEOUT_MS: '60001',
+        DB_QUERY_TIMEOUT_MS: '65001',
+        DB_IDLE_TRANSACTION_TIMEOUT_MS: '60001'
+    }, { statement: 5000, query: 6000, idleTransaction: 10000 });
 });
 
 test('closeDB() no crea pool si nunca se usó, y getDB posterior rechaza', async () => {

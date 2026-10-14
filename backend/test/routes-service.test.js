@@ -6,6 +6,8 @@ const { createRutasService } = require('../src/domains/rutas/rutas.service');
 function location(name, schedules, rules = []) {
   return {
     id: name,
+    id_destino: name,
+    empresa_id: 1,
     nombre_destino: name,
     empresa: 'Empresa de prueba',
     tipo: 'agencia',
@@ -27,8 +29,11 @@ destination.ubicacion = { ...destination.ubicacion, municipio: 'Santa Ana', depa
 
 // Factory double for locations
 const createLocationsPort = (overrides = {}) => ({
-  getLocationByName: async name => ({ Origen: origin, Destino: destination }[name] || null),
-  getAllLocations: async () => [origin, destination],
+  getLocationsByIdentifiers: async (identifiers) => {
+    const map = { Origen: origin, Destino: destination };
+    return identifiers.map(id => map[id]).filter(Boolean);
+  },
+  getLocationsByMunicipalities: async () => [origin, destination],
   ...overrides
 });
 
@@ -49,7 +54,10 @@ test('rejects invalid route payloads before touching repository or ETA (fail-fas
   let dependencyCalls = 0;
   const unexpectedCall = () => { dependencyCalls++; throw new Error('Dependency called for invalid input'); };
 
-  const locations = createLocationsPort({ getLocationByName: unexpectedCall, getAllLocations: unexpectedCall });
+  const locations = createLocationsPort({
+    getLocationsByIdentifiers: unexpectedCall,
+    getLocationsByMunicipalities: unexpectedCall
+  });
   const eta = createEtaPort({ calcularIngresoOficial: unexpectedCall, proyectarProximasRutas: unexpectedCall });
   const clock = createClockPort();
 
@@ -139,10 +147,10 @@ test('upcoming: scalar and array, valid inputs', async () => {
 
 
 test('flights: returns an empty municipal search result when companies do not match', async () => {
-  const otherDestination = { ...destination, empresa: 'Otra empresa' };
+  const otherDestination = { ...destination, empresa_id: 2, empresa: 'Otra empresa' };
 
   const routesService = createRutasService({
-    locations: createLocationsPort({ getAllLocations: async () => [origin, otherDestination] }),
+    locations: createLocationsPort({ getLocationsByMunicipalities: async () => [origin, otherDestination] }),
     eta: createEtaPort(),
     clock: createClockPort()
   });
@@ -192,7 +200,7 @@ test('dependency error preserves identity to allow outer translation', async () 
 
   const routesService = createRutasService({
     locations: createLocationsPort({
-      getLocationByName: async () => { throw specificError; }
+      getLocationsByIdentifiers: async () => { throw specificError; }
     }),
     eta: createEtaPort(),
     clock: createClockPort()

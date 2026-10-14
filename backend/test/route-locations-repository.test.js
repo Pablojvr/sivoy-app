@@ -40,27 +40,55 @@ test('loads route points, schedules and rules in three constant queries by ident
   });
 });
 
-test('keeps a bounded transitional fallback for legacy names', async () => {
+test('getLocationsByIdentifiers: visible name does not resolve', async () => {
   const calls = [];
   const db = {
     query: async (text, values) => {
       calls.push({ text, values });
       if (/id_destino = ANY/.test(text)) return { rows: [] };
-      if (/lower\(a\.nombre_destino\)/.test(text)) {
-        return { rows: [agency(1, 'AG_ORIGIN', 'Origen', 'Soyapango', 'San Salvador')] };
-      }
-      if (/FROM horarios_operativos/.test(text)) return { rows: [] };
-      if (/FROM reglas_entrega/.test(text)) return { rows: [] };
-      throw new Error('Unexpected query');
+      throw new Error(`Unexpected query: ${text}`);
     }
   };
   const repository = createRouteLocationsRepository({ getDB: async () => db });
 
   const points = await repository.getLocationsByIdentifiers(['Origen']);
 
-  assert.equal(points[0].id_destino, 'AG_ORIGIN');
-  assert.equal(calls.length, 4);
-  assert.deepEqual(calls[1].values, [['Origen'], ['origen']]);
+  assert.deepEqual(points, []);
+  assert.equal(calls.length, 1);
+  assert.deepEqual(calls[0].values, [['Origen']]);
+});
+
+test('getLocationsByIdentifiers: internal id does not resolve', async () => {
+  const calls = [];
+  const db = {
+    query: async (text, values) => {
+      calls.push({ text, values });
+      if (/id_destino = ANY/.test(text)) return { rows: [] };
+      throw new Error(`Unexpected query: ${text}`);
+    }
+  };
+  const repository = createRouteLocationsRepository({ getDB: async () => db });
+
+  const points = await repository.getLocationsByIdentifiers(['1']);
+
+  assert.deepEqual(points, []);
+  assert.equal(calls.length, 1);
+  assert.deepEqual(calls[0].values, [['1']]);
+});
+
+test('getLocationsByIdentifiers executes at most 3 repository queries even with partially unresolved IDs', async () => {
+  const calls = [];
+  const db = fakeDatabase(calls);
+  const repository = createRouteLocationsRepository({ getDB: async () => db });
+
+  const points = await repository.getLocationsByIdentifiers(['AG_ORIGIN', 'UNKNOWN_ID']);
+
+  assert.ok(calls.length <= 3, `Expected at most 3 queries, got ${calls.length}`);
+  assert.equal(calls.length, 3);
+  assert.match(calls[0].text, /id_destino = ANY\(\$1::text\[\]\)/);
+  assert.match(calls[1].text, /FROM horarios_operativos/);
+  assert.match(calls[2].text, /FROM reglas_entrega/);
+  assert.deepEqual(points.map(point => point.id_destino), ['AG_ORIGIN']);
 });
 
 test('loads both municipality sides without reading the global catalog', async () => {
@@ -83,6 +111,13 @@ function fakeDatabase(calls) {
   return {
     query: async (text, values) => {
       calls.push({ text, values });
+      if (/id_destino = ANY/.test(text)) {
+        const rows = [
+          agency(1, 'AG_ORIGIN', 'Origen', 'Soyapango', 'San Salvador'),
+          agency(2, 'AG_DESTINATION', 'Destino', 'Santa Ana', 'Santa Ana')
+        ].filter(row => values[0].includes(row.id_destino));
+        return { rows };
+      }
       if (/FROM agencias a/.test(text)) {
         return { rows: [
           agency(1, 'AG_ORIGIN', 'Origen', 'Soyapango', 'San Salvador'),

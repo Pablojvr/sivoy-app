@@ -10,14 +10,15 @@ test('throws invalid dependency error at construction', () => {
 
 test('upcoming: scalar and array, company mismatch, 7 dates starting 08:00 from second day', async () => {
   const calls = [];
+  const points = {
+    OrigA: { id_destino: 'OrigA', nombre_destino: 'OrigA', empresa_id: 1, empresa: 'C1' },
+    OrigB: { id_destino: 'OrigB', nombre_destino: 'OrigB', empresa_id: 1, empresa: 'C1' },
+    Dest1: { id_destino: 'Dest1', nombre_destino: 'Dest1', empresa_id: 1, empresa: 'C1' },
+    DestMismatch: { id_destino: 'DestMismatch', nombre_destino: 'DestMismatch', empresa_id: 2, empresa: 'C2' }
+  };
   const locations = {
-    getLocationByName: async (name) => {
-      if (name === 'OrigA' || name === 'OrigB') return { nombre_destino: name, empresa: 'C1' };
-      if (name === 'Dest1') return { nombre_destino: 'Dest1', empresa: 'C1' };
-      if (name === 'DestMismatch') return { nombre_destino: 'DestMismatch', empresa: 'C2' };
-      return null;
-    },
-    getAllLocations: async () => []
+    getLocationsByIdentifiers: async ids => ids.map(id => points[id]).filter(Boolean),
+    getLocationsByMunicipalities: async () => []
   };
   const eta = {
     calcularIngresoOficial: (obj, date, time) => {
@@ -64,13 +65,13 @@ test('upcoming: scalar and array, company mismatch, 7 dates starting 08:00 from 
 });
 
 test('municipality: scalar and array, missing origin in repo, inclusive arrival_date filter', async () => {
+  const points = {
+    OrigM: { id_destino: 'OrigM', nombre_destino: 'OrigM', empresa_id: 1, empresa: 'C1' },
+    DestM: { id_destino: 'DestM', nombre_destino: 'DestM', empresa_id: 1, empresa: 'C1' }
+  };
   const locations = {
-    getLocationByName: async (name) => {
-      if (name === 'OrigM') return { nombre_destino: 'OrigM', empresa: 'C1' };
-      if (name === 'DestM') return { nombre_destino: 'DestM', empresa: 'C1' };
-      return null;
-    },
-    getAllLocations: async () => []
+    getLocationsByIdentifiers: async ids => ids.map(id => points[id]).filter(Boolean),
+    getLocationsByMunicipalities: async () => []
   };
   const eta = {
     calcularIngresoOficial: () => ({ date: new Date('2026-09-16T00:00:00Z'), msg: 'ok' }),
@@ -103,12 +104,12 @@ test('municipality: scalar and array, missing origin in repo, inclusive arrival_
 
 test('flights: ordered by company and legacy DTO', async () => {
   const locations = {
-    getLocationByName: async () => null,
-    getAllLocations: async () => [
-      { ubicacion: { municipio: 'M1', lat: 1.1, lng: 1.2 }, empresa: 'B_Comp', nombre_destino: 'O2', tipo: 'T2' },
-      { ubicacion: { municipio: 'M2', lat: 2.1, lng: 2.2 }, empresa: 'B_Comp', nombre_destino: 'D2', tipo: 'T2' },
-      { ubicacion: { municipio: 'M1', lat: 3.1, lng: 3.2 }, empresa: 'A_Comp', nombre_destino: 'O1', tipo: 'T1' },
-      { ubicacion: { municipio: 'M2', lat: 4.1, lng: 4.2 }, empresa: 'A_Comp', nombre_destino: 'D1', tipo: 'T1' }
+    getLocationsByIdentifiers: async () => [],
+    getLocationsByMunicipalities: async () => [
+      { ubicacion: { municipio: 'M1', lat: 1.1, lng: 1.2 }, empresa_id: 2, empresa: 'B_Comp', nombre_destino: 'O2', tipo: 'T2' },
+      { ubicacion: { municipio: 'M2', lat: 2.1, lng: 2.2 }, empresa_id: 2, empresa: 'B_Comp', nombre_destino: 'D2', tipo: 'T2' },
+      { ubicacion: { municipio: 'M1', lat: 3.1, lng: 3.2 }, empresa_id: 1, empresa: 'A_Comp', nombre_destino: 'O1', tipo: 'T1' },
+      { ubicacion: { municipio: 'M2', lat: 4.1, lng: 4.2 }, empresa_id: 1, empresa: 'A_Comp', nombre_destino: 'D1', tipo: 'T1' }
     ]
   };
   const eta = {
@@ -146,13 +147,14 @@ test('flights: ordered by company and legacy DTO', async () => {
   assert.ok(Array.isArray(firstRes.opciones_entrega));
 });
 
+
 test('dependency error preserves identity', async () => {
   class CustomError extends Error {}
   const err = new CustomError('DB down');
   
   const locations = {
-    getLocationByName: async () => { throw err; },
-    getAllLocations: async () => []
+    getLocationsByIdentifiers: async () => { throw err; },
+    getLocationsByMunicipalities: async () => []
   };
   const eta = {
     calcularIngresoOficial: () => {},
@@ -166,10 +168,10 @@ test('dependency error preserves identity', async () => {
 });
 
 test('payload and DTO of dependency not mutated', async () => {
-  const dto = Object.freeze({ nombre_destino: 'A', empresa: 'C1' });
+  const dto = Object.freeze({ id_destino: 'A', nombre_destino: 'A', empresa_id: 1, empresa: 'C1' });
   const locations = {
-    getLocationByName: async () => dto,
-    getAllLocations: async () => []
+    getLocationsByIdentifiers: async () => [dto],
+    getLocationsByMunicipalities: async () => []
   };
   const eta = {
     calcularIngresoOficial: () => Object.freeze({ date: new Date('2026-09-16T00:00:00Z'), msg: 'ok' }),
@@ -186,11 +188,11 @@ test('payload and DTO of dependency not mutated', async () => {
 
 test('does not project a candidate whose official entry moved to another day', async () => {
   let projections = 0;
-  const point = Object.freeze({ nombre_destino: 'Point', empresa: 'C1' });
+  const point = Object.freeze({ id_destino: 'Point', nombre_destino: 'Point', empresa_id: 1, empresa: 'C1' });
   const { getUpcomingRoutes } = createRouteUseCases({
     locations: {
-      getLocationByName: async () => point,
-      getAllLocations: async () => []
+      getLocationsByIdentifiers: async () => [point],
+      getLocationsByMunicipalities: async () => []
     },
     eta: {
       calcularIngresoOficial: () => ({ date: new Date('2026-09-30T00:00:00Z'), msg: 'next day' }),
@@ -209,13 +211,15 @@ test('does not project a candidate whose official entry moved to another day', a
   assert.equal(projections, 0);
 });
 
-test('municipality keeps the legacy scalar versus array company rule', async () => {
-  const origin = Object.freeze({ nombre_destino: 'Origin', empresa: 'A' });
-  const destination = Object.freeze({ nombre_destino: 'Destination', empresa: 'B' });
+test('municipality rejects company mismatch for scalar and array inputs by stable id', async () => {
+  const origin = Object.freeze({ id_destino: 'Origin', nombre_destino: 'Origin', empresa_id: 1, empresa: 'A' });
+  const destination = Object.freeze({ id_destino: 'Destination', nombre_destino: 'Destination', empresa_id: 2, empresa: 'B' });
   const { searchRoutesByMunicipality } = createRouteUseCases({
     locations: {
-      getLocationByName: async name => ({ Origin: origin, Destination: destination })[name],
-      getAllLocations: async () => []
+      getLocationsByIdentifiers: async identifiers => identifiers
+        .map(name => ({ Origin: origin, Destination: destination })[name])
+        .filter(Boolean),
+      getLocationsByMunicipalities: async () => []
     },
     eta: {
       calcularIngresoOficial: () => ({ date: new Date('2026-09-16T00:00:00Z'), msg: 'today' }),
@@ -228,17 +232,20 @@ test('municipality keeps the legacy scalar versus array company rule', async () 
   const timing = { dropoff_date: '2026-09-16', dropoff_time: '10:00' };
 
   const scalar = await searchRoutesByMunicipality({ origen: 'Origin', destinos: ['Destination'], ...timing });
-  assert.deepEqual(scalar.results.map(result => result.destino_nombre), ['Destination']);
+  assert.deepEqual(scalar.results, []);
 
   const array = await searchRoutesByMunicipality({ origen: ['Origin'], destinos: ['Destination'], ...timing });
   assert.deepEqual(array, { success: true, results: [] });
 });
 
 test('municipality preserves no-income scalar response', async () => {
+  const origin = Object.freeze({
+    id_destino: 'Origin', nombre_destino: 'Origin', empresa_id: 1, empresa: 'A'
+  });
   const { searchRoutesByMunicipality } = createRouteUseCases({
     locations: {
-      getLocationByName: async () => ({ nombre_destino: 'Origin', empresa: 'A' }),
-      getAllLocations: async () => []
+      getLocationsByIdentifiers: async () => [origin],
+      getLocationsByMunicipalities: async () => []
     },
     eta: {
       calcularIngresoOficial: () => ({ date: null, msg: 'Closed today' }),
@@ -258,6 +265,7 @@ test('resolves point routes in one identifier batch and compares stable company 
   const locations = {
     getLocationByName: async () => { throw new Error('legacy lookup must not run'); },
     getAllLocations: async () => { throw new Error('global catalog must not run'); },
+    getLocationsByMunicipalities: async () => [],
     getLocationsByIdentifiers: async identifiers => {
       batchCalls += 1;
       assert.deepEqual(identifiers, ['ORIGIN_ID', 'DESTINATION_ID']);
@@ -287,11 +295,42 @@ test('resolves point routes in one identifier batch and compares stable company 
   assert.equal(batchCalls, 1);
 });
 
+test('same visible company name never joins different stable company ids', async () => {
+  const locations = {
+    getLocationsByIdentifiers: async () => [
+      { id_destino: 'ORIGIN_ID', nombre_destino: 'Origen', empresa_id: 7, empresa: 'Pedidos Express' },
+      { id_destino: 'DESTINATION_ID', nombre_destino: 'Destino', empresa_id: 8, empresa: 'Pedidos Express' }
+    ],
+    getLocationsByMunicipalities: async () => []
+  };
+  const routes = createRouteUseCases({
+    locations,
+    eta: {
+      calcularIngresoOficial: (_point, date) => ({ date: new Date(`${date}T00:00:00Z`), msg: 'ok' }),
+      proyectarProximasRutas: () => [{ fecha_llegada: '17-Sep', horario_recoleccion: '10:00' }]
+    },
+    clock: { now: () => new Date('2026-09-16T10:00:00Z') }
+  });
+
+  const result = await routes.getUpcomingRoutes({
+    origen: 'ORIGIN_ID',
+    destino: 'DESTINATION_ID',
+    dropoff_date: '2026-09-16',
+    dropoff_time: '10:00'
+  });
+
+  assert.deepEqual(result, {
+    success: false,
+    origen_msg: 'No hay rutas disponibles o no operan en esa zona/empresa.'
+  });
+});
+
 test('searches both municipalities through one bounded repository operation', async () => {
   let municipalityCalls = 0;
   const locations = {
     getLocationByName: async () => null,
     getAllLocations: async () => { throw new Error('global catalog must not run'); },
+    getLocationsByIdentifiers: async () => [],
     getLocationsByMunicipalities: async filters => {
       municipalityCalls += 1;
       assert.deepEqual(filters, {

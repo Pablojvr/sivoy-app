@@ -82,7 +82,7 @@ responde `410` antes de consultar PostgreSQL.
 | Parcial | Producción limita JSON a 256 KB, urlencoded a 64 KB, solicitudes a 30 s, cabeceras a 10 s, keep-alive a 5 s y 100 cabeceras. El arranque local permite hasta 5 MB JSON para preservar temporalmente imágenes base64 de Admin. | La frontera HTTP ya está acotada; faltan límites de upload y timeouts PostgreSQL/Cloudinary para cerrar SEC03. |
 | Resuelto | CORS usa allowlist y el arranque de producción falla si `FRONTEND_URL` falta o es inválida. | Evita ampliar orígenes por una configuración incompleta. |
 | Resuelto en producción | `/api/locations` leía y devolvía todas las agencias, horarios y reglas. El flujo público migró a `/api/catalog` y producción responde `410` antes de PostgreSQL; el adaptador continúa solo en desarrollo para Admin/Partner. | La lectura global dejó de ser una superficie pública; resta eliminar la compatibilidad local cuando se migren esas áreas. |
-| Parcial | Rutas ya resuelven IDs en batch y comparan `empresa_id`; permanece un fallback legacy acotado por nombre hasta completar SCALE03. | El camino canónico evita N×M, pero la compatibilidad debe retirarse tras probar paridad. |
+| Resuelto | Rutas resuelven puntos exclusivamente por `id_destino` en batch y comparan `empresa_id`; se retiraron nombre, ID interno y catálogo global como fallbacks. | Tres consultas constantes cargan puntos, horarios y reglas sin N×M ni mezcla multiempresa. |
 | Resuelto | El catálogo público posee paginación, filtros, proyección resumida, detalle bajo demanda e identidad canónica de empresa/punto. | El trabajo por página tiene límite estable. |
 | P1 | No hay política explícita de caché salvo `runtime-config.js` y métricas. | No existe aún una capa de aceleración, pero añadirla ahora ocultaría lecturas globales. |
 | Resuelto en código | `query_timeout` protege al cliente; la migración 0008 fija defaults de rol de `statement_timeout` 5 s e `idle_in_transaction_session_timeout` 10 s para nuevas sesiones físicas; las transacciones aplican además `SET LOCAL`. El runner exige URL directa frente a Neon pooled. | Evita la falsa protección de parámetros startup que PgBouncer transaccional ignora. La aplicación productiva de 0008 pertenece al gate de despliegue. |
@@ -397,9 +397,11 @@ Cloudinary ni el flujo Inicio → destino → compartir.
   resumen, detalle, facetas y error; documentar compatibilidad legacy.
 - [x] SCALE02 Implementar consultas paginadas/filtradas de catálogo, horarios y
   reglas por IDs, sin lecturas completas ni `SELECT *` público sin límite.
-- [ ] SCALE03 Migrar búsqueda/ETA a IDs y resolución batch por empresa; retirar
+- [x] SCALE03 Migrar búsqueda/ETA a IDs y resolución batch por empresa; retirar
   comparación por nombre de empresa y bucles de consultas N×M.
-  - Parcial: camino canónico por IDs y batch completo; fallback por nombre pendiente.
+  - Evidencia: 23/23 pruebas focalizadas y 583/583 backend; nombre visible e ID
+    interno no resuelven, una empresa renombrada conserva compatibilidad por ID
+    y nombres iguales con IDs diferentes no se mezclan.
 - [ ] SCALE04 Crear migraciones aditivas de normalización/índices y medirlas con
   10k y 100k puntos antes de aceptar el DDL.
   - Parcial: índices aditivos medidos; comparación antes/después y decisión de

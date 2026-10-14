@@ -31,34 +31,6 @@ function createRouteLocationsRepository({ getDB = defaultGetDB } = {}) {
       ORDER BY a.id
     `, [unique]);
 
-    const foundIdentifiers = new Set(result.rows.map((row) => String(row.id_destino)));
-    const unresolved = unique.filter((identifier) => !foundIdentifiers.has(identifier));
-    if (unresolved.length > 0) {
-      const legacyResult = await db.query(`
-        SELECT
-          a.id,
-          a.id_destino,
-          a.nombre_destino,
-          a.tipo,
-          a.empresa_id,
-          e.nombre AS empresa,
-          a.maps_url,
-          a.departamento,
-          a.municipio,
-          a.direccion_referencia,
-          a.lat,
-          a.lng,
-          a.imagen_referencia
-        FROM agencias a
-        JOIN empresas e ON e.id = a.empresa_id
-        WHERE a.id::text = ANY($1::text[])
-           OR lower(a.nombre_destino) = ANY($2::text[])
-        ORDER BY a.id
-      `, [unresolved, unresolved.map((value) => value.toLocaleLowerCase('es-SV'))]);
-      const knownAgencyIds = new Set(result.rows.map((row) => row.id));
-      result.rows.push(...legacyResult.rows.filter((row) => !knownAgencyIds.has(row.id)));
-    }
-
     return hydrateLocations(db, result.rows);
   }
 

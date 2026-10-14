@@ -152,7 +152,7 @@ se activa después de corregir y medir consultas. No autoriza por sí solo un de
     `410` y `no-store` antes de PostgreSQL; la compatibilidad queda limitada a
     desarrollo para Admin/Partner fuera de alcance.
   - Dependencias: SCALE01.
-- [ ] SCALE03 Migrar ETA y búsqueda a IDs y resolución batch.
+- [x] SCALE03 Migrar ETA y búsqueda a IDs y resolución batch.
   - Aceptación: compatibilidad se compara por `empresa_id`; no existen consultas
     N×M ni resolución de relaciones por nombre.
   - Verificación: paridad ETA legacy/nueva, casos multiempresa y contador SQL.
@@ -162,7 +162,13 @@ se activa después de corregir y medir consultas. No autoriza por sí solo un de
   - [x] Frontend enviando IDs estables.
   - [x] Prueba PostgreSQL de escala en 10k/100k: 3 consultas, 0.155 ms en
     100k para IDs estables y sin `Seq Scan` de `agencias`.
-  - [ ] Retirar la compatibilidad legacy por nombre.
+  - [x] Retirar la compatibilidad legacy por nombre.
+  - Evidencia final: el puerto de rutas exige resolución batch; puntos se
+    resuelven exclusivamente por `id_destino`, la compatibilidad usa solo
+    `empresa_id` para entradas escalares y colecciones, y las búsquedas por
+    nombre/ID interno y la lectura global quedaron retiradas. Auditoría Codex
+    corrigió una entrega parcial de Antigravity que fallaba siete pruebas y una
+    mezcla escalar multiempresa. Resultado: 23/23 focalizadas y 583/583 backend.
   - Dependencias: SCALE01–SCALE02.
 - [ ] SCALE04 Añadir normalización e índices guiados por consultas.
   - Aceptación: municipio/departamento normalizados e índices siguen filtros/orden

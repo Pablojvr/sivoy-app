@@ -697,7 +697,9 @@ test('HTTP Observability Middleware', async (t) => {
         };
 
         await st.test('resolveMapsLink - validation error', async () => {
-            mapasService.resolveMapsLink = async () => { throw new Error("Missing URL"); };
+            mapasService.resolveMapsLink = async () => {
+                throw Object.assign(new Error('raw missing detail'), { code: 'MISSING_MAPS_URL' });
+            };
             const req = reqMock({ url: '' });
             const res = resMock();
             await mapasController.resolveMapsLink(req, res);
@@ -715,14 +717,14 @@ test('HTTP Observability Middleware', async (t) => {
             const res = resMock();
             await mapasController.resolveMapsLink(req, res);
             assert.strictEqual(res.getStatus(), 500);
-            assert.deepStrictEqual(res.getBody(), { success: false, error: "Network Error" });
+            assert.deepStrictEqual(res.getBody(), { success: false, code: 'MAPS_ERROR', error: 'Maps service error' });
             const logs = req.getLogs();
             assert.strictEqual(logs.length, 1);
             assert.strictEqual(logs[0].level, 'error');
             assert.deepStrictEqual(logs[0].args, ['resolve_maps_link_failed', 'maps_provider_error']);
         });
 
-        await st.test('searchPlaces - statusCode 399 (error)', async () => {
+        await st.test('searchPlaces - invalid statusCode falls back to safe 500', async () => {
             mapasService.searchPlaces = async () => {
                 const err = new Error("Provider Error");
                 err.statusCode = 399;
@@ -731,15 +733,15 @@ test('HTTP Observability Middleware', async (t) => {
             const req = reqMock({ query: 'test' });
             const res = resMock();
             await mapasController.searchPlaces(req, res);
-            assert.strictEqual(res.getStatus(), 399);
-            assert.deepStrictEqual(res.getBody(), { success: false, code: 'MAPS_ERROR', error: "Provider Error" });
+            assert.strictEqual(res.getStatus(), 500);
+            assert.deepStrictEqual(res.getBody(), { success: false, code: 'MAPS_ERROR', error: 'Maps service error' });
             const logs = req.getLogs();
             assert.strictEqual(logs.length, 1);
             assert.strictEqual(logs[0].level, 'error');
             assert.deepStrictEqual(logs[0].args, ['search_places_failed', 'maps_provider_error']);
         });
 
-        await st.test('searchPlaces - string "400" (error)', async () => {
+        await st.test('searchPlaces - arbitrary string status and code stay private', async () => {
             mapasService.searchPlaces = async () => {
                 const err = new Error("Invalid request");
                 err.statusCode = "400";
@@ -749,33 +751,37 @@ test('HTTP Observability Middleware', async (t) => {
             const req = reqMock({ query: 'test' });
             const res = resMock();
             await mapasController.searchPlaces(req, res);
-            assert.strictEqual(res.getStatus(), "400");
-            assert.deepStrictEqual(res.getBody(), { success: false, code: 'INVALID_REQUEST', error: "Invalid request" });
+            assert.strictEqual(res.getStatus(), 500);
+            assert.deepStrictEqual(res.getBody(), { success: false, code: 'MAPS_ERROR', error: 'Maps service error' });
             const logs = req.getLogs();
             assert.strictEqual(logs.length, 1);
             assert.strictEqual(logs[0].level, 'error');
             assert.deepStrictEqual(logs[0].args, ['search_places_failed', 'maps_provider_error']);
         });
 
-        await st.test('searchPlaces - statusCode 400 (warn)', async () => {
+        await st.test('searchPlaces - known validation error is safe and warns', async () => {
             mapasService.searchPlaces = async () => {
-                const err = new Error("Invalid request");
+                const err = new Error("private validation detail");
                 err.statusCode = 400;
-                err.code = 'INVALID_REQUEST';
+                err.code = 'INVALID_PLACE_QUERY';
                 throw err;
             };
             const req = reqMock({ query: 'test' });
             const res = resMock();
             await mapasController.searchPlaces(req, res);
             assert.strictEqual(res.getStatus(), 400);
-            assert.deepStrictEqual(res.getBody(), { success: false, code: 'INVALID_REQUEST', error: "Invalid request" });
+            assert.deepStrictEqual(res.getBody(), {
+                success: false,
+                code: 'INVALID_PLACE_QUERY',
+                error: 'Escribe entre 3 y 128 caracteres para buscar un lugar.'
+            });
             const logs = req.getLogs();
             assert.strictEqual(logs.length, 1);
             assert.strictEqual(logs[0].level, 'warn');
             assert.deepStrictEqual(logs[0].args, ['search_places_failed', 'maps_request_rejected']);
         });
 
-        await st.test('searchPlaces - statusCode 404 (warn)', async () => {
+        await st.test('searchPlaces - arbitrary 404 does not become a public contract', async () => {
             mapasService.searchPlaces = async () => {
                 const err = new Error("Not Found");
                 err.statusCode = 404;
@@ -784,12 +790,12 @@ test('HTTP Observability Middleware', async (t) => {
             const req = reqMock({ query: 'test' });
             const res = resMock();
             await mapasController.searchPlaces(req, res);
-            assert.strictEqual(res.getStatus(), 404);
-            assert.deepStrictEqual(res.getBody(), { success: false, code: 'MAPS_ERROR', error: "Not Found" });
+            assert.strictEqual(res.getStatus(), 500);
+            assert.deepStrictEqual(res.getBody(), { success: false, code: 'MAPS_ERROR', error: 'Maps service error' });
             const logs = req.getLogs();
             assert.strictEqual(logs.length, 1);
-            assert.strictEqual(logs[0].level, 'warn');
-            assert.deepStrictEqual(logs[0].args, ['search_places_failed', 'maps_request_rejected']);
+            assert.strictEqual(logs[0].level, 'error');
+            assert.deepStrictEqual(logs[0].args, ['search_places_failed', 'maps_provider_error']);
         });
 
         await st.test('resolvePlace - statusCode 500 (error)', async () => {
@@ -802,24 +808,29 @@ test('HTTP Observability Middleware', async (t) => {
             const res = resMock();
             await mapasController.resolvePlace(req, res);
             assert.strictEqual(res.getStatus(), 500);
-            assert.deepStrictEqual(res.getBody(), { success: false, code: 'MAPS_ERROR', error: "Internal Server Error" });
+            assert.deepStrictEqual(res.getBody(), { success: false, code: 'MAPS_ERROR', error: 'Maps service error' });
             const logs = req.getLogs();
             assert.strictEqual(logs.length, 1);
             assert.strictEqual(logs[0].level, 'error');
             assert.deepStrictEqual(logs[0].args, ['resolve_place_failed', 'maps_provider_error']);
         });
 
-        await st.test('resolvePlace - statusCode 502 (error)', async () => {
+        await st.test('resolvePlace - known upstream error preserves safe contract', async () => {
             mapasService.resolvePlace = async () => {
-                const err = new Error("Bad Gateway");
+                const err = new Error("private provider detail");
                 err.statusCode = 502;
+                err.code = 'GOOGLE_PLACES_UPSTREAM_ERROR';
                 throw err;
             };
             const req = reqMock({ placeId: 'test' });
             const res = resMock();
             await mapasController.resolvePlace(req, res);
             assert.strictEqual(res.getStatus(), 502);
-            assert.deepStrictEqual(res.getBody(), { success: false, code: 'MAPS_ERROR', error: "Bad Gateway" });
+            assert.deepStrictEqual(res.getBody(), {
+                success: false,
+                code: 'GOOGLE_PLACES_UPSTREAM_ERROR',
+                error: 'Google Places no pudo completar la solicitud.'
+            });
             const logs = req.getLogs();
             assert.strictEqual(logs.length, 1);
             assert.strictEqual(logs[0].level, 'error');
@@ -832,7 +843,7 @@ test('HTTP Observability Middleware', async (t) => {
             const res = resMock();
             await mapasController.resolvePlace(req, res);
             assert.strictEqual(res.getStatus(), 500);
-            assert.deepStrictEqual(res.getBody(), { success: false, code: 'MAPS_ERROR', error: "Internal" });
+            assert.deepStrictEqual(res.getBody(), { success: false, code: 'MAPS_ERROR', error: 'Maps service error' });
             const logs = req.getLogs();
             assert.strictEqual(logs.length, 1);
             assert.strictEqual(logs[0].level, 'error');

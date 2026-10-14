@@ -91,7 +91,7 @@ se activa después de corregir y medir consultas. No autoriza por sí solo un de
   - Evidencia: CSP Report-Only compatible con mapas, anti-clickjacking/nosniff,
     HSTS solo en producción, CORS allowlist que falla cerrado y errores API JSON
     genéricos. Prueba HTTP real y suite backend 551/551 verdes.
-- [ ] SEC03 Reducir cuerpos y fijar timeouts de Node, PostgreSQL y APIs externas.
+- [x] SEC03 Reducir cuerpos y fijar timeouts de Node, PostgreSQL y APIs externas.
   - [x] SEC03a Limitar JSON/urlencoded y tiempos/cabeceras del servidor Node con
     configuración acotada; preservar hasta 5 MB solo en el arranque local para
     el flujo administrativo base64 fuera de producción.
@@ -100,13 +100,17 @@ se activa después de corregir y medir consultas. No autoriza por sí solo un de
     (10 s), `SET LOCAL` transaccional y URL directa para migraciones. Verificado
     con cancelación real `57014`, recuperación de conexión y Neon pooled sin
     fuga de estado; aplicación productiva pertenece al gate T35/T36.
-  - [ ] SEC03c Limitar uploads y cerrar timeouts de Cloudinary/Maps/Places.
+  - [x] SEC03c Limitar uploads y cerrar timeouts de Cloudinary/Maps/Places.
     - [x] SEC03c-A Acotar logos multipart a 2 MB, un archivo y tipos raster
       JPEG/PNG/WebP; traducir rechazos a envelopes genéricos 400/413/415.
     - [x] SEC03c-B1 Acotar Data URI a 3 MiB y JPEG/PNG/WebP, configurar timeout
       Cloudinary 8 s y traducir validación/upstream a errores 400/502/504.
-    - [ ] SEC03c-B2 Acotar respuestas/entradas de Places; conservar y documentar
-      los límites existentes del resolvedor Maps.
+    - [x] SEC03c-B2 Acotar entradas de Places (query 3–128, place ID 1–256 y
+      token de sesión 64 caracteres), respuestas a 256 KiB y timeout a 8 s;
+      conservar SSRF/DNS pinning y acotar el resolvedor Maps a 16 KiB/8 s.
+      Controladores exponen únicamente errores tipados bajo allowlist y una
+      respuesta fragmentada excesiva se cancela. Pruebas focalizadas, suite
+      completa, auditoría de dependencias y revisión Antigravity verdes.
 - [ ] SEC04 Aplicar rate limits por riesgo, primero en observación.
 - [x] SEC05 Probar escrituras 403 y retirar de producción endpoints auxiliares de Partner/prueba.
   - Evidencia: escrituras operativas responden 403 antes de parsers en producción;

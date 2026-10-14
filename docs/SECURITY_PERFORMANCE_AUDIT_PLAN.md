@@ -344,7 +344,7 @@ Gate: la credencial anterior falla y el secret scan de árbol/historial está ve
 ### Fase 1 — frontera HTTP segura
 
 - [x] SEC02 Añadir headers/CSP progresiva, CORS fail-closed y errores JSON.
-- [ ] SEC03 Reducir cuerpos y fijar timeouts de Node/externos.
+- [x] SEC03 Reducir cuerpos y fijar timeouts de Node/externos.
   - [x] SEC03a: JSON 256 KB y urlencoded 64 KB en runtime normal; Node limita
     solicitud/cabeceras/keep-alive a 30/10/5 s y 100 cabeceras. Overrides de env
     son enteros acotados. Desarrollo local conserva temporalmente 5 MB JSON para
@@ -356,15 +356,18 @@ Gate: la credencial anterior falla y el secret scan de árbol/historial está ve
     PostgreSQL efímero (cancelación `57014` y conexión reutilizable) y contra
     Neon pooled para el aislamiento transaccional. Aplicar 0008 en producción
     permanece dentro del gate T35/T36, no de este cambio de código.
-  - [ ] SEC03c: límites de upload, Cloudinary y cierre de timeouts externos.
+  - [x] SEC03c: límites de upload, Cloudinary y cierre de timeouts externos.
     - [x] SEC03c-A: logos multipart limitados a 2 MB (override 64 KB–10 MB),
       un archivo, diez campos y doce partes; solo JPEG/PNG/WebP con extensión
       coherente. Errores seguros 400/413/415 probados sobre HTTP real.
     - [x] SEC03c-B1: Data URI limitadas a JPEG/PNG/WebP y 3 MiB (override
       64 KiB–5 MiB); Cloudinary con timeout SDK de 8 s (2–30 s) y errores
       seguros 400/502/504, sin cambiar respuestas exitosas.
-    - [ ] SEC03c-B2: límites de entrada/respuesta y errores tipados para Places;
-      conservar los límites SSRF, redirecciones, cuerpo y timeout de Maps.
+    - [x] SEC03c-B2: Places valida query/place ID/token de sesión, limita la
+      respuesta a 256 KiB y cancela streams excesivos, con timeout de 8 s y
+      errores 400/502/503/504 seguros. Maps conserva allowlist, DNS pinning,
+      cinco redirecciones máximas y aplica límites configurables acotados de
+      16 KiB/8 s. El controlador publica solo códigos/mensajes bajo allowlist.
 - [ ] SEC04 Rate limit por riesgo, con observación antes de bloqueo.
 - [x] SEC05 Inventariar OpenAPI/contratos, desactivar en producción
   `/api/test-location` y el Excel de Partner mientras no se utilicen, y probar que

@@ -34,6 +34,7 @@ export interface PointResultViewModel {
   standalone: true,
   imports: [CommonModule, ScheduleDisplayComponent, SiButtonDirective, SiChipComponent],
   templateUrl: './point-result-card.component.html',
+  styleUrls: ['./point-result-card.component.css'],
   encapsulation: ViewEncapsulation.None
 })
 export class PointResultCardComponent {

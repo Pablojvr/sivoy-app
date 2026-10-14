@@ -88,20 +88,20 @@ a producto y experiencia pública; Partner continúa fuera de alcance.
     - Evidencia 2026-10-14: ciclo RED por ausencia de `[busy]` en IconButton;
       GREEN con 3/3 pruebas focalizadas, 361/361 frontend y build exitoso.
 
-  - [ ] UI-REB-01c Extraer y recalibrar la apariencia de primitives.
+  - [x] UI-REB-01c Extraer y recalibrar la apariencia de primitives.
     - Descripción: mover las reglas `.si-*` a su hoja dedicada y aplicar los
       tokens nativos sin alterar DOM, eventos, navegación ni estado consumidor.
     - Criterios de aceptación:
-      - [ ] `native-primitives.css` es la única fuente de apariencia para los
+      - [x] `native-primitives.css` es la única fuente de apariencia para los
         siete primitives y `styles.css` no conserva reglas duplicadas `.si-*`.
-      - [ ] Controles alcanzan 44 px, pressed usa `translateY(1px)`, el foco es
+      - [x] Controles alcanzan 44 px, pressed usa `translateY(1px)`, el foco es
         visible y reduced motion elimina movimiento no esencial.
-      - [ ] No se introducen colores literales fuera del contrato, `!important`,
+      - [x] No se introducen colores literales fuera del contrato, `!important`,
         estilos inline ni modificaciones a templates consumidores.
     - Verificación:
-      - [ ] `cd frontend && npm run check:css-colors && npm run check:boundaries`
-      - [ ] `cd frontend && npm run test:ci && npm run build`
-      - [ ] Comparación en 386×912 antes y después del corte.
+      - [x] `cd frontend && npm run check:css-colors && npm run check:boundaries`
+      - [x] `cd frontend && npm run test:ci && npm run build`
+      - [x] Comparación en 386×912 antes y después del corte.
     - Dependencias: UI-REB-01a y UI-REB-01b.
     - Archivos previstos:
       - `frontend/src/styles/native-primitives.css`
@@ -109,12 +109,16 @@ a producto y experiencia pública; Partner continúa fuera de alcance.
     - Alcance estimado: S, dos archivos.
     - Ejecución: delegable a Antigravity con esos dos archivos como límite;
       Codex revisa el diff y repite todas las validaciones.
+    - Evidencia 2026-10-14: Antigravity fue detenido sin cambios tras no completar
+      su ejecución; Codex realizó y auditó el corte. Contrato 15/15, boundaries
+      31/31, frontend 361/361 y build verdes. En 386×912: ancho del documento
+      386 px, cero alertas visibles y acciones de 15 px con alto mínimo superado.
 
   ### Checkpoint UI-REB-01 — fundamento integrado
 
-  - [ ] UI-REB-01a–c están en commits atómicos y reversibles.
-  - [ ] Contratos, suite frontend, boundaries, colores y build están verdes.
-  - [ ] No existe petición a Google Fonts ni cambio de flujo o contrato Angular.
+  - [x] UI-REB-01a–c están en commits atómicos y reversibles.
+  - [x] Contratos, suite frontend, boundaries, colores y build están verdes.
+  - [x] No existe petición a Google Fonts ni cambio de flujo o contrato Angular.
   - [ ] Revisión humana antes del cierre documental y visual.
 
   - [ ] UI-REB-01d Documentar y certificar el fundamento visual.

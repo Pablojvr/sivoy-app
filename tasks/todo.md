@@ -169,6 +169,8 @@ se activa después de corregir y medir consultas. No autoriza por sí solo un de
     nombre/ID interno y la lectura global quedaron retiradas. Auditoría Codex
     corrigió una entrega parcial de Antigravity que fallaba siete pruebas y una
     mezcla escalar multiempresa. Resultado: 23/23 focalizadas y 583/583 backend.
+    Smoke PostgreSQL local: `AG_APOPA_01` → `AG_ACAJUTLA_01` devuelve ruta
+    válida; los nombres visibles equivalentes devuelven `success:false`.
   - Dependencias: SCALE01–SCALE02.
 - [ ] SCALE04 Añadir normalización e índices guiados por consultas.
   - Aceptación: municipio/departamento normalizados e índices siguen filtros/orden

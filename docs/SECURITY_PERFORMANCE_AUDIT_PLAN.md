@@ -401,7 +401,8 @@ Cloudinary ni el flujo Inicio → destino → compartir.
   comparación por nombre de empresa y bucles de consultas N×M.
   - Evidencia: 23/23 pruebas focalizadas y 583/583 backend; nombre visible e ID
     interno no resuelven, una empresa renombrada conserva compatibilidad por ID
-    y nombres iguales con IDs diferentes no se mezclan.
+    y nombres iguales con IDs diferentes no se mezclan. Un smoke con PostgreSQL
+    local confirma ruta válida por IDs y rechazo del mismo par enviado por nombre.
 - [ ] SCALE04 Crear migraciones aditivas de normalización/índices y medirlas con
   10k y 100k puntos antes de aceptar el DDL.
   - Parcial: índices aditivos medidos; comparación antes/después y decisión de

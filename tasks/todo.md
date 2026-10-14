@@ -35,6 +35,109 @@ a producto y experiencia pública; Partner continúa fuera de alcance.
   - Aceptación: tokens existentes gobiernan color, tipografía, espaciado, iconos y
     movimiento en las pantallas intervenidas.
   - Verificación: boundaries/colores, build y comparación visual.
+
+  #### UI-REB-01 — `native-visual-foundation`
+
+  Spec: `tasks/specs/UI-REB-01-native-visual-foundation.md`.
+  Plan: `tasks/plan.md`, Fase 4, subplan UI-REB-01.
+
+  - [ ] UI-REB-01a Instalar el contrato de tokens nativos.
+    - Descripción: introducir la fuente única de tokens semánticos, mantener los
+      aliases legacy y proteger el orden de imports y la eliminación de Manrope.
+    - Criterios de aceptación:
+      - [ ] `native-tokens.css` contiene la escala aprobada de tipografía, color,
+        espacios, radios, elevación, movimiento y safe areas.
+      - [ ] `styles.css` importa tokens antes de primitives, no solicita fuentes
+        remotas y los aliases existentes resuelven hacia roles `--si-*`.
+      - [ ] El contrato automatizado falla al faltar un token/alias requerido o
+        reaparecer una fuente remota, y acepta únicamente los colores aprobados.
+    - Verificación:
+      - [ ] `cd frontend && npm run check:css-colors`
+      - [ ] `cd frontend && npm run check:boundaries`
+      - [ ] `cd frontend && npm run test:ci && npm run build`
+    - Dependencias: spec y plan UI-REB-01 aprobados.
+    - Archivos previstos:
+      - `frontend/src/styles/native-tokens.css`
+      - `frontend/src/styles.css`
+      - `frontend/css-color-contract.json`
+      - `frontend/scripts/check-css-color-contract.test.mjs`
+    - Alcance estimado: M, cuatro archivos.
+    - Ejecución: Codex; las decisiones del contrato no se delegan.
+
+  - [ ] UI-REB-01b Caracterizar y completar la API presentacional de primitives.
+    - Descripción: fijar mediante pruebas los selectores, inputs, variantes,
+      atributos accesibles y estados públicos de los primitives Angular.
+    - Criterios de aceptación:
+      - [ ] Button, IconButton, Input, Chip, Card, Sheet y Modal conservan sus
+        selectores y variantes actuales; cualquier estado nuevo es aditivo.
+      - [ ] Disabled/busy, `aria-busy`, `aria-invalid`, labels y atributos
+        `data-*` quedan cubiertos por pruebas de host sin lógica de negocio.
+      - [ ] Todos los templates consumidores continúan compilando sin cambios.
+    - Verificación:
+      - [ ] `cd frontend && npm run test:ci -- --include src/app/shared/ui/ui-primitives.spec.ts`
+      - [ ] `cd frontend && npm run test:ci && npm run build`
+    - Dependencias: UI-REB-01a.
+    - Archivos previstos:
+      - `frontend/src/app/shared/ui/ui-primitives.ts`
+      - `frontend/src/app/shared/ui/ui-primitives.spec.ts`
+    - Alcance estimado: S, dos archivos.
+    - Ejecución: Codex; no se delegan contratos Angular.
+
+  - [ ] UI-REB-01c Extraer y recalibrar la apariencia de primitives.
+    - Descripción: mover las reglas `.si-*` a su hoja dedicada y aplicar los
+      tokens nativos sin alterar DOM, eventos, navegación ni estado consumidor.
+    - Criterios de aceptación:
+      - [ ] `native-primitives.css` es la única fuente de apariencia para los
+        siete primitives y `styles.css` no conserva reglas duplicadas `.si-*`.
+      - [ ] Controles alcanzan 44 px, pressed usa `translateY(1px)`, el foco es
+        visible y reduced motion elimina movimiento no esencial.
+      - [ ] No se introducen colores literales fuera del contrato, `!important`,
+        estilos inline ni modificaciones a templates consumidores.
+    - Verificación:
+      - [ ] `cd frontend && npm run check:css-colors && npm run check:boundaries`
+      - [ ] `cd frontend && npm run test:ci && npm run build`
+      - [ ] Comparación en 386×912 antes y después del corte.
+    - Dependencias: UI-REB-01a y UI-REB-01b.
+    - Archivos previstos:
+      - `frontend/src/styles/native-primitives.css`
+      - `frontend/src/styles.css`
+    - Alcance estimado: S, dos archivos.
+    - Ejecución: delegable a Antigravity con esos dos archivos como límite;
+      Codex revisa el diff y repite todas las validaciones.
+
+  ### Checkpoint UI-REB-01 — fundamento integrado
+
+  - [ ] UI-REB-01a–c están en commits atómicos y reversibles.
+  - [ ] Contratos, suite frontend, boundaries, colores y build están verdes.
+  - [ ] No existe petición a Google Fonts ni cambio de flujo o contrato Angular.
+  - [ ] Revisión humana antes del cierre documental y visual.
+
+  - [ ] UI-REB-01d Documentar y certificar el fundamento visual.
+    - Descripción: publicar la guía de uso y registrar la auditoría final de las
+      pantallas consumidoras antes de iniciar `native-app-shell`.
+    - Criterios de aceptación:
+      - [ ] La guía documenta roles, ejemplos, primitives, aliases temporales,
+        iconografía, movimiento, accesibilidad y patrones prohibidos.
+      - [ ] La auditoría cubre 320×568, 386×912, 768×1024, 1024×900 y 1440×900,
+        además de teclado, contraste, zoom 200% y reduced motion.
+      - [ ] Inicio, resultados, detalle, rutas y mapa conservan comportamiento,
+        sin scroll horizontal ni contenido bajo navegación o safe areas.
+    - Verificación:
+      - [ ] `cd frontend && npm run check:css-colors && npm run check:boundaries`
+      - [ ] `cd frontend && npm run test:ci && npm run build && npm run e2e`
+      - [ ] Evidencia manual registrada y aprobación humana del resultado.
+    - Dependencias: checkpoint UI-REB-01 aprobado.
+    - Archivos previstos:
+      - `docs/UI_NATIVE_DESIGN_SYSTEM.md`
+    - Alcance estimado: S, un archivo más evidencia de navegador.
+    - Ejecución: documentación delegable; Codex ejecuta la auditoría final.
+
+  ### Checkpoint UI-REB-01 — cierre
+
+  - [ ] Todos los criterios de la spec están satisfechos.
+  - [ ] Rollback por commit fue revisado y no requiere backend ni migraciones.
+  - [ ] Aprobación humana habilita continuar con `native-app-shell`.
+
 - [ ] MVP07 Gate de salida del flujo público.
   - Aceptación: flujo completo, build, auditorías y smoke verdes; aprobación humana
     antes de desplegar.

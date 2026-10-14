@@ -208,7 +208,7 @@ CSS global. Esta fase es delegable parcialmente a Antigravity.
 
 ### Subplan UI-REB-01 — `native-visual-foundation`
 
-Estado: propuesta técnica pendiente de aprobación humana. La especificación
+Estado: plan técnico aprobado el 2026-10-14. La especificación
 aprobada es `tasks/specs/UI-REB-01-native-visual-foundation.md`. Este subplan
 extiende `MVP06`; no reactiva los paquetes arquitectónicos pospuestos ni autoriza
 cambios en producción.

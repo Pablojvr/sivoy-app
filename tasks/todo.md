@@ -112,6 +112,21 @@ se activa después de corregir y medir consultas. No autoriza por sí solo un de
       respuesta fragmentada excesiva se cancela. Pruebas focalizadas, suite
       completa, auditoría de dependencias y revisión Antigravity verdes.
 - [ ] SEC04 Aplicar rate limits por riesgo, primero en observación.
+  - [x] SEC04a Implementar límites independientes para catálogo (120/min),
+    cálculo/búsqueda (60/min) y Maps/Places (20/min). El modo `observe` por
+    defecto no bloquea ni expone `Retry-After`; registra una sola vez al cruzar
+    el umbral. `enforce` responde 429 seguro con `Retry-After` antes de parsers.
+    Render usa `CF-Connecting-IP` únicamente en producción y agrupa IPv6 /56;
+    local ignora cabeceras reenviadas. Memoria por instancia con fail-open y
+    puerto de configuración para un almacén compartido posterior.
+    Evidencia local: 7/7 pruebas focalizadas, 580/580 pruebas backend,
+    `npm audit --omit=dev` sin vulnerabilidades y `git diff --check` verde.
+    Antigravity emitió APPROVE; su advertencia sobre `CF-Connecting-IP` se cerró
+    contra la garantía oficial de Render de que Cloudflare sobrescribe el valor
+    en servicios web públicos.
+  - [ ] SEC04b Observar 48–72 horas en producción, ajustar umbrales con evidencia
+    y activar `RATE_LIMIT_MODE=enforce`; usar edge/Key Value antes de múltiples
+    instancias. No forma parte de este despliegue de código.
 - [x] SEC05 Probar escrituras 403 y retirar de producción endpoints auxiliares de Partner/prueba.
   - Evidencia: escrituras operativas responden 403 antes de parsers en producción;
     `/api/test-location` eliminado (404); `GET/HEAD /api/empresas/excel-template`

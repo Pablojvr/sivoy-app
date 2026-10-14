@@ -15,6 +15,7 @@ const {
     validateProductionCors
 } = require('./src/core/http/http-security');
 const { applyHttpServerLimits, createHttpRuntimeConfig } = require('./src/core/http/http-runtime');
+const { createApiRateLimits, registerApiRateLimits } = require('./src/core/http/api-rate-limits');
 
 const empresasRoutes = require('./src/domains/empresas/empresas.routes');
 const ubicacionesRoutes = require('./src/domains/ubicaciones/ubicaciones.routes');
@@ -30,6 +31,8 @@ app.use(cors(createCorsOptions(process.env)));
 const observability = createHttpObservability();
 registerObservabilityRoutes(app, observability);
 app.use('/api', observability.middleware);
+const apiRateLimits = createApiRateLimits({ env: process.env });
+registerApiRateLimits(app, apiRateLimits);
 
 function isProductionEnvironment() {
     return (process.env.NODE_ENV || '').toLowerCase() === 'production';

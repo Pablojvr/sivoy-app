@@ -369,6 +369,17 @@ Gate: la credencial anterior falla y el secret scan de árbol/historial está ve
       cinco redirecciones máximas y aplica límites configurables acotados de
       16 KiB/8 s. El controlador publica solo códigos/mensajes bajo allowlist.
 - [ ] SEC04 Rate limit por riesgo, con observación antes de bloqueo.
+  - [x] SEC04a: middleware previo a parsers con políticas independientes de
+    catálogo 120/min, cálculo/búsqueda 60/min y Maps/Places 20/min. `observe`
+    es el modo seguro por defecto y registra una vez por cliente/ventana al
+    cruzar el umbral; `enforce` devuelve 429 genérico con `Retry-After`. En
+    Render solo confía `CF-Connecting-IP` válido bajo producción y agrupa IPv6
+    /56; local ignora cabeceras proxy. Memoria por instancia y fail-open.
+    Verificación: 7/7 pruebas focalizadas, 580/580 pruebas backend y auditoría
+    de dependencias de producción sin vulnerabilidades.
+  - [ ] SEC04b: recopilar 48–72 horas de observación productiva, aprobar los
+    umbrales y cambiar a `enforce`. Antes de múltiples instancias, trasladar el
+    store al edge o a Key Value para mantener contadores globales.
 - [x] SEC05 Inventariar OpenAPI/contratos, desactivar en producción
   `/api/test-location` y el Excel de Partner mientras no se utilicen, y probar que
   toda escritura responde 403 en producción.
@@ -453,6 +464,9 @@ producción.
 ## Fuentes oficiales
 
 - Express: https://expressjs.com/en/advanced/best-practice-security/
+- Express detrás de proxies: https://expressjs.com/en/guide/behind-proxies/
+- express-rate-limit: https://github.com/express-rate-limit/express-rate-limit
+- Render, DDoS e IP real: https://render.com/articles/how-render-handles-ddos-attacks
 - OWASP API Security Top 10: https://owasp.org/projects/api-security-project
 - OWASP ZAP Baseline: https://www.zaproxy.org/docs/docker/baseline-scan/
 - PostgreSQL, uso de índices: https://www.postgresql.org/docs/current/indexes-examine.html

@@ -164,19 +164,25 @@ Aunque las dimensiones estáticas de código, CSS, pruebas unitarias, E2E locale
     | `schedules_by_agency` | `Bitmap Heap/Index Scan` | 0.047 ms | 7 | 7 | 9 |
     | `delivery_rules_by_agency` | `Index Scan` | 0.027 ms | 2 | 2 | 3 |
   - **Cuello de botella confirmado:** La búsqueda puntual por nombre o ID (`agency_lookup_by_name_or_id`) realiza un `Seq Scan` completo sobre la tabla debido al filtro `LOWER(nombre_destino) = $1 OR id::text = $2`, con una disparidad de estimación del planificador de 100:1 (`plan_rows: 100` vs `actual_rows: 1`).
-  - **Delimitación y trabajo pendiente (T14b):** T14a midió y fijó la línea base reproducible sin alterar consultas, índices ni contratos HTTP. Queda pendiente T14b (optimización y re-medición). Se establece de forma explícita que **T14b no debe definir todavía la semántica pública de `id`/`id_destino`**, ya que depende estrictamente de T13. No se debe inventar ni adelantar una estrategia de resolución o migración sin resolver previamente T13. T14 permanece abierto en el plan.
+  - **T14b completada localmente:** T13/SCALE03 fijaron `id_destino` como `pointId`
+    público y retiraron la resolución legacy por nombre/ID interno. La medición
+    comparativa sobre las consultas canónicas de catálogo se ejecutó sin caché en
+    10k y 100k puntos. En 100k, ubicación pasó de 91.270 a 3.552 ms, orden por
+    nombre de 217.541 a 0.127 ms y búsqueda contains de 178.139 a 11.080 ms.
+    Los planes verifican por nombre los índices de ubicación, B-tree de expresión
+    y GIN `pg_trgm`. Las migraciones 0009/0010 son aditivas, el índice concurrente
+    es reintentable y el ledger 0001–0010 quedó idempotente. No se persiste una
+    columna normalizada porque los índices de expresión ya eliminan el cuello y
+    una columna duplicaría estado y costo de escritura.
 
 ### Ítems críticos todavía pendientes:
-1. **T14 — Optimización y re-medición de consultas (T14b pendiente; T14 permanece abierto):**
-   - Habiéndose completado la línea base T14a con `EXPLAIN (ANALYZE, BUFFERS)` en PostgreSQL 16 efímero y confirmado el cuello de botella en `agency_lookup_by_name_or_id` (Seq Scan y estimación 100:1), resta ejecutar la fase T14b de optimización focalizada y re-medición comparativa.
-   - Restricción crítica: T14b no debe definir todavía la semántica pública de `id`/`id_destino`, ya que depende de T13. No se inventa una estrategia prematura ni se alteran contratos sin T13 resuelto.
-2. **T43 — Comparación paralela de ETA antiguo vs nuevo:**
+1. **T43 — Comparación paralela de ETA antiguo vs nuevo:**
    - Falta ejecutar en paralelo el cálculo del motor legacy frente al motor nuevo según el plan, limitándose a certificar la paridad de resultados y las diferencias registradas entre ambos motores.
-3. **Telemetría y validación en Staging (latencia, tasa de error, throughput) y smoke/rollback T36:**
+2. **Telemetría y validación en Staging (latencia, tasa de error, throughput) y smoke/rollback T36:**
    - Falta desplegar en un entorno de staging real para medir percentiles de latencia (p95/p99), tasas de error HTTP y capacidad de throughput bajo concurrencia.
    - Falta ejecutar el smoke test de staging y el simulacro de rollback verificable según lo establecido en T36.
    - El código HTTP 200 verificado localmente en `http://127.0.0.1:4303/#/` no sustituye esta validación.
-4. **Seguridad global (T00, T45c) y aprobación humana:**
+3. **Seguridad global (T00, T45c) y aprobación humana:**
    - Si bien T49 completó la auditoría de dependencias y el endurecimiento de supply chain en local (backend 0 vulnerabilidades con 231 firmas/15 attestations; frontend 0 vulnerabilidades con 493 firmas/158 attestations; Lockfile Guard 5/5) y tanto T35c como T14a quedaron validados remotamente en CI, el **checkpoint global de seguridad permanece formalmente abierto** por los bloqueos preexistentes:
      - **T00:** Rotación y revocación real de credenciales PostgreSQL expuestas en versiones históricas y saneamiento del historial git.
      - **T45c:** Definición y aprobación del cuerpo de error genérico HTTP 500 para la resolución externa de Maps.
@@ -188,4 +194,10 @@ Aunque las dimensiones estáticas de código, CSS, pruebas unitarias, E2E locale
 
 El checkpoint **`- [ ] Métricas comparadas contra la línea base.`** en `tasks/todo.md` **NO puede cerrarse todavía**.
 
-Si bien la evidencia estructural de frontend, desacoplamiento del shell, CSS global, contratos de calidad automatizada, auditoría de dependencias (T49), empaquetado de producción, la validación remota de migraciones en CI (T35c) y la línea base de consultas en PostgreSQL 16 efímero (T14a) han quedado sólidamente registradas, la optimización y re-medición de base de datos (T14b), la paridad operativa del ETA (T43) y la telemetría de staging (T36) permanecen pendientes. Del mismo modo, el checkpoint global de seguridad sigue abierto por T00 y T45c, y la aprobación humana previa a producción continúa pendiente. Por tanto, los ítems correspondientes deben mantenerse formalmente abiertos en el checklist del proyecto.
+Si bien la evidencia estructural de frontend, desacoplamiento del shell, CSS global,
+contratos de calidad automatizada, auditoría de dependencias (T49), empaquetado de
+producción, validación de migraciones y comparación SQL T14a/T14b han quedado
+registradas, PERF01–PERF04 todavía requieren telemetría y publicación operativa,
+la paridad operativa del ETA (T43) y staging/rollback (T36) permanecen pendientes.
+El checkpoint global de seguridad sigue abierto por T00 y T45c, y la aprobación
+humana previa a producción continúa pendiente.

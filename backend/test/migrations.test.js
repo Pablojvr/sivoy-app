@@ -5,6 +5,7 @@ const path = require('node:path');
 const test = require('node:test');
 
 const {
+  assertNoInvalidUserIndexes,
   discoverMigrations,
   resolveMigrationDatabaseUrl,
   runMigrations,
@@ -79,6 +80,29 @@ test('database timeout migration persists role defaults without hardcoded identi
   assert.match(sql, /statement_timeout/i);
   assert.match(sql, /idle_in_transaction_session_timeout/i);
   assert.doesNotMatch(sql, /neondb_owner/i);
+});
+
+test('catalog substring search migrations install pg_trgm and an idempotent concurrent index', () => {
+  const migrationsDirectory = path.join(__dirname, '../migrations');
+  const extensionSql = fs.readFileSync(
+    path.join(migrationsDirectory, '0009_enable_pg_trgm.sql'),
+    'utf8'
+  );
+  const indexSql = fs.readFileSync(
+    path.join(migrationsDirectory, '0010_agencias_catalog_name_trgm.notx.sql'),
+    'utf8'
+  );
+
+  assert.match(extensionSql, /CREATE EXTENSION IF NOT EXISTS pg_trgm WITH SCHEMA public/i);
+  assert.match(indexSql, /CREATE INDEX CONCURRENTLY IF NOT EXISTS agencias_catalog_name_trgm_idx/i);
+  assert.match(indexSql, /USING gin/i);
+  assert.match(indexSql, /public\.gin_trgm_ops/i);
+  assert.match(indexSql, /translate\(lower\(nombre_destino\), 'áéíóúüñ', 'aeiouun'\)/i);
+  assert.match(indexSql, /WHERE id_destino IS NOT NULL AND btrim\(id_destino\) <> ''/i);
+
+  const migrations = discoverMigrations(migrationsDirectory);
+  assert.equal(migrations.find(({ version }) => version === '0009').transactional, true);
+  assert.equal(migrations.find(({ version }) => version === '0010').transactional, false);
 });
 
 test('migration runner prioritizes a direct URL and rejects pooled Neon endpoints', () => {
@@ -157,4 +181,48 @@ test('non-transactional migrations run without BEGIN for concurrent indexes', as
   } finally {
     fs.rmSync(directory, { recursive: true, force: true });
   }
+});
+
+test('non-transactional migrations never enter the ledger when an index is invalid', async () => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'sivoy-migrations-'));
+  const queries = [];
+  const client = {
+    async query(sql) {
+      queries.push(sql);
+      if (sql.includes('to_regclass')) return { rows: [{ ledger: null }] };
+      if (sql.includes('NOT i.indisvalid')) {
+        return { rows: [{ schema_name: 'public', index_name: 'records_id_idx' }] };
+      }
+      return { rows: [] };
+    },
+    release() {}
+  };
+
+  try {
+    fs.writeFileSync(
+      path.join(directory, '0001_index.notx.sql'),
+      'CREATE INDEX CONCURRENTLY IF NOT EXISTS records_id_idx ON records (id);'
+    );
+
+    await assert.rejects(
+      runMigrations({ connect: async () => client }, { directory }),
+      /0001 left invalid indexes: public\.records_id_idx/
+    );
+    assert.equal(
+      queries.some((sql) => sql.includes('INSERT INTO schema_migrations')),
+      false,
+      'an invalid concurrent index must never be recorded as applied'
+    );
+  } finally {
+    fs.rmSync(directory, { recursive: true, force: true });
+  }
+});
+
+test('invalid-index guard ignores no rows and reports bounded schema-qualified names', async () => {
+  const client = {
+    async query() {
+      return { rows: [] };
+    }
+  };
+  await assert.doesNotReject(assertNoInvalidUserIndexes(client, { version: '0010' }));
 });

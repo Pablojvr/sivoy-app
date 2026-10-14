@@ -403,10 +403,15 @@ Cloudinary ni el flujo Inicio → destino → compartir.
     interno no resuelven, una empresa renombrada conserva compatibilidad por ID
     y nombres iguales con IDs diferentes no se mezclan. Un smoke con PostgreSQL
     local confirma ruta válida por IDs y rechazo del mismo par enviado por nombre.
-- [ ] SCALE04 Crear migraciones aditivas de normalización/índices y medirlas con
+- [x] SCALE04 Crear migraciones aditivas de normalización/índices y medirlas con
   10k y 100k puntos antes de aceptar el DDL.
-  - Parcial: índices aditivos medidos; comparación antes/después y decisión de
-    normalización persistida pendientes.
+  - Evidencia local PostgreSQL 16, sin caché y con `EXPLAIN (ANALYZE, BUFFERS)`:
+    en 100k puntos, ubicación 91.270→3.552 ms, orden 217.541→0.127 ms y búsqueda
+    parcial 178.139→11.080 ms. Los planes exigen los índices de ubicación,
+    nombre y GIN trigram por nombre exacto. Migraciones 0001–0010 aplicadas desde
+    cero y reaplicadas idempotentemente. No se persiste una columna normalizada:
+    los índices de expresión eliminan el cuello sin duplicar estado de escritura.
+    El runner rechaza el ledger si un índice concurrente queda inválido o no listo.
 - [x] SCALE05 Migrar el frontend a búsqueda remota cancelable, páginas/facetas y
   detalle bajo demanda; retirar el bootstrap del catálogo completo.
 

@@ -72,8 +72,9 @@ sin imagen ni enlace externo.
 ### En espera post-MVP
 
 - [ ] POST01 Retomar `T43c2c`, `T43c2d2` y `T43c2e` solo con necesidad operativa.
-- [ ] POST02/T14b Completar optimización y re-medición; se activa dentro de
-  SCALE04/PERF04 una vez aprobado el contrato canónico de identidad y búsqueda.
+- [x] POST02/T14b Completar optimización y re-medición dentro de SCALE04 una vez
+  aprobado el contrato canónico de identidad y búsqueda. PERF04 conserva la
+  publicación operativa y los budgets de staging como trabajo independiente.
 - [ ] POST03 Completar staging/rollback de `T35`/`T36` antes de una operación que lo requiera.
 - [ ] POST04 Evaluar microservicios/eventos únicamente ante límites medidos del monolito modular.
 
@@ -172,13 +173,20 @@ se activa después de corregir y medir consultas. No autoriza por sí solo un de
     Smoke PostgreSQL local: `AG_APOPA_01` → `AG_ACAJUTLA_01` devuelve ruta
     válida; los nombres visibles equivalentes devuelven `success:false`.
   - Dependencias: SCALE01–SCALE02.
-- [ ] SCALE04 Añadir normalización e índices guiados por consultas.
+- [x] SCALE04 Añadir normalización e índices guiados por consultas.
   - Aceptación: municipio/departamento normalizados e índices siguen filtros/orden
     canónicos; todo cambio es aditivo y reversible.
   - Verificación: `EXPLAIN (ANALYZE, BUFFERS)` antes/después en 10k y 100k puntos.
   - [x] Índices aditivos del catálogo y medición posterior en 10k/100k.
-  - [ ] Completar comparación antes/después y normalización persistida si la
-    medición demuestra que sigue siendo necesaria.
+  - [x] Comparación antes/después completada para filtro geográfico, orden y
+    búsqueda parcial. En 100k puntos: ubicación 91.270→3.552 ms, orden
+    217.541→0.127 ms y contains 178.139→11.080 ms; los planes prueban por nombre
+    `agencias_scale_location_idx`, `agencias_scale_name_idx` y
+    `agencias_scale_name_trgm_idx`. No se añade columna normalizada persistida:
+    los índices de expresión satisfacen las tres consultas y evitan duplicar
+    estado o aumentar escrituras. Migraciones aditivas 0009/0010 verificadas
+    desde cero, ledger idempotente y 586/586 pruebas backend verdes. El runner
+    impide registrar una migración no transaccional si deja un índice inválido.
   - Dependencias: SCALE01–SCALE03; incorpora T14b.
 - [x] SCALE05 Migrar el frontend a catálogo incremental.
   - Aceptación: Inicio busca remotamente con debounce/cancelación, usa páginas y
@@ -325,11 +333,19 @@ se activa después de corregir y medir consultas. No autoriza por sí solo un de
   - Spec ejecutado: `tasks/specs/T11-location-repository-port.md`. T10 cubre lectura de rutas por puertos; la escritura de puntos pasa un objeto de cambios permitido al repositorio, único dueño del SQL parametrizado. Sin cambios de endpoint, esquema ni interfaz Partner.
   - Resultado auditado: pruebas RED→GREEN para firma y whitelist, 281/281 backend, sintaxis y auditoría 0 vulnerabilidades. La integración PostgreSQL real permanece como checkpoint B, pendiente de baseline/entorno reproducible.
 - [x] T12 Transaccionar actualización de punto y horarios.
-- [ ] T13 Resolver y migrar contrato `id`/`id_destino`.
-- [ ] T14 Optimizar búsquedas después de medir consultas.
+- [x] T13 Resolver y migrar contrato `id`/`id_destino`.
+  - Identidad pública canónica `pointId = id_destino`; el ID interno y el nombre
+    visible dejaron de resolver rutas. SCALE01–SCALE03 contienen contrato,
+    cutover frontend/backend y regresiones multiempresa.
+- [x] T14 Optimizar búsquedas después de medir consultas.
   - [x] T14a Línea base reproducible de consultas críticas en PostgreSQL 16 efímero.
     - Evidencia remota (commit `76b58f3aa00e66310dd8a2cc11809e7f302e6e00`, run [36930582242](https://github.com/Pablojvr/sivoy-app/actions/runs/36930582242)): workflow completo success, Backend CI success y Frontend CI success en GitHub Actions. Anotación pública `T14 PostgreSQL baseline` emitida en CI. Medición determinista sobre esquema aislado con dataset representativo (10,000 agencias, 70,000 horarios, 20,000 reglas; cinco muestras por consulta, `shared_read` = 0 en caliente). Mediana de ejecución: `agency_lookup_by_name_or_id` 2.243 ms (Seq Scan, plan_rows 100, actual_rows 1, shared_hit 182; cuello de botella confirmado por escaneo secuencial y estimación 100:1); `all_agencies_ordered` 2.158 ms (Sort + Seq Scan, 10,000 filas, shared_hit 182); `all_schedules` 2.359 ms (Seq Scan, 70,000 filas, shared_hit 584); `all_delivery_rules` 0.635 ms (Seq Scan, 20,000 filas, shared_hit 109); `schedules_by_agency` 0.047 ms (Bitmap Heap/Index Scan, 7 filas, shared_hit 9); `delivery_rules_by_agency` 0.027 ms (Index Scan, 2 filas, shared_hit 3). Spec: `tasks/specs/T14-query-performance-baseline.md`.
-    - Pendiente T14b: optimización focalizada y re-medición comparativa. T14b no debe definir todavía la semántica pública de `id`/`id_destino`, ya que depende de T13; no adelantar estrategias sin resolución de T13. T14 permanece abierto.
+  - [x] T14b Optimización focalizada y re-medición comparativa sin caché.
+    - La consulta legacy por nombre/ID fue retirada tras T13/SCALE03. Las formas
+      canónicas de catálogo se midieron sin índices y con índices en 10k/100k;
+      cada plan debe usar el índice esperado por nombre. En 100k: ubicación
+      91.270→3.552 ms, orden 217.541→0.127 ms y contains 178.139→11.080 ms.
+      `pg_trgm` y el GIN parcial se entregan en migraciones 0009/0010.
 - [x] T38 Versionar baseline y ledger de migraciones reproducibles.
 - [x] T39 Añadir constraints e índices de FK con validación previa (pendiente ventana de aplicación).
 - [x] T40 Crear calendarios con múltiples intervalos y excepciones (modelo aditivo; pendiente backfill/cutover).
@@ -526,6 +542,6 @@ archivos. Codex debe revisar cada diff y ejecutar build y auditoría visual.
 - [ ] Todos los builds, pruebas y contratos están verdes.
 - [ ] Auditoría de seguridad y dependencias sin hallazgos bloqueantes.
 - [ ] Métricas comparadas contra la línea base.
-  - Reporte comparativo en [docs/ARCHITECTURE_METRICS.md](../docs/ARCHITECTURE_METRICS.md): la evidencia estructural fue recapturada en HEAD ad0f145 (-64.53% shell, -23.95% CSS global, inline styles 0; 342 unitarias, 36 E2E, boundaries/colores verdes, 322 backend); T49 está completo localmente con 0 vulnerabilidades, T35c y la línea base de consultas T14a quedaron probados remotamente en CI; pero el checkpoint sigue abierto por T14 (T14b pendiente), T43, T36, T00, T45c y aprobación humana.
+  - Reporte comparativo en [docs/ARCHITECTURE_METRICS.md](../docs/ARCHITECTURE_METRICS.md): la evidencia estructural fue recapturada en HEAD ad0f145 (-64.53% shell, -23.95% CSS global, inline styles 0; 342 unitarias, 36 E2E, boundaries/colores verdes, 322 backend); T49 está completo localmente con 0 vulnerabilidades, T35c/T14a tienen evidencia remota y T14b quedó completada localmente; el checkpoint sigue abierto por PERF01–PERF04, T43, T36, T00, T45c y aprobación humana.
 - [ ] Documentación y rollback verificados.
 - [ ] Aprobación humana antes de producción.

@@ -94,6 +94,13 @@ jobs:
 
       - name: Publish T14 query performance baseline
         run: node integration/publish-query-performance-report.js "${{ runner.temp }}/t14-query-performance-report.json"
+
+      - name: Compare catalog indexes at 10k and 100k points
+        env:
+          DATABASE_URL: postgresql://sivoy_ci_user:sivoy_ephemeral_ci_password@127.0.0.1:5432/sivoy_migrations_ci
+          DATABASE_SSL: "false"
+          CATALOG_SCALE_TEST_SENTINEL: allow_ephemeral_catalog_scale_test
+        run: corepack npm run test:catalog-scale:pg
         
       - name: Validate server syntax
         run: node --check server.js

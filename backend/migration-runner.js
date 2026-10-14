@@ -47,6 +47,23 @@ function discoverMigrations(directory = path.join(__dirname, 'migrations')) {
     });
 }
 
+async function assertNoInvalidUserIndexes(client, migration) {
+  const result = await client.query(`
+    SELECT n.nspname AS schema_name, c.relname AS index_name
+    FROM pg_index i
+    JOIN pg_class c ON c.oid = i.indexrelid
+    JOIN pg_namespace n ON n.oid = c.relnamespace
+    WHERE (NOT i.indisvalid OR NOT i.indisready)
+      AND n.nspname NOT IN ('pg_catalog', 'information_schema')
+      AND n.nspname NOT LIKE 'pg_toast%'
+    ORDER BY n.nspname, c.relname
+    LIMIT 10
+  `);
+  if (result.rows.length === 0) return;
+  const names = result.rows.map((row) => `${row.schema_name}.${row.index_name}`).join(', ');
+  throw new Error(`Non-transactional migration ${migration.version} left invalid indexes: ${names}`);
+}
+
 async function runMigrations(pool, { directory, dryRun = false } = {}) {
   const migrations = discoverMigrations(directory);
   const client = await pool.connect();
@@ -82,6 +99,7 @@ async function runMigrations(pool, { directory, dryRun = false } = {}) {
       if (migration.transactional) await client.query('BEGIN');
       try {
         await client.query(migration.sql);
+        if (!migration.transactional) await assertNoInvalidUserIndexes(client, migration);
         await client.query(
           'INSERT INTO schema_migrations (version, name, checksum) VALUES ($1, $2, $3)',
           [migration.version, migration.name, migration.checksum]
@@ -123,4 +141,10 @@ if (require.main === module) {
   });
 }
 
-module.exports = { discoverMigrations, resolveMigrationDatabaseUrl, runMigrations, sha256 };
+module.exports = {
+  assertNoInvalidUserIndexes,
+  discoverMigrations,
+  resolveMigrationDatabaseUrl,
+  runMigrations,
+  sha256
+};

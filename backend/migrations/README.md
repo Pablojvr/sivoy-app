@@ -3,6 +3,9 @@
 Migrations are immutable numbered SQL files. The runner records their checksums in `schema_migrations`, obtains a PostgreSQL advisory lock, and wraps each pending migration in a transaction.
 
 Files ending in `.notx.sql` are exceptional single-statement migrations for operations such as `CREATE INDEX CONCURRENTLY`. They must be idempotent because their schema change and ledger entry cannot be atomic.
+Before recording one of these migrations, the runner verifies that no user index
+is left invalid or unready. An interrupted concurrent build therefore never
+enters the ledger as successfully applied.
 
 - Preview: `npm run migrate:status`
 - Apply: `npm run migrate`
@@ -34,3 +37,15 @@ defaults explicitly on the application role. Hosted pooler backends must be
 recycled before verifying either the migration or its rollback.
 
 Migration `0001` only expands the schema. It does not replace `horarios_operativos` or `reglas_entrega`.
+
+Migrations `0009` and `0010` enable `pg_trgm` and add the partial GIN index
+used by catalog substring search. They intentionally remain separate: extension
+installation is transactional, while `CREATE INDEX CONCURRENTLY` is not.
+Rollback for an index-only incident is:
+
+```sql
+DROP INDEX CONCURRENTLY IF EXISTS agencias_catalog_name_trgm_idx;
+```
+
+Do not drop `pg_trgm` automatically during rollback because another database
+object may depend on the shared extension.

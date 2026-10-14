@@ -30,6 +30,7 @@ test('catalog pages remain bounded at 10k and 100k points without cache', async 
     const database = await client.query('SELECT current_database() AS name');
     assert.equal(database.rows[0]?.name, 'sivoy_migrations_ci');
     safeTargetConfirmed = true;
+    await client.query("SET statement_timeout = '60s'");
     await createFixture(client);
 
     const report = [];
@@ -59,7 +60,8 @@ async function measureScale(client, scale) {
     }
   };
   const repository = createCatalogRepository({ getDB: async () => db });
-  const query = {
+
+  const locationQuery = {
     companyId: null,
     department: 'Departamento 1',
     municipality: 'Municipio 1',
@@ -71,7 +73,94 @@ async function measureScale(client, scale) {
     position: null
   };
 
-  const first = await repository.listPoints(query);
+  const nameOrderQuery = {
+    companyId: null,
+    department: null,
+    municipality: null,
+    pointType: null,
+    q: null,
+    matchMode: 'CONTAINS',
+    limit: PAGE_LIMIT,
+    cursor: null,
+    position: null
+  };
+
+  const containsQuery = {
+    companyId: null,
+    department: null,
+    municipality: null,
+    pointType: null,
+    q: 'zona 042',
+    matchMode: 'CONTAINS',
+    limit: PAGE_LIMIT,
+    cursor: null,
+    position: null
+  };
+
+  await setCatalogIndexes(client, false);
+  const locationBefore = await capturePointPlan(repository, calls, client, locationQuery);
+  assert.equal(
+    hasAgencySeqScan(locationBefore),
+    true,
+    'comparison baseline must demonstrate the unindexed agencias scan for location filters'
+  );
+
+  const nameBefore = await capturePointPlan(repository, calls, client, nameOrderQuery);
+  assert.equal(
+    hasAgencySeqScan(nameBefore),
+    true,
+    'comparison baseline must demonstrate the unindexed agencias scan for name ordering'
+  );
+
+  const containsBefore = await capturePointPlan(repository, calls, client, containsQuery);
+  assert.equal(
+    hasAgencySeqScan(containsBefore),
+    true,
+    'comparison baseline must demonstrate the unindexed agencias scan for contains queries'
+  );
+
+  await setCatalogIndexes(client, true);
+  const locationAfter = await capturePointPlan(repository, calls, client, locationQuery);
+  assert.equal(
+    hasAgencySeqScan(locationAfter),
+    false,
+    'catalog location indexes must remove the agencias sequential scan'
+  );
+  assert.equal(
+    usesIndex(locationAfter, 'agencias_scale_location_idx'),
+    true,
+    'location filtering must use the measured location index'
+  );
+  assert.ok(locationAfter.executionMs <= MAX_EXECUTION_MS, `location catalog page exceeded ${MAX_EXECUTION_MS}ms`);
+
+  const nameAfter = await capturePointPlan(repository, calls, client, nameOrderQuery);
+  assert.equal(
+    hasAgencySeqScan(nameAfter),
+    false,
+    'catalog name index must remove the agencias sequential scan for ordering'
+  );
+  assert.equal(
+    usesIndex(nameAfter, 'agencias_scale_name_idx'),
+    true,
+    'name ordering must use the measured normalized-name index'
+  );
+  assert.ok(nameAfter.executionMs <= MAX_EXECUTION_MS, `name order catalog page exceeded ${MAX_EXECUTION_MS}ms`);
+
+  const containsAfter = await capturePointPlan(repository, calls, client, containsQuery);
+  assert.equal(
+    hasAgencySeqScan(containsAfter),
+    false,
+    'catalog trigram index must remove the agencias sequential scan for contains queries'
+  );
+  assert.equal(
+    usesIndex(containsAfter, 'agencias_scale_name_trgm_idx'),
+    true,
+    'contains filtering must use the measured trigram index'
+  );
+  assert.ok(containsAfter.executionMs <= MAX_EXECUTION_MS, `contains catalog page exceeded ${MAX_EXECUTION_MS}ms`);
+
+  calls.length = 0;
+  const first = await repository.listPoints(locationQuery);
   assert.equal(calls.length, 2, 'one point query plus one schedule batch are required');
   assert.equal(first.points.length, PAGE_LIMIT);
   assert.equal(first.hasMore, true);
@@ -81,7 +170,7 @@ async function measureScale(client, scale) {
   calls.length = 0;
   const last = first.points.at(-1);
   const second = await repository.listPoints({
-    ...query,
+    ...locationQuery,
     position: { normalizedName: last.normalizedName, pointId: last.pointId }
   });
   assert.equal(calls.length, 2, 'cursor pages must keep a constant query count');
@@ -90,7 +179,7 @@ async function measureScale(client, scale) {
 
   calls.length = 0;
   const facets = await repository.listFacets({
-    ...query,
+    ...locationQuery,
     facet: 'municipality',
     department: null,
     municipality: null,
@@ -98,18 +187,6 @@ async function measureScale(client, scale) {
   });
   assert.equal(calls.length, 1, 'facets must use one bounded query');
   assert.ok(facets.items.length <= PAGE_LIMIT);
-
-  calls.length = 0;
-  await repository.listPoints(query);
-  const pointQuery = calls[0];
-  const explain = await explainQuery(client, pointQuery.text, pointQuery.values);
-  assert.ok(explain.executionMs <= MAX_EXECUTION_MS, `catalog page exceeded ${MAX_EXECUTION_MS}ms`);
-  assert.equal(explain.actualRows, PAGE_LIMIT + 1);
-  assert.equal(
-    explain.relations.some((node) => node.relation === 'agencias' && node.type === 'Seq Scan'),
-    false,
-    'filtered catalog page must not sequentially scan agencias'
-  );
 
   calls.length = 0;
   const routeRepository = createRouteLocationsRepository({ getDB: async () => db });
@@ -124,7 +201,7 @@ async function measureScale(client, scale) {
   assert.ok(routeExplain.executionMs <= MAX_EXECUTION_MS, `route point resolution exceeded ${MAX_EXECUTION_MS}ms`);
   assert.equal(routeExplain.actualRows, 2);
   assert.equal(
-    routeExplain.relations.some((node) => node.relation === 'agencias' && node.type === 'Seq Scan'),
+    hasAgencySeqScan(routeExplain),
     false,
     'stable route identifiers must use the destination identity index'
   );
@@ -135,10 +212,51 @@ async function measureScale(client, scale) {
     facetQueries: 1,
     routeQueries: 3,
     pageBytes: Buffer.byteLength(JSON.stringify(first), 'utf8'),
-    executionMs: explain.executionMs,
-    planNodes: [...new Set(explain.relations.map((node) => node.type))],
+    forms: {
+      location: {
+        before: summarizePlan(locationBefore),
+        after: summarizePlan(locationAfter)
+      },
+      nameOrder: {
+        before: summarizePlan(nameBefore),
+        after: summarizePlan(nameAfter)
+      },
+      contains: {
+        before: summarizePlan(containsBefore),
+        after: summarizePlan(containsAfter)
+      }
+    },
+    before: summarizePlan(locationBefore),
+    after: summarizePlan(locationAfter),
     routeExecutionMs: routeExplain.executionMs,
     routePlanNodes: [...new Set(routeExplain.relations.map((node) => node.type))]
+  };
+}
+
+function hasAgencySeqScan(plan) {
+  return plan.relations.some((node) => node.relation === 'agencias' && node.type === 'Seq Scan');
+}
+
+function usesIndex(plan, indexName) {
+  return plan.relations.some((node) => node.indexName === indexName);
+}
+
+async function capturePointPlan(repository, calls, client, query) {
+  calls.length = 0;
+  await repository.listPoints(query);
+  assert.equal(calls.length, 2, 'measurement must keep one point query plus one schedule batch');
+  const plan = await explainQuery(client, calls[0].text, calls[0].values);
+  assert.equal(plan.actualRows, PAGE_LIMIT + 1);
+  return plan;
+}
+
+function summarizePlan(plan) {
+  return {
+    executionMs: plan.executionMs,
+    sharedHitBlocks: plan.sharedHitBlocks,
+    sharedReadBlocks: plan.sharedReadBlocks,
+    planNodes: [...new Set(plan.relations.map((node) => node.type))],
+    indexes: [...new Set(plan.relations.map((node) => node.indexName).filter(Boolean))]
   };
 }
 
@@ -153,18 +271,25 @@ async function explainQuery(client, sql, values) {
   return {
     executionMs: document['Execution Time'],
     actualRows: document.Plan['Actual Rows'],
+    sharedHitBlocks: document.Plan['Shared Hit Blocks'] || 0,
+    sharedReadBlocks: document.Plan['Shared Read Blocks'] || 0,
     relations
   };
 }
 
 function collectRelations(plan, result) {
-  if (plan['Relation Name']) {
-    result.push({ relation: plan['Relation Name'], type: plan['Node Type'] });
+  if (plan['Relation Name'] || plan['Index Name']) {
+    result.push({
+      relation: plan['Relation Name'] || null,
+      type: plan['Node Type'],
+      indexName: plan['Index Name'] || null
+    });
   }
   for (const child of plan.Plans || []) collectRelations(child, result);
 }
 
 async function createFixture(client) {
+  await client.query('CREATE EXTENSION IF NOT EXISTS pg_trgm WITH SCHEMA public');
   await client.query(`
     DROP SCHEMA IF EXISTS ${SCHEMA} CASCADE;
     CREATE SCHEMA ${SCHEMA};
@@ -209,15 +334,37 @@ async function createFixture(client) {
     INSERT INTO catalog_revision_state VALUES (true, 1);
 
     CREATE UNIQUE INDEX agencias_scale_destination_uidx ON agencias (id_destino);
+    CREATE INDEX horarios_scale_agency_idx ON horarios_operativos (agencia_id);
+    CREATE INDEX reglas_scale_agency_idx ON reglas_entrega (agencia_id);
+  `);
+}
+
+async function setCatalogIndexes(client, enabled) {
+  if (!enabled) {
+    await client.query(`
+      DROP INDEX IF EXISTS agencias_scale_location_idx;
+      DROP INDEX IF EXISTS agencias_scale_name_idx;
+      DROP INDEX IF EXISTS agencias_scale_name_trgm_idx;
+      ANALYZE agencias;
+    `);
+    return;
+  }
+
+  await client.query(`
     CREATE INDEX agencias_scale_location_idx
       ON agencias (lower(departamento), lower(municipio), lower(tipo), empresa_id);
     CREATE INDEX agencias_scale_name_idx
       ON agencias (
         translate(lower(nombre_destino), 'áéíóúüñ', 'aeiouun'),
         id_destino
-      );
-    CREATE INDEX horarios_scale_agency_idx ON horarios_operativos (agencia_id);
-    CREATE INDEX reglas_scale_agency_idx ON reglas_entrega (agencia_id);
+      )
+      WHERE id_destino IS NOT NULL AND btrim(id_destino) <> '';
+    CREATE INDEX agencias_scale_name_trgm_idx
+      ON agencias USING gin (
+        (translate(lower(nombre_destino), 'áéíóúüñ', 'aeiouun')) public.gin_trgm_ops
+      )
+      WHERE id_destino IS NOT NULL AND btrim(id_destino) <> '';
+    ANALYZE agencias;
   `);
 }
 
@@ -237,7 +384,8 @@ async function populateFixture(client, scale) {
     SELECT
       series,
       'AG_' || lpad(series::text, 6, '0'),
-      'Agencia ' || lpad(series::text, 6, '0'),
+      'Agencia ' || lpad(series::text, 6, '0') ||
+        ' Zona ' || lpad(((((series - 1) % 100) + 1))::text, 3, '0'),
       CASE WHEN series % 4 = 0 THEN 'Bodega' ELSE 'Agencia' END,
       ((series - 1) % 100) + 1,
       'Departamento ' || ((((series - 1) % 100) % 14) + 1),

@@ -1,6 +1,13 @@
 'use strict';
 
 const LOOPBACK_ORIGIN = /^http:\/\/(?:localhost|127\.0\.0\.1)(?::\d{1,5})?$/;
+const MULTER_RESOURCE_LIMIT_CODES = new Set([
+  'LIMIT_FILE_SIZE',
+  'LIMIT_FILE_COUNT',
+  'LIMIT_FIELD_COUNT',
+  'LIMIT_FIELD_VALUE',
+  'LIMIT_PART_COUNT'
+]);
 
 function validateProductionCors(env = process.env) {
   const origins = parseOrigins(env.FRONTEND_URL, env.NODE_ENV === 'production');
@@ -62,6 +69,18 @@ function apiErrorHandler(error, req, res, next) {
   }
   if (error?.type === 'entity.too.large') {
     return res.status(413).json({ error: 'Request body too large' });
+  }
+  if (error?.name === 'MulterError') {
+    if (MULTER_RESOURCE_LIMIT_CODES.has(error.code)) {
+      return res.status(413).json({ error: 'Upload too large' });
+    }
+    return res.status(400).json({ error: 'Invalid upload request' });
+  }
+  if (error?.code === 'UNSUPPORTED_MEDIA_TYPE') {
+    return res.status(415).json({ error: 'Unsupported media type' });
+  }
+  if (error?.code === 'INVALID_MULTIPART') {
+    return res.status(400).json({ error: 'Invalid upload request' });
   }
   return res.status(500).json({ error: 'Internal server error' });
 }

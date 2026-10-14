@@ -357,6 +357,11 @@ Gate: la credencial anterior falla y el secret scan de árbol/historial está ve
     Neon pooled para el aislamiento transaccional. Aplicar 0008 en producción
     permanece dentro del gate T35/T36, no de este cambio de código.
   - [ ] SEC03c: límites de upload, Cloudinary y cierre de timeouts externos.
+    - [x] SEC03c-A: logos multipart limitados a 2 MB (override 64 KB–10 MB),
+      un archivo, diez campos y doce partes; solo JPEG/PNG/WebP con extensión
+      coherente. Errores seguros 400/413/415 probados sobre HTTP real.
+    - [ ] SEC03c-B: límites y errores tipados para Cloudinary/Places; conservar
+      los límites SSRF, redirecciones, cuerpo y timeout ya presentes en Maps.
 - [ ] SEC04 Rate limit por riesgo, con observación antes de bloqueo.
 - [x] SEC05 Inventariar OpenAPI/contratos, desactivar en producción
   `/api/test-location` y el Excel de Partner mientras no se utilicen, y probar que

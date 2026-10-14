@@ -74,6 +74,42 @@ test('API terminal handlers return small generic JSON envelopes', () => {
   ));
   assert.equal(generic.statusCode, 500);
   assert.deepEqual(generic.body, { error: 'Internal server error' });
+
+  const fileTooLarge = captureResponse((req, res, next) => apiErrorHandler(
+    Object.assign(new Error('raw multer detail'), { name: 'MulterError', code: 'LIMIT_FILE_SIZE' }),
+    req,
+    res,
+    next
+  ));
+  assert.equal(fileTooLarge.statusCode, 413);
+  assert.deepEqual(fileTooLarge.body, { error: 'Upload too large' });
+
+  const invalidUpload = captureResponse((req, res, next) => apiErrorHandler(
+    Object.assign(new Error('raw multer detail'), { name: 'MulterError', code: 'LIMIT_UNEXPECTED_FILE' }),
+    req,
+    res,
+    next
+  ));
+  assert.equal(invalidUpload.statusCode, 400);
+  assert.deepEqual(invalidUpload.body, { error: 'Invalid upload request' });
+
+  const unsupportedMedia = captureResponse((req, res, next) => apiErrorHandler(
+    Object.assign(new Error('raw rejected filename'), { code: 'UNSUPPORTED_MEDIA_TYPE' }),
+    req,
+    res,
+    next
+  ));
+  assert.equal(unsupportedMedia.statusCode, 415);
+  assert.deepEqual(unsupportedMedia.body, { error: 'Unsupported media type' });
+
+  const malformedMultipart = captureResponse((req, res, next) => apiErrorHandler(
+    Object.assign(new Error('raw parser detail'), { code: 'INVALID_MULTIPART' }),
+    req,
+    res,
+    next
+  ));
+  assert.equal(malformedMultipart.statusCode, 400);
+  assert.deepEqual(malformedMultipart.body, { error: 'Invalid upload request' });
 });
 
 test('real server applies headers, closed CORS and JSON API errors', async (context) => {

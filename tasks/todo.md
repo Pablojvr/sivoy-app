@@ -119,32 +119,43 @@ a producto y experiencia pública; Partner continúa fuera de alcance.
   - [x] UI-REB-01a–c están en commits atómicos y reversibles.
   - [x] Contratos, suite frontend, boundaries, colores y build están verdes.
   - [x] No existe petición a Google Fonts ni cambio de flujo o contrato Angular.
-  - [ ] Revisión humana antes del cierre documental y visual.
+  - [x] Revisión humana antes del cierre documental y visual.
+    - Aprobación recibida el 2026-10-14 mediante la instrucción "Continuar".
 
   - [ ] UI-REB-01d Documentar y certificar el fundamento visual.
     - Descripción: publicar la guía de uso y registrar la auditoría final de las
       pantallas consumidoras antes de iniciar `native-app-shell`.
     - Criterios de aceptación:
-      - [ ] La guía documenta roles, ejemplos, primitives, aliases temporales,
+      - [x] La guía documenta roles, ejemplos, primitives, aliases temporales,
         iconografía, movimiento, accesibilidad y patrones prohibidos.
-      - [ ] La auditoría cubre 320×568, 386×912, 768×1024, 1024×900 y 1440×900,
+      - [x] La auditoría cubre 320×568, 386×912, 768×1024, 1024×900 y 1440×900,
         además de teclado, contraste, zoom 200% y reduced motion.
-      - [ ] Inicio, resultados, detalle, rutas y mapa conservan comportamiento,
+      - [x] Inicio, resultados, detalle, rutas y mapa conservan comportamiento,
         sin scroll horizontal ni contenido bajo navegación o safe areas.
     - Verificación:
-      - [ ] `cd frontend && npm run check:css-colors && npm run check:boundaries`
-      - [ ] `cd frontend && npm run test:ci && npm run build && npm run e2e`
-      - [ ] Evidencia manual registrada y aprobación humana del resultado.
+      - [x] `cd frontend && npm run check:css-colors && npm run check:boundaries`
+      - [x] `cd frontend && npm run test:ci && npm run build && npm run e2e`
+      - [x] Evidencia manual registrada.
+      - [ ] Aprobación humana del resultado.
     - Dependencias: checkpoint UI-REB-01 aprobado.
     - Archivos previstos:
       - `docs/UI_NATIVE_DESIGN_SYSTEM.md`
     - Alcance estimado: S, un archivo más evidencia de navegador.
     - Ejecución: documentación delegable; Codex ejecuta la auditoría final.
+    - Evidencia 2026-10-15: guía redactada inicialmente por Antigravity y
+      corregida/auditada por Codex. Contrato de colores 17/17 sobre 14 hojas,
+      boundaries 31/31 sobre 53 archivos, frontend 361/361, build y E2E 56/56
+      verdes. Auditoría manual y automatizada cubre los cinco viewports, foco,
+      contraste, reduced motion y reflujo equivalente a zoom 200%. Durante el
+      cierre se corrigieron el foco del mapa oculto, el contraste del acento,
+      fuentes/iconos remotos y dos desbordamientos de la ruta en 320×568. Dos
+      delegaciones de implementación a Antigravity fueron detenidas sin cambios
+      por no completar su ejecución; Codex conservó TDD y auditoría integral.
 
   ### Checkpoint UI-REB-01 — cierre
 
-  - [ ] Todos los criterios de la spec están satisfechos.
-  - [ ] Rollback por commit fue revisado y no requiere backend ni migraciones.
+  - [x] Todos los criterios técnicos de la spec están satisfechos.
+  - [x] Rollback por commit fue revisado y no requiere backend ni migraciones.
   - [ ] Aprobación humana habilita continuar con `native-app-shell`.
 
 - [ ] MVP07 Gate de salida del flujo público.

@@ -91,7 +91,7 @@ docs/UI_NATIVE_DESIGN_SYSTEM.md
 | Muted ink | `#626760` | Texto secundario con contraste AA |
 | Border | `rgba(23, 24, 23, 0.10)` | Separación discreta |
 | Brand | `#F45B78` | Selección, progreso y CTA de marca |
-| Brand strong | `#D94262` | Texto/acento sobre superficies claras |
+| Brand strong | `#D43C5D` | Texto/acento AA sobre superficies claras (4.56:1 sobre blanco) |
 | Brand soft | `#FFF0F3` | Fondos seleccionados |
 | Success ink/soft | `#41651B` / `#F2F8E5` | Disponibilidad positiva |
 | Info ink/soft | `#21657D` / `#EAF7FC` | Orientación y ayuda |
@@ -264,14 +264,14 @@ Rollback: revertir los commits de foundation restaura `styles.css` y el contrato
 
 ## Success criteria
 
-- [ ] Existe una única fuente versionada para tokens y otra para primitives.
-- [ ] La aplicación deja de solicitar Manrope/Google Fonts y usa la pila nativa aprobada.
-- [ ] Tokens cubren tipografía, color, espacio, radio, sombra, movimiento y safe areas.
-- [ ] Los selectores `si-*` existentes conservan API y comportamiento.
-- [ ] No se introducen dependencias, estilos inline, `!important` ni colores no aprobados.
-- [ ] Contratos, 360+ tests vigentes, build y boundaries están verdes.
-- [ ] El cambio base se valida en cinco viewports, teclado, reduced motion y zoom 200%.
-- [ ] No hay cambio funcional en búsqueda, resultados, detalle, rutas ni mapa.
+- [x] Existe una única fuente versionada para tokens y otra para primitives.
+- [x] La aplicación deja de solicitar Manrope/Google Fonts y usa la pila nativa aprobada.
+- [x] Tokens cubren tipografía, color, espacio, radio, sombra, movimiento y safe areas.
+- [x] Los selectores `si-*` existentes conservan API y comportamiento.
+- [x] No se introducen dependencias, estilos inline, `!important` ni colores no aprobados.
+- [x] Contratos, 360+ tests vigentes, build y boundaries están verdes.
+- [x] El cambio base se valida en cinco viewports, teclado, reduced motion y zoom 200%.
+- [x] No hay cambio funcional en búsqueda, resultados, detalle, rutas ni mapa.
 
 ## Open questions
 

@@ -165,13 +165,22 @@ a producto y experiencia pública; Partner continúa fuera de alcance.
   Spec: `tasks/specs/UI-REB-02-native-app-shell.md`.
   Plan: `tasks/plan.md`, Fase 4, subplan UI-REB-02.
 
-  - [ ] UI-REB-02a Migrar el dock de navegación al contrato nativo.
+  - [x] UI-REB-02a Migrar el dock de navegación al contrato nativo.
     - Aceptación: conserva `/admin`, `/` y `/enviar?tab=perfil`; estados activos y
       `aria-current`; targets de 44 px, safe area, foco y reduced motion.
     - Verificación: prueba focalizada del componente, colores, boundaries y build.
     - Dependencias: UI-REB-01 cerrado y spec UI-REB-02 aprobada.
     - Archivos: `bottom-nav.component.ts`, `bottom-nav.component.css` y su spec.
     - Alcance: M, tres archivos; CSS/markup delegable y auditado por Codex.
+    - Evidencia 2026-10-15: rutas y `aria-current` preservados; dock migrado a
+      tokens `--si-*`, safe area, foco visible, targets de 44 px, etiqueta de
+      11 px y movimiento reducido. La auditoría visual detectó y corrigió un
+      desbordamiento inferior de 6 px antes de aceptar el corte. Prueba
+      focalizada 3/3, colores 17/17 sobre 14 hojas, boundaries 31/31 sobre 53
+      archivos y build verdes; 320×568, 386×912, 768×1024, 1024×900 y
+      1440×900 sin scroll horizontal ni targets recortados. Dos intentos de
+      delegación a Antigravity no produjeron cambios y fueron detenidos; Codex
+      implementó y auditó el incremento.
 
   - [ ] UI-REB-02b Extraer canvas, slots y overlays del shell.
     - Aceptación: `100dvh`, inset inferior único, Inicio conserva `[hidden]`,

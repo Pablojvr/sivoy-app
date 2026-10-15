@@ -122,7 +122,7 @@ a producto y experiencia pública; Partner continúa fuera de alcance.
   - [x] Revisión humana antes del cierre documental y visual.
     - Aprobación recibida el 2026-10-14 mediante la instrucción "Continuar".
 
-  - [ ] UI-REB-01d Documentar y certificar el fundamento visual.
+  - [x] UI-REB-01d Documentar y certificar el fundamento visual.
     - Descripción: publicar la guía de uso y registrar la auditoría final de las
       pantallas consumidoras antes de iniciar `native-app-shell`.
     - Criterios de aceptación:
@@ -136,7 +136,7 @@ a producto y experiencia pública; Partner continúa fuera de alcance.
       - [x] `cd frontend && npm run check:css-colors && npm run check:boundaries`
       - [x] `cd frontend && npm run test:ci && npm run build && npm run e2e`
       - [x] Evidencia manual registrada.
-      - [ ] Aprobación humana del resultado.
+      - [x] Aprobación humana del resultado.
     - Dependencias: checkpoint UI-REB-01 aprobado.
     - Archivos previstos:
       - `docs/UI_NATIVE_DESIGN_SYSTEM.md`
@@ -156,7 +156,9 @@ a producto y experiencia pública; Partner continúa fuera de alcance.
 
   - [x] Todos los criterios técnicos de la spec están satisfechos.
   - [x] Rollback por commit fue revisado y no requiere backend ni migraciones.
-  - [ ] Aprobación humana habilita continuar con `native-app-shell`.
+  - [x] Aprobación humana habilita continuar con `native-app-shell`.
+    - Aprobación recibida el 2026-10-15 al solicitar continuar con el plan de
+      rediseño y entregar el recorrido público finalizado.
 
 - [ ] MVP07 Gate de salida del flujo público.
   - Aceptación: flujo completo, build, auditorías y smoke verdes; aprobación humana

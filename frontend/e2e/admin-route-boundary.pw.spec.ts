@@ -1,7 +1,49 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
+
+const legacyAdminLocations = [
+  {
+    id: 'L1',
+    empresa: 'Empresa de prueba',
+    nombre_destino: 'Agencia Centro',
+    ubicacion: {
+      municipio: 'San Salvador',
+      departamento: 'San Salvador',
+      direccion_referencia: 'Centro Histórico, San Salvador',
+      lat: 13.69,
+      lng: -89.19,
+    },
+    horarios_operativos: [],
+    reglas_entrega: [],
+  },
+  {
+    id: 'L2',
+    empresa: 'Empresa de prueba',
+    nombre_destino: 'Agencia Norte',
+    ubicacion: {
+      municipio: 'Santa Tecla',
+      departamento: 'La Libertad',
+      direccion_referencia: 'Santa Tecla, La Libertad',
+      lat: 13.67,
+      lng: -89.28,
+    },
+    horarios_operativos: [],
+    reglas_entrega: [],
+  },
+];
+
+async function provideLegacyAdminLocations(page: Page) {
+  await page.route('**/api/locations', route =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(legacyAdminLocations),
+    }),
+  );
+}
 
 test.describe('Admin Route Boundary & Legacy Redirection', () => {
-  test('acceso directo a /admin carga AdminPageComponent en modo list-first con puntos de fixture y sin canvas WebGL inicial', async ({ page }) => {
+  test('acceso directo a /admin carga AdminPageComponent en modo list-first con puntos controlados y sin canvas WebGL inicial', async ({ page }) => {
+    await provideLegacyAdminLocations(page);
     await page.goto('/#/admin');
 
     await expect(page).toHaveURL(/.*\/#\/admin$/);
@@ -35,6 +77,7 @@ test.describe('Admin Route Boundary & Legacy Redirection', () => {
   });
 
   test('redirección legacy /enviar?tab=puntos redirige a /admin y no atrapa el historial al presionar Atrás', async ({ page }) => {
+    await provideLegacyAdminLocations(page);
     // 1. Iniciar en la raíz pública (Discovery)
     await page.goto('/#/');
     await expect(page.getByRole('heading', { name: 'Envía sin complicarte.' })).toBeVisible();

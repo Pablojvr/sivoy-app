@@ -574,3 +574,43 @@ test('CSS Color Contract - 15. la base nativa exige tokens, aliases y tipografia
   assert.ok(tokenImportIndex >= 0, 'styles.css must import native-tokens.css');
   assert.ok(primitiveRuleIndex < 0 || tokenImportIndex < primitiveRuleIndex, 'tokens must load before primitive rules');
 });
+
+test('CSS Color Contract - 16. el acento de texto de marca cumple contraste AA sobre superficie', () => {
+  const tokensPath = path.join(frontendDir, 'src', 'styles', 'native-tokens.css');
+  const tokens = fs.readFileSync(tokensPath, 'utf8');
+  const tokenHex = name => {
+    const escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const match = tokens.match(new RegExp(`${escapedName}\\s*:\\s*(#[0-9a-f]{6})\\s*;`, 'i'));
+    assert.ok(match, `Missing hexadecimal token ${name}`);
+    return match[1];
+  };
+  const luminance = hex => {
+    const channels = hex.slice(1).match(/.{2}/g).map(value => Number.parseInt(value, 16) / 255);
+    const linear = channels.map(value => value <= 0.04045
+      ? value / 12.92
+      : ((value + 0.055) / 1.055) ** 2.4);
+    return (0.2126 * linear[0]) + (0.7152 * linear[1]) + (0.0722 * linear[2]);
+  };
+  const foreground = luminance(tokenHex('--si-color-brand-strong'));
+  const background = luminance(tokenHex('--si-color-surface'));
+  const ratio = (Math.max(foreground, background) + 0.05) / (Math.min(foreground, background) + 0.05);
+
+  assert.ok(ratio >= 4.5, `Brand text contrast must be >= 4.5:1, received ${ratio.toFixed(2)}:1`);
+});
+
+test('CSS Color Contract - 17. la aplicacion no depende de fuentes remotas ni familias legacy', () => {
+  const sourcePaths = [
+    path.join(frontendDir, 'src', 'index.html'),
+    path.join(frontendDir, 'src', 'styles.css'),
+    path.join(frontendDir, 'src', 'app', 'app.css'),
+    path.join(frontendDir, 'src', 'app', 'features', 'home', 'home.component.html')
+  ];
+
+  for (const sourcePath of sourcePaths) {
+    const source = fs.readFileSync(sourcePath, 'utf8');
+    const relativePath = path.relative(frontendDir, sourcePath).replace(/\\/g, '/');
+    assert.doesNotMatch(source, /fonts\.(?:googleapis|gstatic)\.com/i, `${relativePath} must not request remote fonts`);
+    assert.doesNotMatch(source, /['"]?Manrope['"]?/i, `${relativePath} must use the native font tokens`);
+    assert.doesNotMatch(source, /material-symbols-outlined/i, `${relativePath} must use inline SVG icons`);
+  }
+});

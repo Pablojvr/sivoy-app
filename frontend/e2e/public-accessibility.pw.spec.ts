@@ -57,3 +57,60 @@ test('el buscador modal conserva foco, teclado y nombres accesibles', async ({ p
   await expect(dialog).toBeHidden();
   await expect(trigger).toBeFocused();
 });
+
+test('el mapa de fondo sale del foco en lista y se reactiva al abrirlo', async ({ page }) => {
+  await page.goto('/#/enviar?municipio=San%20Salvador&departamento=San%20Salvador');
+  await expect(page.getByRole('heading', { name: '1 Resultado en San Salvador' })).toBeVisible();
+
+  const mapWrapper = page.locator('.map-wrapper');
+  await expect(mapWrapper).toHaveAttribute('aria-hidden', 'true');
+  await expect(mapWrapper).toHaveAttribute('inert', '');
+
+  for (let index = 0; index < 12; index += 1) {
+    await page.keyboard.press('Tab');
+    const focusIsInsideMap = await page.evaluate(() =>
+      document.activeElement?.closest('.map-wrapper') !== null,
+    );
+    expect(focusIsInsideMap).toBe(false);
+  }
+
+  await page.getByRole('button', { name: 'Ver Agencia Centro en el mapa' }).click();
+  await expect(mapWrapper).toHaveAttribute('aria-hidden', 'false');
+  await expect(mapWrapper).not.toHaveAttribute('inert', '');
+});
+
+test('las primitivas eliminan transiciones con movimiento reducido', async ({ page }) => {
+  await page.goto('/#/enviar?municipio=San%20Salvador&departamento=San%20Salvador');
+  await expect(page.getByRole('heading', { name: '1 Resultado en San Salvador' })).toBeVisible();
+
+  expect(await page.evaluate(() => matchMedia('(prefers-reduced-motion: reduce)').matches)).toBe(true);
+  const transitionDurations = await page.locator('.si-button:visible').first().evaluate(element =>
+    getComputedStyle(element).transitionDuration.split(',').map(value => value.trim()),
+  );
+  expect(transitionDurations.every(duration => duration === '0s')).toBe(true);
+});
+
+test('el contenido refluye sin desbordarse al equivalente de zoom 200%', async ({ page }) => {
+  // Un viewport CSS de 720 x 450 reproduce el espacio disponible al ampliar
+  // una ventana de 1440 x 900 al 200%, sin depender del zoom del navegador.
+  await page.setViewportSize({ width: 720, height: 450 });
+
+  for (const route of [
+    '/#/',
+    '/#/enviar?municipio=San%20Salvador&departamento=San%20Salvador',
+  ]) {
+    await page.goto(route);
+    await expect(page.locator('app-root')).toBeVisible();
+
+    const dimensions = await page.evaluate(() => ({
+      viewportWidth: window.innerWidth,
+      documentWidth: document.documentElement.scrollWidth,
+      bodyWidth: document.body.scrollWidth,
+    }));
+
+    expect(dimensions.documentWidth).toBeLessThanOrEqual(dimensions.viewportWidth);
+    expect(dimensions.bodyWidth).toBeLessThanOrEqual(dimensions.viewportWidth);
+  }
+
+  await expect(page.getByRole('heading', { name: '1 Resultado en San Salvador' })).toBeVisible();
+});

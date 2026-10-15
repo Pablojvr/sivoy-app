@@ -208,3 +208,34 @@ test('el flujo público no mantiene intervalos periódicos innecesarios', async 
   await expect.poll(() => page.evaluate(countActiveIntervalsByDelay, 60_000)).toBe(0);
   await assertNoLegacyCatalogRequests(legacyRequests);
 });
+
+test('la ruta conserva encabezado y estado visibles en 320 por 568', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 568 });
+  await page.goto('/#/');
+  await chooseSanSalvadorDestination(page);
+
+  await page.getByRole('button', { name: 'Ver Agencia Centro en el mapa' }).click();
+  await page.getByRole('button', { name: 'Expandir información del punto' }).click();
+  await page.getByRole('button', { name: /Usar como destino/ }).click();
+  await page.getByRole('button', { name: 'Agencia Norte Santa Tecla, La Libertad' }).click();
+  await expect(page.getByRole('heading', { name: '1 ruta disponible' })).toBeVisible();
+
+  const searchPanel = page.locator('.search-panel-container');
+  const resultSheet = page.locator('.bottom-sheet');
+  const routeCard = page.locator('article.sivoy-route-card');
+  const availabilityBadge = routeCard.locator('.route-available-badge');
+  const [searchBox, sheetBox, cardBox, badgeBox] = await Promise.all([
+    searchPanel.boundingBox(),
+    resultSheet.boundingBox(),
+    routeCard.boundingBox(),
+    availabilityBadge.boundingBox(),
+  ]);
+
+  expect(searchBox).not.toBeNull();
+  expect(sheetBox).not.toBeNull();
+  expect(cardBox).not.toBeNull();
+  expect(badgeBox).not.toBeNull();
+  expect(sheetBox!.y).toBeGreaterThanOrEqual(searchBox!.y + searchBox!.height);
+  expect(badgeBox!.x + badgeBox!.width).toBeLessThanOrEqual(cardBox!.x + cardBox!.width);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
+});

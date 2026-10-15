@@ -198,7 +198,7 @@ html, body {
   border: 1px solid rgba(29, 30, 28, 0.08);
   border-radius: 13px;
   color: var(--text-main);
-  font: 12px/1.4 'Manrope', system-ui, sans-serif;
+  font: 12px/1.4 var(--si-font-text);
   box-shadow: 0 12px 28px rgba(29, 30, 28, 0.15);
 }
 

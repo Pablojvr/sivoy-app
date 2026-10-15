@@ -42,7 +42,13 @@
   gap: 12px;
 }
 
+.route-card-topline,
 .route-provider {
+  min-width: 0;
+}
+
+.route-provider {
+  flex: 1 1 auto;
   align-items: center;
   gap: 10px;
 }
@@ -92,6 +98,7 @@
 
 .route-available-badge {
   display: inline-flex;
+  flex: 0 0 auto;
   align-items: center;
   gap: 6px;
   min-height: 28px;

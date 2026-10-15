@@ -3508,7 +3508,7 @@ button,
 input,
 select,
 textarea {
-  font-family: 'Manrope', system-ui, sans-serif;
+  font-family: var(--si-font-text);
 }
 
 .bottom-sheet {
@@ -3516,7 +3516,9 @@ textarea {
   --sheet-drag-offset: 0px;
   position: absolute;
   isolation: isolate;
-  max-height: calc(100dvh - 132px);
+  max-height: calc(
+    100dvh - 222px - var(--si-safe-area-top) - var(--si-safe-area-bottom)
+  );
   overflow: hidden;
   background: rgba(252, 253, 251, 0.97);
   border-color: rgba(29, 30, 28, 0.09);
@@ -3705,8 +3707,9 @@ textarea {
   color: #fff;
 }
 
-.route-preview-point-icon .material-symbols-outlined {
-  font-size: 17px;
+.route-preview-point-icon svg {
+  width: 17px;
+  height: 17px;
 }
 
 .route-preview-point-copy {
@@ -3798,12 +3801,14 @@ textarea {
   position: absolute;
   top: 50%;
   left: 50%;
+  box-sizing: content-box;
+  width: 15px;
+  height: 15px;
   padding: 4px;
   border: 1px solid rgba(29, 30, 28, 0.1);
   border-radius: 50%;
   background: #fff;
   color: #1d1e1c;
-  font-size: 15px;
   transform: translate(-50%, -50%);
 }
 
@@ -3850,8 +3855,9 @@ textarea {
   color: var(--primary);
 }
 
-.route-timing-icon .material-symbols-outlined {
-  font-size: 16px;
+.route-timing-icon svg {
+  width: 16px;
+  height: 16px;
 }
 
 .route-timing-copy {

@@ -3,7 +3,11 @@
     <div class="map-fallback-bg" *ngIf="!mapAvailable" aria-hidden="true">
       <div class="map-fallback-pattern"></div>
     </div>
-    <div class="map-wrapper" [attr.aria-hidden]="!mapResourceMode" *ngIf="mapAvailable">
+    <div
+      class="map-wrapper"
+      [attr.aria-hidden]="!mapResourceMode"
+      [attr.inert]="!mapResourceMode ? '' : null"
+      *ngIf="mapAvailable">
     <div id="map" class="map-container"></div>
     
     <!-- FIXED CENTER PIN (Removed as per design changes, using blue dot marker for user location instead) -->
@@ -307,19 +311,29 @@
           <div class="route-preview-container">
             <div class="route-preview-point origin-point">
               <div class="route-preview-point-icon origin" aria-hidden="true">
-                <span class="material-symbols-outlined">inventory_2</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"></path>
+                  <path d="m3.3 7 8.7 5 8.7-5M12 22V12"></path>
+                </svg>
               </div>
               <span class="route-preview-point-copy"><small>Entregas en</small><strong>{{ formatLocationName(highlightedRoute.origen_nombre, highlightedRoute.origen_tipo) }}</strong></span>
             </div>
 
             <div class="route-preview-line-container" aria-hidden="true">
               <div class="route-preview-line"></div>
-              <span class="material-symbols-outlined route-preview-truck">local_shipping</span>
+              <svg class="route-preview-truck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M10 17h4V5H2v12h3M14 9h4l4 4v4h-3"></path>
+                <circle cx="7.5" cy="17.5" r="2.5"></circle>
+                <circle cx="16.5" cy="17.5" r="2.5"></circle>
+              </svg>
             </div>
 
             <div class="route-preview-point destination-point">
               <div class="route-preview-point-icon destination" aria-hidden="true">
-                <span class="material-symbols-outlined">location_on</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M20 10c0 5.5-8 11-8 11S4 15.5 4 10a8 8 0 1 1 16 0Z"></path>
+                  <circle cx="12" cy="10" r="2.5"></circle>
+                </svg>
               </div>
               <span class="route-preview-point-copy"><small>Recibes en</small><strong>{{ formatLocationName(highlightedRoute.destino_nombre_destino || highlightedRoute.destino_nombre, highlightedRoute.destino_tipo) }}</strong></span>
             </div>
@@ -327,7 +341,12 @@
 
           <div class="route-timing-grid">
             <div class="route-timing-card dropoff">
-              <span class="route-timing-icon" aria-hidden="true"><span class="material-symbols-outlined">inventory_2</span></span>
+              <span class="route-timing-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"></path>
+                  <path d="m3.3 7 8.7 5 8.7-5M12 22V12"></path>
+                </svg>
+              </span>
               <span class="route-timing-copy">
                 <small>Entrega el paquete</small>
                 <strong>{{ highlightedRoute.opciones_entrega ? formatFriendlyDate(highlightedRoute.opciones_entrega[highlightedRoute.selected_opcion_idx || 0].dropoff_date) : 'Fecha por confirmar' }}</strong>
@@ -339,7 +358,13 @@
             </span>
 
             <div class="route-timing-card arrival">
-              <span class="route-timing-icon" aria-hidden="true"><span class="material-symbols-outlined">local_shipping</span></span>
+              <span class="route-timing-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M10 17h4V5H2v12h3M14 9h4l4 4v4h-3"></path>
+                  <circle cx="7.5" cy="17.5" r="2.5"></circle>
+                  <circle cx="16.5" cy="17.5" r="2.5"></circle>
+                </svg>
+              </span>
               <span class="route-timing-copy">
                 <small>Llega el</small>
                 <strong>{{ highlightedRoute.opciones_entrega ? highlightedRoute.opciones_entrega[highlightedRoute.selected_opcion_idx || 0].fecha_llegada : highlightedRoute.fecha_llegada }}</strong>

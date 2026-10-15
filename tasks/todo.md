@@ -160,6 +160,43 @@ a producto y experiencia pública; Partner continúa fuera de alcance.
     - Aprobación recibida el 2026-10-15 al solicitar continuar con el plan de
       rediseño y entregar el recorrido público finalizado.
 
+  #### UI-REB-02 — `native-app-shell`
+
+  Spec: `tasks/specs/UI-REB-02-native-app-shell.md`.
+  Plan: `tasks/plan.md`, Fase 4, subplan UI-REB-02.
+
+  - [ ] UI-REB-02a Migrar el dock de navegación al contrato nativo.
+    - Aceptación: conserva `/admin`, `/` y `/enviar?tab=perfil`; estados activos y
+      `aria-current`; targets de 44 px, safe area, foco y reduced motion.
+    - Verificación: prueba focalizada del componente, colores, boundaries y build.
+    - Dependencias: UI-REB-01 cerrado y spec UI-REB-02 aprobada.
+    - Archivos: `bottom-nav.component.ts`, `bottom-nav.component.css` y su spec.
+    - Alcance: M, tres archivos; CSS/markup delegable y auditado por Codex.
+
+  - [ ] UI-REB-02b Extraer canvas, slots y overlays del shell.
+    - Aceptación: `100dvh`, inset inferior único, Inicio conserva `[hidden]`,
+      fallback y visor accesibles, Escape cierra la imagen sin tocar mapa/catálogo.
+    - Verificación: prueba focalizada de MobileApp, suite, build y teclado.
+    - Dependencias: UI-REB-02a.
+    - Archivos: `mobile-app.component.html/.ts/.css` y su spec.
+    - Alcance: M, cuatro archivos; TypeScript ejecutado por Codex.
+
+  - [ ] UI-REB-02c Limpiar y certificar el shell.
+    - Aceptación: cero reglas duplicadas del shell, matriz de capas estable y sin
+      superposición o scroll horizontal en los cinco viewports.
+    - Verificación: colores, boundaries, suite, build, E2E y navegador real.
+    - Dependencias: UI-REB-02b.
+    - Archivos: `app.css` y, solo si el contrato lo exige,
+      `css-color-contract.json`.
+    - Alcance: S, máximo dos archivos; extracción mecánica delegable.
+
+  ### Checkpoint UI-REB-02
+
+  - [ ] Tres incrementos en commits atómicos y reversibles.
+  - [ ] Contratos, pruebas, build y E2E verdes.
+  - [ ] 320×568, 386×912, 768×1024, 1024×900 y 1440×900 auditados.
+  - [ ] Aprobación humana antes de iniciar `destination-discovery`.
+
 - [ ] MVP07 Gate de salida del flujo público.
   - Aceptación: flujo completo, build, auditorías y smoke verdes; aprobación humana
     antes de desplegar.

@@ -307,6 +307,51 @@ Rollback: revertir en orden inverso el commit de primitives y luego el commit de
 tokens. Como templates y contratos Angular no cambian, el flujo vuelve a la hoja
 global anterior sin migración de datos ni intervención de backend.
 
+### Subplan UI-REB-02 — `native-app-shell`
+
+Estado: especificación `tasks/specs/UI-REB-02-native-app-shell.md` aprobada el
+2026-10-15. El módulo estabiliza el marco público antes de migrar búsqueda,
+resultados y detalle; no autoriza cambios funcionales en esos consumidores.
+
+#### Dependencias y orden
+
+```text
+Dock accesible y safe areas
+             |
+             v
+ Canvas, slots y overlays
+             |
+             v
+ Limpieza del CSS global
+             |
+             v
+ Auditoría integral del shell
+```
+
+1. **Dock nativo.** Proteger primero rutas, estados activos y nombres accesibles;
+   después migrar su apariencia a tokens, targets de 44 px e inset inferior.
+2. **Canvas y overlays.** Extraer solamente la composición del shell desde
+   `app.css`, conservar `[hidden]` para Inicio y añadir cierre accesible al visor.
+3. **Limpieza y certificación.** Eliminar reglas duplicadas únicamente con cero
+   consumidores confirmados y ejecutar contratos, suite, build, E2E y cinco
+   viewports.
+
+Cada incremento afecta como máximo cinco archivos y deja un commit reversible.
+Antigravity puede editar CSS/markup presentacional dentro del encargo delimitado;
+Codex conserva contratos Angular, TDD, revisión del diff y validación final.
+
+#### Riesgos y mitigaciones
+
+| Riesgo | Impacto | Mitigación |
+|---|---|---|
+| El dock tapa acciones o safe areas | Alto | Inset único del shell y cinco viewports |
+| Un cambio destruye el canvas de mapa | Alto | Mantener `[hidden]` y contratos existentes |
+| La extracción altera selectores globales | Alto | TDD, `rg` de consumidores y corte gradual |
+| Capas compiten con sheets/modales | Medio | Matriz de z-index y prueba de overlays |
+
+Rollback: revertir el commit del incremento afectado. No requiere backend,
+migraciones, datos ni cambios de producción.
+
 ## Fase 5 — Flujo de búsqueda como feature independiente
 
 Objetivo: encapsular destino → origen → rutas → compartir.

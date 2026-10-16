@@ -96,6 +96,15 @@ describe('PinDetailCardComponent', () => {
     expect(header.style.backgroundImage).toContain('linear-gradient');
   });
 
+  it('communicates the collapsed state with a visible label', () => {
+    fixture.detectChanges();
+    const toggleBtn = fixture.debugElement.query(By.css('.pin-card-sheet-toggle')).nativeElement;
+
+    expect(toggleBtn.textContent).toContain('Ver detalles');
+    expect(toggleBtn.getAttribute('aria-expanded')).toBe('false');
+    expect(fixture.debugElement.query(By.css('#pin-card-expanded-content'))).toBeFalsy();
+  });
+
   it('should call stopPropagation and emit toggle exactly once but not mutate internally', () => {
     fixture.detectChanges();
     const toggleSpy = vi.spyOn(host, 'onToggle');
@@ -151,6 +160,10 @@ describe('PinDetailCardComponent', () => {
       const address = fixture.debugElement.query(By.css('.pin-address-copy')).nativeElement;
       expect(address.textContent).toContain('Frente a parque');
       expect(address.textContent).toContain('Santa Ana, Santa Ana');
+
+      const toggleBtn = fixture.debugElement.query(By.css('.pin-card-sheet-toggle')).nativeElement;
+      expect(toggleBtn.textContent).toContain('Ocultar detalles');
+      expect(toggleBtn.getAttribute('aria-expanded')).toBe('true');
     });
 
     it('should emit actions (share, close, copy, openMap, preview) exactly once', () => {
@@ -244,8 +257,14 @@ describe('PinDetailCardComponent', () => {
 
     it('should emit tabChange exactly once and not mutate activeTab internally', () => {
       fixture.detectChanges();
+      const tabList = fixture.debugElement.query(By.css('.pin-card-tabs')).nativeElement;
       const tabSpy = vi.spyOn(host, 'onTabChange');
       const btns = fixture.debugElement.queryAll(By.css('.pin-card-tabs button'));
+
+      expect(tabList.getAttribute('role')).toBe('tablist');
+      expect(btns[0].nativeElement.getAttribute('role')).toBe('tab');
+      expect(btns[0].nativeElement.getAttribute('aria-selected')).toBe('true');
+      expect(btns[1].nativeElement.getAttribute('aria-selected')).toBe('false');
       
       btns[1].nativeElement.click();
       expect(tabSpy).toHaveBeenCalledTimes(1);
@@ -255,6 +274,48 @@ describe('PinDetailCardComponent', () => {
       fixture.detectChanges();
       const activeBtn = fixture.debugElement.query(By.css('.pin-card-tabs button.active')).nativeElement;
       expect(activeBtn.textContent).toBe('Horarios');
+      expect(activeBtn.getAttribute('aria-selected')).toBe('true');
+    });
+
+    it('supports arrow, Home, and End keyboard navigation between tabs', () => {
+      fixture.detectChanges();
+      let btns = fixture.debugElement.queryAll(By.css('.pin-card-tabs button'));
+
+      const right = new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true, cancelable: true });
+      btns[0].nativeElement.dispatchEvent(right);
+      expect(right.defaultPrevented).toBe(true);
+      expect(host.activeTab).toBe('horarios');
+      expect(document.activeElement).toBe(btns[1].nativeElement);
+
+      fixture.detectChanges();
+      btns = fixture.debugElement.queryAll(By.css('.pin-card-tabs button'));
+      btns[1].nativeElement.dispatchEvent(new KeyboardEvent('keydown', { key: 'Home', bubbles: true }));
+      expect(host.activeTab).toBe('info');
+      expect(document.activeElement).toBe(btns[0].nativeElement);
+
+      fixture.detectChanges();
+      btns = fixture.debugElement.queryAll(By.css('.pin-card-tabs button'));
+      btns[0].nativeElement.dispatchEvent(new KeyboardEvent('keydown', { key: 'End', bubbles: true }));
+      expect(host.activeTab).toBe('horarios');
+      expect(document.activeElement).toBe(btns[1].nativeElement);
+
+      fixture.detectChanges();
+      btns = fixture.debugElement.queryAll(By.css('.pin-card-tabs button'));
+      btns[1].nativeElement.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft', bubbles: true }));
+      expect(host.activeTab).toBe('info');
+      expect(document.activeElement).toBe(btns[0].nativeElement);
+
+      fixture.detectChanges();
+      btns = fixture.debugElement.queryAll(By.css('.pin-card-tabs button'));
+      btns[0].nativeElement.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft', bubbles: true }));
+      expect(host.activeTab).toBe('horarios');
+      expect(document.activeElement).toBe(btns[1].nativeElement);
+
+      fixture.detectChanges();
+      btns = fixture.debugElement.queryAll(By.css('.pin-card-tabs button'));
+      btns[1].nativeElement.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+      expect(host.activeTab).toBe('info');
+      expect(document.activeElement).toBe(btns[0].nativeElement);
     });
 
     it('should show empty hours message', () => {

@@ -32,7 +32,8 @@ export interface PinDetailViewModel {
   selector: 'article[siPinDetailCard]',
   standalone: true,
   imports: [CommonModule, ScheduleDisplayComponent, SiButtonDirective, SiIconButtonDirective, SiChipComponent],
-  templateUrl: './pin-detail-card.component.html'
+  templateUrl: './pin-detail-card.component.html',
+  styleUrls: ['./pin-detail-card.component.css']
 })
 export class PinDetailCardComponent {
   @Input({ required: true }) pin!: PinDetailViewModel;
@@ -86,6 +87,30 @@ export class PinDetailCardComponent {
 
   onTabChange(tab: 'info' | 'horarios'): void {
     this.tabChange.emit(tab);
+  }
+
+  onTabKeydown(event: KeyboardEvent): void {
+    const supportedKeys = ['ArrowLeft', 'ArrowRight', 'Home', 'End'];
+    if (!supportedKeys.includes(event.key)) {
+      return;
+    }
+
+    event.preventDefault();
+    const tabs = Array.from(
+      (event.currentTarget as HTMLElement | null)?.parentElement?.querySelectorAll<HTMLElement>('[role="tab"]') ?? []
+    );
+    const currentIndex = Math.max(0, tabs.indexOf(event.currentTarget as HTMLElement));
+    const nextIndex = event.key === 'Home'
+      ? 0
+      : event.key === 'End'
+        ? tabs.length - 1
+        : event.key === 'ArrowRight'
+          ? (currentIndex + 1) % tabs.length
+          : (currentIndex - 1 + tabs.length) % tabs.length;
+    const nextTab: 'info' | 'horarios' = nextIndex === 0 ? 'info' : 'horarios';
+
+    this.onTabChange(nextTab);
+    tabs[nextIndex]?.focus();
   }
 
   onCopy(): void {

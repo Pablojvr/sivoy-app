@@ -1,0 +1,564 @@
+:host(.pin-details-card.pin-point-card) {
+  position: absolute;
+  z-index: 1600;
+  right: max(var(--si-space-3), env(safe-area-inset-right, 0px));
+  bottom: calc(var(--si-shell-content-inset-bottom, calc(88px + var(--si-safe-area-bottom))) + var(--si-space-3));
+  left: max(var(--si-space-3), env(safe-area-inset-left, 0px));
+  max-width: 680px;
+  max-height: min(
+    70dvh,
+    640px,
+    calc(
+      100dvh - var(--si-shell-content-inset-bottom, calc(88px + var(--si-safe-area-bottom))) -
+      max(132px, calc(112px + var(--si-safe-area-top)))
+    )
+  );
+  margin-inline: auto;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--si-color-border);
+  border-radius: var(--si-radius-sheet);
+  background: var(--si-color-surface);
+  box-shadow: var(--si-shadow-sheet);
+  color: var(--si-color-ink);
+  transition:
+    max-height var(--si-motion-sheet) var(--si-ease-native),
+    box-shadow var(--si-motion-standard) var(--si-ease-native),
+    transform var(--si-motion-standard) var(--si-ease-native);
+}
+
+:host(.pin-details-card.pin-point-card.is-collapsed) {
+  max-height: 148px;
+  box-shadow: var(--si-shadow-level-2);
+}
+
+.pin-card-hero {
+  position: relative;
+  min-height: 148px;
+  flex: 0 0 148px;
+  display: flex;
+  align-items: flex-end;
+  padding: var(--si-space-4);
+  overflow: hidden;
+  background-color: var(--si-color-ink);
+  background-position: center;
+  background-size: cover;
+  color: var(--si-color-surface);
+  touch-action: pan-x;
+}
+
+.pin-card-hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, var(--si-color-ink) 48%, transparent);
+  pointer-events: none;
+}
+
+.pin-image-preview {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  border: 0;
+  background: transparent;
+  cursor: zoom-in;
+}
+
+.pin-card-sheet-toggle {
+  position: absolute;
+  z-index: 4;
+  top: var(--si-space-3);
+  left: var(--si-space-3);
+  width: auto;
+  min-width: 118px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 10px;
+  border: 1px solid color-mix(in srgb, var(--si-color-surface) 28%, transparent);
+  border-radius: var(--si-radius-round);
+  background: color-mix(in srgb, var(--si-color-ink) 68%, transparent);
+  color: var(--si-color-surface);
+  backdrop-filter: blur(12px);
+  cursor: ns-resize;
+  touch-action: manipulation;
+}
+
+.pin-card-sheet-handle {
+  width: 18px;
+  height: 3px;
+  flex: 0 0 18px;
+  border-radius: var(--si-radius-round);
+  background: currentColor;
+  opacity: 0.72;
+}
+
+.pin-card-sheet-toggle > .pin-card-toggle-label {
+  width: auto;
+  height: auto;
+  flex: 0 1 auto;
+  border-radius: 0;
+  background: transparent;
+  font: var(--si-type-meta);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.pin-card-sheet-toggle svg {
+  width: 15px;
+  height: 15px;
+  flex: 0 0 15px;
+  transition: transform var(--si-motion-standard) var(--si-ease-native);
+}
+
+:host(.pin-details-card.pin-point-card:not(.is-collapsed)) .pin-card-sheet-toggle svg {
+  transform: rotate(180deg);
+}
+
+.pin-card-hero-actions {
+  position: absolute;
+  z-index: 4;
+  top: var(--si-space-3);
+  right: var(--si-space-3);
+  display: flex;
+  gap: 6px;
+}
+
+.pin-card-hero-actions button {
+  width: 44px;
+  height: 44px;
+  min-height: 44px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--si-color-surface) 28%, transparent);
+  border-radius: var(--si-radius-round);
+  background: color-mix(in srgb, var(--si-color-ink) 68%, transparent);
+  color: var(--si-color-surface);
+  backdrop-filter: blur(12px);
+}
+
+.pin-card-hero-actions svg {
+  width: 19px;
+  height: 19px;
+}
+
+.pin-card-identity {
+  position: relative;
+  z-index: 2;
+  min-width: 0;
+  padding-right: 92px;
+}
+
+.pin-provider-badge {
+  min-height: 22px;
+  margin-bottom: 5px;
+  padding: 3px 8px;
+  border: 1px solid color-mix(in srgb, var(--si-color-surface) 24%, transparent);
+  border-radius: var(--si-radius-round);
+  background: color-mix(in srgb, var(--si-color-brand) 86%, transparent);
+  color: var(--si-color-surface);
+  font-size: 12px;
+  font-weight: 750;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.pin-card-identity h2 {
+  display: -webkit-box;
+  overflow: hidden;
+  margin: 0;
+  color: var(--si-color-surface);
+  font: var(--si-type-section);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.pin-card-identity p {
+  overflow: hidden;
+  margin: 3px 0 0;
+  color: color-mix(in srgb, var(--si-color-surface) 82%, transparent);
+  font: var(--si-type-meta);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pin-card-expanded-content {
+  min-height: 0;
+  flex: 1;
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  overflow: hidden;
+  background: var(--si-color-surface);
+}
+
+.pin-card-quick-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(92px, 0.42fr);
+  gap: var(--si-space-2);
+  padding: var(--si-space-3) var(--si-space-3) var(--si-space-2);
+}
+
+.pin-card-quick-actions.single-action {
+  grid-template-columns: 1fr;
+}
+
+.pin-route-action,
+.pin-map-action {
+  min-height: 54px;
+  border-radius: var(--si-radius-content);
+  font: inherit;
+  cursor: pointer;
+}
+
+.pin-route-action {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) 18px;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 10px;
+  border: 1px solid var(--si-color-ink);
+  background: var(--si-color-ink);
+  color: var(--si-color-surface);
+  text-align: left;
+}
+
+.pin-action-icon {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 11px;
+  background: var(--si-color-brand);
+}
+
+.pin-action-icon svg,
+.pin-action-arrow {
+  width: 17px;
+  height: 17px;
+}
+
+.pin-route-action > span:nth-child(2) {
+  min-width: 0;
+  display: grid;
+  gap: 1px;
+}
+
+.pin-route-action small {
+  overflow: hidden;
+  color: color-mix(in srgb, var(--si-color-surface) 70%, transparent);
+  font-size: 12px;
+  font-weight: 550;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pin-route-action strong {
+  overflow: hidden;
+  font-size: 14px;
+  font-weight: 750;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pin-map-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 10px;
+  border: 1px solid var(--si-color-border);
+  background: var(--si-color-canvas);
+  color: var(--si-color-ink);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.pin-map-action svg {
+  width: 19px;
+  height: 19px;
+  color: var(--si-color-brand-strong);
+}
+
+.pin-card-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  margin: 0 var(--si-space-3);
+  padding: 4px;
+  border: 1px solid var(--si-color-border);
+  border-radius: var(--si-radius-content);
+  background: var(--si-color-canvas);
+}
+
+.pin-card-tabs button {
+  min-height: 44px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--si-color-ink-muted);
+  font: var(--si-type-meta);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.pin-card-tabs button.active {
+  background: var(--si-color-surface);
+  box-shadow: var(--si-shadow-level-1);
+  color: var(--si-color-ink);
+}
+
+.pin-card-tabs button.active::after {
+  content: none;
+}
+
+.pin-card-content {
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--si-space-3);
+  scrollbar-width: thin;
+}
+
+.pin-info-panel,
+.pin-hours-panel {
+  display: grid;
+  gap: var(--si-space-2);
+}
+
+.pin-availability,
+.pin-address-card {
+  display: grid;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--si-color-border);
+  border-radius: var(--si-radius-content);
+}
+
+.pin-availability {
+  grid-template-columns: 38px minmax(0, 1fr) auto;
+  min-height: 60px;
+  padding: 9px 10px;
+  background: var(--si-color-success-soft);
+  color: var(--si-color-success-ink);
+}
+
+.pin-availability.orange,
+.pin-availability.text-warning {
+  background: var(--si-color-warning-soft);
+  color: var(--si-color-warning-ink);
+}
+
+.pin-availability.red,
+.pin-availability.text-danger {
+  background: var(--si-color-danger-soft);
+  color: var(--si-color-danger-ink);
+}
+
+.pin-availability-icon,
+.pin-address-icon {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--si-color-surface) 76%, transparent);
+}
+
+.pin-availability-icon svg,
+.pin-address-icon svg {
+  width: 19px;
+  height: 19px;
+}
+
+.pin-availability > span:nth-child(2),
+.pin-address-copy {
+  min-width: 0;
+  display: grid;
+  gap: 1px;
+}
+
+.pin-availability small,
+.pin-address-copy small,
+.pin-hours-heading small {
+  color: currentColor;
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: 0;
+  text-transform: none;
+  opacity: 0.78;
+}
+
+.pin-availability strong,
+.pin-address-copy strong,
+.pin-hours-heading strong {
+  overflow: hidden;
+  color: currentColor;
+  font-size: 14px;
+  font-weight: 750;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pin-availability b {
+  color: currentColor;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.pin-address-card {
+  grid-template-columns: 38px minmax(0, 1fr) 44px;
+  min-height: 64px;
+  padding: 9px 8px 9px 10px;
+  background: var(--si-color-surface);
+}
+
+.pin-address-icon {
+  background: var(--si-color-brand-soft);
+  color: var(--si-color-brand-strong);
+}
+
+.pin-address-copy {
+  color: var(--si-color-ink);
+}
+
+.pin-address-copy > span {
+  overflow: hidden;
+  color: var(--si-color-ink-muted);
+  font-size: 12px;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pin-copy-action {
+  width: 44px;
+  height: 44px;
+  min-height: 44px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 13px;
+  background: var(--si-color-canvas);
+  color: var(--si-color-ink-muted);
+}
+
+.pin-copy-action svg {
+  width: 18px;
+  height: 18px;
+}
+
+.pin-hours-heading > span {
+  display: grid;
+  gap: 1px;
+}
+
+.pin-hours-list {
+  overflow: hidden;
+  border: 1px solid var(--si-color-border);
+  border-radius: var(--si-radius-content);
+  background: var(--si-color-surface);
+}
+
+.pin-hours-list > div {
+  min-height: 44px;
+  padding: 8px 11px;
+  font-size: 12px;
+}
+
+.pin-hours-empty {
+  padding: var(--si-space-5);
+  border-radius: var(--si-radius-content);
+  background: var(--si-color-canvas);
+  color: var(--si-color-ink-muted);
+  font-size: 13px;
+  text-align: center;
+}
+
+.pin-card-sheet-toggle:focus-visible,
+.pin-card-hero-actions button:focus-visible,
+.pin-route-action:focus-visible,
+.pin-map-action:focus-visible,
+.pin-card-tabs button:focus-visible,
+.pin-copy-action:focus-visible {
+  outline: none;
+  box-shadow: var(--si-focus-ring);
+}
+
+.pin-image-preview:focus-visible {
+  outline: 3px solid var(--si-color-brand);
+  outline-offset: -6px;
+  box-shadow: inset 0 0 0 2px var(--si-color-surface);
+}
+
+@media (max-width: 380px) {
+  :host(.pin-details-card.pin-point-card) {
+    right: 9px;
+    left: 9px;
+  }
+
+  .pin-card-sheet-toggle {
+    min-width: 110px;
+    padding-inline: 8px;
+  }
+
+  .pin-card-identity {
+    padding-right: 76px;
+  }
+
+  .pin-card-identity h2 {
+    font-size: 18px;
+  }
+
+  .pin-card-quick-actions {
+    grid-template-columns: minmax(0, 1fr) 88px;
+  }
+
+  .pin-route-action small {
+    display: none;
+  }
+
+  .pin-route-action {
+    grid-template-columns: 34px minmax(0, 1fr);
+  }
+
+  .pin-action-arrow {
+    display: none;
+  }
+
+  .pin-route-action strong {
+    line-height: 1.15;
+    text-overflow: clip;
+    white-space: normal;
+  }
+
+  .pin-availability strong {
+    line-height: 1.15;
+    text-overflow: clip;
+    white-space: normal;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :host(.pin-details-card.pin-point-card),
+  .pin-card-sheet-toggle,
+  .pin-card-sheet-toggle svg,
+  .pin-card-hero-actions button,
+  .pin-route-action,
+  .pin-map-action,
+  .pin-card-tabs button {
+    animation: none;
+    transition: none;
+  }
+}

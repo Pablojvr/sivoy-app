@@ -13,7 +13,8 @@
         [attr.aria-expanded]="expanded"
         aria-controls="pin-card-expanded-content"
         [aria-label]="expanded ? 'Contraer información del punto' : 'Expandir información del punto'">
-        <span aria-hidden="true"></span>
+        <span class="pin-card-sheet-handle" aria-hidden="true"></span>
+        <span class="pin-card-toggle-label">{{ expanded ? 'Ocultar detalles' : 'Ver detalles' }}</span>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="m6 15 6-6 6 6"></path></svg>
       </button>
       <div class="pin-card-hero-actions">
@@ -61,13 +62,36 @@
       </button>
       </div>
 
-      <nav class="pin-card-tabs" aria-label="Información del punto">
-        <button type="button" [class.active]="activeTab === 'info'" (click)="onTabChange('info')">Información</button>
-        <button type="button" [class.active]="activeTab === 'horarios'" (click)="onTabChange('horarios')">Horarios</button>
+      <nav class="pin-card-tabs" role="tablist" aria-label="Información del punto">
+        <button
+          id="pin-info-tab"
+          type="button"
+          role="tab"
+          aria-controls="pin-info-panel"
+          [attr.aria-selected]="activeTab === 'info'"
+          [attr.tabindex]="activeTab === 'info' ? 0 : -1"
+          [class.active]="activeTab === 'info'"
+          (keydown)="onTabKeydown($event)"
+          (click)="onTabChange('info')">Información</button>
+        <button
+          id="pin-hours-tab"
+          type="button"
+          role="tab"
+          aria-controls="pin-hours-panel"
+          [attr.aria-selected]="activeTab === 'horarios'"
+          [attr.tabindex]="activeTab === 'horarios' ? 0 : -1"
+          [class.active]="activeTab === 'horarios'"
+          (keydown)="onTabKeydown($event)"
+          (click)="onTabChange('horarios')">Horarios</button>
       </nav>
 
       <div class="pin-card-content">
-        <section *ngIf="activeTab === 'info'" class="pin-info-panel">
+        <section
+          *ngIf="activeTab === 'info'"
+          id="pin-info-panel"
+          class="pin-info-panel"
+          role="tabpanel"
+          aria-labelledby="pin-info-tab">
         <div *ngIf="pin._status as status" class="pin-availability" [ngClass]="status.color">
           <span class="pin-availability-icon" aria-hidden="true">
             <svg *ngIf="status.iconType === 'clock'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
@@ -91,7 +115,12 @@
         </div>
         </section>
 
-        <section *ngIf="activeTab === 'horarios'" class="pin-hours-panel">
+        <section
+          *ngIf="activeTab === 'horarios'"
+          id="pin-hours-panel"
+          class="pin-hours-panel"
+          role="tabpanel"
+          aria-labelledby="pin-hours-tab">
         <div class="pin-hours-heading"><span><small>Atención al público</small><strong>Horarios semanales</strong></span></div>
         <app-schedule-display class="pin-hours-list"
           *ngIf="pin.horarios_operativos && pin.horarios_operativos.length > 0"

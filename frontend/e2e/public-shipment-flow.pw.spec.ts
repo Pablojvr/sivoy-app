@@ -45,6 +45,12 @@ async function chooseSanSalvadorDestination(page: Page): Promise<void> {
   await expect(page.getByRole('heading', { name: '1 Resultado en San Salvador' })).toBeVisible();
 }
 
+async function expandPointDetails(page: Page): Promise<void> {
+  const summary = page.locator('#card-POINT_AGENCIA_CENTRO button.point-result-summary');
+  await summary.click();
+  await expect(summary).toHaveAttribute('aria-expanded', 'true');
+}
+
 async function assertNoLegacyCatalogRequests(requests: string[]): Promise<void> {
   expect(requests, 'the public flow must not download the legacy global catalog').toEqual([]);
 }
@@ -72,8 +78,9 @@ test('destino, detalle, compartir, origen y ruta usan el catálogo canónico', a
   );
   await pointCard.locator('button.point-result-summary').click();
   expect((await detailResponse).status()).toBe(200);
-  await expect(pointCard.getByLabel('Horarios de atención')).toContainText('Lunes a Viernes');
-  await expect(pointCard.getByLabel('Horarios de atención')).toContainText('08:00 AM – 05:00 PM');
+  const expandedDetails = pointCard.locator('#point-details-POINT_AGENCIA_CENTRO');
+  await expect(expandedDetails).toContainText('Lunes a Viernes');
+  await expect(expandedDetails).toContainText('08:00 AM – 05:00 PM');
 
   await page.getByRole('button', { name: 'Compartir Agencia Centro' }).click();
   await expect.poll(() => page.evaluate(() =>
@@ -163,6 +170,7 @@ test('buscar y compartir siguen disponibles sin WebGL2', async ({ page }) => {
   await page.getByRole('button', { name: 'Cerrar aviso de mapa', exact: true }).click();
   await expect(mapFallback).toBeHidden();
 
+  await expandPointDetails(page);
   await page.getByRole('button', { name: 'Ver Agencia Centro en el mapa' }).click();
   await expect(mapFallback).toBeVisible();
   await expect(resultsHeading).toBeVisible();
@@ -214,6 +222,7 @@ test('la ruta conserva encabezado y estado visibles en 320 por 568', async ({ pa
   await page.goto('/#/');
   await chooseSanSalvadorDestination(page);
 
+  await expandPointDetails(page);
   await page.getByRole('button', { name: 'Ver Agencia Centro en el mapa' }).click();
   await page.getByRole('button', { name: 'Expandir información del punto' }).click();
   await page.getByRole('button', { name: /Usar como destino/ }).click();

@@ -22,6 +22,12 @@ async function expectVisibleControlsToHaveNames(root: Locator) {
   }
 }
 
+async function expandPointDetails(page: import('@playwright/test').Page): Promise<void> {
+  const summary = page.locator('#card-POINT_AGENCIA_CENTRO button.point-result-summary');
+  await summary.click();
+  await expect(summary).toHaveAttribute('aria-expanded', 'true');
+}
+
 test('el buscador modal conserva foco, teclado y nombres accesibles', async ({ page }) => {
   await page.goto('/#/enviar');
 
@@ -74,6 +80,7 @@ test('el mapa de fondo sale del foco en lista y se reactiva al abrirlo', async (
     expect(focusIsInsideMap).toBe(false);
   }
 
+  await expandPointDetails(page);
   await page.getByRole('button', { name: 'Ver Agencia Centro en el mapa' }).click();
   await expect(mapWrapper).toHaveAttribute('aria-hidden', 'false');
   await expect(mapWrapper).not.toHaveAttribute('inert', '');

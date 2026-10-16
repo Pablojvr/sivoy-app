@@ -291,6 +291,22 @@ a producto y experiencia pública; Partner continúa fuera de alcance.
   - [x] Validaciones automáticas, navegador real y revisión independiente verdes.
   - [x] Limpieza global UI-REB-04b integrada antes de cerrar el módulo.
 
+  #### UI-REB-05 — `route-result-card`
+
+  Spec: `tasks/specs/UI-REB-05-route-result-card.md`.
+
+  - [ ] UI-REB-05a Compactar y recalibrar la tarjeta de ruta.
+    - Aceptación: resumen con empresa, recorrido y ETA; el detalle difiere
+      selector, alerta y acciones sin cambiar eventos ni cálculo.
+    - Verificación: TDD focalizado, suite, contratos, build, E2E, cinco
+      viewports y revisión independiente.
+
+  ### Checkpoint UI-REB-05
+
+  - [ ] Contratos y eventos públicos preservados.
+  - [ ] Tarjeta sin saturación, desbordamiento ni superposición.
+  - [ ] Validaciones y revisión independiente verdes.
+
 - [ ] MVP07 Gate de salida del flujo público.
   - Aceptación: flujo completo, build, auditorías y smoke verdes; aprobación humana
     antes de desplegar.

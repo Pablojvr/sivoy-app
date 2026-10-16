@@ -387,6 +387,23 @@ estilos globales duplicados aprobadas.
 Rollback: revertir primero la limpieza global y luego los commits de prueba y
 presentación. No hay migración, dependencia ni cambio de backend asociado.
 
+### Subplan UI-REB-05 — `route-result-card`
+
+Estado: especificación preparada el 2026-10-16 para el último resultado del
+recorrido público.
+
+1. **Contrato compacto.** Caracterizar que el resumen conserva empresa, origen,
+   destino, ETA y expansión, mientras difiere alertas, selector y acciones.
+2. **Jerarquía nativa.** Recalibrar marcado y estilos con tokens `--si-*`, menor
+   altura, recorrido escaneable y una franja ETA inequívoca.
+3. **Detalle progresivo.** Mantener selector, resultado de fecha/horario y las
+   acciones públicas sin tocar presenter, servicios, navegación ni cálculo.
+4. **Certificación.** Suite, contratos, build, E2E, cinco viewports y revisión
+   independiente antes de integrar en `develop`.
+
+Rollback: revertir documentación, pruebas y presentación en orden inverso. No
+hay migración, dependencia, backend ni datos asociados.
+
 ## Fase 5 — Flujo de búsqueda como feature independiente
 
 Objetivo: encapsular destino → origen → rutas → compartir.

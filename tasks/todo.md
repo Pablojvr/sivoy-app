@@ -252,6 +252,39 @@ a producto y experiencia pública; Partner continúa fuera de alcance.
   - [x] Validaciones automáticas y cinco viewports verdes.
   - [x] Aprobación humana recibida el 2026-10-16 para integrar y continuar.
 
+  #### UI-REB-04 — `point-detail-card`
+
+  Spec: `tasks/specs/UI-REB-04-point-detail-card.md`.
+
+  - [x] UI-REB-04a Rediseñar el detalle progresivo del punto.
+    - Resultado: vista previa de 148 px con identidad y control textual; hoja
+      expandida con una decisión de ruta, mapa, selector segmentado, información
+      y horarios con desplazamiento interno. En escritorio se centra y limita a
+      680 px; en móvil evita tanto la isla superior como el dock.
+    - Accesibilidad: targets de 44 px, foco interior visible, pestañas con
+      `aria-selected` y navegación circular por flechas, Home y End.
+    - Evidencia 2026-10-16: prueba focalizada 14/14 y suite frontend 374/374;
+      colores 17/17 sobre 17 hojas, boundaries 31/31 sobre 53 archivos, build y
+      E2E 60/60 verdes. Auditoría real en 320×568, 386×912, 768×1024,
+      1024×900 y 1440×900 sin scroll horizontal ni superposición; en 320 px se
+      midieron 5 px de separación superior y 27 px sobre el dock. La revisión
+      independiente rechazó el primer corte por teclado incompleto, herencia
+      global sobre la etiqueta y foco recortado; los tres hallazgos se corrigieron
+      y la segunda revisión quedó aprobada. Dos intentos de Antigravity no
+      produjeron cambios; Codex implementó y auditó el incremento.
+
+  - [ ] UI-REB-04b Retirar reglas globales del detalle ya encapsuladas.
+    - Aceptación: cero reglas duplicadas de `pin-*`, sin alterar ScheduleDisplay
+      ni el render aprobado de UI-REB-04a.
+    - Verificación: búsqueda de consumidores, prueba focalizada, suite, build,
+      E2E y comparación visual en los cinco viewports.
+
+  ### Checkpoint UI-REB-04
+
+  - [x] Contratos públicos, acciones y gesto de expansión preservados.
+  - [x] Validaciones automáticas, navegador real y revisión independiente verdes.
+  - [ ] Limpieza global UI-REB-04b integrada antes de cerrar el módulo.
+
 - [ ] MVP07 Gate de salida del flujo público.
   - Aceptación: flujo completo, build, auditorías y smoke verdes; aprobación humana
     antes de desplegar.

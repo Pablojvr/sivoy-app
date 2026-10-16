@@ -369,6 +369,24 @@ los resultados sin modificar catálogo, ETA, navegación ni contratos de eventos
 Rollback: revertir los commits de pruebas y presentación. No hay dependencia,
 migración ni cambio de backend asociado.
 
+### Subplan UI-REB-04 — `point-detail-card`
+
+Estado: presentación aprobada el 2026-10-16; queda la limpieza de estilos
+globales duplicados antes del cierre.
+
+1. **Vista previa explícita.** Imagen o fallback, empresa, punto y ubicación se
+   mantienen en 148 px junto a `Ver detalles`, compartir y cerrar.
+2. **Hoja segura.** La expansión se limita entre la isla superior y el dock,
+   usa scroll interno y un ancho máximo de 680 px en escritorio.
+3. **Información progresiva.** Ruta y mapa preceden a Información/Horarios; el
+   selector implementa foco, estado ARIA y teclado circular.
+4. **Limpieza posterior.** Eliminar las reglas `pin-*` globales solo después de
+   trasladar cualquier estilo requerido por `ScheduleDisplay` y confirmar cero
+   consumidores externos.
+
+Rollback: revertir primero la limpieza global y luego los commits de prueba y
+presentación. No hay migración, dependencia ni cambio de backend asociado.
+
 ## Fase 5 — Flujo de búsqueda como feature independiente
 
 Objetivo: encapsular destino → origen → rutas → compartir.

@@ -201,21 +201,31 @@ a producto y experiencia pública; Partner continúa fuera de alcance.
       implementó y auditó el incremento. Persiste el error local preexistente
       de carga del worker MapLibre, fuera del alcance visual del shell.
 
-  - [ ] UI-REB-02c Limpiar y certificar el shell.
+  - [x] UI-REB-02c Limpiar y certificar el shell.
     - Aceptación: cero reglas duplicadas del shell, matriz de capas estable y sin
       superposición o scroll horizontal en los cinco viewports.
     - Verificación: colores, boundaries, suite, build, E2E y navegador real.
     - Dependencias: UI-REB-02b.
     - Archivos: `app.css` y, solo si el contrato lo exige,
       `css-color-contract.json`.
-    - Alcance: S, máximo dos archivos; extracción mecánica delegable.
+    - Alcance: S. La eliminación quedó en dos hojas de estilo; se actualizaron
+      además la prueba de regresión, el locator accesible E2E y su snapshot móvil.
+    - Evidencia 2026-10-15: eliminados siete selectores globales reemplazados por
+      el shell encapsulado, sin duplicar capas ni insets. Suite frontend 371/371,
+      colores 17/17 sobre 15 hojas, boundaries 31/31 sobre 53 archivos, build y
+      E2E 56/56 verdes. Navegador real sin scroll horizontal en 320×568,
+      386×912, 768×1024, 1024×900 y 1440×900; canvas y dock terminan exactamente
+      en el borde inferior. El snapshot 386×912 se regeneró después de auditar
+      visualmente el cambio aprobado. El fallo local preexistente del worker
+      MapLibre permanece separado de este incremento.
 
   ### Checkpoint UI-REB-02
 
-  - [ ] Tres incrementos en commits atómicos y reversibles.
-  - [ ] Contratos, pruebas, build y E2E verdes.
-  - [ ] 320×568, 386×912, 768×1024, 1024×900 y 1440×900 auditados.
-  - [ ] Aprobación humana antes de iniciar `destination-discovery`.
+  - [x] Tres incrementos en commits atómicos y reversibles.
+  - [x] Contratos, pruebas, build y E2E verdes.
+  - [x] 320×568, 386×912, 768×1024, 1024×900 y 1440×900 auditados.
+  - [x] Aprobación humana antes de iniciar `destination-discovery`.
+    - Aprobación recibida el 2026-10-15 con el mensaje «Aprobado».
 
 - [ ] MVP07 Gate de salida del flujo público.
   - Aceptación: flujo completo, build, auditorías y smoke verdes; aprobación humana

@@ -182,13 +182,24 @@ a producto y experiencia pública; Partner continúa fuera de alcance.
       delegación a Antigravity no produjeron cambios y fueron detenidos; Codex
       implementó y auditó el incremento.
 
-  - [ ] UI-REB-02b Extraer canvas, slots y overlays del shell.
+  - [x] UI-REB-02b Extraer canvas, slots y overlays del shell.
     - Aceptación: `100dvh`, inset inferior único, Inicio conserva `[hidden]`,
       fallback y visor accesibles, Escape cierra la imagen sin tocar mapa/catálogo.
     - Verificación: prueba focalizada de MobileApp, suite, build y teclado.
     - Dependencias: UI-REB-02a.
     - Archivos: `mobile-app.component.html/.ts/.css` y su spec.
     - Alcance: M, cuatro archivos; TypeScript ejecutado por Codex.
+    - Evidencia 2026-10-15: canvas `100dvh`, inset inferior único y matriz de
+      capas aplicada; Inicio conserva la misma instancia mediante `[hidden]` y
+      Perfil tiene scroll aislado. Banner y visor cumplen roles, safe areas,
+      targets de 44 px, foco y cierres por botón, backdrop y Escape. Prueba
+      focalizada 20/20, suite frontend 370/370, colores 17/17 sobre 15 hojas,
+      boundaries 31/31 sobre 53 archivos y build verdes. Navegador real sin
+      scroll global ni desbordamiento en 320×568, 386×912, 768×1024, 1024×900
+      y 1440×900; Inicio permanece montado al abrir Perfil. Antigravity no
+      produjo cambios tras tres minutos y la delegación fue detenida; Codex
+      implementó y auditó el incremento. Persiste el error local preexistente
+      de carga del worker MapLibre, fuera del alcance visual del shell.
 
   - [ ] UI-REB-02c Limpiar y certificar el shell.
     - Aceptación: cero reglas duplicadas del shell, matriz de capas estable y sin

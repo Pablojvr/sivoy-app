@@ -1,6 +1,6 @@
-<div class="app-container mobile-first-layout" [class.map-resource-mode]="isMapResourceMode" [class.list-first-mode]="!isMapResourceMode">
+<div class="app-container mobile-first-layout si-shell-canvas" [class.map-resource-mode]="isMapResourceMode" [class.list-first-mode]="!isMapResourceMode">
   
-  <div class="inicio-tab-content" [hidden]="activeMainTab !== 'inicio'">
+  <div class="si-shell-slot si-shell-slot--inicio inicio-tab-content" [hidden]="activeMainTab !== 'inicio'">
     <app-home
       [mapAvailable]="mapAvailable"
       [catalogMode]="true"
@@ -16,30 +16,32 @@
       (recenterMapEvent)="recenterMap()"
       (resetMapMarkersEvent)="resetMapMarkers()"
       (showNearbyPointsEvent)="showNearbyPoints()"
-      (previewImageEvent)="fullScreenImage = $event"
+      (previewImageEvent)="openImagePreview($event)"
       (showPinDetails)="viewOnMap($event.location, $event.type)"
       (mapResourceModeChange)="setMapResourceMode($event)"
     ></app-home>
   </div>
 
-  <app-perfil *ngIf="activeMainTab === 'perfil'"></app-perfil>
+  <div class="si-shell-slot si-shell-slot--perfil" *ngIf="activeMainTab === 'perfil'">
+    <app-perfil></app-perfil>
+  </div>
 
-  <div *ngIf="mapFallbackVisible" role="status" class="map-fallback-banner">
-    <div class="map-fallback-banner-content">
+  <div *ngIf="mapFallbackVisible" role="status" aria-live="polite" class="si-map-fallback-banner">
+    <div class="si-map-fallback-content">
       <strong>Mapa no disponible</strong>
       <p>Puedes seguir buscando y compartiendo puntos desde la lista.</p>
     </div>
-    <button type="button" class="map-fallback-close" (click)="mapFallbackVisible = false; $event.stopPropagation()" aria-label="Cerrar">×</button>
+    <button type="button" class="si-map-fallback-close" (click)="closeMapFallback(); $event.stopPropagation()" aria-label="Cerrar aviso de mapa">×</button>
   </div>
 
   <app-bottom-nav [activeTab]="activeMainTab"></app-bottom-nav>
 
   <!-- FULLSCREEN IMAGE PREVIEW -->
-  <div class="image-preview-overlay fade-in" *ngIf="fullScreenImage" (click)="fullScreenImage = null" role="dialog" aria-modal="true" aria-label="Vista previa de imagen">
-    <button class="image-preview-close" type="button" aria-label="Cerrar vista previa" (click)="fullScreenImage = null">
+  <div class="si-image-preview-overlay fade-in" *ngIf="fullScreenImage" (click)="closeImagePreview()" role="dialog" aria-modal="true" aria-label="Vista previa de imagen ampliada">
+    <button class="si-image-preview-close" type="button" aria-label="Cerrar vista previa" (click)="closeImagePreview()">
       &times;
     </button>
-    <img class="image-preview-content" [src]="fullScreenImage" alt="Vista previa ampliada" (click)="$event.stopPropagation()">
+    <img class="si-image-preview-img" [src]="fullScreenImage" alt="Vista previa ampliada" (click)="$event.stopPropagation()">
   </div>
 
 </div>

@@ -432,3 +432,144 @@ describe('MobileAppComponent public shell isolation (T29e)', () => {
     expect(fixture.nativeElement.querySelector('.admin-tab-content')).toBeNull();
   });
 });
+
+describe('MobileAppComponent native shell (UI-REB-02b)', () => {
+  let component: MobileAppComponent;
+  let fixture: ComponentFixture<MobileAppComponent>;
+  let httpMock: HttpTestingController;
+  let queryParams$: BehaviorSubject<Params>;
+
+  beforeEach(async () => {
+    queryParams$ = new BehaviorSubject<Params>({});
+
+    await TestBed.configureTestingModule({
+      imports: [MobileAppComponent, HttpClientTestingModule, RouterTestingModule],
+      providers: [
+        { provide: ToastService, useClass: MockToastService },
+        { provide: MapCapabilityService, useClass: MockMapCapabilityService },
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            queryParams: queryParams$.asObservable(),
+            snapshot: { data: {} }
+          }
+        }
+      ]
+    })
+      .overrideComponent(HomeComponent, { set: { template: '' } })
+      .overrideComponent(BottomNavComponent, { set: { template: '' } })
+      .overrideComponent(PerfilComponent, { set: { template: '' } })
+      .compileComponents();
+
+    fixture = TestBed.createComponent(MobileAppComponent);
+    component = fixture.componentInstance;
+    httpMock = TestBed.inject(HttpTestingController);
+  });
+
+  function initialize(): void {
+    fixture.detectChanges(false);
+    httpMock.expectOne((request) => request.url.includes('/api/catalog/points')).flush({
+      data: [],
+      page: { limit: 50, hasMore: false, nextCursor: null },
+      meta: { catalogRevision: 'catalog:1' }
+    });
+    httpMock
+      .expectOne((request) => request.url.includes('nominatim.openstreetmap.org'))
+      .flush({ address: { municipality: 'San Salvador' } });
+    fixture.detectChanges(false);
+  }
+
+  afterEach(() => {
+    fixture.destroy();
+    httpMock.verify();
+  });
+
+  it('mantiene montado el slot Inicio al alternar a Perfil', () => {
+    initialize();
+    const host = fixture.nativeElement as HTMLElement;
+    const initialSlot = host.querySelector<HTMLElement>('.si-shell-slot--inicio');
+
+    expect(initialSlot).not.toBeNull();
+    expect(initialSlot?.hidden).toBe(false);
+
+    queryParams$.next({ tab: 'perfil' });
+    fixture.detectChanges(false);
+
+    const hiddenSlot = host.querySelector<HTMLElement>('.si-shell-slot--inicio');
+    expect(hiddenSlot).toBe(initialSlot);
+    expect(hiddenSlot?.hidden).toBe(true);
+    expect(host.querySelector('.si-shell-slot--perfil app-perfil')).not.toBeNull();
+  });
+
+  it('presenta y cierra el aviso de mapa con nombre accesible', () => {
+    component.mapFallbackVisible = true;
+    initialize();
+
+    const host = fixture.nativeElement as HTMLElement;
+    const banner = host.querySelector<HTMLElement>(
+      '.si-map-fallback-banner[role="status"][aria-live="polite"]'
+    );
+    const closeButton = banner?.querySelector<HTMLButtonElement>(
+      'button[aria-label="Cerrar aviso de mapa"]'
+    );
+
+    expect(banner).not.toBeNull();
+    expect(closeButton).not.toBeNull();
+    closeButton?.click();
+    fixture.detectChanges(false);
+    expect(component.mapFallbackVisible).toBe(false);
+  });
+
+  it('cierra el visor de imagen con Escape', () => {
+    const host = fixture.nativeElement as HTMLElement;
+    component.fullScreenImage = 'https://example.test/punto.webp';
+    initialize();
+
+    const overlay = host.querySelector<HTMLElement>(
+      '.si-image-preview-overlay[role="dialog"][aria-modal="true"]'
+    );
+    expect(overlay?.getAttribute('aria-label')).toBe('Vista previa de imagen ampliada');
+
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    fixture.detectChanges(false);
+    expect(host.querySelector('.si-image-preview-overlay')).toBeNull();
+  });
+
+  it('cierra el visor de imagen desde el backdrop', () => {
+    const host = fixture.nativeElement as HTMLElement;
+    component.fullScreenImage = 'https://example.test/punto.webp';
+    initialize();
+
+    host.querySelector<HTMLElement>('.si-image-preview-overlay')?.click();
+    fixture.detectChanges(false);
+    expect(host.querySelector('.si-image-preview-overlay')).toBeNull();
+  });
+
+  it('cierra el visor de imagen desde su boton', () => {
+    const host = fixture.nativeElement as HTMLElement;
+    component.fullScreenImage = 'https://example.test/punto.webp';
+    initialize();
+
+    host.querySelector<HTMLButtonElement>('.si-image-preview-close')?.click();
+    fixture.detectChanges(false);
+    expect(host.querySelector('.si-image-preview-overlay')).toBeNull();
+  });
+
+  it('publica el contrato de canvas, inset y capas del shell', () => {
+    initialize();
+    const shellStyles = Array.from(document.head.querySelectorAll('style'))
+      .map((style) => style.textContent ?? '')
+      .find((styles) => styles.includes('.si-shell-canvas'));
+
+    expect(shellStyles).toBeDefined();
+    expect(shellStyles).toContain('--si-shell-content-inset-bottom');
+    expect(shellStyles).toContain('var(--si-safe-area-bottom)');
+    expect(shellStyles).toContain('height: 100dvh');
+    expect(shellStyles).toMatch(/\.si-map-fallback-banner[^}]*z-index:\s*2000/s);
+    expect(shellStyles).toMatch(/\.si-image-preview-overlay[^}]*z-index:\s*9000/s);
+    expect(shellStyles).toMatch(/\.si-image-preview-close[^}]*min-width:\s*44px/s);
+    expect(shellStyles).toMatch(
+      /@media \(prefers-reduced-motion: reduce\)[\s\S]*transition:\s*none/
+    );
+  });
+});

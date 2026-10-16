@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef, AfterViewInit, ElementRef, ViewEncapsulation } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, AfterViewInit, ElementRef, HostListener, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
@@ -43,7 +43,7 @@ const AUX_MARKER_KEYS = {
   selector: 'app-mobile-layout',
   imports: [CommonModule, FormsModule, HomeComponent, BottomNavComponent, PerfilComponent],
   templateUrl: './mobile-app.component.html',
-  styleUrl: './app.css',
+  styleUrls: ['./app.css', './mobile-app.component.css'],
   encapsulation: ViewEncapsulation.None
 })
 export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
@@ -64,6 +64,25 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
   isMapResourceMode: boolean = false;
   
   fullScreenImage: string | null = null;
+
+  closeMapFallback(): void {
+    this.mapFallbackVisible = false;
+  }
+
+  openImagePreview(imageUrl: string): void {
+    this.fullScreenImage = imageUrl;
+  }
+
+  closeImagePreview(): void {
+    this.fullScreenImage = null;
+  }
+
+  @HostListener('document:keydown.escape')
+  closeImagePreviewOnEscape(): void {
+    if (this.fullScreenImage) {
+      this.closeImagePreview();
+    }
+  }
   
   // Map Interactivity State
   private map: MapPort | null = null;

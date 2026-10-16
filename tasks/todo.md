@@ -227,6 +227,31 @@ a producto y experiencia pública; Partner continúa fuera de alcance.
   - [x] Aprobación humana antes de iniciar `destination-discovery`.
     - Aprobación recibida el 2026-10-15 con el mensaje «Aprobado».
 
+  #### UI-REB-03 — `search-result-cards`
+
+  Spec: `tasks/specs/UI-REB-03-search-result-cards.md`.
+
+  - [x] Compactar la tarjeta de punto con revelado progresivo.
+    - Resultado: el resumen prioriza punto, ubicación y disponibilidad; conserva
+      solo `Elegir origen` y `Compartir` como acciones inmediatas. Horarios,
+      imagen y mapa aparecen únicamente al usar `Ver detalles`.
+    - Accesibilidad: `aria-expanded` y `aria-controls` abarcan todo el contenido
+      revelado, áreas táctiles de 44 px, foco visible y movimiento reducido.
+    - Evidencia 2026-10-16: TDD rojo con cuatro expectativas y prueba focalizada
+      final 11/11; suite frontend 373/373, colores 17/17 sobre 16 hojas,
+      boundaries 31/31 sobre 53 archivos, build y E2E 56/56 verdes. Sin scroll
+      horizontal en 320×568, 386×912, 768×1024, 1024×900 y 1440×900. La
+      revisión independiente detectó dos brechas P2 —región ARIA incompleta y
+      conteo de acciones débil—; ambas se corrigieron y fueron revalidadas.
+      Antigravity no produjo cambios dentro del tiempo de ejecución y Codex
+      completó y auditó el incremento.
+
+  ### Checkpoint UI-REB-03
+
+  - [x] Presentación, eventos públicos y navegación preservados.
+  - [x] Validaciones automáticas y cinco viewports verdes.
+  - [x] Aprobación humana recibida el 2026-10-16 para integrar y continuar.
+
 - [ ] MVP07 Gate de salida del flujo público.
   - Aceptación: flujo completo, build, auditorías y smoke verdes; aprobación humana
     antes de desplegar.

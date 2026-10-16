@@ -352,6 +352,23 @@ Codex conserva contratos Angular, TDD, revisión del diff y validación final.
 Rollback: revertir el commit del incremento afectado. No requiere backend,
 migraciones, datos ni cambios de producción.
 
+### Subplan UI-REB-03 — `search-result-cards`
+
+Estado: completado y aprobado el 2026-10-16. El módulo reduce la carga visual de
+los resultados sin modificar catálogo, ETA, navegación ni contratos de eventos.
+
+1. **Resumen escaneable.** Punto, ubicación y disponibilidad permanecen visibles;
+   empresa y distancia funcionan como metadatos secundarios.
+2. **Dos decisiones inmediatas.** Elegir origen y compartir son las únicas
+   acciones del estado compacto.
+3. **Revelado progresivo.** Horarios completos, imagen y mapa viven en una sola
+   región accesible controlada por `Ver detalles`/`Ocultar detalles`.
+4. **Certificación.** TDD, suite, contratos, build, E2E y cinco viewports validan
+   el incremento antes de integrarlo.
+
+Rollback: revertir los commits de pruebas y presentación. No hay dependencia,
+migración ni cambio de backend asociado.
+
 ## Fase 5 — Flujo de búsqueda como feature independiente
 
 Objetivo: encapsular destino → origen → rutas → compartir.

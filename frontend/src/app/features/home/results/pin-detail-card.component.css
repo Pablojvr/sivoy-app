@@ -43,10 +43,23 @@
   padding: var(--si-space-4);
   overflow: hidden;
   background-color: var(--si-color-ink);
-  background-position: center;
-  background-size: cover;
+  background-image: linear-gradient(
+    145deg,
+    var(--si-color-brand) 0%,
+    var(--si-color-brand-strong) 58%,
+    var(--si-color-ink) 100%
+  );
   color: var(--si-color-surface);
   touch-action: pan-x;
+}
+
+.pin-card-hero-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
 }
 
 .pin-card-hero::after {

@@ -565,6 +565,7 @@ describe('MobileAppComponent native shell (UI-REB-02b)', () => {
     expect(shellStyles).toContain('--si-shell-content-inset-bottom');
     expect(shellStyles).toContain('var(--si-safe-area-bottom)');
     expect(shellStyles).toContain('height: 100dvh');
+    expect(shellStyles).not.toContain('!important');
     expect(shellStyles).toMatch(/\.si-map-fallback-banner[^}]*z-index:\s*2000/s);
     expect(shellStyles).toMatch(/\.si-image-preview-overlay[^}]*z-index:\s*9000/s);
     expect(shellStyles).toMatch(/\.si-image-preview-close[^}]*min-width:\s*44px/s);

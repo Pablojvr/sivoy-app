@@ -1,4 +1,5 @@
 import { expect, Page, test } from '@playwright/test';
+import { Buffer } from 'node:buffer';
 
 type IntervalDiagnosticsWindow = Window & {
   __sivoyActiveIntervals?: Map<number, number>;
@@ -8,6 +9,11 @@ type RouteRequestBody = {
   origen?: string[];
   destino?: string[];
 };
+
+const TRANSPARENT_MAP_TILE = Buffer.from(
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=',
+  'base64',
+);
 
 const countActiveIntervalsByDelay = (delay: number) =>
   window.__sivoyActiveIntervals
@@ -141,6 +147,72 @@ test('municipio con más de una página agrega 25 puntos sin duplicarlos', async
   expect(new Set(ids).size).toBe(25);
   expect(ids.every(id => id.startsWith('card-POINT_SOYAPANGO_'))).toBe(true);
   await assertNoLegacyCatalogRequests(legacyRequests);
+});
+
+test('resultados públicos sobreviven atrás, adelante, recarga y enlace directo', async ({ page }) => {
+  await page.goto('/#/');
+  await chooseSanSalvadorDestination(page);
+
+  const resultsUrl = page.url();
+  await page.goBack();
+  await expect(page).toHaveURL(/.*\/#\/$/);
+  await expect(page.getByRole('heading', { name: 'Envía sin complicarte.' })).toBeVisible();
+
+  await page.goForward();
+  await expect(page).toHaveURL(resultsUrl);
+  await expect(page.getByRole('heading', { name: '1 Resultado en San Salvador' })).toBeVisible();
+
+  await page.reload();
+  await expect(page).toHaveURL(resultsUrl);
+  await expect(page.getByRole('heading', { name: '1 Resultado en San Salvador' })).toBeVisible();
+
+  await page.goto('/#/enviar?punto=POINT_AGENCIA_CENTRO&accion=preview');
+  await expect(page).toHaveURL(/.*punto=POINT_AGENCIA_CENTRO&accion=preview$/);
+  await expect(page.getByRole('heading', { name: '1 Resultado en San Salvador' })).toBeVisible();
+  const linkedPointSummary = page.locator('#card-POINT_AGENCIA_CENTRO button.point-result-summary');
+  await expect(linkedPointSummary).toHaveAttribute('aria-expanded', 'true');
+  await expect(page.locator('#point-details-POINT_AGENCIA_CENTRO')).toBeVisible();
+});
+
+test('el recorrido público básico no emite errores de navegador ni solicitudes fallidas', async ({ page, request }) => {
+  const consoleErrors: string[] = [];
+  const pageErrors: string[] = [];
+  const failedRequests: string[] = [];
+  let mapTileRequests = 0;
+
+  await page.route('https://tile.openstreetmap.org/**', async route => {
+    mapTileRequests += 1;
+    await route.fulfill({ status: 200, contentType: 'image/png', body: TRANSPARENT_MAP_TILE });
+  });
+
+  page.on('console', message => {
+    if (message.type() === 'error') consoleErrors.push(message.text());
+  });
+  page.on('pageerror', error => pageErrors.push(error.message));
+  page.on('requestfailed', request => {
+    failedRequests.push(`${request.method()} ${new URL(request.url()).pathname}`);
+  });
+
+  const [workerResponse, sharedResponse] = await Promise.all([
+    request.get('/vendor/maplibre/maplibre-gl-worker.mjs'),
+    request.get('/vendor/maplibre/maplibre-gl-shared.mjs'),
+  ]);
+  expect(workerResponse.status()).toBe(200);
+  expect(sharedResponse.status()).toBe(200);
+
+  await page.goto('/#/');
+  await chooseSanSalvadorDestination(page);
+  const map = page.locator('#map');
+  await expect(map).toHaveAttribute('data-map-state', 'loaded');
+  await expect(map).not.toHaveAttribute('data-map-error', /.+/);
+  await expect.poll(() => mapTileRequests).toBeGreaterThan(0);
+
+  await expandPointDetails(page);
+  await expect(page.locator('#point-details-POINT_AGENCIA_CENTRO')).toBeVisible();
+
+  expect(consoleErrors).toEqual([]);
+  expect(pageErrors).toEqual([]);
+  expect(failedRequests).toEqual([]);
 });
 
 test('buscar y compartir siguen disponibles sin WebGL2', async ({ page }) => {

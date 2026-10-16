@@ -76,7 +76,7 @@ describe('PinDetailCardComponent', () => {
     host = fixture.componentInstance;
   });
 
-  it('should render ARTICLE with classes, roles and background', () => {
+  it('should render ARTICLE with classes, roles and a semantic hero image', () => {
     fixture.detectChanges();
     const el = fixture.debugElement.query(By.directive(PinDetailCardComponent)).nativeElement;
     
@@ -85,15 +85,19 @@ describe('PinDetailCardComponent', () => {
     expect(el.classList.contains('pin-details-card')).toBe(true);
     expect(el.classList.contains('is-collapsed')).toBe(true);
     
-    const header = fixture.debugElement.query(By.css('.pin-card-hero')).nativeElement;
-    expect(header.style.backgroundImage).toContain('url("resolved.jpg")');
+    const header = fixture.debugElement.query(By.css('.pin-card-hero')).nativeElement as HTMLElement;
+    const image = fixture.debugElement.query(By.css('.pin-card-hero-image')).nativeElement as HTMLImageElement;
+    expect(header.getAttribute('style')).toBeNull();
+    expect(image.getAttribute('src')).toContain('resolved.jpg');
+    expect(image.getAttribute('alt')).toBe('');
   });
 
-  it('should fallback background when no heroImageUrl', () => {
+  it('should use the tokenized CSS fallback when no heroImageUrl exists', () => {
     host.heroImageUrl = '';
     fixture.detectChanges();
-    const header = fixture.debugElement.query(By.css('.pin-card-hero')).nativeElement;
-    expect(header.style.backgroundImage).toContain('linear-gradient');
+    const header = fixture.debugElement.query(By.css('.pin-card-hero')).nativeElement as HTMLElement;
+    expect(header.getAttribute('style')).toBeNull();
+    expect(fixture.debugElement.query(By.css('.pin-card-hero-image'))).toBeNull();
   });
 
   it('communicates the collapsed state with a visible label', () => {

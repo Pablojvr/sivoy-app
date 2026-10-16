@@ -1,8 +1,8 @@
     <header
       class="pin-card-hero"
-      [style.backgroundImage]="heroImageUrl ? 'url(' + heroImageUrl + ')' : 'linear-gradient(145deg, #f45b78 0%, #7d2438 58%, #1d1e1c 100%)'"
       (touchstart)="onTouchStart($event)"
       (touchend)="onTouchEnd($event)">
+      <img *ngIf="heroImageUrl" class="pin-card-hero-image" [src]="heroImageUrl" alt="" aria-hidden="true">
       <button *ngIf="pin.imagen_referencia" type="button" class="pin-image-preview" (click)="onPreview()" aria-label="Ver imagen completa"></button>
       <button
         type="button"

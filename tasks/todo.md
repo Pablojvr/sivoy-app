@@ -13,25 +13,25 @@ máximo cinco archivos. Un paquete no es autorización para modificar código.
 La arquitectura queda pausada en el checkpoint verde `a5c9eae`. La prioridad pasa
 a producto y experiencia pública; Partner continúa fuera de alcance.
 
-- [ ] MVP01 Auditar el flujo Inicio → destino → resultados → compartir/mapa.
+- [x] MVP01 Auditar el flujo Inicio → destino → resultados → compartir/mapa.
   - Aceptación: inventario de fricciones y recorrido objetivo aprobado en móvil y escritorio.
   - Verificación: navegador real en 386×912 y escritorio, sin modificar producción.
-- [ ] MVP02 Simplificar la pantalla de Inicio alrededor de un único buscador.
+- [x] MVP02 Simplificar la pantalla de Inicio alrededor de un único buscador.
   - Aceptación: copy compacto, empresas/nuevos puntos secundarios y mapa no protagonista.
   - Verificación: unitarias, build, accesibilidad básica y navegador real.
-- [ ] MVP03 Rediseñar resultados como tarjetas compactas y colapsables.
+- [x] MVP03 Rediseñar resultados como tarjetas compactas y colapsables.
   - Aceptación: horarios consecutivos agrupados; acciones claras para buscar origen,
     compartir y mapa; expansión exclusiva o predecible.
   - Verificación: unitarias de estado, E2E destino→acción y revisión visual móvil.
-- [ ] MVP04 Ajustar ficha/modal móvil y navegación fija.
+- [x] MVP04 Ajustar ficha/modal móvil y navegación fija.
   - Aceptación: encabezado útil al colapsar, contenido completo al expandir y cero
     superposición con footer o barra del sistema.
   - Verificación: 386×912, altura reducida, escritorio y navegación por teclado.
-- [ ] MVP05 Consolidar rutas, regreso y persistencia de selección.
+- [x] MVP05 Consolidar rutas, regreso y persistencia de selección.
   - Aceptación: volver a Inicio/resultados funciona y un enlace directo restaura
     contexto válido sin callejones sin salida.
   - Verificación: pruebas de router y E2E atrás/adelante/recarga.
-- [ ] MVP06 Unificar identidad visual sin reescritura global.
+- [x] MVP06 Unificar identidad visual sin reescritura global.
   - Aceptación: tokens existentes gobiernan color, tipografía, espaciado, iconos y
     movimiento en las pantallas intervenidas.
   - Verificación: boundaries/colores, build y comparación visual.
@@ -314,9 +314,39 @@ a producto y experiencia pública; Partner continúa fuera de alcance.
       etiqueta de detalle 5.96:1. Antigravity no produjo cambios y Codex realizó
       y auditó la implementación completa.
 
+  #### UI-REB-06 — gate final de la interfaz pública
+
+  Spec: `tasks/specs/UI-REB-06-public-ui-final-gate.md`.
+
+  - [x] El hero dinámico usa un `img` decorativo y fallback CSS con tokens;
+    no conserva estilo ni color inline.
+  - [x] El shell oculta el slot mediante especificidad normal y conserva Inicio
+    montado, sin `!important`.
+  - [x] MapLibre sirve el worker y su módulo compartido desde el mismo origen;
+    el error reproducible de carga desapareció en los cuatro proyectos E2E.
+  - [x] Regreso, avance, recarga y enlace directo quedan cubiertos en navegador.
+  - [x] El smoke público falla ante consola, `pageerror` o solicitudes fallidas;
+    las teselas externas se sustituyen por una respuesta PNG determinista y se
+    verifica que el mapa efectivamente las solicite.
+
+  ### Checkpoint UI-REB-06
+
+  - [x] Pruebas focalizadas: 35/35 de detalle/shell y 49/49 del adaptador de mapa.
+  - [x] Suite frontend 377/377, color 17/17, fronteras 31/31 y build verdes.
+  - [x] E2E 68/68 en 386, 768, 1024 y 1440 px; 320x568 cubierto dentro del flujo.
+  - [x] Navegador real: ficha y mapa visibles, consola sin errores.
+  - [x] Revisión independiente final sin hallazgos P0-P3.
+
+- Evidencia de MVP01-MVP06: UI-REB-01 a UI-REB-06, suite, contratos, build,
+  68 recorridos E2E y auditoría visual cubren el flujo y sus criterios. MVP05
+  añade restauración exacta del estado en unitarias y navegación durable en E2E.
+
 - [ ] MVP07 Gate de salida del flujo público.
   - Aceptación: flujo completo, build, auditorías y smoke verdes; aprobación humana
     antes de desplegar.
+  - Estado: gate técnico de interfaz verde y aprobación para integrar recibida;
+    falta el smoke integrado con backend/PostgreSQL local y una autorización de
+    lanzamiento a producción. Partner no participa.
 
 ### Datos Pedidos Express — activo para MVP
 

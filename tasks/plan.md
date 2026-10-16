@@ -411,6 +411,29 @@ productivo, 60/60 recorridos Playwright y revisión independiente sin hallazgos
 P0-P3. Se validaron 320x568, 386x912, 768, 1024x900 y 1440 px; el detalle usa
 scroll interno y permanece por encima de la navegación inferior.
 
+### Subplan UI-REB-06 — gate final de la interfaz pública
+
+Estado: cerrado y certificado el 2026-10-16. El gate público quedó libre del
+error de worker de MapLibre, conserva navegación durable y no presenta errores
+propios de consola, página o red en los cuatro tamaños de referencia.
+
+1. **Contrato visual estricto.** Retirar el gradiente inline del hero y la
+   excepción `!important` del shell, conservando imagen, fallback y montaje.
+2. **Mapa sin ruido de runtime.** Publicar el worker ESM y su módulo compartido
+   desde el mismo origen y configurarlo antes de crear cualquier mapa público.
+3. **Navegación durable.** Caracterizar atrás, adelante, recarga y enlaces
+   directos de resultados sin modificar contratos ni estado de negocio.
+4. **Gate observable.** Fallar E2E ante errores de consola, página o red; aislar
+   las teselas externas con una respuesta PNG determinista sin omitir su
+   solicitud; y repetir el conjunto completo de pruebas antes de integrar.
+
+Evidencia: 377/377 pruebas frontend, 68/68 recorridos E2E, build y contratos de
+color/fronteras verdes, revisión visual en navegador real y revisión
+independiente sin hallazgos P0-P3.
+
+Rollback: revertir un único commit del gate. No hay migración, dependencia,
+backend, dato ni despliegue asociado.
+
 ## Fase 5 — Flujo de búsqueda como feature independiente
 
 Objetivo: encapsular destino → origen → rutas → compartir.

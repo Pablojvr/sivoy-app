@@ -1,4 +1,4 @@
-import { Map as MLMap, Marker, Popup, LngLatBounds, GeoJSONSource, Source, StyleSpecification, AttributionControl } from 'maplibre-gl';
+import { Map as MLMap, Marker, Popup, LngLatBounds, GeoJSONSource, Source, StyleSpecification, AttributionControl, setWorkerUrl } from 'maplibre-gl';
 import {
   MapPort,
   MapCoordinate,
@@ -12,6 +12,9 @@ import {
 } from './map.port';
 
 const MAP_NOT_INITIALIZED = 'MAP_NOT_INITIALIZED';
+const MAPLIBRE_WORKER_URL = '/vendor/maplibre/maplibre-gl-worker.mjs';
+
+setWorkerUrl(MAPLIBRE_WORKER_URL);
 
 const SIVOY_MAPLIBRE_STYLE: StyleSpecification = {
   version: 8,

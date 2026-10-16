@@ -89,7 +89,8 @@ vi.mock('maplibre-gl', () => {
     AttributionControl: vi.fn(function(options) {
       mockAttributionControlConstructor(options);
       return { options };
-    })
+    }),
+    setWorkerUrl: vi.fn()
   };
 });
 

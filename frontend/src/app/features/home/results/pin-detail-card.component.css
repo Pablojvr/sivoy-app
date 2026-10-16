@@ -471,10 +471,29 @@
   background: var(--si-color-surface);
 }
 
-.pin-hours-list > div {
+:host ::ng-deep .pin-hours-list > div {
   min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   padding: 8px 11px;
+  border-bottom: 1px solid var(--si-color-border);
+  color: var(--si-color-ink-muted);
   font-size: 12px;
+}
+
+:host ::ng-deep .pin-hours-list > div:last-child {
+  border-bottom: 0;
+}
+
+:host ::ng-deep .pin-hours-list span {
+  text-transform: capitalize;
+}
+
+:host ::ng-deep .pin-hours-list strong {
+  color: var(--si-color-ink);
+  font-weight: 800;
 }
 
 .pin-hours-empty {

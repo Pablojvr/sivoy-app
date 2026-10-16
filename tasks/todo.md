@@ -273,17 +273,23 @@ a producto y experiencia pública; Partner continúa fuera de alcance.
       y la segunda revisión quedó aprobada. Dos intentos de Antigravity no
       produjeron cambios; Codex implementó y auditó el incremento.
 
-  - [ ] UI-REB-04b Retirar reglas globales del detalle ya encapsuladas.
+  - [x] UI-REB-04b Retirar reglas globales del detalle ya encapsuladas.
     - Aceptación: cero reglas duplicadas de `pin-*`, sin alterar ScheduleDisplay
       ni el render aprobado de UI-REB-04a.
     - Verificación: búsqueda de consumidores, prueba focalizada, suite, build,
       E2E y comparación visual en los cinco viewports.
+    - Evidencia 2026-10-16: se retiraron 548 líneas globales duplicadas y se
+      conservó el estilo de `ScheduleDisplay` dentro del host del detalle. Prueba
+      focalizada 14/14, suite frontend 375/375, colores 17/17, boundaries 31/31,
+      build y E2E 60/60 verdes. La inspección real en 320, 386, 768, 1024 y
+      1440 px confirmó cero desbordamiento o solapamiento; revisión independiente
+      aprobada sin hallazgos P0–P3.
 
   ### Checkpoint UI-REB-04
 
   - [x] Contratos públicos, acciones y gesto de expansión preservados.
   - [x] Validaciones automáticas, navegador real y revisión independiente verdes.
-  - [ ] Limpieza global UI-REB-04b integrada antes de cerrar el módulo.
+  - [x] Limpieza global UI-REB-04b integrada antes de cerrar el módulo.
 
 - [ ] MVP07 Gate de salida del flujo público.
   - Aceptación: flujo completo, build, auditorías y smoke verdes; aprobación humana

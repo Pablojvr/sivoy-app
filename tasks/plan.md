@@ -371,8 +371,8 @@ migración ni cambio de backend asociado.
 
 ### Subplan UI-REB-04 — `point-detail-card`
 
-Estado: presentación aprobada el 2026-10-16; queda la limpieza de estilos
-globales duplicados antes del cierre.
+Estado: módulo cerrado y certificado el 2026-10-16; presentación y limpieza de
+estilos globales duplicados aprobadas.
 
 1. **Vista previa explícita.** Imagen o fallback, empresa, punto y ubicación se
    mantienen en 148 px junto a `Ver detalles`, compartir y cerrar.
@@ -380,9 +380,9 @@ globales duplicados antes del cierre.
    usa scroll interno y un ancho máximo de 680 px en escritorio.
 3. **Información progresiva.** Ruta y mapa preceden a Información/Horarios; el
    selector implementa foco, estado ARIA y teclado circular.
-4. **Limpieza posterior.** Eliminar las reglas `pin-*` globales solo después de
-   trasladar cualquier estilo requerido por `ScheduleDisplay` y confirmar cero
-   consumidores externos.
+4. **Limpieza posterior.** Se eliminaron las reglas `pin-*` globales después de
+   trasladar el estilo requerido por `ScheduleDisplay`; pruebas, build, E2E,
+   cinco viewports y revisión independiente confirmaron cero regresiones.
 
 Rollback: revertir primero la limpieza global y luego los commits de prueba y
 presentación. No hay migración, dependencia ni cambio de backend asociado.

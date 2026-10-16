@@ -89,11 +89,11 @@ describe('PointResultCardComponent', () => {
     fixture.detectChanges();
     const cardDebug = fixture.debugElement.query(By.directive(PointResultCardComponent));
     const btn = cardDebug.query(By.css('.point-result-summary'));
-    const panel = cardDebug.query(By.css('.point-hours-panel'));
     
     expect(btn.nativeElement.getAttribute('aria-expanded')).toBe('false');
     expect(btn.nativeElement.getAttribute('aria-controls')).toBe('point-details-123');
-    expect(panel.nativeElement.getAttribute('id')).toBe('point-details-123');
+    expect(cardDebug.query(By.css('#point-details-123'))).toBeFalsy();
+    expect(btn.nativeElement.textContent).toContain('Ver detalles');
   });
 
   it('binds aria-expanded to true when expanded', () => {
@@ -102,9 +102,11 @@ describe('PointResultCardComponent', () => {
     const cardDebug = fixture.debugElement.query(By.directive(PointResultCardComponent));
     const btn = cardDebug.query(By.css('.point-result-summary'));
     expect(btn.nativeElement.getAttribute('aria-expanded')).toBe('true');
+    expect(cardDebug.query(By.css('#point-details-123'))).toBeTruthy();
+    expect(btn.nativeElement.textContent).toContain('Ocultar detalles');
   });
 
-  it('does not render image or schedules when collapsed', () => {
+  it('keeps the collapsed card compact by hiding image, schedules, and map', () => {
     host.expanded = false;
     host.hasImg = true;
     fixture.detectChanges();
@@ -118,6 +120,14 @@ describe('PointResultCardComponent', () => {
     
     const emptyText = cardDebug.query(By.css('.point-hours-empty'));
     expect(emptyText).toBeFalsy();
+
+    const mapAction = cardDebug.query(By.css('.point-map-action'));
+    expect(mapAction).toBeFalsy();
+
+    const compactActions = cardDebug.queryAll(By.css('.point-result-actions button'));
+    expect(compactActions).toHaveLength(2);
+    expect(compactActions[0].nativeElement.classList).toContain('point-use-action');
+    expect(compactActions[1].nativeElement.classList).toContain('point-share-action');
   });
 
   it('renders grouped schedules when expanded', () => {
@@ -130,6 +140,22 @@ describe('PointResultCardComponent', () => {
     
     const emptyText = cardDebug.query(By.css('.point-hours-empty'));
     expect(emptyText).toBeFalsy();
+
+    const mapAction = cardDebug.query(By.css('.point-map-action'));
+    expect(mapAction).toBeTruthy();
+  });
+
+  it('uses an explicit primary action label for destination discovery', () => {
+    fixture.detectChanges();
+    const cardDebug = fixture.debugElement.query(By.directive(PointResultCardComponent));
+    expect(cardDebug.query(By.css('.point-use-action')).nativeElement.textContent.trim()).toBe('Elegir origen');
+  });
+
+  it('uses an explicit primary action label for origin discovery', () => {
+    host.originMode = true;
+    fixture.detectChanges();
+    const cardDebug = fixture.debugElement.query(By.directive(PointResultCardComponent));
+    expect(cardDebug.query(By.css('.point-use-action')).nativeElement.textContent.trim()).toBe('Usar como origen');
   });
 
   it('renders empty text when expanded but no schedules', () => {

@@ -217,6 +217,45 @@ test('el flujo público no mantiene intervalos periódicos innecesarios', async 
   await assertNoLegacyCatalogRequests(legacyRequests);
 });
 
+test('el detalle del punto refluye sin cubrir la navegación inferior', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 568 });
+  await page.goto('/#/');
+  await chooseSanSalvadorDestination(page);
+
+  await expandPointDetails(page);
+  await page.getByRole('button', { name: 'Ver Agencia Centro en el mapa' }).click();
+
+  const detailCard = page.locator('article.pin-details-card');
+  const collapsedToggle = page.getByRole('button', { name: 'Expandir información del punto' });
+  await expect(collapsedToggle).toContainText('Ver detalles');
+  await collapsedToggle.click();
+
+  const detailToggle = page.getByRole('button', { name: 'Contraer información del punto' });
+  const bottomNav = page.getByRole('navigation', { name: 'Navegación principal' });
+  await expect(detailToggle).toContainText('Ocultar detalles');
+
+  const infoTab = page.getByRole('tab', { name: 'Información' });
+  const hoursTab = page.getByRole('tab', { name: 'Horarios' });
+  await infoTab.press('ArrowLeft');
+  await expect(hoursTab).toHaveAttribute('aria-selected', 'true');
+  await hoursTab.press('ArrowRight');
+  await expect(infoTab).toHaveAttribute('aria-selected', 'true');
+
+  const [expandedBox, navBox] = await Promise.all([
+    detailCard.boundingBox(),
+    bottomNav.boundingBox(),
+  ]);
+  expect(expandedBox).not.toBeNull();
+  expect(navBox).not.toBeNull();
+  expect(expandedBox!.y + expandedBox!.height).toBeLessThan(navBox!.y);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
+
+  await detailToggle.click();
+  await expect(page.getByRole('button', { name: 'Expandir información del punto' })).toContainText('Ver detalles');
+  await expect(detailCard.getByText('Agencia Centro', { exact: true })).toBeVisible();
+  await expect(detailCard.getByText('San Salvador, San Salvador', { exact: true })).toBeVisible();
+});
+
 test('la ruta conserva encabezado y estado visibles en 320 por 568', async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 568 });
   await page.goto('/#/');

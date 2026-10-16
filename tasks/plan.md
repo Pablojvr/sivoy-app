@@ -389,8 +389,9 @@ presentación. No hay migración, dependencia ni cambio de backend asociado.
 
 ### Subplan UI-REB-05 — `route-result-card`
 
-Estado: especificación preparada el 2026-10-16 para el último resultado del
-recorrido público.
+Estado: cerrado y certificado el 2026-10-16. La tarjeta de ruta quedó compacta
+en reposo, conserva empresa, recorrido y ETA, y difiere selector, resultado y
+acciones al detalle expandido sin modificar cálculo, contratos ni eventos.
 
 1. **Contrato compacto.** Caracterizar que el resumen conserva empresa, origen,
    destino, ETA y expansión, mientras difiere alertas, selector y acciones.
@@ -403,6 +404,12 @@ recorrido público.
 
 Rollback: revertir documentación, pruebas y presentación en orden inverso. No
 hay migración, dependencia, backend ni datos asociados.
+
+Evidencia de cierre: 9/9 pruebas focalizadas, 377/377 pruebas frontend, 17/17
+controles de color, 31/31 controles de fronteras sobre 53 archivos, build
+productivo, 60/60 recorridos Playwright y revisión independiente sin hallazgos
+P0-P3. Se validaron 320x568, 386x912, 768, 1024x900 y 1440 px; el detalle usa
+scroll interno y permanece por encima de la navegación inferior.
 
 ## Fase 5 — Flujo de búsqueda como feature independiente
 

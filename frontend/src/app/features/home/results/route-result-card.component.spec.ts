@@ -61,6 +61,28 @@ describe('RouteResultCardComponent', () => {
     expect(empresa.textContent.trim()).toBe('Test Logistics');
   });
 
+  it('should keep the collapsed summary focused on option, route and ETA', () => {
+    host.route = {
+      ...host.route,
+      origen_tipo: 'Agencia',
+      destino_tipo: 'Agencia',
+      fecha_llegada: '2026-10-10',
+      horario_recoleccion: '10:00 AM – 12:00 PM',
+      hasClosedAlert: true,
+      isExpanded: false
+    };
+    fixture.detectChanges();
+
+    const summary = fixture.debugElement.query(By.css('.route-card-summary')).nativeElement as HTMLElement;
+    expect(summary.textContent).toContain('Opción 1');
+    expect(summary.textContent).toContain('Test Logistics');
+    expect(summary.textContent).toContain('AGENCIA SAN SALVADOR');
+    expect(summary.textContent).toContain('AGENCIA SANTA ANA');
+    expect(summary.textContent).toContain('2026-10-10');
+    expect(fixture.debugElement.query(By.css('.route-available-badge'))).toBeNull();
+    expect(fixture.debugElement.query(By.css('.route-card-details'))).toBeNull();
+  });
+
   it('should display fallback ETA when no delivery options are present', () => {
     host.route = { ...host.route, fecha_llegada: '2026-10-10', horario_recoleccion: '10:00 - 12:00' };
     fixture.detectChanges();
@@ -100,8 +122,8 @@ describe('RouteResultCardComponent', () => {
       const el = fixture.debugElement.query(By.directive(RouteResultCardComponent)).nativeElement;
       expect(el.classList.contains('is-expanded')).toBe(true);
       
-      const grid = fixture.debugElement.query(By.css('.route-data-grid'));
-      expect(grid).toBeTruthy();
+      const result = fixture.debugElement.query(By.css('.route-selection-result'));
+      expect(result).toBeTruthy();
     });
 
     it('should update selected option in host and reflect ETA update', () => {
@@ -121,6 +143,27 @@ describe('RouteResultCardComponent', () => {
       
       const strongField = fixture.debugElement.query(By.css('.route-eta-copy strong'));
       expect(strongField.nativeElement.textContent.trim()).toBe('2026-10-12');
+    });
+
+    it('should reveal one selection result and preserve both public actions', () => {
+      host.route.isExpanded = true;
+      fixture.detectChanges();
+
+      const result = fixture.debugElement.query(By.css('.route-selection-result'));
+      expect(result).toBeTruthy();
+      expect(result.nativeElement.textContent).toContain('2026-10-11');
+      expect(result.nativeElement.textContent).toContain('Morning');
+
+      const restartSpy = vi.spyOn(host, 'onRestart');
+      const mapSpy = vi.spyOn(host, 'onViewMap');
+      const actions = fixture.debugElement.queryAll(By.css('.route-card-actions button'));
+      expect(actions).toHaveLength(2);
+
+      actions[0].nativeElement.click();
+      actions[1].nativeElement.click();
+
+      expect(restartSpy).toHaveBeenCalledTimes(1);
+      expect(mapSpy).toHaveBeenCalledWith(host.route);
     });
   });
 

@@ -116,7 +116,7 @@ test('destino, detalle, compartir, origen y ruta usan el catálogo canónico', a
     mask: [
       page.locator('.route-card-eta strong'),
       page.locator('.route-date-selector select'),
-      page.locator('.route-data-grid > div:first-child strong'),
+      page.locator('.route-selection-result > div:first-child strong'),
     ],
     maskColor: '#d9dde3',
     maxDiffPixelRatio: 0.02,
@@ -256,7 +256,7 @@ test('el detalle del punto refluye sin cubrir la navegación inferior', async ({
   await expect(detailCard.getByText('San Salvador, San Salvador', { exact: true })).toBeVisible();
 });
 
-test('la ruta conserva encabezado y estado visibles en 320 por 568', async ({ page }) => {
+test('la ruta compacta conserva recorrido y control visibles en 320 por 568', async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 568 });
   await page.goto('/#/');
   await chooseSanSalvadorDestination(page);
@@ -271,19 +271,59 @@ test('la ruta conserva encabezado y estado visibles en 320 por 568', async ({ pa
   const searchPanel = page.locator('.search-panel-container');
   const resultSheet = page.locator('.bottom-sheet');
   const routeCard = page.locator('article.sivoy-route-card');
-  const availabilityBadge = routeCard.locator('.route-available-badge');
-  const [searchBox, sheetBox, cardBox, badgeBox] = await Promise.all([
+  const routePath = routeCard.locator('.route-card-path');
+  const detailControl = routeCard.locator('.route-details-label');
+  const [searchBox, sheetBox, cardBox, pathBox, controlBox] = await Promise.all([
     searchPanel.boundingBox(),
     resultSheet.boundingBox(),
     routeCard.boundingBox(),
-    availabilityBadge.boundingBox(),
+    routePath.boundingBox(),
+    detailControl.boundingBox(),
   ]);
 
   expect(searchBox).not.toBeNull();
   expect(sheetBox).not.toBeNull();
   expect(cardBox).not.toBeNull();
-  expect(badgeBox).not.toBeNull();
+  expect(pathBox).not.toBeNull();
+  expect(controlBox).not.toBeNull();
   expect(sheetBox!.y).toBeGreaterThanOrEqual(searchBox!.y + searchBox!.height);
-  expect(badgeBox!.x + badgeBox!.width).toBeLessThanOrEqual(cardBox!.x + cardBox!.width);
+  expect(cardBox!.height).toBeLessThanOrEqual(220);
+  expect(pathBox!.x).toBeGreaterThanOrEqual(cardBox!.x);
+  expect(controlBox!.x + controlBox!.width).toBeLessThanOrEqual(cardBox!.x + cardBox!.width);
+  await expect(routeCard.getByText('Opción 1', { exact: true })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
+
+  await routeCard.getByRole('button', {
+    name: 'Ver detalles de la ruta de Agencia Norte a Agencia Centro',
+  }).click();
+  const sheetContent = resultSheet.locator('.sheet-content');
+  const mapAction = routeCard.getByRole('button', { name: 'Ver en mapa' });
+  await mapAction.scrollIntoViewIfNeeded();
+
+  const [expandedCardBox, actionBox, navBox, scrollState] = await Promise.all([
+    routeCard.boundingBox(),
+    mapAction.boundingBox(),
+    page.getByRole('navigation', { name: 'Navegación principal' }).boundingBox(),
+    sheetContent.evaluate(element => {
+      const styles = getComputedStyle(element);
+      return {
+        clientHeight: element.clientHeight,
+        scrollHeight: element.scrollHeight,
+        overflowY: styles.overflowY,
+      };
+    }),
+  ]);
+
+  expect(expandedCardBox).not.toBeNull();
+  expect(expandedCardBox!.height).toBeGreaterThan(cardBox!.height);
+  expect(actionBox).not.toBeNull();
+  expect(navBox).not.toBeNull();
+  expect(actionBox!.y + actionBox!.height).toBeLessThan(navBox!.y);
+  expect(scrollState.scrollHeight).toBeGreaterThan(scrollState.clientHeight);
+  expect(scrollState.overflowY).toBe('auto');
+  await expect(routeCard.locator('.flight-day-select')).toBeVisible();
+  await expect(routeCard.locator('.route-selection-result')).toBeVisible();
+
+  await page.setViewportSize({ width: 1024, height: 900 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(1024);
 });

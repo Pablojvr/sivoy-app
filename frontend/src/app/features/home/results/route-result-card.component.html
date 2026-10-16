@@ -10,11 +10,10 @@
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z"></path><path d="m4.5 7.8 7.5 4.3 7.5-4.3M12 21v-8.9"></path></svg>
                 </span>
                 <span>
-                  <small>Ruta {{ routeNumber }}</small>
+                  <small>Opción {{ routeNumber }}</small>
                   <strong>{{ route.empresa }}</strong>
                 </span>
               </span>
-              <span class="route-available-badge"><i aria-hidden="true"></i> Disponible</span>
             </span>
 
             <span class="route-card-path">
@@ -80,9 +79,9 @@
               </small>
             </label>
 
-            <div class="route-data-grid" *ngIf="route.opciones_entrega && route.opciones_entrega.length > 0">
+            <div class="route-selection-result" *ngIf="route.opciones_entrega && route.opciones_entrega.length > 0">
               <div>
-                <span>Fecha de llegada</span>
+                <span>Llegada estimada</span>
                 <strong>{{ route.opciones_entrega[selectedOptionIndex].fecha_llegada }}</strong>
               </div>
               <div>

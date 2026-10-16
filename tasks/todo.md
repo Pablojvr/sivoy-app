@@ -295,7 +295,7 @@ a producto y experiencia pública; Partner continúa fuera de alcance.
 
   Spec: `tasks/specs/UI-REB-05-route-result-card.md`.
 
-  - [ ] UI-REB-05a Compactar y recalibrar la tarjeta de ruta.
+  - [x] UI-REB-05a Compactar y recalibrar la tarjeta de ruta.
     - Aceptación: resumen con empresa, recorrido y ETA; el detalle difiere
       selector, alerta y acciones sin cambiar eventos ni cálculo.
     - Verificación: TDD focalizado, suite, contratos, build, E2E, cinco
@@ -303,9 +303,16 @@ a producto y experiencia pública; Partner continúa fuera de alcance.
 
   ### Checkpoint UI-REB-05
 
-  - [ ] Contratos y eventos públicos preservados.
-  - [ ] Tarjeta sin saturación, desbordamiento ni superposición.
-  - [ ] Validaciones y revisión independiente verdes.
+  - [x] Contratos y eventos públicos preservados.
+  - [x] Tarjeta sin saturación, desbordamiento ni superposición.
+  - [x] Validaciones y revisión independiente verdes.
+    - Evidencia: TDD focalizado 9/9, suite frontend 377/377, color 17/17,
+      fronteras 31/31 sobre 53 archivos, build productivo y E2E 60/60.
+    - Viewports: 320x568, 386x912, 768, 1024x900 y 1440 px; el detalle expandido
+      mantiene scroll interno, acciones visibles y separación del footer.
+    - Revisión independiente: aprobada sin hallazgos P0-P3; contraste de la
+      etiqueta de detalle 5.96:1. Antigravity no produjo cambios y Codex realizó
+      y auditó la implementación completa.
 
 - [ ] MVP07 Gate de salida del flujo público.
   - Aceptación: flujo completo, build, auditorías y smoke verdes; aprobación humana

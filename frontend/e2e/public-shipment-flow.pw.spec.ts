@@ -160,13 +160,13 @@ test('buscar y compartir siguen disponibles sin WebGL2', async ({ page }) => {
   await chooseSanSalvadorDestination(page);
   const resultsHeading = page.getByRole('heading', { name: '1 Resultado en San Salvador' });
   await expect(mapFallback).toBeVisible();
-  await page.getByRole('button', { name: 'Cerrar', exact: true }).click();
+  await page.getByRole('button', { name: 'Cerrar aviso de mapa', exact: true }).click();
   await expect(mapFallback).toBeHidden();
 
   await page.getByRole('button', { name: 'Ver Agencia Centro en el mapa' }).click();
   await expect(mapFallback).toBeVisible();
   await expect(resultsHeading).toBeVisible();
-  await page.getByRole('button', { name: 'Cerrar', exact: true }).click();
+  await page.getByRole('button', { name: 'Cerrar aviso de mapa', exact: true }).click();
 
   await page.getByRole('button', { name: 'Compartir Agencia Centro' }).click();
   await expect.poll(() => page.evaluate(() =>

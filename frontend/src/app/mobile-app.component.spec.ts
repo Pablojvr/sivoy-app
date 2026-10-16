@@ -572,4 +572,26 @@ describe('MobileAppComponent native shell (UI-REB-02b)', () => {
       /@media \(prefers-reduced-motion: reduce\)[\s\S]*transition:\s*none/
     );
   });
+
+  it('no vuelve a publicar selectores globales reemplazados por el shell', () => {
+    initialize();
+    const componentStyles = Array.from(document.head.querySelectorAll('style'))
+      .map((style) => style.textContent ?? '')
+      .join('\n');
+    const legacySelectors = [
+      'mobile-first-layout',
+      'inicio-tab-content',
+      'map-fallback-banner',
+      'map-fallback-close',
+      'image-preview-overlay',
+      'image-preview-close',
+      'image-preview-content'
+    ];
+
+    for (const selector of legacySelectors) {
+      expect(componentStyles).not.toMatch(
+        new RegExp(`(^|})\\s*\\.${selector}(?=\\[|\\s|\\{|,|:)`, 'm')
+      );
+    }
+  });
 });

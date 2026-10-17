@@ -45,24 +45,6 @@ app-home .sheet-header-title {
     color: var(--text-main);
 }
 
-app-home .empty-icon-box.is-error {
-    background-color: color-mix(in srgb, var(--danger) 15%, transparent);
-    color: var(--danger);
-}
-
-app-home .empty-state-title {
-    color: var(--text-main);
-    margin: 10px 0 5px;
-}
-
-app-home .empty-state-text {
-    color: var(--text-muted);
-    font-size: 0.9rem;
-    text-align: center;
-    max-width: 80%;
-    margin: 0 auto;
-}
-
 .map-fallback-bg {
   position: absolute;
   inset: 0;

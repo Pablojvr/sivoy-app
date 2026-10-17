@@ -341,20 +341,24 @@ a producto y experiencia pública; Partner continúa fuera de alcance.
 
   Spec: `tasks/specs/UI-REB-07-public-search-states.md`.
 
-  - [ ] UI-REB-07a Extraer el componente presentacional de estado.
+  - [x] UI-REB-07a Extraer el componente presentacional de estado.
     - Aceptación: soporta `loading`, `error`, `empty` e `initial`; usa solamente
       tokens `--si-*`; carga y error exponen semántica viva; la animación se
       desactiva con movimiento reducido; la acción opcional mide al menos 44 px.
     - Archivos máximos: componente, CSS y prueba focalizada.
-  - [ ] UI-REB-07b Integrar los estados en el panel público.
+  - [x] UI-REB-07b Integrar los estados en el panel público.
     - Aceptación: Home deja de usar el spinner y las tarjetas vacías globales,
       elimina el color SVG inline, evita repetir el mensaje técnico de error y
       reutiliza `openLocationSelector('destino')` para recuperarse.
     - Archivos máximos: Home TS, HTML y prueba; sin tocar servicios o navegación.
-  - [ ] UI-REB-07c Retirar estilos globales huérfanos y certificar.
+  - [x] UI-REB-07c Retirar estilos globales huérfanos y certificar.
     - Aceptación: cero consumidores del spinner/empty state antiguo; tests,
       colores, fronteras, build, E2E y matriz responsive verdes.
     - Archivos máximos: estilos globales, CSS de Home y documentación.
+    - Evidencia: cero consumidores heredados; 386/386 pruebas frontend,
+      17/17 controles de color sobre 18 CSS, 31/31 controles de fronteras sobre
+      54 archivos productivos, build y 68/68 recorridos E2E verdes. Navegador
+      real sin errores en 386x912 y 1440x900; botón de 44 px y cero overflow.
 
 - Evidencia de MVP01-MVP06: UI-REB-01 a UI-REB-06, suite, contratos, build,
   68 recorridos E2E y auditoría visual cubren el flujo y sus criterios. MVP05

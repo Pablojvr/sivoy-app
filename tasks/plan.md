@@ -436,7 +436,7 @@ backend, dato ni despliegue asociado.
 
 ### Subplan UI-REB-07 — estados públicos de búsqueda
 
-Estado: especificación aprobada para ejecución incremental el 2026-10-16.
+Estado: cerrado y certificado el 2026-10-16.
 
 1. **Componente de estado.** Extraer carga, error, vacío e inicio a un componente
    presentacional independiente con iconografía lineal, jerarquía compacta y
@@ -448,6 +448,14 @@ Estado: especificación aprobada para ejecución incremental el 2026-10-16.
    centrar la composición dentro del panel lateral en tablet y escritorio.
 4. **Limpieza posterior.** Retirar spinner y selectores globales únicamente tras
    confirmar cero consumidores, en un incremento separado y reversible.
+
+Evidencia de cierre: componente standalone cubierto en sus cuatro estados;
+Home conserva las acciones existentes y presenta el error técnico una sola vez;
+cero consumidores del spinner, estado vacío y error globales retirados; 386/386
+pruebas frontend, 17/17 controles de color sobre 18 CSS, 31/31 controles de
+fronteras sobre 54 archivos productivos, build productivo y 68/68 recorridos E2E
+verdes. La inspección real en 386x912 y 1440x900 confirmó 44 px táctiles, cero
+overflow horizontal y consola sin errores.
 
 Rollback: revertir los commits de UI-REB-07. No hay dependencia, backend,
 contrato HTTP, dato, ETA ni despliegue asociado.

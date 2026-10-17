@@ -2113,8 +2113,6 @@ input:checked + .slider:before { transform: translateX(20px); }
 }
 
 .status-icon.success { background: #00A699; }
-.route-result-card.error { border-color: var(--primary); }
-
 .options-list {
   display: flex;
   flex-direction: column;
@@ -2474,31 +2472,6 @@ input:checked + .slider:before { transform: translateX(20px); }
   margin-left: 20px; /* Align with text */
   opacity: 0.8;
   font-size: 0.75rem;
-}
-
-.empty-state-sheet {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 40px 20px;
-  text-align: center;
-}
-
-.empty-icon-box {
-  width: 64px;
-  height: 64px;
-  background-color: #f3f4f6;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 16px;
-}
-
-.empty-icon-box svg {
-  width: 32px;
-  height: 32px;
 }
 
 /* Puntos Cerca De Mi FAB */
@@ -4029,17 +4002,6 @@ textarea {
   background: #fff0f3;
   color: var(--primary-dark);
   transform: none;
-}
-
-.empty-state-sheet {
-  min-height: 220px;
-  padding: 34px 24px;
-}
-
-.empty-icon-box {
-  border-radius: 18px;
-  background: #eef0ed;
-  color: #697067;
 }
 
 /* Route results — SiVoy Signal cards */

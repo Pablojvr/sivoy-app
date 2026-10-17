@@ -253,6 +253,73 @@ describe('HomeComponent (T31d)', () => {
     getElementByIdSpy.mockRestore();
   });
 
+  describe('UI-REB-07b — estados publicos de busqueda', () => {
+    function stateSurface(): HTMLElement | null {
+      return fixture.nativeElement.querySelector('si-search-state-card .search-state-surface');
+    }
+
+    function refresh(): void {
+      fixture.changeDetectorRef.markForCheck();
+      fixture.detectChanges();
+    }
+
+    it('muestra una invitacion inicial con acceso directo al selector de destino', () => {
+      const openSelectorSpy = vi
+        .spyOn(component, 'openLocationSelector')
+        .mockImplementation(() => undefined);
+      fixture.componentRef.setInput('mapResourceMode', true);
+
+      refresh();
+      const surface = stateSurface();
+      const action = fixture.nativeElement.querySelector(
+        'si-search-state-card button'
+      ) as HTMLButtonElement;
+
+      expect(surface?.dataset['state']).toBe('initial');
+      expect(surface?.textContent).toContain('Elige un destino');
+      action.click();
+      expect(openSelectorSpy).toHaveBeenCalledWith('destino');
+    });
+
+    it('muestra el estado de carga con semantica accesible', () => {
+      component.loading = true;
+      refresh();
+
+      expect(stateSurface()?.dataset['state']).toBe('loading');
+      expect(stateSurface()?.getAttribute('role')).toBe('status');
+    });
+
+    it('muestra el mensaje tecnico de error una sola vez dentro del contenido', () => {
+      component.errorMsg = 'No pudimos completar la busqueda.';
+      refresh();
+
+      expect(stateSurface()?.dataset['state']).toBe('error');
+      expect(stateSurface()?.getAttribute('role')).toBe('alert');
+      expect(
+        fixture.nativeElement.textContent.match(/No pudimos completar la busqueda\./g)
+      ).toHaveLength(1);
+    });
+
+    it('ofrece cambiar el destino cuando no existen resultados', () => {
+      const openSelectorSpy = vi
+        .spyOn(component, 'openLocationSelector')
+        .mockImplementation(() => undefined);
+      component.destino = 'Santa Ana';
+      component.destinoInputValue = 'Santa Ana';
+      component.municipalityResults = [];
+      component.flightResults = [];
+      refresh();
+
+      expect(stateSurface()?.dataset['state']).toBe('empty');
+      expect(stateSurface()?.textContent).toContain('Probemos otro destino');
+      expect(stateSurface()?.querySelector('button')?.textContent).toContain(
+        'Elegir otro destino'
+      );
+      stateSurface()?.querySelector('button')?.click();
+      expect(openSelectorSpy).toHaveBeenCalledWith('destino');
+    });
+  });
+
   describe('T48a — Acciones de mapa seguras en modo list-first', () => {
     let mapResourceModeChangeSpy: ReturnType<typeof vi.spyOn>;
     let resetMapMarkersSpy: ReturnType<typeof vi.spyOn>;

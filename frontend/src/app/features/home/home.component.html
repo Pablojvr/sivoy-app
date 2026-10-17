@@ -393,7 +393,7 @@
 
         <h3 *ngIf="destino && municipalityResults.length === 0 && flightResults.length === 0 && !loading && !errorMsg">No hay rutas disponibles</h3>
 
-        <h3 *ngIf="errorMsg" class="sheet-error-title">{{ errorMsg }}</h3>
+        <h3 *ngIf="errorMsg" class="sheet-error-title">No pudimos buscar rutas</h3>
       </div>
     </header>
     
@@ -492,10 +492,12 @@
       </div>
       
       <!-- Loading state -->
-      <div *ngIf="loading" class="loader-container">
-        <div class="spinner-sivoy"></div>
-        <p>Buscando mejores rutas...</p>
-      </div>
+      <si-search-state-card
+        *ngIf="loading"
+        state="loading"
+        title="Buscando mejores rutas"
+        message="Estamos comparando puntos y horarios disponibles.">
+      </si-search-state-card>
 
 
 
@@ -554,31 +556,32 @@
         </article>
       </div>
       <!-- Error state -->
-      <div *ngIf="errorMsg && !loading" class="route-result-card error">
-        <p>{{ errorMsg }}</p>
-      </div>
+      <si-search-state-card
+        *ngIf="errorMsg && !loading"
+        state="error"
+        title="Algo salió mal"
+        [message]="errorMsg">
+      </si-search-state-card>
 
       <!-- EMPTY STATE: No Routes Found -->
-      <div class="empty-state-sheet" *ngIf="destino && municipalityResults.length === 0 && flightResults.length === 0 && !loading && !errorMsg">
-         <div class="empty-icon-box is-error">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-         </div>
-         <h3 class="empty-state-title">No hay rutas disponibles</h3>
-         <p class="empty-state-text">
-           Actualmente no hemos encontrado agencias o rutas disponibles para el destino "{{ destino }}". Intenta con otro municipio.
-         </p>
-      </div>
+      <si-search-state-card
+        *ngIf="destino && municipalityResults.length === 0 && flightResults.length === 0 && !loading && !errorMsg"
+        state="empty"
+        title="Probemos otro destino"
+        [message]="'No encontramos puntos o rutas disponibles para ' + destino + '.'"
+        actionLabel="Elegir otro destino"
+        (action)="openLocationSelector('destino')">
+      </si-search-state-card>
 
       <!-- EMPTY STATE: No Destino Seleccionado -->
-      <div class="empty-state-sheet" *ngIf="!destino && !isOriginDiscoveryMode && !isDiscoveryMode && !loading && !errorMsg">
-         <div class="empty-icon-box">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-         </div>
-         <h3 class="empty-state-title">Sin destino seleccionado</h3>
-         <p class="empty-state-text">
-           Toca en la barra superior para buscar hacia dónde deseas enviar tu paquete y ver las rutas disponibles.
-         </p>
-      </div>
+      <si-search-state-card
+        *ngIf="!destino && !isOriginDiscoveryMode && !isDiscoveryMode && !loading && !errorMsg"
+        state="initial"
+        title="Elige un destino"
+        message="Busca un municipio para descubrir puntos, horarios y rutas disponibles."
+        actionLabel="Buscar destino"
+        (action)="openLocationSelector('destino')">
+      </si-search-state-card>
 
     </div>
   </section>

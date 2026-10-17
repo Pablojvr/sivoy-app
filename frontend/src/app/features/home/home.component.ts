@@ -13,6 +13,7 @@ import { PointResultCardComponent } from './results/point-result-card.component'
 import { PointShareService } from './results/point-share.service';
 import { RouteResultCardComponent, RouteResultViewModel, RouteDeliveryDayChange, formatLocationName as rtFormatLoc, formatFriendlyDate as rtFormatDate } from './results/route-result-card.component';
 import { PinDetailCardComponent } from './results/pin-detail-card.component';
+import { SearchStateCardComponent } from './results/search-state-card.component';
 import { applyClosedDropoffFilter } from './shipment-route.filters';
 import { presentSearchRoute, pointRefFromLocation } from './results/route-result.presenter';
 import { PointRef, SEARCH_ERROR_MESSAGES, LocationSelection, ShipmentSearchState } from './shipment-search.models';
@@ -24,7 +25,7 @@ import { Subject, Subscription, catchError, distinctUntilChanged, of, switchMap,
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, FormsModule, SiCardDirective, DestinationSearchComponent, OriginSearchComponent, PointResultCardComponent, RouteResultCardComponent, PinDetailCardComponent],
+  imports: [CommonModule, FormsModule, SiCardDirective, DestinationSearchComponent, OriginSearchComponent, PointResultCardComponent, RouteResultCardComponent, PinDetailCardComponent, SearchStateCardComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.css',
   encapsulation: ViewEncapsulation.None
@@ -286,7 +287,7 @@ export class HomeComponent implements OnInit, OnChanges, OnDestroy {
 
   get hasListContent(): boolean {
     return this.isOriginChoiceMode || this.loading || Boolean(this.errorMsg) ||
-      this.municipalityResults.length > 0 || this.flightResults.length > 0;
+      Boolean(this.destino) || this.municipalityResults.length > 0 || this.flightResults.length > 0;
   }
 
   exitMapResource() {

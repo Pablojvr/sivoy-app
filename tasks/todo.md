@@ -357,8 +357,10 @@ a producto y experiencia pública; Partner continúa fuera de alcance.
     - Archivos máximos: estilos globales, CSS de Home y documentación.
     - Evidencia: cero consumidores heredados; 386/386 pruebas frontend,
       17/17 controles de color sobre 18 CSS, 31/31 controles de fronteras sobre
-      54 archivos productivos, build y 68/68 recorridos E2E verdes. Navegador
-      real sin errores en 386x912 y 1440x900; botón de 44 px y cero overflow.
+      54 archivos productivos, build y 72/72 recorridos E2E verdes. El estado
+      inicial se verifica explícitamente en 320, 386, 768, 1024 y 1440 px,
+      incluyendo scroll, acción de 44 px y convivencia con la navegación.
+      Navegador real sin errores en 386x912 y 1440x900.
 
 - Evidencia de MVP01-MVP06: UI-REB-01 a UI-REB-06, suite, contratos, build,
   68 recorridos E2E y auditoría visual cubren el flujo y sus criterios. MVP05

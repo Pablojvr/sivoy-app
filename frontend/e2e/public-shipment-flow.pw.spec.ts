@@ -61,6 +61,71 @@ async function assertNoLegacyCatalogRequests(requests: string[]): Promise<void> 
   expect(requests, 'the public flow must not download the legacy global catalog').toEqual([]);
 }
 
+test('el estado inicial refluye, conserva accion y no queda bajo la navegacion', async ({ page }) => {
+  await page.goto('/#/');
+  await page.getByRole('button', { name: 'Explorar puntos en el mapa' }).click();
+  await expect(page).toHaveURL(/.*\/#\/enviar\?vista=mapa$/);
+
+  const sheetHandle = page.getByRole('button', { name: 'Cambiar altura del panel' });
+  await sheetHandle.click();
+  await expect(sheetHandle).toHaveAttribute('aria-expanded', 'true');
+
+  const stateCard = page.locator('si-search-state-card');
+  const surface = stateCard.locator('.search-state-surface');
+  const action = stateCard.getByRole('button', { name: 'Buscar destino' });
+  await expect(surface).toHaveAttribute('data-state', 'initial');
+  await expect(stateCard.getByRole('heading', { name: 'Elige un destino' })).toBeVisible();
+  await expect(action).toBeVisible();
+
+  const regularLayout = await stateCard.evaluate(element => {
+    const rect = element.getBoundingClientRect();
+    const button = element.querySelector('button')?.getBoundingClientRect();
+    return {
+      cardLeft: rect.left,
+      cardRight: rect.right,
+      buttonHeight: button?.height ?? 0,
+      viewportWidth: window.innerWidth,
+      documentWidth: document.documentElement.scrollWidth,
+    };
+  });
+  expect(regularLayout.cardLeft).toBeGreaterThanOrEqual(0);
+  expect(regularLayout.cardRight).toBeLessThanOrEqual(regularLayout.viewportWidth);
+  expect(regularLayout.buttonHeight).toBeGreaterThanOrEqual(44);
+  expect(regularLayout.documentWidth).toBeLessThanOrEqual(regularLayout.viewportWidth);
+
+  await page.setViewportSize({ width: 320, height: 568 });
+  await action.scrollIntoViewIfNeeded();
+  await expect(action).toBeVisible();
+
+  const [compactCard, compactAction, navigation, scrollState] = await Promise.all([
+    stateCard.boundingBox(),
+    action.boundingBox(),
+    page.getByRole('navigation', { name: 'Navegación principal' }).boundingBox(),
+    page.locator('.bottom-sheet .sheet-content').evaluate(element => {
+      const styles = getComputedStyle(element);
+      return {
+        clientHeight: element.clientHeight,
+        scrollHeight: element.scrollHeight,
+        overflowY: styles.overflowY,
+        documentWidth: document.documentElement.scrollWidth,
+      };
+    }),
+  ]);
+  expect(compactCard).not.toBeNull();
+  expect(compactAction).not.toBeNull();
+  expect(navigation).not.toBeNull();
+  expect(compactCard!.x).toBeGreaterThanOrEqual(0);
+  expect(compactCard!.x + compactCard!.width).toBeLessThanOrEqual(320);
+  expect(compactAction!.height).toBeGreaterThanOrEqual(44);
+  expect(compactAction!.y + compactAction!.height).toBeLessThanOrEqual(navigation!.y);
+  expect(scrollState.scrollHeight).toBeGreaterThan(scrollState.clientHeight);
+  expect(scrollState.overflowY).toBe('auto');
+  expect(scrollState.documentWidth).toBeLessThanOrEqual(320);
+
+  await action.click();
+  await expect(page.getByRole('dialog', { name: '¿Adónde deseas enviar?' })).toBeVisible();
+});
+
 test('destino, detalle, compartir, origen y ruta usan el catálogo canónico', async ({ page }) => {
   const legacyRequests = observeLegacyCatalogRequests(page);
   await page.addInitScript(() => {

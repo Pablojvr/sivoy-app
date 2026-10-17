@@ -453,9 +453,12 @@ Evidencia de cierre: componente standalone cubierto en sus cuatro estados;
 Home conserva las acciones existentes y presenta el error técnico una sola vez;
 cero consumidores del spinner, estado vacío y error globales retirados; 386/386
 pruebas frontend, 17/17 controles de color sobre 18 CSS, 31/31 controles de
-fronteras sobre 54 archivos productivos, build productivo y 68/68 recorridos E2E
-verdes. La inspección real en 386x912 y 1440x900 confirmó 44 px táctiles, cero
-overflow horizontal y consola sin errores.
+fronteras sobre 54 archivos productivos, build productivo y 72/72 recorridos E2E
+verdes. La regresión del estado inicial cubre explícitamente 320, 386, 768, 1024
+y 1440 px, scroll interno, acción de 44 px y convivencia con la navegación. La
+inspección real en 386x912 y 1440x900 confirmó cero overflow horizontal y consola
+sin errores. La revisión independiente quedó sin hallazgos P0-P3 tras cerrar su
+observación P2 sobre cobertura responsive.
 
 Rollback: revertir los commits de UI-REB-07. No hay dependencia, backend,
 contrato HTTP, dato, ETA ni despliegue asociado.

@@ -337,6 +337,25 @@ a producto y experiencia pública; Partner continúa fuera de alcance.
   - [x] Navegador real: ficha y mapa visibles, consola sin errores.
   - [x] Revisión independiente final sin hallazgos P0-P3.
 
+  #### UI-REB-07 — estados públicos de búsqueda
+
+  Spec: `tasks/specs/UI-REB-07-public-search-states.md`.
+
+  - [ ] UI-REB-07a Extraer el componente presentacional de estado.
+    - Aceptación: soporta `loading`, `error`, `empty` e `initial`; usa solamente
+      tokens `--si-*`; carga y error exponen semántica viva; la animación se
+      desactiva con movimiento reducido; la acción opcional mide al menos 44 px.
+    - Archivos máximos: componente, CSS y prueba focalizada.
+  - [ ] UI-REB-07b Integrar los estados en el panel público.
+    - Aceptación: Home deja de usar el spinner y las tarjetas vacías globales,
+      elimina el color SVG inline, evita repetir el mensaje técnico de error y
+      reutiliza `openLocationSelector('destino')` para recuperarse.
+    - Archivos máximos: Home TS, HTML y prueba; sin tocar servicios o navegación.
+  - [ ] UI-REB-07c Retirar estilos globales huérfanos y certificar.
+    - Aceptación: cero consumidores del spinner/empty state antiguo; tests,
+      colores, fronteras, build, E2E y matriz responsive verdes.
+    - Archivos máximos: estilos globales, CSS de Home y documentación.
+
 - Evidencia de MVP01-MVP06: UI-REB-01 a UI-REB-06, suite, contratos, build,
   68 recorridos E2E y auditoría visual cubren el flujo y sus criterios. MVP05
   añade restauración exacta del estado en unitarias y navegación durable en E2E.

@@ -434,6 +434,24 @@ independiente sin hallazgos P0-P3.
 Rollback: revertir un único commit del gate. No hay migración, dependencia,
 backend, dato ni despliegue asociado.
 
+### Subplan UI-REB-07 — estados públicos de búsqueda
+
+Estado: especificación aprobada para ejecución incremental el 2026-10-16.
+
+1. **Componente de estado.** Extraer carga, error, vacío e inicio a un componente
+   presentacional independiente con iconografía lineal, jerarquía compacta y
+   tokens `--si-*`.
+2. **Semántica y recuperación.** Anunciar carga con `role="status"`, errores con
+   `role="alert"` y ofrecer acciones de recuperación mediante eventos; Home
+   reutiliza sus métodos existentes sin añadir estado ni navegación.
+3. **Densidad adaptativa.** Mantener contenido y acciones visibles en 320x568 y
+   centrar la composición dentro del panel lateral en tablet y escritorio.
+4. **Limpieza posterior.** Retirar spinner y selectores globales únicamente tras
+   confirmar cero consumidores, en un incremento separado y reversible.
+
+Rollback: revertir los commits de UI-REB-07. No hay dependencia, backend,
+contrato HTTP, dato, ETA ni despliegue asociado.
+
 ## Fase 5 — Flujo de búsqueda como feature independiente
 
 Objetivo: encapsular destino → origen → rutas → compartir.

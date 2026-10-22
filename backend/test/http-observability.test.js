@@ -724,6 +724,39 @@ test('HTTP Observability Middleware', async (t) => {
             assert.deepStrictEqual(logs[0].args, ['resolve_maps_link_failed', 'maps_provider_error']);
         });
 
+        await st.test('searchPlaces - proveedor opcional desactivado conserva el MVP sin error', async () => {
+            mapasService.searchPlaces = async () => {
+                const err = new Error('private missing configuration detail');
+                err.statusCode = 503;
+                err.code = 'GOOGLE_PLACES_NOT_CONFIGURED';
+                throw err;
+            };
+            const req = reqMock({ query: 'parque', sessionToken: 'valid-token' });
+            const res = resMock();
+            await mapasController.searchPlaces(req, res);
+            assert.strictEqual(res.getStatus(), 200);
+            assert.deepStrictEqual(res.getBody(), {
+                success: true,
+                providerAvailable: false,
+                suggestions: []
+            });
+            assert.deepStrictEqual(req.getLogs(), []);
+        });
+
+        await st.test('searchPlaces - proveedor configurado declara disponibilidad', async () => {
+            mapasService.searchPlaces = async () => [{ placeId: 'place-1', text: 'Parque' }];
+            const req = reqMock({ query: 'parque', sessionToken: 'valid-token' });
+            const res = resMock();
+            await mapasController.searchPlaces(req, res);
+            assert.strictEqual(res.getStatus(), 200);
+            assert.deepStrictEqual(res.getBody(), {
+                success: true,
+                providerAvailable: true,
+                suggestions: [{ placeId: 'place-1', text: 'Parque' }]
+            });
+            assert.deepStrictEqual(req.getLogs(), []);
+        });
+
         await st.test('searchPlaces - invalid statusCode falls back to safe 500', async () => {
             mapasService.searchPlaces = async () => {
                 const err = new Error("Provider Error");

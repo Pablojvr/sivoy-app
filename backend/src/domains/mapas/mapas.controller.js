@@ -33,8 +33,15 @@ async function searchPlaces(req, res) {
     try {
         const { query, sessionToken } = req.body;
         const suggestions = await mapasService.searchPlaces(query, sessionToken);
-        res.json({ success: true, suggestions });
+        res.json({ success: true, providerAvailable: true, suggestions });
     } catch (error) {
+        if (error?.code === 'GOOGLE_PLACES_NOT_CONFIGURED') {
+            return res.json({
+                success: true,
+                providerAvailable: false,
+                suggestions: []
+            });
+        }
         return respondWithSafeError(req, res, 'search_places_failed', error);
     }
 }

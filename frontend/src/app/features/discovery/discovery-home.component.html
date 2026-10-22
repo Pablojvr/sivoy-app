@@ -92,7 +92,10 @@
             <ng-template #noDestinationMatches>
               <div class="destination-empty" role="status">
                 <strong>No encontramos un punto registrado con ese nombre</strong>
-                <span>También puedes buscar el lugar en El Salvador.</span>
+                <span *ngIf="externalPlaceProviderAvailable !== false; else catalogOnlySearchHelp">También puedes buscar el lugar en El Salvador.</span>
+                <ng-template #catalogOnlySearchHelp>
+                  <span>Prueba con otro municipio o punto de entrega.</span>
+                </ng-template>
               </div>
             </ng-template>
           </ng-container>

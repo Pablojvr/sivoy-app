@@ -1,11 +1,16 @@
 # UI-REB-10 — búsqueda de destinos por lugar de referencia
 
-Estado: implementación y certificación completadas el 2026-10-22.
+Estado: arquitectura implementada; activación externa pospuesta por producto el
+2026-10-22 hasta disponer de facturación y credenciales de Google Places.
 
-Evidencia final: 500/500 pruebas frontend, 586/586 backend, 100/100 recorridos
-E2E seriales en cuatro viewports, build, fronteras y colores verdes; auditorías
-npm de ambos proyectos con 0 vulnerabilidades. La búsqueda conserva catálogo
-local, confirmación explícita, contexto durable y degradación segura de Places.
+La búsqueda conserva el catálogo local como MVP. Sin credencial, autocomplete
+responde como capacidad opcional desactivada y la interfaz no muestra errores ni
+promete resultados externos. Al configurar `GOOGLE_MAPS_API_KEY`, el mismo flujo
+se activa automáticamente sin cambios de código ni datos.
+
+Evidencia del modo opcional: 501/501 pruebas frontend, 588/588 backend, 76/76
+recorridos públicos y de accesibilidad en cuatro viewports, build, fronteras y
+colores verdes; auditorías de producción con 0 vulnerabilidades.
 
 ## Objetivo
 
@@ -70,7 +75,10 @@ administrativos.
 - Explicación: `Estas opciones están registradas en el mismo municipio.`
 - Acción: `Ver puntos de {municipio}`.
 - Sin cobertura municipal: `No existe cobertura cercana o similar`.
-- Servicio externo no disponible: `No pudimos buscar lugares en este momento.`
+- Proveedor no configurado: no se muestra una sección externa ni un error; la
+  ayuda vuelve a `Prueba con otro municipio o punto de entrega.`
+- Servicio configurado con fallo operacional: `No pudimos buscar lugares en
+  este momento.`
 
 ### Estados y accesibilidad
 
@@ -196,7 +204,9 @@ de backend aprobado antes de editarlo.
   reduce complejidad; añadir ese quinto archivo requiere conservar el límite de
   alcance delegado.
 
-`MapasService` y los endpoints existentes se reutilizan sin cambios en el MVP.
+`MapasService` y los endpoints existentes se reutilizan. La frontera HTTP de
+autocomplete declara `providerAvailable`; su valor `false` mantiene Places
+dormido sin convertir la falta de credencial en un fallo del MVP.
 
 ## Estilo de código
 
@@ -285,11 +295,13 @@ coincidencia local.
 
 ## Rollback
 
-Revertir únicamente la integración de Places y la proyección por distancia en
-Discovery restaura el buscador de catálogo actual. No existen migraciones,
-datos persistidos ni contratos de backend nuevos que revertir.
+Revertir el cambio coordinado del controller de Maps y de Discovery restaura el
+503 anterior cuando falta configuración. No existen migraciones, datos
+persistidos, dependencias ni cambios de ETA que revertir. Para desactivar Places
+sin revertir código basta retirar `GOOGLE_MAPS_API_KEY`; el catálogo local sigue
+operativo.
 
-## Pregunta de aprobación
+## Aprobación
 
-¿Apruebas esta especificación para preparar en un turno posterior el plan y las
-tareas de implementación?
+El flujo fue aprobado por producto. La activación de Google Places queda
+deliberadamente fuera del MVP hasta disponer de facturación y credenciales.

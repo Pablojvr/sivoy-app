@@ -47,12 +47,15 @@ tres respuestas.
 | Ruta | Éxito | Error vigente |
 | --- | --- | --- |
 | `POST /api/resolve-maps-link` | `200 { success: true, lat, lng, resolvedUrl }` según el resolvedor | `400 { error }` si falta URL; otro error produce `500 { success: false, error: e.message }`. Ese 500 todavía expone el texto de excepción; T45c está pendiente de decisión separada. |
-| `POST /api/places/autocomplete` | `200 { success: true, suggestions: [{ placeId, text, mainText, secondaryText }, ...] }` | `e.statusCode || 500` con `{ success: false, code: e.code || "MAPS_ERROR", error: e.message }`. |
+| `POST /api/places/autocomplete` | Con proveedor configurado: `200 { success: true, providerAvailable: true, suggestions: [{ placeId, text, mainText, secondaryText }, ...] }`. Sin credencial: `200 { success: true, providerAvailable: false, suggestions: [] }`; esta respuesta mantiene el catálogo local operativo y no representa un error de la solicitud. | Entrada inválida o fallo operacional: `e.statusCode || 500` con `{ success: false, code: e.code || "MAPS_ERROR", error: e.message }`. |
 | `POST /api/places/resolve` | `200 { success: true, place: { placeId, name, formattedAddress, addressComponents, location } }` | Mismo patrón de status y error que autocomplete. |
 
-Places puede devolver 400 por entrada inválida, 503 si no está configurado y
-502 ante fallo del proveedor, según `backend/src/domains/mapas/mapas.service.js`.
-No se asume que todo `e.message` sea seguro para exposición pública.
+Places puede devolver 400 por entrada inválida y 502 ante fallo del proveedor,
+según `backend/src/domains/mapas/mapas.service.js`. La ausencia de configuración
+se traduce en la frontera HTTP de autocomplete a una capacidad opcional
+desactivada (`providerAvailable: false`); el servicio conserva internamente el
+código `GOOGLE_PLACES_NOT_CONFIGURED` para diagnóstico. No se asume que todo
+`e.message` sea seguro para exposición pública.
 
 ## Salud, métricas y frontera operativa
 

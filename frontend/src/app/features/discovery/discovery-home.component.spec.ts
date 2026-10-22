@@ -373,6 +373,36 @@ describe('DiscoveryHomeComponent catalog flow', () => {
     }
   });
 
+  it('keeps Places dormant when the optional provider is not configured', async () => {
+    vi.useFakeTimers();
+    try {
+      service.listFacets.mockImplementation(query => query.q ? of(page([])) : of(page([])));
+      service.listPoints.mockImplementation(query => query.q ? of(page([])) : of(page([])));
+      mapas.searchPlaces.mockReturnValue(of({
+        providerAvailable: false,
+        suggestions: []
+      }));
+      fixture.detectChanges();
+
+      component.updateDestinationSearch('parque');
+      await vi.advanceTimersByTimeAsync(350);
+
+      expect(mapas.searchPlaces).toHaveBeenCalledTimes(1);
+      expect(component.externalPlaceSuggestions).toEqual([]);
+      expect(component.externalPlaceSearchState).toBe('idle');
+      expect(component.externalPlaceProviderAvailable).toBe(false);
+      expect(component.externalPlaceSearchError).toBe('');
+      fixture.detectChanges();
+      expect(fixture.nativeElement.textContent).toContain('Prueba con otro municipio o punto de entrega.');
+
+      component.updateDestinationSearch('hospital');
+      await vi.advanceTimersByTimeAsync(350);
+      expect(mapas.searchPlaces).toHaveBeenCalledTimes(1);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('does not query Places for fewer than three characters, more than 128, or a strong local match', async () => {
     vi.useFakeTimers();
     try {

@@ -72,6 +72,7 @@ type DestinationSearchEmission =
       phase: 'external-ready';
       query: string;
       local: DestinationLocalResults;
+      providerAvailable: boolean;
       suggestions: ExternalPlaceSuggestion[];
     }
   | {
@@ -111,6 +112,7 @@ export class DiscoveryHomeComponent implements OnInit, OnDestroy {
   filteredPoints: CatalogPoint[] = [];
   externalPlaceSuggestions: ExternalPlaceSuggestion[] = [];
   externalPlaceSearchState: ExternalPlaceSearchState = 'idle';
+  externalPlaceProviderAvailable: boolean | null = null;
   externalPlaceSearchError = '';
   externalPlaceResolutionState: ExternalPlaceResolutionState = 'idle';
   externalPlaceResolutionError = '';
@@ -353,6 +355,7 @@ export class DiscoveryHomeComponent implements OnInit, OnDestroy {
                 phase: 'external-ready' as const,
                 query,
                 local,
+                providerAvailable: !isRecord(response) || response['providerAvailable'] !== false,
                 suggestions: this.readExternalPlaceSuggestions(response)
               })),
               catchError(() => of({
@@ -420,7 +423,9 @@ export class DiscoveryHomeComponent implements OnInit, OnDestroy {
     } else if (emission.phase === 'external-ready') {
       this.externalPlaceSuggestions = emission.suggestions;
       this.externalPlaceSearchError = '';
-      this.externalPlaceSearchState = 'ready';
+      this.externalPlaceProviderAvailable = emission.providerAvailable;
+      this.externalPlaceSearchState = emission.providerAvailable ? 'ready' : 'idle';
+      if (!emission.providerAvailable) this.placeSearchSessionToken = '';
     } else {
       this.externalPlaceSuggestions = [];
       this.externalPlaceSearchError = 'No pudimos buscar lugares en este momento.';
@@ -435,7 +440,12 @@ export class DiscoveryHomeComponent implements OnInit, OnDestroy {
     query: string,
     local: DestinationLocalResults | null
   ): local is DestinationLocalResults {
-    if (!local || query.length < 3 || query.length > 128) return false;
+    if (
+      !local
+      || this.externalPlaceProviderAvailable === false
+      || query.length < 3
+      || query.length > 128
+    ) return false;
 
     const candidateNames = [
       ...local.municipalities.data.map(facet => facet.label),

@@ -4,7 +4,7 @@
 Tras una auditoría arquitectónica del código fuente actual, se determinó que **no existen trabajos secundarios genuinos** (con un productor y un consumidor independiente) que deban migrarse a eventos asíncronos en este momento.
 
 Evidencias específicas en el código actual:
-- Las acciones de compartir (Web Share, copia al portapapeles, generación de imágenes) son ejecutadas directamente desde el cliente con APIs nativas del navegador y requieren de interacción de usuario síncrona y esperada (referencia `frontend/src/app/features/home/results/point-share.service.ts`, ej. líneas 56, 141, 150).
+- Las acciones de compartir (Web Share, copia al portapapeles, generación de imágenes) son ejecutadas directamente desde el cliente con APIs nativas del navegador y requieren de interacción de usuario síncrona y esperada (referencia `frontend/src/app/core/services/point-share.service.ts`).
 - El cálculo de ETA y las búsquedas se mantienen intencionalmente síncronos para el correcto funcionamiento del modelo actual (referencia `backend/src/domains/rutas/rutas.service.js`, líneas 14, 55, 97, 124, 158).
 - Las llamadas a Cloudinary son síncronas porque la respuesta necesita la URL definitiva; NO son consistentes transaccionalmente, pero su naturaleza obliga a esperar la subida (referencia `backend/src/domains/ubicaciones/ubicaciones.service.js`, líneas 38, 68).
 - Las operaciones de empresas y flujos de importación están excluidos por el alcance de usuario definido.

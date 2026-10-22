@@ -77,7 +77,8 @@ html, body {
   background: var(--primary);
   font-size: 11px;
   font-weight: 850;
-  transform: rotate(-45deg);
+  transform: rotate(-45deg) scale(var(--sivoy-map-marker-scale, 1));
+  transform-origin: center;
 }
 
 .sivoy-pin-core i {
@@ -102,7 +103,7 @@ html, body {
   border-width: 3px;
   border-radius: 50%;
   background: var(--signal-lime);
-  transform: none;
+  transform: scale(var(--sivoy-map-marker-scale, 1));
 }
 
 .sivoy-map-marker.is-nearby::before,
@@ -125,6 +126,8 @@ html, body {
   border-radius: 50%;
   background: #2f7bf2;
   box-shadow: 0 4px 12px rgba(47, 123, 242, 0.32);
+  transform: scale(var(--sivoy-map-marker-scale, 1));
+  transform-origin: center;
 }
 
 .sivoy-user-dot::before {
@@ -545,16 +548,6 @@ html, body {
   font-size: 13px;
   font-weight: 850;
   text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.point-distance {
-  padding: 5px 8px;
-  border-radius: var(--radius-full);
-  background: var(--white);
-  color: #d43f5e;
-  font-size: 11px;
-  font-weight: 850;
   white-space: nowrap;
 }
 

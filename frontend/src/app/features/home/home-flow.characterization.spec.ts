@@ -4,7 +4,7 @@ import { ShipmentSearchFacade } from './shipment-search.facade';
 import { RutasService } from '../../core/services/rutas.service';
 import { MapasService } from '../../core/services/mapas.service';
 import { ToastService } from '../../core/services/toast.service';
-import { PointShareService } from './results/point-share.service';
+import { PointShareService } from '../../core/services/point-share.service';
 import { CatalogService } from '../../core/services/catalog.service';
 import { By } from '@angular/platform-browser';
 import { of } from 'rxjs';

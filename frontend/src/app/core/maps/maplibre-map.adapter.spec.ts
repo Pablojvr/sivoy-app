@@ -7,6 +7,7 @@ const mockOn = vi.fn();
 const mockOnce = vi.fn();
 const mockOff = vi.fn();
 const mockGetCenter = vi.fn().mockReturnValue(mockLngLat);
+const mockGetZoom = vi.fn().mockReturnValue(10);
 const mockFlyTo = vi.fn();
 const mockJumpTo = vi.fn();
 const mockFitBounds = vi.fn();
@@ -46,6 +47,7 @@ vi.mock('maplibre-gl', () => {
         once: mockOnce,
         off: mockOff,
         getCenter: mockGetCenter,
+        getZoom: mockGetZoom,
         flyTo: mockFlyTo,
         jumpTo: mockJumpTo,
         fitBounds: mockFitBounds,
@@ -100,7 +102,8 @@ describe('MapLibreMapAdapter', () => {
   const initialCenter: MapCoordinate = { lng: -74, lat: 40 };
 
   beforeEach(() => {
-      mockIsStyleLoaded.mockReturnValue(true);
+    mockIsStyleLoaded.mockReturnValue(true);
+    mockGetZoom.mockReturnValue(10);
     vi.clearAllMocks();
     container = document.createElement('div');
     adapter = new MapLibreMapAdapter();
@@ -185,6 +188,19 @@ describe('MapLibreMapAdapter', () => {
     }));
     expect(mockAttributionControlConstructor).toHaveBeenCalledWith({ compact: true });
     expect(mockAddControl).toHaveBeenCalledTimes(1);
+  });
+
+  it('scales marker visuals within bounded values as map zoom changes', () => {
+    mockGetZoom.mockReturnValue(8);
+    adapter.initialize(container, { center: initialCenter, zoom: 8 });
+
+    expect(container.style.getPropertyValue('--sivoy-map-marker-scale')).toBe('0.72');
+    const zoomListener = mockOn.mock.calls.find(call => call[0] === 'zoom')?.[1];
+    expect(zoomListener).toEqual(expect.any(Function));
+
+    mockGetZoom.mockReturnValue(18);
+    zoomListener?.();
+    expect(container.style.getPropertyValue('--sivoy-map-marker-scale')).toBe('1.18');
   });
 
   it('removes a partially initialized map if attribution setup fails', () => {

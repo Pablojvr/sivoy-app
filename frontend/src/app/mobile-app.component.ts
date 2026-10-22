@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy, ChangeDetectorRef, AfterViewInit, ElementRef, HostListener, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { ToastService } from './core/services/toast.service';
 import { CatalogService } from './core/services/catalog.service';
@@ -16,7 +16,7 @@ import { PublicMapViewState, projectPublicMapViewState } from './features/home/p
 import { calculateDistanceKm } from './core/maps/geo-distance';
 import { HomeComponent } from './features/home/home.component';
 import { BottomNavComponent } from './shared/components/bottom-nav/bottom-nav.component';
-import { PerfilComponent } from './features/perfil/perfil.component';
+import { SavedPointsComponent } from './features/saved-points/saved-points.component';
 
 interface MapMarkerMetadata {
   source: unknown;
@@ -25,13 +25,43 @@ interface MapMarkerMetadata {
   selected?: boolean;
 }
 
-type MainTab = 'inicio' | 'perfil';
+type MainTab = 'inicio' | 'guardados';
 
 export function resolveMainTab(requestedTab?: unknown): MainTab {
-  if (requestedTab === 'perfil') {
-    return 'perfil';
+  if (requestedTab === 'guardados' || requestedTab === 'perfil') {
+    return 'guardados';
   }
   return 'inicio';
+}
+
+const PUBLIC_INTENT_LIMITS: Readonly<Record<string, number>> = Object.freeze({
+  buscar: 32,
+  empresa: 128,
+  municipio: 128,
+  departamento: 128,
+  punto: 256,
+  accion: 32,
+  vista: 32,
+  tab: 32,
+  disponibilidad: 32,
+  horario: 32,
+  referencia: 128,
+  refLat: 32,
+  refLng: 32
+});
+
+export function sanitizeNavigationIntent(params: unknown): Record<string, string> {
+  if (typeof params !== 'object' || params === null) return {};
+  const source = params as Record<string, unknown>;
+  const intent: Record<string, string> = {};
+  for (const [key, maxLength] of Object.entries(PUBLIC_INTENT_LIMITS)) {
+    const value = source[key];
+    if (typeof value !== 'string') continue;
+    const normalized = value.trim();
+    if (normalized.length < 1 || normalized.length > maxLength) continue;
+    intent[key] = normalized;
+  }
+  return intent;
 }
 
 const AUX_MARKER_KEYS = {
@@ -41,7 +71,7 @@ const AUX_MARKER_KEYS = {
 
 @Component({
   selector: 'app-mobile-layout',
-  imports: [CommonModule, FormsModule, HomeComponent, BottomNavComponent, PerfilComponent],
+  imports: [CommonModule, FormsModule, HomeComponent, BottomNavComponent, SavedPointsComponent],
   templateUrl: './mobile-app.component.html',
   styleUrls: ['./app.css', './mobile-app.component.css'],
   encapsulation: ViewEncapsulation.None
@@ -89,6 +119,7 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
   private mapLifecycle: MapLifecycleManager<MapMarkerMetadata> | null = null;
   private destroyed = false;
   userLocation: MapCoordinate | null = null;
+  hasPreciseUserLocation = false;
   userMunicipalityName: string | null = null;
   userDepartamento: string | null = null;
   mapResizeObserver: ResizeObserver | null = null;
@@ -110,6 +141,7 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
     private elRef: ElementRef,
     private toastService: ToastService,
     private route: ActivatedRoute,
+    private router: Router,
     private mapCapability: MapCapabilityService
   ) {
     this.interactiveMapSupported = this.mapCapability.supportsInteractiveMap();
@@ -117,7 +149,15 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnInit() {
     this.routeParamsSubscription = this.route.queryParams.subscribe(params => {
-      this.navigationIntent = { ...params };
+      this.navigationIntent = sanitizeNavigationIntent(params);
+      if (Object.prototype.hasOwnProperty.call(params, 'orden')) {
+        void this.router.navigate([], {
+          relativeTo: this.route,
+          queryParams: { orden: null },
+          queryParamsHandling: 'merge',
+          replaceUrl: true
+        });
+      }
       this.setMapResourceMode(params['vista'] === 'mapa');
       const requestedTab = params['tab'];
       this.activeMainTab = resolveMainTab(requestedTab);
@@ -126,7 +166,10 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
     this.locationsSubscription = this.catalogService.listPoints({ limit: 50 }).subscribe({
       next: page => {
         if (this.destroyed) return;
-        this.locations = page.data.map(catalogPointToLocation);
+        this.locations = page.data.map(point => ({
+          ...catalogPointToLocation(point),
+          catalogAvailability: point.availability
+        }));
         this.filteredLocations = [...this.locations];
 
         if (this.userLocation) {
@@ -154,6 +197,7 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
       next: (coords) => {
         if (this.destroyed) return;
         this.userLocation = { lng: coords.lng, lat: coords.lat };
+        this.hasPreciseUserLocation = true;
         this.updateUserMarker();
         this.sortLocationsByDistance();
         this.fetchMunicipalityName(coords.lat, coords.lng);
@@ -164,6 +208,39 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
         this.updateUserMarker();
         this.sortLocationsByDistance();
       }
+    });
+  }
+
+  onPointFiltersChange(filters: {
+    disponibilidad: 'todos' | 'abierto' | 'cierra-pronto';
+    horario: 'todos' | 'manana' | 'tarde' | 'extendido';
+  }): void {
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { ...filters, orden: null },
+      queryParamsHandling: 'merge'
+    });
+  }
+
+  onDestinationMunicipalityChange(destination: {
+    municipio: string;
+    departamento: string;
+  }): void {
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: {
+        municipio: destination.municipio,
+        departamento: destination.departamento,
+        punto: null,
+        accion: null,
+        vista: null,
+        referencia: null,
+        refLat: null,
+        refLng: null,
+        buscar: null,
+        empresa: null
+      },
+      queryParamsHandling: 'merge'
     });
   }
 
@@ -691,6 +768,7 @@ export class MobileAppComponent implements OnInit, AfterViewInit, OnDestroy {
       next: (coords) => {
         if (this.destroyed) return;
         this.userLocation = { lng: coords.lng, lat: coords.lat };
+        this.hasPreciseUserLocation = true;
         this.updateUserMarker();
         if (this.userLocation) this.map?.flyTo(this.userLocation, { zoom: 15, duration: 900 });
         this.fetchMunicipalityName(coords.lat, coords.lng);

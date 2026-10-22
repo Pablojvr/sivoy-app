@@ -180,7 +180,7 @@
           <app-origin-search
             [visibleValue]="origenInputValue"
             [destinationName]="destinoInputValue"
-            [userLocationAvailable]="!!userLocation"
+            [userLocationAvailable]="userLocationAvailable"
             [userMunicipalityName]="userMunicipalityName"
             [isListVisible]="showAutocomplete"
             [municipalities]="filteredOriginMunicipalities"
@@ -226,8 +226,6 @@
     [hasOrigin]="!!origen"
     [hasDestination]="!!destino"
     (toggle)="togglePinCard()"
-    (touchStart)="onPinCardTouchStart($event)"
-    (touchEnd)="onPinCardTouchEnd($event)"
     (preview)="openPinImagePreview($event)"
     (share)="shareLocation($event)"
     (close)="closePinDetails()"
@@ -244,6 +242,7 @@
        [class.dragging]="isSheetDragging"
        [class.choosing-origin]="isOriginChoiceMode"
        [class.list-first-sheet]="!mapResourceMode && hasListContent"
+       [class.point-results-page]="isPointResultsPage"
        [style.--sheet-drag-offset]="sheetDragOffset + 'px'"
        *ngIf="!isPickingLocation && !selectingLocation && !isSearchExpanded && (mapResourceMode || hasListContent)" (click)="$event.stopPropagation()">
     <header
@@ -254,6 +253,7 @@
       (pointercancel)="onSheetPointerEnd($event)"
       (click)="onSheetHeaderClick()">
       <button
+        *ngIf="!isPointResultsPage"
         type="button"
         class="drag-handle"
         (click)="onSheetHandleClick($event)"
@@ -268,9 +268,19 @@
           <p>Elige cómo iniciar la ruta.</p>
         </div>
 
-        <div *ngIf="destino && municipalityResults.length > 0" class="sheet-summary">
-          <h3>{{ displayedResults.length }} {{ displayedResults.length === 1 ? 'Resultado' : 'Resultados' }} en {{ destino.split(',')[0] }}</h3>
-          <p class="slide-hint">
+        <div *ngIf="(destino || isDiscoveryMode || isOriginDiscoveryMode) && municipalityResults.length > 0" class="sheet-summary" [class.point-results-summary]="isPointResultsPage">
+          <span *ngIf="isPointResultsPage" class="sheet-step-kicker">{{ isOriginDiscoveryMode ? 'Puntos de origen' : 'Puntos de entrega' }}</span>
+          <h3>{{ displayedResults.length }}<ng-container *ngIf="isPointResultsPage"> de {{ municipalityResults.length }}</ng-container> {{ displayedResults.length === 1 ? 'resultado' : 'resultados' }} en {{ isOriginDiscoveryMode ? origenMunicipio : (destino ? destino.split(',')[0] : (activeEmpresa || destinoMunicipio)) }}</h3>
+          <div *ngIf="isPointResultsPage && placeDestinationContext && !isOriginDiscoveryMode" class="point-proximity-context">
+            <span class="point-proximity-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 5.5-8 11-8 11S4 15.5 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>
+            </span>
+            <span class="point-proximity-copy">
+              <strong>Opciones cerca de {{ placeDestinationContext.reference }}</strong>
+              <small>Distancia aproximada en línea recta; no indica tiempo de viaje.</small>
+            </span>
+          </div>
+          <p class="slide-hint" *ngIf="!isPointResultsPage">
             <svg *ngIf="bottomSheetState === 'collapsed'" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>
             <svg *ngIf="bottomSheetState !== 'collapsed'" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
             {{ bottomSheetState === 'collapsed' ? 'Desliza hacia arriba para ver' : 'Desliza hacia abajo para esconder' }}
@@ -486,9 +496,38 @@
       </section>
 
       <div class="sheet-header-sticky" [class.is-scrolled]="isSheetScrolled" *ngIf="(destino || isDiscoveryMode || isOriginDiscoveryMode) && municipalityResults.length > 0 && flightResults.length === 0">
-         <div class="sheet-handle"></div>
-         <h3 class="sheet-header-title">{{ isOriginDiscoveryMode ? 'Orígenes en ' + origenMunicipio : (isDiscoveryMode ? (activeEmpresa ? 'Puntos de ' + activeEmpresa : 'Destinos en ' + destinoMunicipio) : 'Opciones para ' + destino) }}</h3>
- 
+        <ng-container *ngIf="isPointResultsPage; else legacyResultsHeading">
+          <div class="point-filter-heading">
+            <div>
+              <span>Explorar resultados</span>
+              <h3>Encuentra el punto ideal</h3>
+            </div>
+            <button *ngIf="hasActivePointFilters" type="button" class="point-filter-clear" (click)="clearPointResultFilters()">Limpiar</button>
+          </div>
+          <div class="point-filter-groups" aria-label="Filtros de puntos">
+            <div class="point-filter-group" role="group" aria-label="Filtrar por disponibilidad">
+              <span class="point-filter-copy"><strong>Disponibilidad</strong><small>Estado actual del punto</small></span>
+              <span class="point-filter-options">
+                <button type="button" [class.is-active]="pointResultFilters.availability === 'all'" [attr.aria-pressed]="pointResultFilters.availability === 'all'" (click)="setPointAvailabilityFilter('all')">Todos</button>
+                <button type="button" [class.is-active]="pointResultFilters.availability === 'open'" [attr.aria-pressed]="pointResultFilters.availability === 'open'" (click)="setPointAvailabilityFilter('open')">Abierto ahora</button>
+                <button type="button" [class.is-active]="pointResultFilters.availability === 'closing-soon'" [attr.aria-pressed]="pointResultFilters.availability === 'closing-soon'" (click)="setPointAvailabilityFilter('closing-soon')">Cierra pronto</button>
+              </span>
+            </div>
+            <div class="point-filter-group" role="group" aria-label="Filtrar por horario de atención">
+              <span class="point-filter-copy"><strong>Horario</strong><small>Cuándo podrá ir quien recibe</small></span>
+              <span class="point-filter-options">
+                <button type="button" [class.is-active]="pointResultFilters.schedule === 'all'" [attr.aria-pressed]="pointResultFilters.schedule === 'all'" (click)="setPointScheduleFilter('all')">Cualquier horario</button>
+                <button type="button" title="Atiende entre 6:00 AM y 12:00 PM" [class.is-active]="pointResultFilters.schedule === 'morning'" [attr.aria-pressed]="pointResultFilters.schedule === 'morning'" (click)="setPointScheduleFilter('morning')">Mañana</button>
+                <button type="button" title="Atiende entre 12:00 PM y 6:00 PM" [class.is-active]="pointResultFilters.schedule === 'afternoon'" [attr.aria-pressed]="pointResultFilters.schedule === 'afternoon'" (click)="setPointScheduleFilter('afternoon')">Tarde</button>
+                <button type="button" title="Cierra a las 6:00 PM o después" [class.is-active]="pointResultFilters.schedule === 'extended'" [attr.aria-pressed]="pointResultFilters.schedule === 'extended'" (click)="setPointScheduleFilter('extended')">Jornada extendida</button>
+              </span>
+            </div>
+          </div>
+        </ng-container>
+        <ng-template #legacyResultsHeading>
+          <div class="sheet-handle"></div>
+          <h3 class="sheet-header-title">{{ isOriginDiscoveryMode ? 'Orígenes en ' + origenMunicipio : (isDiscoveryMode ? (activeEmpresa ? 'Puntos de ' + activeEmpresa : 'Destinos en ' + destinoMunicipio) : 'Opciones para ' + destino) }}</h3>
+        </ng-template>
       </div>
       
       <!-- Loading state -->
@@ -520,6 +559,7 @@
           [scheduleCount]="getGroupedSchedules(res.horarios_operativos).length"
           (toggle)="togglePointCard($event)"
           (copyImage)="copyPointResource($event)"
+          (previewImage)="previewImage($event)"
           (imageUnavailable)="markPointImageUnavailable($event)"
           (use)="selectPointFromList($event)"
           (share)="sharePointResource($event)"
@@ -535,6 +575,12 @@
           (click)="loadMoreCatalogPoints()">
           {{ catalogPointsLoadingMore ? 'Cargando…' : 'Ver más puntos' }}
         </button>
+        <section *ngIf="isPointResultsPage && displayedResults.length === 0" class="point-results-empty" role="status">
+          <span aria-hidden="true">⌁</span>
+          <h3>No hay puntos con estos filtros</h3>
+          <p>Prueba otra disponibilidad u horario, o vuelve a ver todos los resultados.</p>
+          <button type="button" (click)="clearPointResultFilters()">Limpiar filtros</button>
+        </section>
       </div>
 
       <!-- Result from routing (if a specific route is requested) -->

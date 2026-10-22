@@ -39,7 +39,7 @@ async function chooseMunicipality(
   query: string,
   accessibleName: string,
 ): Promise<void> {
-  const search = page.getByRole('searchbox', { name: 'Buscar municipio o punto de entrega' });
+  const search = page.getByRole('searchbox', { name: /Buscar municipio.*punto/i });
   await search.fill(query);
   await expect(page).toHaveURL(/.*\/#\/$/);
   await page.getByRole('button', { name: accessibleName, exact: true }).click();
@@ -48,7 +48,55 @@ async function chooseMunicipality(
 
 async function chooseSanSalvadorDestination(page: Page): Promise<void> {
   await chooseMunicipality(page, 'san salvador', 'San Salvador San Salvador 1 punto');
-  await expect(page.getByRole('heading', { name: '1 Resultado en San Salvador' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /1 de 1 resultado en San Salvador/i })).toBeVisible();
+}
+
+async function mockPlaceLookup(
+  page: Page,
+  place: {
+    placeId: string;
+    name: string;
+    municipality: string;
+    department: string;
+    latitude: number;
+    longitude: number;
+  },
+): Promise<void> {
+  await page.route('**/api/places/autocomplete', async route => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        success: true,
+        suggestions: [{
+          placeId: place.placeId,
+          text: `${place.name}, ${place.municipality}`,
+          mainText: place.name,
+          secondaryText: `${place.municipality}, ${place.department}`,
+        }],
+      }),
+    });
+  });
+  await page.route('**/api/places/resolve', async route => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        success: true,
+        place: {
+          placeId: place.placeId,
+          name: place.name,
+          formattedAddress: `${place.municipality}, ${place.department}, El Salvador`,
+          addressComponents: [
+            { longText: place.municipality, shortText: place.municipality, types: ['locality'] },
+            { longText: place.department, shortText: place.department, types: ['administrative_area_level_1'] },
+            { longText: 'El Salvador', shortText: 'SV', types: ['country'] },
+          ],
+          location: { latitude: place.latitude, longitude: place.longitude },
+        },
+      }),
+    });
+  });
 }
 
 async function expandPointDetails(page: Page): Promise<void> {
@@ -214,6 +262,173 @@ test('municipio con más de una página agrega 25 puntos sin duplicarlos', async
   await assertNoLegacyCatalogRequests(legacyRequests);
 });
 
+test('un lugar de referencia abre puntos del mismo municipio con contexto y distancia durable', async ({ page }) => {
+  await mockPlaceLookup(page, {
+    placeId: 'place-parque-san-martin',
+    name: 'Parque San Martín',
+    municipality: 'Santa Tecla',
+    department: 'La Libertad',
+    latitude: 13.6769,
+    longitude: -89.2797,
+  });
+  await page.goto('/#/');
+
+  const search = page.getByRole('searchbox', { name: /Buscar municipio.*punto/i });
+  await search.fill('parque san martin');
+  await expect(page.getByRole('heading', { name: 'Lugares en El Salvador' })).toBeVisible();
+  await page.getByRole('button', { name: /Parque San Martín.*Santa Tecla/i }).click();
+  await page.getByRole('button', { name: 'Ver puntos de Santa Tecla' }).click();
+
+  await expect(page).toHaveURL(/municipio=Santa(?:%20|\+)Tecla/);
+  await expect(page).toHaveURL(/referencia=Parque(?:%20|\+)San(?:%20|\+)Mart/);
+  await expect(page.getByText('Opciones cerca de Parque San Martín')).toBeVisible();
+  await expect(page.getByText('Distancia aproximada en línea recta; no indica tiempo de viaje.')).toBeVisible();
+  await expect(page.locator('.point-reference-distance').first()).toContainText(/en línea recta/);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  const primaryAction = page.getByRole('button', { name: /Elegir desde dónde enviar hacia/i }).first();
+  expect((await primaryAction.boundingBox())?.height ?? 0).toBeGreaterThanOrEqual(44);
+
+  const resultsUrl = page.url();
+  await page.reload();
+  await expect(page).toHaveURL(resultsUrl);
+  await expect(page.getByText('Opciones cerca de Parque San Martín')).toBeVisible();
+});
+
+test('un lugar reconocido sin cobertura no inventa municipios alternativos', async ({ page }) => {
+  await mockPlaceLookup(page, {
+    placeId: 'place-parque-libertad',
+    name: 'Lugar de prueba sin cobertura',
+    municipality: 'Municipio Sin Cobertura',
+    department: 'Departamento Sin Cobertura',
+    latitude: 13.9867,
+    longitude: -89.6817,
+  });
+  await page.goto('/#/');
+
+  await page.getByRole('searchbox', { name: /Buscar municipio.*punto/i }).fill('lugar sin cobertura');
+  await page.getByRole('button', { name: /Lugar de prueba sin cobertura.*Municipio Sin Cobertura/i }).click();
+
+  await expect(page.getByText('No existe cobertura cercana o similar').first()).toBeVisible();
+  await expect(page).toHaveURL(/.*\/#\/$/);
+  await expect(page.locator('article.point-result-card')).toHaveCount(0);
+});
+
+test('un fallo del proveedor externo conserva utilizable la búsqueda del catálogo', async ({ page }) => {
+  await page.route('**/api/places/autocomplete', async route => {
+    await route.fulfill({
+      status: 503,
+      contentType: 'application/json',
+      body: JSON.stringify({ error: 'provider details must stay hidden' }),
+    });
+  });
+  await page.goto('/#/');
+
+  const search = page.getByRole('searchbox', { name: /Buscar municipio.*punto/i });
+  await search.fill('lugar inexistente');
+  await expect(page.getByText('No pudimos consultar lugares')).toBeVisible();
+  await expect(page.getByText('provider details must stay hidden')).toHaveCount(0);
+
+  await search.fill('san salvador');
+  await page.getByRole('button', { name: /San Salvador San Salvador \d+ puntos?/i }).click();
+  await expect(page.getByRole('heading', { name: /\d+ de \d+ resultados? en San Salvador/i })).toBeVisible();
+});
+
+test('una coincidencia local fuerte evita una consulta externa innecesaria', async ({ page }) => {
+  let externalRequests = 0;
+  await page.route('**/api/places/autocomplete', async route => {
+    externalRequests += 1;
+    await route.fulfill({ status: 200, contentType: 'application/json', body: '{"success":true,"suggestions":[]}' });
+  });
+  await page.goto('/#/');
+
+  await page.getByRole('searchbox', { name: /Buscar municipio.*punto/i }).fill('san salvador');
+  await expect(page.getByRole('button', { name: /San Salvador San Salvador \d+ puntos?/i })).toBeVisible();
+  await page.waitForTimeout(600);
+
+  expect(externalRequests).toBe(0);
+});
+
+test('una respuesta externa tardía no reemplaza la búsqueda vigente', async ({ page }) => {
+  await page.route('**/api/places/autocomplete', async route => {
+    const body = route.request().postDataJSON() as { query?: string };
+    const oldQuery = body.query === 'parque antiguo';
+    if (oldQuery) await new Promise(resolve => setTimeout(resolve, 650));
+    const name = oldQuery ? 'Parque Antiguo' : 'Hospital Nuevo';
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        success: true,
+        suggestions: [{
+          placeId: oldQuery ? 'old-place' : 'new-place',
+          text: `${name}, Santa Tecla`,
+          mainText: name,
+          secondaryText: 'Santa Tecla, La Libertad',
+        }],
+      }),
+    });
+  });
+  await page.goto('/#/');
+
+  const search = page.getByRole('searchbox', { name: /Buscar municipio.*punto/i });
+  await search.fill('parque antiguo');
+  await page.waitForTimeout(380);
+  await search.fill('hospital nuevo');
+
+  await expect(page.getByRole('button', { name: /Hospital Nuevo.*Santa Tecla/i })).toBeVisible();
+  await page.waitForTimeout(700);
+  await expect(page.getByRole('button', { name: /Parque Antiguo.*Santa Tecla/i })).toHaveCount(0);
+});
+
+test('resultados municipales usan página completa, filtros y URL durable', async ({ page }) => {
+  await page.goto('/#/enviar?municipio=San%20Salvador&departamento=San%20Salvador');
+
+  const resultsPage = page.locator('.bottom-sheet.point-results-page');
+  const cards = page.locator('article.point-result-card');
+  await expect(resultsPage).toBeVisible();
+  await expect(resultsPage.locator('.drag-handle')).toHaveCount(0);
+  await expect(page.getByRole('heading', { name: /\d+ de \d+ resultados? en San Salvador/i })).toBeVisible();
+
+  const layout = await resultsPage.evaluate(element => {
+    const rect = element.getBoundingClientRect();
+    const cardsList = element.querySelector('.cards-list');
+    return {
+      left: rect.left,
+      right: rect.right,
+      width: rect.width,
+      viewportWidth: window.innerWidth,
+      documentWidth: document.documentElement.scrollWidth,
+      columns: cardsList ? getComputedStyle(cardsList).gridTemplateColumns.split(' ').length : 0,
+    };
+  });
+  expect(layout.left).toBe(0);
+  expect(layout.right).toBe(layout.viewportWidth);
+  expect(layout.width).toBe(layout.viewportWidth);
+  expect(layout.documentWidth).toBeLessThanOrEqual(layout.viewportWidth);
+  expect(layout.columns).toBe(layout.viewportWidth >= 768 ? 2 : 1);
+
+  const initialCount = await cards.count();
+  await expect(page.getByRole('button', { name: 'Con foto' })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Más cerca' })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Abierto ahora' }).click();
+  await expect(page).toHaveURL(/disponibilidad=abierto.*horario=todos/);
+  await expect(page.getByRole('button', { name: 'Abierto ahora' })).toHaveAttribute('aria-pressed', 'true');
+  expect(await cards.count()).toBeLessThanOrEqual(initialCount);
+
+  await page.getByRole('button', { name: 'Tarde', exact: true }).click();
+  await expect(page).toHaveURL(/disponibilidad=abierto.*horario=tarde/);
+  expect(page.url()).not.toContain('orden=');
+  await expect(page.getByRole('button', { name: 'Tarde', exact: true })).toHaveAttribute('aria-pressed', 'true');
+
+  await page.goBack();
+  await expect(page.getByRole('button', { name: 'Cualquier horario' })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByRole('button', { name: 'Abierto ahora' })).toHaveAttribute('aria-pressed', 'true');
+  await page.goForward();
+  await expect(page.getByRole('button', { name: 'Tarde', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await page.reload();
+  await expect(page.getByRole('button', { name: 'Tarde', exact: true })).toHaveAttribute('aria-pressed', 'true');
+});
+
 test('resultados públicos sobreviven atrás, adelante, recarga y enlace directo', async ({ page }) => {
   await page.goto('/#/');
   await chooseSanSalvadorDestination(page);
@@ -225,15 +440,15 @@ test('resultados públicos sobreviven atrás, adelante, recarga y enlace directo
 
   await page.goForward();
   await expect(page).toHaveURL(resultsUrl);
-  await expect(page.getByRole('heading', { name: '1 Resultado en San Salvador' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /1 de 1 resultado en San Salvador/i })).toBeVisible();
 
   await page.reload();
   await expect(page).toHaveURL(resultsUrl);
-  await expect(page.getByRole('heading', { name: '1 Resultado en San Salvador' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /1 de 1 resultado en San Salvador/i })).toBeVisible();
 
   await page.goto('/#/enviar?punto=POINT_AGENCIA_CENTRO&accion=preview');
   await expect(page).toHaveURL(/.*punto=POINT_AGENCIA_CENTRO&accion=preview$/);
-  await expect(page.getByRole('heading', { name: '1 Resultado en San Salvador' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /1 de 1 resultado en San Salvador/i })).toBeVisible();
   const linkedPointSummary = page.locator('#card-POINT_AGENCIA_CENTRO button.point-result-summary');
   await expect(linkedPointSummary).toHaveAttribute('aria-expanded', 'true');
   await expect(page.locator('#point-details-POINT_AGENCIA_CENTRO')).toBeVisible();
@@ -302,7 +517,7 @@ test('buscar y compartir siguen disponibles sin WebGL2', async ({ page }) => {
   await page.goto('/#/');
   const mapFallback = page.getByRole('status').filter({ hasText: 'Mapa no disponible' });
   await chooseSanSalvadorDestination(page);
-  const resultsHeading = page.getByRole('heading', { name: '1 Resultado en San Salvador' });
+  const resultsHeading = page.getByRole('heading', { name: /1 de 1 resultado en San Salvador/i });
   await expect(mapFallback).toBeVisible();
   await page.getByRole('button', { name: 'Cerrar aviso de mapa', exact: true }).click();
   await expect(mapFallback).toBeHidden();
@@ -363,13 +578,13 @@ test('el detalle del punto refluye sin cubrir la navegación inferior', async ({
   await page.getByRole('button', { name: 'Ver Agencia Centro en el mapa' }).click();
 
   const detailCard = page.locator('article.pin-details-card');
-  const collapsedToggle = page.getByRole('button', { name: 'Expandir información del punto' });
-  await expect(collapsedToggle).toContainText('Ver detalles');
+  const collapsedToggle = page.getByRole('button', { name: 'Expandir ficha del punto' });
+  await expect(collapsedToggle).toHaveAttribute('aria-expanded', 'false');
   await collapsedToggle.click();
 
-  const detailToggle = page.getByRole('button', { name: 'Contraer información del punto' });
+  const detailToggle = page.getByRole('button', { name: 'Minimizar ficha del punto' });
   const bottomNav = page.getByRole('navigation', { name: 'Navegación principal' });
-  await expect(detailToggle).toContainText('Ocultar detalles');
+  await expect(detailToggle).toHaveAttribute('aria-expanded', 'true');
 
   const infoTab = page.getByRole('tab', { name: 'Información' });
   const hoursTab = page.getByRole('tab', { name: 'Horarios' });
@@ -388,9 +603,9 @@ test('el detalle del punto refluye sin cubrir la navegación inferior', async ({
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
 
   await detailToggle.click();
-  await expect(page.getByRole('button', { name: 'Expandir información del punto' })).toContainText('Ver detalles');
+  await expect(page.getByRole('button', { name: 'Expandir ficha del punto' })).toHaveAttribute('aria-expanded', 'false');
   await expect(detailCard.getByText('Agencia Centro', { exact: true })).toBeVisible();
-  await expect(detailCard.getByText('San Salvador, San Salvador', { exact: true })).toBeVisible();
+  await expect(detailCard.locator('.pin-card-identity p')).toHaveText('San Salvador, San Salvador');
 });
 
 test('la ruta compacta conserva recorrido y control visibles en 320 por 568', async ({ page }) => {
@@ -400,7 +615,7 @@ test('la ruta compacta conserva recorrido y control visibles en 320 por 568', as
 
   await expandPointDetails(page);
   await page.getByRole('button', { name: 'Ver Agencia Centro en el mapa' }).click();
-  await page.getByRole('button', { name: 'Expandir información del punto' }).click();
+  await page.getByRole('button', { name: 'Expandir ficha del punto' }).click();
   await page.getByRole('button', { name: /Usar como destino/ }).click();
   await page.getByRole('button', { name: 'Agencia Norte Santa Tecla, La Libertad' }).click();
   await expect(page.getByRole('heading', { name: '1 ruta disponible' })).toBeVisible();

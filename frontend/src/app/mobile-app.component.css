@@ -39,7 +39,7 @@ app-mobile-layout {
   overflow: hidden;
 }
 
-.si-shell-slot--perfil {
+.si-shell-slot--guardados {
   overflow-x: hidden;
   overflow-y: auto;
   padding-bottom: var(--si-shell-content-inset-bottom);
@@ -47,7 +47,7 @@ app-mobile-layout {
   -webkit-overflow-scrolling: touch;
 }
 
-.si-shell-slot--perfil > app-perfil {
+.si-shell-slot--guardados > app-saved-points {
   display: block;
   min-height: 100%;
 }

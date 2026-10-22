@@ -23,23 +23,23 @@ describe('BottomNavComponent', () => {
     const host = fixture.nativeElement as HTMLElement;
     const links = Array.from(host.querySelectorAll<HTMLAnchorElement>('.nav-item'));
 
-    expect(links.map((link) => link.textContent?.trim())).toEqual(['Panel', 'Inicio', 'Perfil']);
+    expect(links.map((link) => link.textContent?.trim())).toEqual(['Panel', 'Inicio', 'Guardados']);
     expect(links.map((link) => link.getAttribute('href'))).toEqual([
       '/admin',
       '/',
-      '/enviar?tab=perfil'
+      '/enviar?tab=guardados'
     ]);
   });
 
   it('expone un unico destino activo con aria-current', () => {
-    const fixture = render('perfil');
+    const fixture = render('guardados');
     const host = fixture.nativeElement as HTMLElement;
     const activeLinks = host.querySelectorAll<HTMLAnchorElement>(
       '.nav-item[aria-current="page"]'
     );
 
     expect(activeLinks).toHaveLength(1);
-    expect(activeLinks[0].textContent?.trim()).toBe('Perfil');
+    expect(activeLinks[0].textContent?.trim()).toBe('Guardados');
     expect(activeLinks[0].classList.contains('active')).toBe(true);
   });
 

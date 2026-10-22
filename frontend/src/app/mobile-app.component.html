@@ -6,6 +6,7 @@
       [catalogMode]="true"
       [locations]="locations"
       [userLocation]="userLocation"
+      [userLocationAvailable]="hasPreciseUserLocation"
       [initialIntent]="navigationIntent"
       [selectedPin]="selectedPin"
       [highlightedRoute]="highlightedRoute"
@@ -19,11 +20,13 @@
       (previewImageEvent)="openImagePreview($event)"
       (showPinDetails)="viewOnMap($event.location, $event.type)"
       (mapResourceModeChange)="setMapResourceMode($event)"
+      (pointFiltersChange)="onPointFiltersChange($event)"
+      (destinationMunicipalityChange)="onDestinationMunicipalityChange($event)"
     ></app-home>
   </div>
 
-  <div class="si-shell-slot si-shell-slot--perfil" *ngIf="activeMainTab === 'perfil'">
-    <app-perfil></app-perfil>
+  <div class="si-shell-slot si-shell-slot--guardados" *ngIf="activeMainTab === 'guardados'">
+    <app-saved-points></app-saved-points>
   </div>
 
   <div *ngIf="mapFallbackVisible" role="status" aria-live="polite" class="si-map-fallback-banner">

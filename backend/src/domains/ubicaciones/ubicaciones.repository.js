@@ -1,4 +1,38 @@
-const { getDB } = require('../../config/database');
+const { getDB, withTransaction } = require('../../config/database');
+
+const UPDATE_COLUMNS = Object.freeze({
+    nombre_destino: 'nombre_destino',
+    empresa: 'empresa',
+    tipo: 'tipo',
+    maps_url: 'maps_url',
+    departamento: 'departamento',
+    municipio: 'municipio',
+    direccion_referencia: 'direccion_referencia',
+    lat: 'lat',
+    lng: 'lng',
+    imagen_referencia: 'imagen_referencia'
+});
+
+function buildAgencyUpdate(locId, changes) {
+    if (!changes || typeof changes !== 'object' || Array.isArray(changes)) {
+        throw new TypeError('Agency changes must be an object');
+    }
+    const fields = [];
+    const values = [];
+    for (const [key, value] of Object.entries(changes)) {
+        if (!Object.hasOwn(UPDATE_COLUMNS, key)) {
+            throw new TypeError('Unsupported agency update field');
+        }
+        values.push(value);
+        fields.push(`${UPDATE_COLUMNS[key]} = $${values.length}`);
+    }
+    if (fields.length === 0) return null;
+    values.push(locId);
+    return {
+        text: `UPDATE agencias SET ${fields.join(', ')} WHERE id = $${values.length}`,
+        values
+    };
+}
 
 async function getAllLocations() {
     const db = await getDB();
@@ -39,13 +73,13 @@ async function getAllLocations() {
     }));
 }
 
-async function getLocationByName(nombre) {
+async function getLocationByName(nombre, queryable) {
     if (!nombre) return null;
     if (nombre.startsWith('📍 Pin')) {
         return { is_pin: true, nombre_destino: 'Ubicación Personalizada' };
     }
 
-    const db = await getDB();
+    const db = queryable || await getDB();
     const result = await db.query(`SELECT * FROM agencias WHERE LOWER(nombre_destino) = $1 OR id::text = $2`, [nombre.toString().toLowerCase(), nombre.toString()]);
     if (result.rows.length === 0) return null;
     const a = result.rows[0];
@@ -73,29 +107,25 @@ async function getLocationByName(nombre) {
     };
 }
 
-async function updateLocation(locId, updateFields, params, horarios) {
-    const db = await getDB();
-    
-    if (updateFields.length > 0) {
-        // Rewrite updateFields parameters from ? to $1, $2, etc.
-        // Assuming updateFields is like ['nombre_destino = ?', 'tipo = ?']
-        let newUpdateFields = [];
-        for (let i = 0; i < updateFields.length; i++) {
-            newUpdateFields.push(updateFields[i].replace('?', '$' + (i + 1)));
+async function updateLocation(locId, changes, horarios) {
+    return withTransaction(async (db) => {
+        const update = buildAgencyUpdate(locId, changes);
+        if (update) {
+            await db.query(update.text, update.values);
         }
-        params.push(locId);
-        const query = `UPDATE agencias SET ${newUpdateFields.join(', ')} WHERE id = $${params.length}`;
-        await db.query(query, params);
-    }
-    
-    if (horarios) {
-        await db.query(`DELETE FROM horarios_operativos WHERE agencia_id = $1`, [locId]);
-        for (const h of horarios) {
-            await db.query(`INSERT INTO horarios_operativos (agencia_id, dia_semana, hora_apertura, hora_cierre) VALUES ($1, $2, $3, $4)`, [locId, h.dia_semana, h.hora_apertura, h.hora_cierre]);
+
+        if (horarios) {
+            await db.query('DELETE FROM horarios_operativos WHERE agencia_id = $1', [locId]);
+            for (const h of horarios) {
+                await db.query(
+                    'INSERT INTO horarios_operativos (agencia_id, dia_semana, hora_apertura, hora_cierre) VALUES ($1, $2, $3, $4)',
+                    [locId, h.dia_semana, h.hora_apertura, h.hora_cierre]
+                );
+            }
         }
-    }
-    
-    return await getLocationByName(locId);
+
+        return getLocationByName(locId, db);
+    });
 }
 
 async function getEmpresaNameById(empresa_id) {
@@ -105,24 +135,31 @@ async function getEmpresaNameById(empresa_id) {
 }
 
 async function createAgencia(id_destino, payload) {
-    const db = await getDB();
     const { nombre_destino, tipo, empresa_id, empresaNombre, departamento, municipio, direccion_referencia, maps_url, lat, lng, imagen_referencia, horariosArr } = payload;
-    
-    await db.query(
-        `INSERT INTO agencias (id_destino, nombre_destino, tipo, empresa_id, empresa, departamento, municipio, direccion_referencia, maps_url, lat, lng, imagen_referencia) 
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
-        [id_destino, nombre_destino, tipo, empresa_id, empresaNombre, departamento, municipio, direccion_referencia, maps_url || null, lat || null, lng || null, imagen_referencia]
-    );
 
-    if (horariosArr && horariosArr.length > 0) {
-        for (const h of horariosArr) {
-            const t_accion = h.tipo_accion || 'ambos';
-            await db.query(`INSERT INTO horarios_operativos (agencia_id, dia_semana, hora_apertura, hora_cierre, tipo_accion) VALUES ($1, $2, $3, $4, $5)`, [id_destino, h.dia_semana, h.hora_apertura, h.hora_cierre, t_accion]);
+    return withTransaction(async (db) => {
+        const result = await db.query(
+        `INSERT INTO agencias (id_destino, nombre_destino, tipo, empresa_id, empresa, departamento, municipio, direccion_referencia, maps_url, lat, lng, imagen_referencia) 
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+         RETURNING id`,
+            [id_destino, nombre_destino, tipo, empresa_id, empresaNombre, departamento, municipio, direccion_referencia, maps_url || null, lat ?? null, lng ?? null, imagen_referencia]
+        );
+        const agencyId = result.rows[0].id;
+
+        for (const h of horariosArr || []) {
+            const actionType = h.tipo_accion || 'ambos';
+            await db.query(
+                'INSERT INTO horarios_operativos (agencia_id, dia_semana, hora_apertura, hora_cierre, tipo_accion) VALUES ($1, $2, $3, $4, $5)',
+                [agencyId, h.dia_semana, h.hora_apertura, h.hora_cierre, actionType]
+            );
         }
-    }
+
+        return agencyId;
+    });
 }
 
 module.exports = {
+    buildAgencyUpdate,
     getAllLocations,
     getLocationByName,
     updateLocation,

@@ -32,7 +32,7 @@
   <main class="partner-main">
     
     <header class="main-header">
-      <div style="display: flex; align-items: center; gap: 24px;">
+      <div class="main-header-content">
         <h1>
           {{ activeTab === 'dashboard' ? 'Resumen' : '' }}
           {{ activeTab === 'puntos' ? 'Gestión de Puntos' : '' }}
@@ -41,7 +41,7 @@
         </h1>
         
         <div class="search-bar" *ngIf="activeTab === 'puntos'">
-          <input type="text" placeholder="Buscar por agencia o municipio..." [(ngModel)]="searchText" (ngModelChange)="onFilterChange()" class="premium-input" style="width: 300px; padding: 8px 14px;">
+          <input type="text" placeholder="Buscar por agencia o municipio..." [(ngModel)]="searchText" (ngModelChange)="onFilterChange()" class="premium-input search-input-extended">
         </div>
       </div>
       
@@ -70,19 +70,19 @@
       <!-- PUNTOS TAB -->
       <div *ngIf="activeTab === 'puntos'">
         <!-- Cargando -->
-        <div *ngIf="loading" style="text-align: center; padding: 40px; color: var(--text-muted);">
+        <div *ngIf="loading" class="loading-container">
           Cargando puntos de la empresa...
         </div>
         
         <!-- Estado Vacío -->
-        <div class="empty-state" *ngIf="!loading && companyLocations.length === 0" style="padding: 60px 20px; text-align: center; background: white; border-radius: 12px; border: 1px dashed #cbd5e1;">
-          <h3 style="margin-bottom: 12px; color: var(--text-main);">No has añadido puntos recientemente</h3>
-          <p style="color: var(--text-muted); margin-bottom: 24px;">Comienza creando un punto manualmente o importando tu plantilla.</p>
-          <button class="primary-btn">+ Crear mi primer punto</button>
+        <div class="empty-state empty-state-container" *ngIf="!loading && companyLocations.length === 0">
+          <h3 class="empty-state-title">No has añadido puntos recientemente</h3>
+          <p class="empty-state-description">Comienza creando un punto manualmente o importando tu plantilla.</p>
+          <button type="button" class="primary-btn">+ Crear mi primer punto</button>
         </div>
         
         <!-- Sin resultados de búsqueda -->
-        <div class="empty-state" *ngIf="!loading && companyLocations.length > 0 && allFilteredCompanyLocations.length === 0" style="text-align: center; padding: 40px; color: var(--text-muted);">
+        <div class="empty-state no-results-state" *ngIf="!loading && companyLocations.length > 0 && allFilteredCompanyLocations.length === 0">
           No se encontraron puntos para "{{ searchText }}".
         </div>
         
@@ -101,11 +101,11 @@
               <div class="loc-info-row">
                 <span class="loc-icon">📍</span>
                 <span *ngIf="loc.ubicacion?.lat">Geolocalizado</span>
-                <span *ngIf="!loc.ubicacion?.lat" style="color: #ef4444;">Sin coordenadas</span>
+                <span *ngIf="!loc.ubicacion?.lat" class="text-danger">Sin coordenadas</span>
               </div>
             </div>
             <div class="loc-card-footer">
-              <button class="btn-text" style="color: var(--primary);" (click)="administrarReglas(loc)">Administrar Reglas →</button>
+              <button type="button" class="btn-text btn-text-primary" (click)="administrarReglas(loc)">Administrar Reglas →</button>
             </div>
           </div>
         </div>
@@ -126,14 +126,14 @@
       </div>
       
       <!-- CONEXIONES TAB (ROUTE MAP) -->
-      <div *ngIf="activeTab === 'conexiones'" style="height: 100%; width: 100%; position: relative;">
+      <div *ngIf="activeTab === 'conexiones'" class="connections-container">
         <!-- Filter Overlay -->
         <div class="map-controls-overlay">
-          <div style="font-weight: 600; margin-bottom: 8px; color: var(--text-main);">Rutas Logísticas</div>
-          <p style="font-size: 13px; color: var(--text-muted); margin-top: 0;">Selecciona un punto de origen para crear o ver sus rutas de envío (Air-routes).</p>
+          <div class="map-overlay-title">Rutas Logísticas</div>
+          <p class="map-overlay-description">Selecciona un punto de origen para crear o ver sus rutas de envío (Air-routes).</p>
         </div>
         
-        <div id="partnerMap" style="height: 100%; width: 100%; background: #e2e8f0;"></div>
+        <div id="partnerMap"></div>
       </div>
       
     </div>
@@ -145,7 +145,7 @@
       <div class="side-panel-header">
         <div>
           <h2>Configuración del Punto</h2>
-          <span class="badge" style="background: rgba(255,111,97,0.1); color: var(--primary); padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: 600;">
+          <span class="badge panel-badge">
             {{ selectedLocationToEdit.nombre_destino }}
           </span>
         </div>
@@ -175,7 +175,7 @@
               <div class="h-horas">{{ h.hora_inicio }} - {{ h.hora_fin }}</div>
               <div class="h-tipo">{{ h.tipo_accion }}</div>
             </div>
-            <div *ngIf="!selectedLocationToEdit.horarios_operativos?.length" style="color: var(--text-muted); font-size: 13px;">
+            <div *ngIf="!selectedLocationToEdit.horarios_operativos?.length" class="no-schedules-msg">
               No hay horarios configurados.
             </div>
           </div>
@@ -195,14 +195,14 @@
             </div>
             
             <div class="form-group-row">
-              <div class="form-group" style="flex: 1;">
+              <div class="form-group form-group-flex">
                 <label>Tipo de Regla</label>
                 <select class="premium-input" [(ngModel)]="exc.tipo_regla">
                   <option value="corte">Exigir Día de Depósito</option>
                   <option value="antelacion">Cambiar Días Antelación</option>
                 </select>
               </div>
-              <div class="form-group" style="flex: 1;">
+              <div class="form-group form-group-flex">
                 <label>Valor / Condición</label>
                 <select class="premium-input" *ngIf="exc.tipo_regla === 'corte'" [(ngModel)]="exc.valor">
                   <option value="Lunes">Lunes</option>
@@ -221,7 +221,7 @@
             </div>
           </div>
           
-          <button class="btn-text" style="color: var(--primary); margin-top: 12px; padding: 0;" (click)="addExcepcion()">+ Añadir Excepción de Ruta (Punto a Punto)</button>
+          <button type="button" class="btn-text btn-add-exception" (click)="addExcepcion()">+ Añadir Excepción de Ruta (Punto a Punto)</button>
         </div>
 
       </div>

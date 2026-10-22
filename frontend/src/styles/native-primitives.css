@@ -1,0 +1,292 @@
+/* SiVoy UI primitives: behavioral classes are attached by standalone directives. */
+.si-button,
+.si-icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  border: 1px solid transparent;
+  background: var(--si-color-ink);
+  color: var(--si-color-surface);
+  font-family: var(--si-font-text);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  line-height: 1.375rem;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background-color var(--si-motion-feedback) var(--si-ease-native),
+    border-color var(--si-motion-feedback) var(--si-ease-native),
+    color var(--si-motion-feedback) var(--si-ease-native),
+    opacity var(--si-motion-feedback) var(--si-ease-native),
+    transform var(--si-motion-feedback) var(--si-ease-native);
+}
+
+.si-button {
+  gap: var(--si-space-2);
+  padding-inline: var(--si-space-5);
+  border-radius: var(--si-radius-round);
+}
+
+.si-icon-button {
+  width: 44px;
+  padding: 0;
+  border-radius: var(--si-radius-round);
+}
+
+.si-button[data-size='sm'] {
+  padding-inline: var(--si-space-4);
+}
+
+.si-button[data-size='lg'],
+.si-icon-button[data-size='lg'] {
+  min-height: 52px;
+}
+
+.si-icon-button[data-size='lg'] {
+  width: 52px;
+}
+
+.si-button--secondary,
+.si-icon-button--secondary {
+  border-color: var(--si-color-border);
+  background: var(--si-color-surface);
+  color: var(--si-color-ink);
+}
+
+.si-button--ghost,
+.si-icon-button--ghost {
+  background: transparent;
+  color: var(--si-color-ink);
+}
+
+@media (hover: hover) {
+  .si-button:hover:not(.si-control--disabled),
+  .si-icon-button:hover:not(.si-control--disabled) {
+    background: color-mix(in srgb, var(--si-color-ink) 88%, var(--si-color-surface));
+  }
+
+  .si-button--secondary:hover:not(.si-control--disabled),
+  .si-icon-button--secondary:hover:not(.si-control--disabled),
+  .si-button--ghost:hover:not(.si-control--disabled),
+  .si-icon-button--ghost:hover:not(.si-control--disabled) {
+    background: color-mix(in srgb, var(--si-color-ink) 5%, var(--si-color-surface));
+    color: var(--si-color-ink);
+  }
+}
+
+.si-button:active:not(.si-control--disabled),
+.si-icon-button:active:not(.si-control--disabled) {
+  transform: translateY(1px);
+}
+
+.si-button:focus-visible,
+.si-icon-button:focus-visible,
+.si-input:focus-visible {
+  outline: 0;
+  box-shadow: var(--si-focus-ring);
+}
+
+.si-control--disabled {
+  opacity: 0.46;
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
+.si-input {
+  width: 100%;
+  min-height: 48px;
+  padding-inline: var(--si-space-4);
+  border: 1px solid var(--si-color-border);
+  border-radius: var(--si-radius-control);
+  background: var(--si-color-surface);
+  color: var(--si-color-ink);
+  font: var(--si-type-body);
+  transition:
+    border-color var(--si-motion-feedback) var(--si-ease-native),
+    box-shadow var(--si-motion-feedback) var(--si-ease-native);
+}
+
+textarea.si-input {
+  min-height: 96px;
+  padding-block: var(--si-space-3);
+  resize: vertical;
+}
+
+.si-input::placeholder {
+  color: var(--si-color-ink-muted);
+  opacity: 1;
+}
+
+.si-input:hover {
+  border-color: color-mix(in srgb, var(--si-color-ink) 24%, transparent);
+}
+
+.si-input:focus-visible {
+  border-color: var(--si-color-brand);
+}
+
+.si-input--invalid {
+  border-color: var(--si-color-danger-ink);
+}
+
+.si-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: var(--si-space-1) var(--si-space-3);
+  border: 1px solid var(--si-color-border);
+  border-radius: var(--si-radius-round);
+  background: var(--si-color-surface);
+  color: var(--si-color-ink);
+  font: var(--si-type-meta);
+}
+
+.si-chip[data-tone='accent'] {
+  border-color: color-mix(in srgb, var(--si-color-brand) 20%, transparent);
+  background: var(--si-color-brand-soft);
+  color: var(--si-color-brand-strong);
+}
+
+.si-chip[data-tone='success'] {
+  border-color: color-mix(in srgb, var(--si-color-success-ink) 18%, transparent);
+  background: var(--si-color-success-soft);
+  color: var(--si-color-success-ink);
+}
+
+.si-chip[data-tone='info'] {
+  border-color: color-mix(in srgb, var(--si-color-info-ink) 18%, transparent);
+  background: var(--si-color-info-soft);
+  color: var(--si-color-info-ink);
+}
+
+.si-chip[data-tone='warning'] {
+  border-color: color-mix(in srgb, var(--si-color-warning-ink) 18%, transparent);
+  background: var(--si-color-warning-soft);
+  color: var(--si-color-warning-ink);
+}
+
+.si-card {
+  display: block;
+  padding: var(--si-space-4);
+  border: 1px solid var(--si-color-border);
+  border-radius: var(--si-radius-card);
+  background: var(--si-color-surface);
+  color: var(--si-color-ink);
+  box-shadow: var(--si-shadow-level-0);
+  transition:
+    box-shadow var(--si-motion-standard) var(--si-ease-native),
+    background-color var(--si-motion-standard) var(--si-ease-native),
+    border-color var(--si-motion-standard) var(--si-ease-native);
+}
+
+.si-card--elevated {
+  box-shadow: var(--si-shadow-level-1);
+}
+
+.si-card[data-tone='accent'] {
+  border-color: color-mix(in srgb, var(--si-color-brand) 18%, transparent);
+  background: var(--si-color-brand-soft);
+}
+
+.si-card[data-tone='success'] {
+  border-color: color-mix(in srgb, var(--si-color-success-ink) 18%, transparent);
+  background: var(--si-color-success-soft);
+}
+
+.si-card[data-tone='info'] {
+  border-color: color-mix(in srgb, var(--si-color-info-ink) 18%, transparent);
+  background: var(--si-color-info-soft);
+}
+
+.si-card[data-tone='warning'] {
+  border-color: color-mix(in srgb, var(--si-color-warning-ink) 18%, transparent);
+  background: var(--si-color-warning-soft);
+}
+
+.si-card[data-tone='contrast'] {
+  border-color: var(--si-color-ink);
+  background: var(--si-color-ink);
+  color: var(--si-color-surface);
+}
+
+.si-sheet {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  padding-bottom: calc(var(--si-space-6) + var(--si-safe-area-bottom));
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border-radius: var(--si-radius-sheet) var(--si-radius-sheet) 0 0;
+  background: var(--si-color-surface);
+  box-shadow: var(--si-shadow-sheet);
+  transition:
+    opacity var(--si-motion-sheet) var(--si-ease-native),
+    transform var(--si-motion-sheet) var(--si-ease-native);
+}
+
+.si-sheet[data-state='collapsed'] {
+  height: 6.5rem;
+}
+
+.si-sheet[data-state='half'] {
+  height: 52dvh;
+}
+
+.si-sheet[data-state='expanded'] {
+  height: min(76dvh, calc(100dvh - var(--si-space-6)));
+}
+
+.si-modal {
+  width: calc(100% - var(--si-space-6) - var(--si-space-6));
+  max-width: 30rem;
+  max-height: calc(
+    100dvh - var(--si-safe-area-top) - var(--si-safe-area-bottom) - var(--si-space-6) - var(--si-space-6)
+  );
+  margin: auto;
+  padding: var(--si-space-6);
+  overflow-x: hidden;
+  overflow-y: auto;
+  border: 0;
+  border-radius: var(--si-radius-card);
+  background: var(--si-color-surface);
+  color: var(--si-color-ink);
+  box-shadow: var(--si-shadow-level-2);
+  transition:
+    opacity var(--si-motion-standard) var(--si-ease-native),
+    transform var(--si-motion-standard) var(--si-ease-native);
+}
+
+.si-modal[data-size='sm'] {
+  max-width: 20rem;
+}
+
+.si-modal[data-size='md'] {
+  max-width: 30rem;
+}
+
+.si-modal[data-size='lg'] {
+  max-width: 45rem;
+}
+
+.si-modal::backdrop {
+  background: color-mix(in srgb, var(--si-color-ink) 40%, transparent);
+  backdrop-filter: blur(4px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .si-button,
+  .si-icon-button,
+  .si-input,
+  .si-card,
+  .si-sheet,
+  .si-modal {
+    transition: none;
+  }
+}

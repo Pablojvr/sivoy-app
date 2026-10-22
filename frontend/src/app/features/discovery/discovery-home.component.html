@@ -1,0 +1,314 @@
+<main class="discovery-page" (click)="closeDestinationSearch(); $event.stopPropagation()">
+  <div class="ambient-orb orb-one" aria-hidden="true"></div>
+  <div class="ambient-orb orb-two" aria-hidden="true"></div>
+
+  <div class="discovery-shell">
+    <header class="discovery-header">
+      <a class="brand-lockup" href="#/" aria-label="SiVoy, inicio">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 28 28" fill="none"><path d="M7 7.5h9.5a4.5 4.5 0 0 1 0 9H12" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="m8.5 13-4 4 4 4" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+        <span>SiVoy</span>
+      </a>
+    </header>
+
+    <section class="hero-section" aria-labelledby="discovery-title">
+      <div class="hero-copy">
+        <h1 id="discovery-title">Envía sin complicarte.</h1>
+        <p>Encuentra y comparte el punto correcto.</p>
+      </div>
+
+      <div class="destination-search" [class.is-active]="isDestinationSearchActive" (click)="$event.stopPropagation()">
+        <form class="destination-command" role="search" (submit)="$event.preventDefault()">
+          <span class="command-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+          </span>
+          <label class="visually-hidden" for="destination-search-input">Buscar municipio, punto de entrega o lugar</label>
+          <input
+            #destinationSearchInput
+            id="destination-search-input"
+            class="destination-search-input"
+            type="search"
+            inputmode="search"
+            autocomplete="off"
+            placeholder="Busca un municipio, punto o lugar"
+            [value]="destinationSearchQuery"
+            aria-controls="destination-search-results"
+            (focus)="activateDestinationSearch()"
+            (input)="onDestinationSearchInput($event)"
+            (keydown.escape)="closeDestinationSearch()">
+          <button
+            *ngIf="destinationSearchQuery"
+            type="button"
+            class="command-clear"
+            aria-label="Limpiar búsqueda"
+            (click)="clearDestinationSearch(destinationSearchInput)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 6 12 12M18 6 6 18"/></svg>
+          </button>
+        </form>
+
+        <div
+          *ngIf="isDestinationSearchActive && destinationSearchQuery.trim()"
+          id="destination-search-results"
+          class="destination-suggestions">
+          <ng-container *ngIf="!searching; else searchingDestinations">
+            <ng-container *ngIf="hasDestinationSearchResults; else noDestinationMatches">
+              <section class="destination-local-results" aria-label="Resultados registrados en SiVoy">
+                <div *ngIf="filteredPoints.length > 0" aria-labelledby="point-suggestions-title">
+                  <h2 id="point-suggestions-title">Puntos de entrega</h2>
+                  <button
+                    type="button"
+                    *ngFor="let point of filteredPoints; trackBy: trackPoint"
+                    (click)="selectPointSuggestion(point)">
+                    <span class="suggestion-icon point" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 5.5-8 11-8 11S4 15.5 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>
+                    </span>
+                    <span class="suggestion-copy">
+                      <strong>{{ pointName(point) }}</strong>
+                      <small>{{ locationLabel(point) }}</small>
+                    </span>
+                    <svg class="suggestion-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+                  </button>
+                </div>
+
+                <div *ngIf="filteredMunicipalities.length > 0" aria-labelledby="municipality-suggestions-title">
+                  <h2 id="municipality-suggestions-title">Municipios</h2>
+                  <button
+                    type="button"
+                    *ngFor="let municipality of filteredMunicipalities; trackBy: trackMunicipality"
+                    (click)="selectMunicipalitySuggestion(municipality)">
+                    <span class="suggestion-icon municipality" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V9l7-5 7 5v12M9 21v-7h6v7"/></svg>
+                    </span>
+                    <span class="suggestion-copy">
+                      <strong>{{ municipality.municipio }}</strong>
+                      <small>{{ municipality.departamento }}</small>
+                    </span>
+                    <span class="suggestion-meta">{{ municipality.pointCount }} {{ municipality.pointCount === 1 ? 'punto' : 'puntos' }}</span>
+                  </button>
+                </div>
+              </section>
+            </ng-container>
+            <ng-template #noDestinationMatches>
+              <div class="destination-empty" role="status">
+                <strong>No encontramos un punto registrado con ese nombre</strong>
+                <span *ngIf="externalPlaceProviderAvailable !== false; else catalogOnlySearchHelp">También puedes buscar el lugar en El Salvador.</span>
+                <ng-template #catalogOnlySearchHelp>
+                  <span>Prueba con otro municipio o punto de entrega.</span>
+                </ng-template>
+              </div>
+            </ng-template>
+          </ng-container>
+          <ng-template #searchingDestinations>
+            <div class="destination-searching" role="status">
+              <div class="destination-empty">
+                <strong>Buscando destinos…</strong>
+                <span>Revisando municipios y puntos disponibles.</span>
+              </div>
+              <div class="suggestion-loading" aria-hidden="true"></div>
+              <div class="suggestion-loading" aria-hidden="true"></div>
+              <div class="suggestion-loading" aria-hidden="true"></div>
+            </div>
+          </ng-template>
+
+          <section
+            *ngIf="externalPlaceSearchState !== 'idle' || externalPlaceResolutionState !== 'idle' || externalPlaceSuggestions.length > 0"
+            class="destination-external-results"
+            aria-labelledby="external-place-suggestions-title">
+            <h2 id="external-place-suggestions-title" class="destination-external-heading">Lugares en El Salvador</h2>
+
+            <div *ngIf="externalPlaceSearchState === 'loading'" class="external-place-state" role="status">
+              <span class="external-place-state-icon is-loading" aria-hidden="true"></span>
+              <span><strong>Buscando lugares…</strong><small>Consultando coincidencias en El Salvador.</small></span>
+            </div>
+
+            <div *ngIf="externalPlaceSearchState === 'error'" class="external-place-state is-error" role="status">
+              <span class="external-place-state-icon" aria-hidden="true">!</span>
+              <span><strong>No pudimos consultar lugares</strong><small>{{ externalPlaceSearchError || 'Intenta nuevamente.' }}</small></span>
+            </div>
+
+            <button
+              type="button"
+              class="external-place-suggestion"
+              *ngFor="let suggestion of externalPlaceSuggestions"
+              (click)="selectExternalPlaceSuggestion(suggestion)">
+              <span class="suggestion-icon external" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 5.5-8 11-8 11S4 15.5 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>
+              </span>
+              <span class="suggestion-copy external-place-copy">
+                <strong>{{ suggestion.mainText || suggestion.text }}</strong>
+                <small>{{ suggestion.secondaryText || suggestion.text }}</small>
+              </span>
+              <svg class="suggestion-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+            </button>
+
+            <div *ngIf="externalPlaceResolutionState === 'loading'" class="external-place-state" role="status">
+              <span class="external-place-state-icon is-loading" aria-hidden="true"></span>
+              <span><strong>Confirmando lugar…</strong><small>Estamos verificando su cobertura.</small></span>
+            </div>
+
+            <div *ngIf="externalPlaceResolutionState === 'resolved' && resolvedPlaceContext" class="external-place-state is-confirmed" role="status">
+              <span class="external-place-state-icon" aria-hidden="true">✓</span>
+              <span>
+                <strong>Encontramos {{ resolvedPlaceContext.reference }} en {{ resolvedPlaceContext.municipio }}.</strong>
+                <small>Estas opciones están registradas en el mismo municipio.</small>
+              </span>
+              <button type="button" class="external-place-confirm" (click)="confirmResolvedPlaceDestination()">
+                Ver puntos de {{ resolvedPlaceContext.municipio }}
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+              </button>
+            </div>
+
+            <div *ngIf="externalPlaceResolutionState === 'uncovered'" class="external-place-state is-uncovered" role="status">
+              <span class="external-place-state-icon" aria-hidden="true">!</span>
+              <span><strong>No existe cobertura cercana o similar</strong><small>{{ externalPlaceResolutionError || 'Prueba con otro lugar o municipio.' }}</small></span>
+            </div>
+
+            <div *ngIf="externalPlaceResolutionState === 'error'" class="external-place-state is-error" role="status">
+              <span class="external-place-state-icon" aria-hidden="true">!</span>
+              <span><strong>No pudimos confirmar el lugar</strong><small>{{ externalPlaceResolutionError || 'Intenta nuevamente.' }}</small></span>
+            </div>
+
+            <p class="external-privacy-note">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/></svg>
+              <span>Al buscar lugares, el texto se envía a Google.</span>
+            </p>
+          </section>
+        </div>
+      </div>
+
+      <div class="quick-destinations" *ngIf="municipalities.length > 0" aria-label="Destinos frecuentes">
+        <span>Frecuentes</span>
+        <button type="button" *ngFor="let municipality of municipalities; trackBy: trackMunicipality" (click)="municipalitySelected.emit(municipality)">
+          {{ municipality.municipio }}
+        </button>
+      </div>
+    </section>
+
+    <section class="coverage-strip" aria-label="Resumen de cobertura">
+      <div class="coverage-metrics" aria-live="polite">
+        <span><strong>{{ isLoading ? '—' : pointCount + (hasMoreCompanies ? '+' : '') }}</strong><small>Puntos</small></span>
+        <span><strong>{{ isLoading ? '—' : totalMunicipalities + (hasMoreMunicipalities ? '+' : '') }}</strong><small>Municipios</small></span>
+        <span><strong>{{ isLoading ? '—' : companyCount + (hasMoreCompanies ? '+' : '') }}</strong><small>{{ companyCount === 1 ? 'Empresa' : 'Empresas' }}</small></span>
+      </div>
+      <button type="button" class="coverage-map-action" (click)="mapExplore.emit()" aria-label="Explorar puntos en el mapa">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3V6Z"/><path d="M9 3v15M15 6v15"/></svg>
+        Mapa
+      </button>
+    </section>
+
+    <section class="content-section" aria-labelledby="companies-title">
+      <div class="section-heading">
+        <div><h2 id="companies-title">Empresas</h2></div>
+      </div>
+
+      <div class="company-grid" *ngIf="companies.length > 0; else companySkeleton">
+        <button
+          type="button"
+          class="company-card"
+          *ngFor="let company of companies; trackBy: trackCompany"
+          [style.--company-accent]="company.accent"
+          (click)="companySelected.emit(company.name)">
+          <span class="company-monogram">{{ company.monogram }}</span>
+          <span class="company-copy">
+            <strong>{{ company.name }}</strong>
+            <span>{{ company.pointCount }} puntos disponibles</span>
+          </span>
+          <span class="company-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg></span>
+        </button>
+      </div>
+      <ng-template #companySkeleton>
+        <div class="company-card company-loading"><span></span><span></span></div>
+      </ng-template>
+    </section>
+
+    <section class="content-section point-section" aria-labelledby="points-title">
+      <div class="section-heading">
+        <div><h2 id="points-title">Puntos destacados</h2></div>
+      </div>
+
+      <div class="point-rail" *ngIf="featuredPoints.length > 0; else pointSkeleton">
+        <article class="discovery-point-card" *ngFor="let point of featuredPoints; trackBy: trackPoint">
+          <header class="point-card-top">
+            <span class="point-provider">
+              <span class="point-provider-mark" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7.5 12 3l8 4.5v9L12 21l-8-4.5v-9Z"/><path d="m4.5 7.8 7.5 4.3 7.5-4.3M12 12.1V21"/></svg>
+              </span>
+              <span class="point-provider-copy"><small>Operado por</small><strong>{{ point.company.name }}</strong></span>
+            </span>
+            <button
+              type="button"
+              class="point-save-action"
+              [class.is-saved]="savedPoints.isSaved(point.pointId)"
+              [class.is-save-confirmed]="savedFeedbackPointId() === point.pointId"
+              [attr.aria-pressed]="savedPoints.isSaved(point.pointId)"
+              [attr.aria-label]="(savedPoints.isSaved(point.pointId) ? 'Quitar ' : 'Guardar ') + pointName(point) + (savedPoints.isSaved(point.pointId) ? ' de guardados' : ' en guardados')"
+              [attr.data-testid]="'featured-save-' + point.pointId"
+              (click)="toggleSavedPoint(point, $event)">
+              <svg viewBox="0 0 24 24" [attr.fill]="savedPoints.isSaved(point.pointId) ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 4.8A1.8 1.8 0 0 1 7.8 3h8.4A1.8 1.8 0 0 1 18 4.8V21l-6-3.8L6 21V4.8Z"/></svg>
+            </button>
+          </header>
+
+          <div class="point-card-body">
+            <div class="point-visual">
+              <img
+                *ngIf="point.media.imageUrl; else pointVisualPlaceholder"
+                [src]="point.media.imageUrl"
+                [alt]="'Referencia visual de ' + pointName(point)"
+                loading="lazy">
+              <ng-template #pointVisualPlaceholder>
+                <span class="point-visual-placeholder" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 5.5-8 11-8 11S4 15.5 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>
+                </span>
+              </ng-template>
+            </div>
+
+            <div class="point-card-copy">
+              <h3>{{ pointName(point) }}</h3>
+              <p class="point-location">{{ locationLabel(point) }}</p>
+              <span
+                class="point-availability"
+                [class.is-open]="point.availability.status === 'OPEN'"
+                [class.is-closed]="point.availability.status === 'CLOSED'">
+                <i aria-hidden="true"></i>
+                <ng-container [ngSwitch]="point.availability.status">
+                  <span *ngSwitchCase="'OPEN'">Abierto ahora</span>
+                  <span *ngSwitchCase="'CLOSED'">Cerrado ahora</span>
+                  <span *ngSwitchDefault>Horario por confirmar</span>
+                </ng-container>
+              </span>
+            </div>
+          </div>
+
+          <footer class="point-card-actions">
+            <button type="button" class="point-primary-action" (click)="pointPreview.emit(point)">
+              Ver detalles
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M14 7l5 5-5 5"/></svg>
+            </button>
+            <button type="button" class="map-icon-button" (click)="pointMap.emit(point)" [attr.aria-label]="'Ver ' + pointName(point) + ' en el mapa'">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3V6Z"/><path d="M9 3v15M15 6v15"/></svg>
+              <span>Ver en mapa</span>
+            </button>
+          </footer>
+        </article>
+      </div>
+      <ng-template #pointSkeleton>
+        <div class="point-rail" aria-hidden="true">
+          <article class="discovery-point-card point-loading">
+            <span class="point-loading-provider"></span>
+            <span class="point-loading-media"></span>
+            <span class="point-loading-copy"></span>
+            <span class="point-loading-actions"></span>
+          </article>
+          <article class="discovery-point-card point-loading">
+            <span class="point-loading-provider"></span>
+            <span class="point-loading-media"></span>
+            <span class="point-loading-copy"></span>
+            <span class="point-loading-actions"></span>
+          </article>
+        </div>
+      </ng-template>
+    </section>
+
+  </div>
+</main>

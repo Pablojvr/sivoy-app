@@ -1,0 +1,295 @@
+<main class="saved-points-page">
+  <header class="saved-points-header">
+    <div>
+      <p class="saved-points-eyebrow">Tus lugares</p>
+      <h1>Guardados</h1>
+    </div>
+    <span class="saved-points-count" aria-label="Cantidad de puntos guardados">
+      {{ savedPointsStore.savedPoints().length }}
+    </span>
+  </header>
+
+  <p class="saved-points-local-note">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true">
+      <rect x="4" y="3" width="16" height="18" rx="3"></rect>
+      <path d="M8 7h8M8 11h8M8 15h5"></path>
+    </svg>
+    <span><strong>Guardados en este dispositivo.</strong> No se sincronizan con una cuenta.</span>
+  </p>
+
+  <section
+    *ngIf="savedPointsStore.savedPoints().length === 0; else savedList"
+    class="saved-points-empty"
+    role="status"
+  >
+    <span class="saved-points-empty-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M6 4.8A1.8 1.8 0 0 1 7.8 3h8.4A1.8 1.8 0 0 1 18 4.8V21l-6-3.8L6 21V4.8Z"></path>
+        <path d="M9 8h6"></path>
+      </svg>
+    </span>
+    <h2>Aún no guardaste puntos</h2>
+    <p>Guarda las agencias que compartes con frecuencia y encuéntralas aquí.</p>
+    <a data-testid="saved-empty-home" routerLink="/" class="saved-points-home-link">Explorar puntos</a>
+  </section>
+
+  <ng-template #savedList>
+    <section class="saved-points-search" aria-labelledby="saved-points-search-label">
+      <label id="saved-points-search-label" for="saved-points-search-input">Buscar en guardados</label>
+      <div class="saved-points-search-control">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true">
+          <circle cx="11" cy="11" r="6.5"></circle>
+          <path d="m16 16 4 4"></path>
+        </svg>
+        <input
+          id="saved-points-search-input"
+          type="search"
+          aria-label="Buscar en guardados"
+          placeholder="Nombre, empresa o ubicación"
+          autocomplete="off"
+          spellcheck="false"
+          [value]="searchQuery()"
+          (input)="updateSearchQuery($event)"
+        >
+        <button
+          *ngIf="isSearchActive()"
+          type="button"
+          class="saved-points-search-clear"
+          aria-label="Limpiar búsqueda"
+          (click)="clearSearch()"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="m7 7 10 10M17 7 7 17"></path>
+          </svg>
+        </button>
+      </div>
+      <p
+        *ngIf="isSearchActive()"
+        class="saved-points-search-count"
+        data-testid="saved-search-count"
+        aria-live="polite"
+      >
+        {{ filteredSavedPoints().length }} de {{ savedPointsStore.savedPoints().length }} guardados
+      </p>
+    </section>
+
+    <section
+      *ngIf="filteredSavedPoints().length === 0; else filteredList"
+      class="saved-points-no-results"
+      role="status"
+    >
+      <span class="saved-points-empty-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <circle cx="10.5" cy="10.5" r="6.5"></circle>
+          <path d="m15.5 15.5 4 4M8.5 8.5l4 4M12.5 8.5l-4 4"></path>
+        </svg>
+      </span>
+      <h2>No encontramos coincidencias</h2>
+      <p>No hay puntos guardados que coincidan con <strong>“{{ searchQuery().trim() }}”</strong>.</p>
+      <button
+        type="button"
+        class="saved-points-clear-results"
+        data-testid="saved-search-empty-clear"
+        (click)="clearSearch()"
+      >
+        Limpiar búsqueda
+      </button>
+    </section>
+
+    <ng-template #filteredList>
+    <section class="saved-points-list" aria-label="Puntos guardados">
+      <article
+        *ngFor="let record of filteredSavedPoints(); trackBy: trackPoint"
+        class="saved-point-card"
+        [attr.data-testid]="'saved-point-' + record.pointId"
+      >
+        <div class="saved-point-summary">
+          <button
+            type="button"
+            class="saved-point-thumbnail"
+            [class.has-image]="record.snapshot.media.imageUrl"
+            [attr.aria-label]="'Vista previa de ' + record.snapshot.name"
+            [attr.data-testid]="'saved-preview-thumbnail-' + record.pointId"
+            (click)="openPreview(record, $event)"
+          >
+            <img
+              *ngIf="record.snapshot.media.imageUrl && !unavailableThumbnailUrls().has(record.snapshot.media.imageUrl)"
+              [src]="record.snapshot.media.imageUrl"
+              [alt]="'Referencia de ' + record.snapshot.name"
+              loading="lazy"
+              (error)="markThumbnailUnavailable(record.snapshot.media.imageUrl)"
+            >
+            <svg *ngIf="!record.snapshot.media.imageUrl || unavailableThumbnailUrls().has(record.snapshot.media.imageUrl)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true">
+              <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"></path>
+              <circle cx="12" cy="10" r="2.5"></circle>
+            </svg>
+          </button>
+          <div class="saved-point-copy">
+            <p class="saved-point-company">{{ record.snapshot.company.name }}</p>
+            <h2>{{ record.snapshot.name }}</h2>
+            <p>{{ record.snapshot.location.municipality }}, {{ record.snapshot.location.department }}</p>
+            <small>Guardado {{ record.savedAt | date:'dd/MM/yyyy' }}</small>
+          </div>
+          <button
+            type="button"
+            class="saved-point-remove"
+            [attr.aria-label]="'Quitar ' + record.snapshot.name + ' de guardados'"
+            [attr.data-testid]="'saved-remove-' + record.pointId"
+            (click)="removePoint(record)"
+          >
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M6 4.8A1.8 1.8 0 0 1 7.8 3h8.4A1.8 1.8 0 0 1 18 4.8V21l-6-3.8L6 21V4.8Z"></path>
+            </svg>
+          </button>
+        </div>
+
+        <div class="saved-point-primary-actions">
+          <button
+            type="button"
+            class="saved-point-action saved-point-action--share"
+            [attr.data-testid]="'saved-share-' + record.pointId"
+            (click)="sharePoint(record)"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><path d="m8.6 10.5 6.8-4M8.6 13.5l6.8 4"></path>
+            </svg>
+            Compartir
+          </button>
+          <button
+            type="button"
+            class="saved-point-action saved-point-action--open"
+            [attr.data-testid]="'saved-open-' + record.pointId"
+            (click)="openPoint(record)"
+          >
+            Ver punto
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg>
+          </button>
+        </div>
+
+        <div class="saved-point-secondary-actions">
+          <button
+            type="button"
+            class="saved-point-preview-action"
+            [attr.data-testid]="'saved-preview-' + record.pointId"
+            (click)="openPreview(record, $event)"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true">
+              <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6S2.5 12 2.5 12Z"></path>
+              <circle cx="12" cy="12" r="2.5"></circle>
+            </svg>
+            Vista previa
+          </button>
+          <a
+            class="saved-point-map-link"
+            [href]="googleMapsUrl(record)"
+            target="_blank"
+            rel="noopener noreferrer"
+            [attr.aria-label]="'Ver ' + record.snapshot.name + ' en Google Maps'"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"></path><circle cx="12" cy="10" r="2.5"></circle></svg>
+            Ver en Google Maps
+          </a>
+        </div>
+      </article>
+    </section>
+    </ng-template>
+  </ng-template>
+
+  <dialog
+    #previewDialog
+    siModal
+    class="saved-point-preview-dialog"
+    aria-labelledby="saved-preview-title"
+    data-testid="saved-preview-dialog"
+    (cancel)="handlePreviewCancel($event)"
+    (close)="handlePreviewClosed()"
+    (click)="handlePreviewBackdrop($event)"
+  >
+    <article class="saved-point-preview-sheet">
+      <div class="saved-point-preview-topbar">
+        <span class="saved-point-preview-handle" aria-hidden="true"></span>
+        <button
+          #previewCloseButton
+          type="button"
+          class="saved-point-preview-close"
+          aria-label="Cerrar vista previa"
+          autofocus
+          (click)="closePreview()"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="m7 7 10 10M17 7 7 17"></path>
+          </svg>
+        </button>
+      </div>
+
+      <ng-container *ngIf="selectedPoint() as record">
+        <div class="saved-point-preview-media">
+          <img
+            *ngIf="record.snapshot.media.imageUrl && !previewImageUnavailable(); else previewPhotoFallback"
+            [src]="record.snapshot.media.imageUrl"
+            [alt]="'Fotografía de referencia de ' + record.snapshot.name"
+            (error)="markPreviewImageUnavailable()"
+          >
+          <ng-template #previewPhotoFallback>
+            <div class="saved-point-preview-photo-fallback" role="img" aria-label="Sin fotografía de referencia">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"></path>
+                <circle cx="12" cy="10" r="2.5"></circle>
+              </svg>
+              <span>Sin fotografía de referencia</span>
+            </div>
+          </ng-template>
+        </div>
+
+        <div class="saved-point-preview-content">
+          <p class="saved-point-preview-company">{{ record.snapshot.company.name }}</p>
+          <h2 id="saved-preview-title">{{ record.snapshot.name }}</h2>
+          <p class="saved-point-preview-location">
+            {{ record.snapshot.location.municipality }}, {{ record.snapshot.location.department }}
+          </p>
+          <p class="saved-point-preview-date">Guardado {{ record.savedAt | date:'dd/MM/yyyy' }}</p>
+
+          <section class="saved-point-preview-address" aria-labelledby="saved-preview-address-label">
+            <h3 id="saved-preview-address-label">Dirección</h3>
+            <p>{{ record.snapshot.location.address || 'Dirección no disponible' }}</p>
+          </section>
+
+          <div class="saved-point-preview-primary-actions">
+            <button
+              type="button"
+              class="saved-point-action saved-point-action--share"
+              [attr.data-testid]="'saved-preview-share-' + record.pointId"
+              (click)="sharePoint(record)"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><path d="m8.6 10.5 6.8-4M8.6 13.5l6.8 4"></path>
+              </svg>
+              Compartir
+            </button>
+            <button
+              type="button"
+              class="saved-point-action saved-point-action--open"
+              [attr.data-testid]="'saved-preview-open-' + record.pointId"
+              (click)="openPoint(record)"
+            >
+              Ver punto
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg>
+            </button>
+          </div>
+
+          <a
+            class="saved-point-preview-map-link"
+            [href]="googleMapsUrl(record)"
+            target="_blank"
+            rel="noopener noreferrer"
+            [attr.aria-label]="'Ver ' + record.snapshot.name + ' en Google Maps'"
+            [attr.data-testid]="'saved-preview-map-' + record.pointId"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"></path><circle cx="12" cy="10" r="2.5"></circle></svg>
+            Ver en Google Maps
+          </a>
+        </div>
+      </ng-container>
+    </article>
+  </dialog>
+</main>

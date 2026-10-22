@@ -1,42 +1,11 @@
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap');
-
-:root {
-  /* BRAND MANUAL CSS VARIABLES */
-  --primary: #F45B78;
-  --primary-dark: #D94262;
-  --signal-lime: #B8EE4A;
-  --signal-blue: #A9DDF5;
-  --signal-amber: #FFD18A;
-  --bg-color: #F2F4F2;
-  --surface: rgba(255, 255, 255, 0.85);
-  --surface-solid: #FFFFFF;
-  --text-main: #1D1E1C;
-  --text-muted: #626760;
-  --border: rgba(29, 30, 28, 0.10);
-  --radius-lg: 28px;
-  --radius-md: 16px;
-  --radius-sm: 8px;
-  --radius-pill: 100px;
-  --shadow-sm: 0 4px 14px rgba(29, 30, 28, 0.06);
-  --shadow-md: 0 18px 48px rgba(29, 30, 28, 0.12);
-  --shadow-lg: 0 22px 64px rgba(29, 30, 28, 0.17);
-  --focus-ring: 0 0 0 4px rgba(244, 91, 120, 0.22);
-  --danger: #C93655;
-  --success: #347A35;
-
-  /* Aliases for variables used in CSS but previously undefined */
-  --border-color: rgba(0, 0, 0, 0.08);
-  --surface-color: rgba(255, 255, 255, 0.85);
-  --surface-bg: #F2F4F2;
-  --text-color: #1D1E1C;
-  --surface-hover: #f1f5f9;
-}
+@import './styles/native-tokens.css';
+@import './styles/native-primitives.css';
 
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  font-family: 'Manrope', system-ui, sans-serif;
+  font-family: var(--si-font-text);
 }
 
 html, body {
@@ -46,8 +15,8 @@ html, body {
   position: fixed;
   margin: 0;
   padding: 0;
-  background-color: var(--bg-color, #F7F7F7);
-  color: var(--text-main, #222222);
+  background-color: var(--si-color-canvas);
+  color: var(--si-color-ink);
 }
 
 /* Custom Origin & Destination Markers for Map */
@@ -78,38 +47,6 @@ html, body {
   left: auto !important;
 }
 
-/* Spinner de carga global */
-.spinner-sivoy {
-  width: 48px;
-  height: 48px;
-  border: 4px solid #ffe4e6;
-  border-top: 4px solid #FF5A5F;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin: 0 auto;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.loader-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 40px 0;
-  text-align: center;
-}
-
-.loader-container p {
-  margin-top: 16px;
-  font-weight: 500;
-  color: #64748b;
-  font-size: 15px;
-}
-
 /* Mapbox marker language: compact, high-contrast and intentionally low-detail. */
 .sivoy-map-marker {
   position: relative;
@@ -126,7 +63,7 @@ html, body {
   /* Mapbox/MapLibre writes the geographic screen position to transform on every
      frame. Never animate or override that property here: doing so makes pins
      visually lag behind their coordinates while zooming. */
-  transition: opacity 180ms ease, filter 180ms ease;
+  transition: opacity var(--motion-fast) ease, filter var(--motion-fast) ease;
   will-change: opacity, filter;
 }
 
@@ -140,7 +77,8 @@ html, body {
   background: var(--primary);
   font-size: 11px;
   font-weight: 850;
-  transform: rotate(-45deg);
+  transform: rotate(-45deg) scale(var(--sivoy-map-marker-scale, 1));
+  transform-origin: center;
 }
 
 .sivoy-pin-core i {
@@ -165,7 +103,7 @@ html, body {
   border-width: 3px;
   border-radius: 50%;
   background: var(--signal-lime);
-  transform: none;
+  transform: scale(var(--sivoy-map-marker-scale, 1));
 }
 
 .sivoy-map-marker.is-nearby::before,
@@ -188,6 +126,8 @@ html, body {
   border-radius: 50%;
   background: #2f7bf2;
   box-shadow: 0 4px 12px rgba(47, 123, 242, 0.32);
+  transform: scale(var(--sivoy-map-marker-scale, 1));
+  transform-origin: center;
 }
 
 .sivoy-user-dot::before {
@@ -212,7 +152,7 @@ html, body {
 .sivoy-map-marker.is-selected .sivoy-pin-core,
 .sivoy-map-marker.marker-selected .sivoy-pin-core,
 .sivoy-map-marker.marker-highlighted .sivoy-pin-core {
-  box-shadow: 0 0 0 4px rgba(244, 91, 120, 0.22);
+  box-shadow: var(--focus-ring);
 }
 
 .sivoy-map-marker.marker-dimmed {
@@ -229,7 +169,7 @@ html, body {
   border: 1px solid rgba(29, 30, 28, 0.08);
   border-radius: 13px;
   color: var(--text-main);
-  font: 12px/1.4 'Manrope', system-ui, sans-serif;
+  font: 12px/1.4 var(--si-font-text);
   box-shadow: 0 12px 28px rgba(29, 30, 28, 0.15);
 }
 
@@ -262,7 +202,7 @@ html, body {
   font: inherit;
   text-align: left;
   cursor: pointer;
-  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+  transition: border-color var(--motion-fast) ease, box-shadow var(--motion-fast) ease, transform var(--motion-fast) ease;
 }
 
 .origin-place-helper-trigger:hover,
@@ -358,8 +298,8 @@ html, body {
 .google-source {
   padding: 4px 8px;
   border: 1px solid rgba(29, 30, 28, 0.08);
-  border-radius: 999px;
-  background: #fff;
+  border-radius: var(--radius-full);
+  background: var(--white);
   color: #657064;
   font-size: 9px;
   font-weight: 750;
@@ -545,7 +485,7 @@ html, body {
   border-radius: 20px;
   background: linear-gradient(145deg, var(--point-tint) 0, #fff 56%);
   box-shadow: 0 10px 28px rgba(29, 30, 28, 0.08);
-  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+  transition: border-color var(--motion-fast) ease, box-shadow var(--motion-fast) ease, transform var(--motion-fast) ease;
 }
 
 .cards-list .point-result-card:nth-child(3n + 2) {
@@ -611,16 +551,6 @@ html, body {
   white-space: nowrap;
 }
 
-.point-distance {
-  padding: 5px 8px;
-  border-radius: 999px;
-  background: #fff;
-  color: #d43f5e;
-  font-size: 11px;
-  font-weight: 850;
-  white-space: nowrap;
-}
-
 .point-result-main {
   min-height: 82px;
   display: flex;
@@ -636,7 +566,7 @@ html, body {
   display: grid;
   place-items: center;
   border-radius: 13px;
-  background: #fff;
+  background: var(--white);
   color: #ef4f70;
   box-shadow: 0 5px 14px rgba(95, 35, 47, 0.09);
 }
@@ -691,10 +621,10 @@ html, body {
   gap: 7px;
   border-radius: 13px;
   font: inherit;
-  font-size: 12px;
-  font-weight: 800;
+  font-size: 0.9375rem;
+  font-weight: 700;
   cursor: pointer;
-  transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease;
+  transition: background-color var(--motion-fast) ease, border-color var(--motion-fast) ease, color var(--motion-fast) ease;
 }
 
 .point-result-actions svg {
@@ -730,7 +660,7 @@ html, body {
   margin: 0 12px 10px;
   overflow: hidden;
   border: 1px solid color-mix(in srgb, var(--availability-accent) 48%, #fff);
-  border-radius: 16px;
+  border-radius: var(--radius-md);
   background: color-mix(in srgb, var(--availability-accent) 16%, #fff);
 }
 
@@ -810,7 +740,7 @@ html, body {
 .point-hours-count {
   padding: 5px 7px;
   border: 1px solid rgba(29, 30, 28, 0.07);
-  border-radius: 999px;
+  border-radius: var(--radius-full);
   background: rgba(255, 255, 255, 0.78);
   color: #545b51;
   font-size: 9px;
@@ -898,7 +828,7 @@ html, body {
 .point-result-disclosure svg {
   width: 17px;
   height: 17px;
-  transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition: transform var(--motion-standard) var(--ease-out);
 }
 
 .point-result-summary[aria-expanded='true'] .point-result-disclosure {
@@ -911,7 +841,7 @@ html, body {
 }
 
 .point-card-expandable {
-  animation: point-card-reveal 220ms cubic-bezier(0.22, 1, 0.36, 1);
+  animation: point-card-reveal var(--motion-standard) var(--ease-out);
   transform-origin: top;
 }
 
@@ -959,7 +889,7 @@ html, body {
 }
 
 .cards-list .point-result-card:not(.is-expanded) .point-result-actions button {
-  min-height: 40px;
+  min-height: 44px;
 }
 
 @keyframes point-card-reveal {
@@ -973,7 +903,7 @@ html, body {
   margin: 0 12px 10px;
   overflow: hidden;
   border: 1px solid rgba(29, 30, 28, 0.09);
-  border-radius: 16px;
+  border-radius: var(--radius-md);
   background: #e9ece7;
 }
 
@@ -1077,7 +1007,6 @@ html, body {
   .point-map-action {
     gap: 5px;
     padding-inline: 6px;
-    font-size: 10px;
   }
 
   .point-share-action svg,
@@ -1098,532 +1027,19 @@ html, body {
   }
 }
 
-/* Point detail: route action remains visible before secondary information. */
-.pin-details-card.pin-point-card {
-  bottom: max(102px, calc(env(safe-area-inset-bottom) + 88px));
-  left: 12px;
-  right: 12px;
-  max-height: min(68dvh, 610px);
+/* Contextual overrides for T18 UI Primitives Migration */
+.cards-list .point-result-card.si-card {
   padding: 0;
-  overflow: hidden;
-  border: 1px solid rgba(29, 30, 28, 0.1);
-  border-radius: 24px;
-  background: #fbfcfa;
-  box-shadow: 0 26px 70px rgba(29, 30, 28, 0.24);
-  transition: max-height 260ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 180ms ease;
 }
 
-.pin-details-card.pin-point-card.is-collapsed {
-  max-height: 126px;
-  box-shadow: 0 18px 45px rgba(29, 30, 28, 0.22);
-}
-
-.pin-card-expanded-content {
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-}
-
-.pin-card-hero {
-  position: relative;
-  min-height: 126px;
-  flex: 0 0 126px;
-  display: flex;
-  align-items: end;
-  padding: 17px;
-  overflow: hidden;
-  background-position: center;
-  background-size: cover;
-  color: #fff;
-  touch-action: pan-x;
-}
-
-.pin-card-hero::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, rgba(16, 17, 15, 0.06) 10%, rgba(16, 17, 15, 0.86) 100%);
-  pointer-events: none;
-}
-
-.pin-card-sheet-toggle {
-  position: absolute;
-  z-index: 4;
-  top: 7px;
-  left: 50%;
-  width: 64px;
-  height: 34px;
-  display: grid;
-  place-items: center;
-  padding: 0;
-  border: 0;
-  border-radius: 999px;
-  background: rgba(20, 21, 19, 0.56);
-  color: #fff;
-  backdrop-filter: blur(10px);
-  cursor: ns-resize;
-  touch-action: manipulation;
-}
-
-.pin-card-sheet-toggle > span {
-  width: 24px;
-  height: 3px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.82);
-}
-
-.pin-card-sheet-toggle svg {
-  position: absolute;
-  right: 5px;
-  width: 13px;
-  height: 13px;
-  transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.pin-point-card:not(.is-collapsed) .pin-card-sheet-toggle svg {
-  transform: rotate(180deg);
-}
-
-.pin-image-preview {
-  position: absolute;
-  z-index: 1;
-  inset: 0;
-  border: 0;
-  background: transparent;
-  cursor: zoom-in;
-}
-
-.pin-card-hero-actions {
-  position: absolute;
-  z-index: 3;
-  top: 12px;
-  right: 12px;
-  display: flex;
-  gap: 8px;
-}
-
-.pin-card-hero-actions button {
-  width: 44px;
-  height: 44px;
-  display: grid;
-  place-items: center;
-  border: 1px solid rgba(255, 255, 255, 0.26);
-  border-radius: 50%;
-  background: rgba(20, 21, 19, 0.56);
-  color: #fff;
-  backdrop-filter: blur(10px);
-  cursor: pointer;
-  transition: background-color 180ms ease, transform 180ms ease;
-}
-
-.pin-card-hero-actions button:hover {
-  background: rgba(20, 21, 19, 0.8);
-}
-
-.pin-card-hero-actions button:active {
-  transform: scale(0.96);
-}
-
-.pin-card-hero-actions svg {
-  width: 19px;
-  height: 19px;
-}
-
-.pin-card-identity {
-  position: relative;
-  z-index: 2;
-  min-width: 0;
-  padding-right: 92px;
-}
-
-.pin-provider-badge {
-  display: inline-flex;
-  margin-bottom: 5px;
-  padding: 4px 7px;
-  border-radius: 999px;
-  background: #ef4f70;
-  color: #fff;
-  font-size: 9px;
-  font-weight: 850;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.pin-card-identity h2 {
-  overflow: hidden;
-  margin: 0;
-  color: #fff;
-  font-size: 20px;
-  font-weight: 850;
-  line-height: 1.2;
-  letter-spacing: -0.035em;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.pin-card-identity p {
-  margin: 3px 0 0;
-  color: rgba(255, 255, 255, 0.8);
+.point-hours-status si-chip.si-chip {
+  padding: 2px 6px;
+  min-height: 20px;
   font-size: 12px;
-  font-weight: 600;
-}
-
-.pin-card-quick-actions {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 78px;
-  gap: 8px;
-  padding: 11px 12px;
-  background: #fff;
-}
-
-.pin-card-quick-actions.single-action {
-  grid-template-columns: 1fr;
-}
-
-.pin-route-action,
-.pin-map-action {
-  min-height: 58px;
-  border-radius: 15px;
-  font: inherit;
-  cursor: pointer;
-}
-
-.pin-route-action {
-  min-width: 0;
-  display: grid;
-  grid-template-columns: 34px minmax(0, 1fr) 18px;
-  align-items: center;
-  gap: 9px;
-  padding: 7px 10px;
-  border: 1px solid #1d1e1c;
-  background: #1d1e1c;
-  color: #fff;
-  text-align: left;
-  transition: background-color 180ms ease, border-color 180ms ease;
-}
-
-.pin-route-action:hover {
-  border-color: #ef4f70;
-  background: #ef4f70;
-}
-
-.pin-action-icon {
-  width: 34px;
-  height: 34px;
-  display: grid;
-  place-items: center;
-  border-radius: 11px;
-  background: #ef4f70;
-}
-
-.pin-route-action:hover .pin-action-icon {
-  background: rgba(255, 255, 255, 0.2);
-}
-
-.pin-action-icon svg,
-.pin-action-arrow {
-  width: 17px;
-  height: 17px;
-}
-
-.pin-route-action > span:nth-child(2) {
-  min-width: 0;
-  display: grid;
-  gap: 1px;
-}
-
-.pin-route-action small {
-  overflow: hidden;
-  color: rgba(255, 255, 255, 0.65);
-  font-size: 9px;
-  font-weight: 650;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.pin-route-action strong {
-  overflow: hidden;
-  font-size: 13px;
   font-weight: 850;
+  line-height: 1.25;
+  overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  display: block;
 }
-
-.pin-map-action {
-  display: grid;
-  place-items: center;
-  align-content: center;
-  gap: 3px;
-  border: 1px solid rgba(29, 30, 28, 0.11);
-  background: #f1f3f0;
-  color: #3d423b;
-  font-size: 10px;
-  font-weight: 800;
-}
-
-.pin-map-action svg {
-  width: 20px;
-  height: 20px;
-}
-
-.pin-card-tabs {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  padding: 0 12px;
-  border-top: 1px solid rgba(29, 30, 28, 0.07);
-  border-bottom: 1px solid rgba(29, 30, 28, 0.08);
-  background: #f4f6f3;
-}
-
-.pin-card-tabs button {
-  position: relative;
-  min-height: 44px;
-  border: 0;
-  background: transparent;
-  color: #6b7268;
-  font: inherit;
-  font-size: 12px;
-  font-weight: 750;
-  cursor: pointer;
-}
-
-.pin-card-tabs button.active {
-  color: #20221f;
-}
-
-.pin-card-tabs button.active::after {
-  content: '';
-  position: absolute;
-  right: 20%;
-  bottom: -1px;
-  left: 20%;
-  height: 3px;
-  border-radius: 999px 999px 0 0;
-  background: #ef4f70;
-}
-
-.pin-card-content {
-  min-height: 104px;
-  overflow-y: auto;
-  padding: 11px 12px 13px;
-}
-
-.pin-info-panel {
-  display: grid;
-  gap: 8px;
-}
-
-.pin-availability,
-.pin-address-card {
-  display: grid;
-  align-items: center;
-  gap: 9px;
-  border: 1px solid rgba(29, 30, 28, 0.08);
-  border-radius: 14px;
-}
-
-.pin-availability {
-  grid-template-columns: 34px minmax(0, 1fr) auto;
-  min-height: 52px;
-  padding: 7px 10px;
-  background: #f3f8e9;
-  color: #364122;
-}
-
-.pin-availability.orange {
-  background: #fff7e8;
-  color: #754d0c;
-}
-
-.pin-availability.red {
-  background: #fff0f3;
-  color: #8f2d43;
-}
-
-.pin-availability-icon,
-.pin-address-icon {
-  width: 34px;
-  height: 34px;
-  display: grid;
-  place-items: center;
-  border-radius: 11px;
-  background: rgba(255, 255, 255, 0.72);
-}
-
-.pin-availability-icon svg,
-.pin-address-icon svg {
-  width: 18px;
-  height: 18px;
-}
-
-.pin-availability > span:nth-child(2),
-.pin-address-copy {
-  min-width: 0;
-  display: grid;
-  gap: 1px;
-}
-
-.pin-availability small,
-.pin-address-copy small,
-.pin-hours-heading small {
-  color: #747b71;
-  font-size: 9px;
-  font-weight: 750;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.pin-availability strong,
-.pin-address-copy strong,
-.pin-hours-heading strong {
-  overflow: hidden;
-  color: currentColor;
-  font-size: 13px;
-  font-weight: 850;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.pin-availability b {
-  color: currentColor;
-  font-size: 10px;
-  font-weight: 750;
-  white-space: nowrap;
-}
-
-.pin-address-card {
-  grid-template-columns: 34px minmax(0, 1fr) 44px;
-  min-height: 60px;
-  padding: 8px 8px 8px 10px;
-  background: #fff;
-}
-
-.pin-address-icon {
-  background: #fff0f3;
-  color: #ef4f70;
-}
-
-.pin-address-copy {
-  color: #282b27;
-}
-
-.pin-address-copy > span {
-  overflow: hidden;
-  color: #687066;
-  font-size: 11px;
-  font-weight: 600;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.pin-copy-action {
-  width: 44px;
-  height: 44px;
-  display: grid;
-  place-items: center;
-  border: 0;
-  border-radius: 12px;
-  background: #f0f2ef;
-  color: #565d53;
-  cursor: pointer;
-}
-
-.pin-copy-action svg {
-  width: 18px;
-  height: 18px;
-}
-
-.pin-hours-panel {
-  display: grid;
-  gap: 9px;
-}
-
-.pin-hours-heading > span {
-  display: grid;
-  gap: 1px;
-}
-
-.pin-hours-list {
-  overflow: hidden;
-  border: 1px solid rgba(29, 30, 28, 0.08);
-  border-radius: 14px;
-  background: #fff;
-}
-
-.pin-hours-list > div {
-  min-height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 7px 11px;
-  border-bottom: 1px solid rgba(29, 30, 28, 0.06);
-  color: #555c53;
-  font-size: 11px;
-}
-
-.pin-hours-list > div:last-child {
-  border-bottom: 0;
-}
-
-.pin-hours-list span {
-  text-transform: capitalize;
-}
-
-.pin-hours-list strong {
-  color: #2c302b;
-  font-weight: 800;
-}
-
-.pin-hours-empty {
-  padding: 20px;
-  border-radius: 14px;
-  background: #f1f3f0;
-  color: #697067;
-  font-size: 12px;
-  text-align: center;
-}
-
-.point-result-actions button:focus-visible,
-.pin-card-hero-actions button:focus-visible,
-.pin-route-action:focus-visible,
-.pin-map-action:focus-visible,
-.pin-card-tabs button:focus-visible,
-.pin-copy-action:focus-visible {
-  outline: 3px solid rgba(244, 91, 120, 0.35);
-  outline-offset: 2px;
-}
-
-@media (max-width: 380px) {
-  .point-result-actions {
-    grid-template-columns: minmax(0, 1.35fr) minmax(70px, 0.78fr) minmax(66px, 0.7fr);
-  }
-
-  .point-result-actions button {
-    gap: 4px;
-    padding-inline: 6px;
-    font-size: 10px;
-  }
-
-  .pin-details-card.pin-point-card {
-    left: 9px;
-    right: 9px;
-  }
-
-  .pin-card-identity h2 {
-    font-size: 18px;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .point-result-card,
-  .point-result-actions button,
-  .pin-card-hero-actions button,
-  .pin-route-action,
-  .pin-details-card.pin-point-card,
-  .pin-card-sheet-toggle svg {
-    animation: none;
-    transition: none;
-  }
-}
-

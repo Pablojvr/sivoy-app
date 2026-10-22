@@ -1,10 +1,13 @@
 import { CommonModule } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
-import { ChangeDetectorRef, Component } from '@angular/core';
+import { Component } from '@angular/core';
 import { Router } from '@angular/router';
-import { environment } from '../../../environments/environment';
+import { CatalogPoint } from '../../core/models/catalog.models';
 import { BottomNavComponent } from '../../shared/components/bottom-nav/bottom-nav.component';
-import { DiscoveryHomeComponent } from '../home/discovery-home.component';
+import {
+  DiscoveryHomeComponent,
+  MunicipalitySummary,
+  PlaceDestinationContext
+} from './discovery-home.component';
 
 @Component({
   selector: 'app-discovery-page',
@@ -12,14 +15,13 @@ import { DiscoveryHomeComponent } from '../home/discovery-home.component';
   imports: [CommonModule, DiscoveryHomeComponent, BottomNavComponent],
   template: `
     <app-discovery-home
-      [locations]="locations"
-      (destinationSearch)="openDestinationSearch()"
       (mapExplore)="openMap()"
       (companySelected)="openCompany($event)"
       (municipalitySelected)="openMunicipality($event)"
       (pointSelected)="openPoint($event, 'select')"
       (pointPreview)="openPoint($event, 'preview')"
-      (pointMap)="openPoint($event, 'map')">
+      (pointMap)="openPoint($event, 'map')"
+      (placeDestinationSelected)="openPlaceDestination($event)">
     </app-discovery-home>
     <app-bottom-nav activeTab="inicio"></app-bottom-nav>
   `,
@@ -34,24 +36,7 @@ import { DiscoveryHomeComponent } from '../home/discovery-home.component';
   `]
 })
 export class DiscoveryPageComponent {
-  locations: any[] = [];
-
-  constructor(private http: HttpClient, private router: Router, private cdr: ChangeDetectorRef) {
-    this.http.get<any[]>(`${environment.apiUrl}/api/locations`).subscribe({
-      next: locations => {
-        this.locations = locations || [];
-        this.cdr.detectChanges();
-      },
-      error: () => {
-        this.locations = [];
-        this.cdr.detectChanges();
-      }
-    });
-  }
-
-  openDestinationSearch() {
-    this.router.navigate(['/enviar'], { queryParams: { buscar: 'destino' } });
-  }
+  constructor(private router: Router) {}
 
   openMap() {
     this.router.navigate(['/enviar'], { queryParams: { vista: 'mapa' } });
@@ -61,7 +46,7 @@ export class DiscoveryPageComponent {
     this.router.navigate(['/enviar'], { queryParams: { empresa: company } });
   }
 
-  openMunicipality(municipality: any) {
+  openMunicipality(municipality: MunicipalitySummary) {
     this.router.navigate(['/enviar'], {
       queryParams: {
         municipio: municipality.municipio,
@@ -70,12 +55,24 @@ export class DiscoveryPageComponent {
     });
   }
 
-  openPoint(point: any, action: 'select' | 'preview' | 'map') {
+  openPoint(point: CatalogPoint, action: 'select' | 'preview' | 'map') {
     this.router.navigate(['/enviar'], {
       queryParams: {
-        punto: point.id_destino || point.id,
+        punto: point.pointId,
         accion: action,
         vista: action === 'map' ? 'mapa' : null
+      }
+    });
+  }
+
+  openPlaceDestination(context: PlaceDestinationContext) {
+    this.router.navigate(['/enviar'], {
+      queryParams: {
+        municipio: context.municipio,
+        departamento: context.departamento,
+        referencia: context.reference,
+        refLat: context.lat.toFixed(6),
+        refLng: context.lng.toFixed(6)
       }
     });
   }

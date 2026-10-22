@@ -1,0 +1,24 @@
+const express = require('express');
+const { createCatalogQueryService } = require('../../application/catalog/catalog-query.service');
+const { createNoopCatalogCache } = require('../../application/catalog/noop-catalog-cache');
+const { createCatalogRepository } = require('../../infrastructure/postgres/catalog.repository');
+const { createCatalogController } = require('./catalog.controller');
+
+function createCatalogRouter({ service } = {}) {
+  const catalogService = service || createCatalogQueryService({
+    repository: createCatalogRepository(),
+    cache: createNoopCatalogCache()
+  });
+  const controller = createCatalogController({ service: catalogService });
+  const router = express.Router();
+
+  router.get('/facets', controller.listFacets);
+  router.get('/points', controller.listPoints);
+  router.get('/points/:pointId', controller.getPointDetails);
+  return router;
+}
+
+const router = createCatalogRouter();
+
+module.exports = router;
+module.exports.createCatalogRouter = createCatalogRouter;

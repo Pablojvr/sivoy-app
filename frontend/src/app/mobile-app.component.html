@@ -1,44 +1,50 @@
-<div class="app-container mobile-first-layout" [class.map-resource-mode]="isMapResourceMode" [class.list-first-mode]="!isMapResourceMode" (click)="collapseSheet()">
+<div class="app-container mobile-first-layout si-shell-canvas" [class.map-resource-mode]="isMapResourceMode" [class.list-first-mode]="!isMapResourceMode">
   
-  <div class="inicio-tab-content" [hidden]="activeMainTab !== 'inicio' && !isPickingLocation && !isMapForcedVisible">
+  <div class="si-shell-slot si-shell-slot--inicio inicio-tab-content" [hidden]="activeMainTab !== 'inicio'">
     <app-home
+      [mapAvailable]="mapAvailable"
+      [catalogMode]="true"
       [locations]="locations"
       [userLocation]="userLocation"
+      [userLocationAvailable]="hasPreciseUserLocation"
       [initialIntent]="navigationIntent"
       [selectedPin]="selectedPin"
-      [isPickingLocation]="isPickingLocation"
       [highlightedRoute]="highlightedRoute"
       [mapResourceMode]="isMapResourceMode"
-      (updateMapMarkers)="updateMapMarkers()"
+      (updateMapMarkers)="updateMapMarkers($event)"
       (clearMap)="resetMapMarkers()"
-      (mapHighlightRoute)="onMapHighlightRoute($event); setMapResourceMode(true)"
+      (mapHighlightRoute)="onMapHighlightRoute($event)"
       (recenterMapEvent)="recenterMap()"
       (resetMapMarkersEvent)="resetMapMarkers()"
       (showNearbyPointsEvent)="showNearbyPoints()"
-      (previewImageEvent)="fullScreenImage = $event"
+      (previewImageEvent)="openImagePreview($event)"
       (showPinDetails)="viewOnMap($event.location, $event.type)"
       (mapResourceModeChange)="setMapResourceMode($event)"
+      (pointFiltersChange)="onPointFiltersChange($event)"
+      (destinationMunicipalityChange)="onDestinationMunicipalityChange($event)"
     ></app-home>
   </div>
 
-  <div class="admin-tab-content" *ngIf="activeMainTab === 'puntos' && !isPickingLocation">
-    <app-admin #adminRef
-      [locations]="locations"
-      (viewOnMapEvent)="viewOnMap($event)"
-      (minimizeModalEvent)="isMapForcedVisible = $event"
-      (previewMapEvent)="previewMap($event)"
-      (previewImageEvent)="fullScreenImage = $event"
-    ></app-admin>
+  <div class="si-shell-slot si-shell-slot--guardados" *ngIf="activeMainTab === 'guardados'">
+    <app-saved-points></app-saved-points>
   </div>
 
-  <app-perfil *ngIf="activeMainTab === 'perfil'"></app-perfil>
+  <div *ngIf="mapFallbackVisible" role="status" aria-live="polite" class="si-map-fallback-banner">
+    <div class="si-map-fallback-content">
+      <strong>Mapa no disponible</strong>
+      <p>Puedes seguir buscando y compartiendo puntos desde la lista.</p>
+    </div>
+    <button type="button" class="si-map-fallback-close" (click)="closeMapFallback(); $event.stopPropagation()" aria-label="Cerrar aviso de mapa">×</button>
+  </div>
 
   <app-bottom-nav [activeTab]="activeMainTab"></app-bottom-nav>
 
   <!-- FULLSCREEN IMAGE PREVIEW -->
-  <div class="image-preview-overlay fade-in" *ngIf="fullScreenImage" (click)="fullScreenImage = null" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); z-index: 9999; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
-    <button (click)="fullScreenImage = null" style="position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.2); border: none; color: white; width: 40px; height: 40px; border-radius: 50%; font-size: 24px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10000;">&times;</button>
-    <img [src]="fullScreenImage" style="max-width: 90%; max-height: 90%; border-radius: 12px; object-fit: contain; box-shadow: 0 10px 40px rgba(0,0,0,0.5);">
+  <div class="si-image-preview-overlay fade-in" *ngIf="fullScreenImage" (click)="closeImagePreview()" role="dialog" aria-modal="true" aria-label="Vista previa de imagen ampliada">
+    <button class="si-image-preview-close" type="button" aria-label="Cerrar vista previa" (click)="closeImagePreview()">
+      &times;
+    </button>
+    <img class="si-image-preview-img" [src]="fullScreenImage" alt="Vista previa ampliada" (click)="$event.stopPropagation()">
   </div>
 
 </div>

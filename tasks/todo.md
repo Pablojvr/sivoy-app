@@ -1,0 +1,1167 @@
+# Reinvención arquitectónica — índice de ejecución
+
+Baseline arquitectónico conservado: `CAPABILITY-MAP.md` y `tasks/plan.md` siguen
+siendo la referencia, pero su evolución profunda queda en espera del post-MVP.
+
+T01–T05 son tareas ejecutables de descubrimiento. T06–T37 son paquetes de trabajo:
+antes de iniciar cada uno se debe aprobar el spec de su módulo y descomponerlo en
+tareas S/M con el formato completo de aceptación, verificación, dependencias y
+máximo cinco archivos. Un paquete no es autorización para modificar código.
+
+## Prioridad MVP — activa desde 2026-10-05
+
+La arquitectura queda pausada en el checkpoint verde `a5c9eae`. La prioridad pasa
+a producto y experiencia pública; Partner continúa fuera de alcance.
+
+- [x] MVP01 Auditar el flujo Inicio → destino → resultados → compartir/mapa.
+  - Aceptación: inventario de fricciones y recorrido objetivo aprobado en móvil y escritorio.
+  - Verificación: navegador real en 386×912 y escritorio, sin modificar producción.
+- [x] MVP02 Simplificar la pantalla de Inicio alrededor de un único buscador.
+  - Aceptación: copy compacto, empresas/nuevos puntos secundarios y mapa no protagonista.
+  - Verificación: unitarias, build, accesibilidad básica y navegador real.
+- [x] MVP03 Rediseñar resultados como tarjetas compactas y colapsables.
+  - Aceptación: horarios consecutivos agrupados; acciones claras para buscar origen,
+    compartir y mapa; expansión exclusiva o predecible.
+  - Verificación: unitarias de estado, E2E destino→acción y revisión visual móvil.
+- [x] MVP04 Ajustar ficha/modal móvil y navegación fija.
+  - Aceptación: encabezado útil al colapsar, contenido completo al expandir y cero
+    superposición con footer o barra del sistema.
+  - Verificación: 386×912, altura reducida, escritorio y navegación por teclado.
+- [x] MVP05 Consolidar rutas, regreso y persistencia de selección.
+  - Aceptación: volver a Inicio/resultados funciona y un enlace directo restaura
+    contexto válido sin callejones sin salida.
+  - Verificación: pruebas de router y E2E atrás/adelante/recarga.
+- [x] MVP06 Unificar identidad visual sin reescritura global.
+  - Aceptación: tokens existentes gobiernan color, tipografía, espaciado, iconos y
+    movimiento en las pantallas intervenidas.
+  - Verificación: boundaries/colores, build y comparación visual.
+
+  #### UI-REB-01 — `native-visual-foundation`
+
+  Spec: `tasks/specs/UI-REB-01-native-visual-foundation.md`.
+  Plan: `tasks/plan.md`, Fase 4, subplan UI-REB-01.
+
+  - [x] UI-REB-01a Instalar el contrato de tokens nativos.
+    - Descripción: introducir la fuente única de tokens semánticos, mantener los
+      aliases legacy y proteger el orden de imports y la eliminación de Manrope.
+    - Criterios de aceptación:
+      - [x] `native-tokens.css` contiene la escala aprobada de tipografía, color,
+        espacios, radios, elevación, movimiento y safe areas.
+      - [x] `styles.css` importa tokens antes de primitives, no solicita fuentes
+        remotas y los aliases existentes resuelven hacia roles `--si-*`.
+      - [x] El contrato automatizado falla al faltar un token/alias requerido o
+        reaparecer una fuente remota, y acepta únicamente los colores aprobados.
+    - Verificación:
+      - [x] `cd frontend && npm run check:css-colors`
+      - [x] `cd frontend && npm run check:boundaries`
+      - [x] `cd frontend && npm run test:ci && npm run build`
+    - Dependencias: spec y plan UI-REB-01 aprobados.
+    - Archivos previstos:
+      - `frontend/src/styles/native-tokens.css`
+      - `frontend/src/styles.css`
+      - `frontend/css-color-contract.json`
+      - `frontend/scripts/check-css-color-contract.test.mjs`
+    - Alcance estimado: M, cuatro archivos.
+    - Ejecución: Codex; las decisiones del contrato no se delegan.
+    - Evidencia 2026-10-14: contrato 15/15, boundaries 31/31, frontend
+      358/358 y build de producción verdes. Smoke local sin errores de consola ni
+      desbordamiento horizontal; fondo `rgb(244, 244, 241)` y pila nativa activos.
+
+  - [x] UI-REB-01b Caracterizar y completar la API presentacional de primitives.
+    - Descripción: fijar mediante pruebas los selectores, inputs, variantes,
+      atributos accesibles y estados públicos de los primitives Angular.
+    - Criterios de aceptación:
+      - [x] Button, IconButton, Input, Chip, Card, Sheet y Modal conservan sus
+        selectores y variantes actuales; cualquier estado nuevo es aditivo.
+      - [x] Disabled/busy, `aria-busy`, `aria-invalid`, labels y atributos
+        `data-*` quedan cubiertos por pruebas de host sin lógica de negocio.
+      - [x] Todos los templates consumidores continúan compilando sin cambios.
+    - Verificación:
+      - [x] `cd frontend && npm run test:ci -- --include src/app/shared/ui/ui-primitives.spec.ts`
+      - [x] `cd frontend && npm run test:ci && npm run build`
+    - Dependencias: UI-REB-01a.
+    - Archivos previstos:
+      - `frontend/src/app/shared/ui/ui-primitives.ts`
+      - `frontend/src/app/shared/ui/ui-primitives.spec.ts`
+    - Alcance estimado: S, dos archivos.
+    - Ejecución: Codex; no se delegan contratos Angular.
+    - Evidencia 2026-10-14: ciclo RED por ausencia de `[busy]` en IconButton;
+      GREEN con 3/3 pruebas focalizadas, 361/361 frontend y build exitoso.
+
+  - [x] UI-REB-01c Extraer y recalibrar la apariencia de primitives.
+    - Descripción: mover las reglas `.si-*` a su hoja dedicada y aplicar los
+      tokens nativos sin alterar DOM, eventos, navegación ni estado consumidor.
+    - Criterios de aceptación:
+      - [x] `native-primitives.css` es la única fuente de apariencia para los
+        siete primitives y `styles.css` no conserva reglas duplicadas `.si-*`.
+      - [x] Controles alcanzan 44 px, pressed usa `translateY(1px)`, el foco es
+        visible y reduced motion elimina movimiento no esencial.
+      - [x] No se introducen colores literales fuera del contrato, `!important`,
+        estilos inline ni modificaciones a templates consumidores.
+    - Verificación:
+      - [x] `cd frontend && npm run check:css-colors && npm run check:boundaries`
+      - [x] `cd frontend && npm run test:ci && npm run build`
+      - [x] Comparación en 386×912 antes y después del corte.
+    - Dependencias: UI-REB-01a y UI-REB-01b.
+    - Archivos previstos:
+      - `frontend/src/styles/native-primitives.css`
+      - `frontend/src/styles.css`
+    - Alcance estimado: S, dos archivos.
+    - Ejecución: delegable a Antigravity con esos dos archivos como límite;
+      Codex revisa el diff y repite todas las validaciones.
+    - Evidencia 2026-10-14: Antigravity fue detenido sin cambios tras no completar
+      su ejecución; Codex realizó y auditó el corte. Contrato 15/15, boundaries
+      31/31, frontend 361/361 y build verdes. En 386×912: ancho del documento
+      386 px, cero alertas visibles y acciones de 15 px con alto mínimo superado.
+
+  ### Checkpoint UI-REB-01 — fundamento integrado
+
+  - [x] UI-REB-01a–c están en commits atómicos y reversibles.
+  - [x] Contratos, suite frontend, boundaries, colores y build están verdes.
+  - [x] No existe petición a Google Fonts ni cambio de flujo o contrato Angular.
+  - [x] Revisión humana antes del cierre documental y visual.
+    - Aprobación recibida el 2026-10-14 mediante la instrucción "Continuar".
+
+  - [x] UI-REB-01d Documentar y certificar el fundamento visual.
+    - Descripción: publicar la guía de uso y registrar la auditoría final de las
+      pantallas consumidoras antes de iniciar `native-app-shell`.
+    - Criterios de aceptación:
+      - [x] La guía documenta roles, ejemplos, primitives, aliases temporales,
+        iconografía, movimiento, accesibilidad y patrones prohibidos.
+      - [x] La auditoría cubre 320×568, 386×912, 768×1024, 1024×900 y 1440×900,
+        además de teclado, contraste, zoom 200% y reduced motion.
+      - [x] Inicio, resultados, detalle, rutas y mapa conservan comportamiento,
+        sin scroll horizontal ni contenido bajo navegación o safe areas.
+    - Verificación:
+      - [x] `cd frontend && npm run check:css-colors && npm run check:boundaries`
+      - [x] `cd frontend && npm run test:ci && npm run build && npm run e2e`
+      - [x] Evidencia manual registrada.
+      - [x] Aprobación humana del resultado.
+    - Dependencias: checkpoint UI-REB-01 aprobado.
+    - Archivos previstos:
+      - `docs/UI_NATIVE_DESIGN_SYSTEM.md`
+    - Alcance estimado: S, un archivo más evidencia de navegador.
+    - Ejecución: documentación delegable; Codex ejecuta la auditoría final.
+    - Evidencia 2026-10-15: guía redactada inicialmente por Antigravity y
+      corregida/auditada por Codex. Contrato de colores 17/17 sobre 14 hojas,
+      boundaries 31/31 sobre 53 archivos, frontend 361/361, build y E2E 56/56
+      verdes. Auditoría manual y automatizada cubre los cinco viewports, foco,
+      contraste, reduced motion y reflujo equivalente a zoom 200%. Durante el
+      cierre se corrigieron el foco del mapa oculto, el contraste del acento,
+      fuentes/iconos remotos y dos desbordamientos de la ruta en 320×568. Dos
+      delegaciones de implementación a Antigravity fueron detenidas sin cambios
+      por no completar su ejecución; Codex conservó TDD y auditoría integral.
+
+  ### Checkpoint UI-REB-01 — cierre
+
+  - [x] Todos los criterios técnicos de la spec están satisfechos.
+  - [x] Rollback por commit fue revisado y no requiere backend ni migraciones.
+  - [x] Aprobación humana habilita continuar con `native-app-shell`.
+    - Aprobación recibida el 2026-10-15 al solicitar continuar con el plan de
+      rediseño y entregar el recorrido público finalizado.
+
+  #### UI-REB-02 — `native-app-shell`
+
+  Spec: `tasks/specs/UI-REB-02-native-app-shell.md`.
+  Plan: `tasks/plan.md`, Fase 4, subplan UI-REB-02.
+
+  - [x] UI-REB-02a Migrar el dock de navegación al contrato nativo.
+    - Aceptación: conserva `/admin`, `/` y `/enviar?tab=perfil`; estados activos y
+      `aria-current`; targets de 44 px, safe area, foco y reduced motion.
+    - Verificación: prueba focalizada del componente, colores, boundaries y build.
+    - Dependencias: UI-REB-01 cerrado y spec UI-REB-02 aprobada.
+    - Archivos: `bottom-nav.component.ts`, `bottom-nav.component.css` y su spec.
+    - Alcance: M, tres archivos; CSS/markup delegable y auditado por Codex.
+    - Evidencia 2026-10-15: rutas y `aria-current` preservados; dock migrado a
+      tokens `--si-*`, safe area, foco visible, targets de 44 px, etiqueta de
+      11 px y movimiento reducido. La auditoría visual detectó y corrigió un
+      desbordamiento inferior de 6 px antes de aceptar el corte. Prueba
+      focalizada 3/3, colores 17/17 sobre 14 hojas, boundaries 31/31 sobre 53
+      archivos y build verdes; 320×568, 386×912, 768×1024, 1024×900 y
+      1440×900 sin scroll horizontal ni targets recortados. Dos intentos de
+      delegación a Antigravity no produjeron cambios y fueron detenidos; Codex
+      implementó y auditó el incremento.
+
+  - [x] UI-REB-02b Extraer canvas, slots y overlays del shell.
+    - Aceptación: `100dvh`, inset inferior único, Inicio conserva `[hidden]`,
+      fallback y visor accesibles, Escape cierra la imagen sin tocar mapa/catálogo.
+    - Verificación: prueba focalizada de MobileApp, suite, build y teclado.
+    - Dependencias: UI-REB-02a.
+    - Archivos: `mobile-app.component.html/.ts/.css` y su spec.
+    - Alcance: M, cuatro archivos; TypeScript ejecutado por Codex.
+    - Evidencia 2026-10-15: canvas `100dvh`, inset inferior único y matriz de
+      capas aplicada; Inicio conserva la misma instancia mediante `[hidden]` y
+      Perfil tiene scroll aislado. Banner y visor cumplen roles, safe areas,
+      targets de 44 px, foco y cierres por botón, backdrop y Escape. Prueba
+      focalizada 20/20, suite frontend 370/370, colores 17/17 sobre 15 hojas,
+      boundaries 31/31 sobre 53 archivos y build verdes. Navegador real sin
+      scroll global ni desbordamiento en 320×568, 386×912, 768×1024, 1024×900
+      y 1440×900; Inicio permanece montado al abrir Perfil. Antigravity no
+      produjo cambios tras tres minutos y la delegación fue detenida; Codex
+      implementó y auditó el incremento. Persiste el error local preexistente
+      de carga del worker MapLibre, fuera del alcance visual del shell.
+
+  - [x] UI-REB-02c Limpiar y certificar el shell.
+    - Aceptación: cero reglas duplicadas del shell, matriz de capas estable y sin
+      superposición o scroll horizontal en los cinco viewports.
+    - Verificación: colores, boundaries, suite, build, E2E y navegador real.
+    - Dependencias: UI-REB-02b.
+    - Archivos: `app.css` y, solo si el contrato lo exige,
+      `css-color-contract.json`.
+    - Alcance: S. La eliminación quedó en dos hojas de estilo; se actualizaron
+      además la prueba de regresión, el locator accesible E2E y su snapshot móvil.
+    - Evidencia 2026-10-15: eliminados siete selectores globales reemplazados por
+      el shell encapsulado, sin duplicar capas ni insets. Suite frontend 371/371,
+      colores 17/17 sobre 15 hojas, boundaries 31/31 sobre 53 archivos, build y
+      E2E 56/56 verdes. Navegador real sin scroll horizontal en 320×568,
+      386×912, 768×1024, 1024×900 y 1440×900; canvas y dock terminan exactamente
+      en el borde inferior. El snapshot 386×912 se regeneró después de auditar
+      visualmente el cambio aprobado. El fallo local preexistente del worker
+      MapLibre permanece separado de este incremento.
+
+  ### Checkpoint UI-REB-02
+
+  - [x] Tres incrementos en commits atómicos y reversibles.
+  - [x] Contratos, pruebas, build y E2E verdes.
+  - [x] 320×568, 386×912, 768×1024, 1024×900 y 1440×900 auditados.
+  - [x] Aprobación humana antes de iniciar `destination-discovery`.
+    - Aprobación recibida el 2026-10-15 con el mensaje «Aprobado».
+
+  #### UI-REB-03 — `search-result-cards`
+
+  Spec: `tasks/specs/UI-REB-03-search-result-cards.md`.
+
+  - [x] Compactar la tarjeta de punto con revelado progresivo.
+    - Resultado: el resumen prioriza punto, ubicación y disponibilidad; conserva
+      solo `Elegir origen` y `Compartir` como acciones inmediatas. Horarios,
+      imagen y mapa aparecen únicamente al usar `Ver detalles`.
+    - Accesibilidad: `aria-expanded` y `aria-controls` abarcan todo el contenido
+      revelado, áreas táctiles de 44 px, foco visible y movimiento reducido.
+    - Evidencia 2026-10-16: TDD rojo con cuatro expectativas y prueba focalizada
+      final 11/11; suite frontend 373/373, colores 17/17 sobre 16 hojas,
+      boundaries 31/31 sobre 53 archivos, build y E2E 56/56 verdes. Sin scroll
+      horizontal en 320×568, 386×912, 768×1024, 1024×900 y 1440×900. La
+      revisión independiente detectó dos brechas P2 —región ARIA incompleta y
+      conteo de acciones débil—; ambas se corrigieron y fueron revalidadas.
+      Antigravity no produjo cambios dentro del tiempo de ejecución y Codex
+      completó y auditó el incremento.
+
+  ### Checkpoint UI-REB-03
+
+  - [x] Presentación, eventos públicos y navegación preservados.
+  - [x] Validaciones automáticas y cinco viewports verdes.
+  - [x] Aprobación humana recibida el 2026-10-16 para integrar y continuar.
+
+  #### UI-REB-04 — `point-detail-card`
+
+  Spec: `tasks/specs/UI-REB-04-point-detail-card.md`.
+
+  - [x] UI-REB-04a Rediseñar el detalle progresivo del punto.
+    - Resultado: vista previa de 148 px con identidad y control textual; hoja
+      expandida con una decisión de ruta, mapa, selector segmentado, información
+      y horarios con desplazamiento interno. En escritorio se centra y limita a
+      680 px; en móvil evita tanto la isla superior como el dock.
+    - Accesibilidad: targets de 44 px, foco interior visible, pestañas con
+      `aria-selected` y navegación circular por flechas, Home y End.
+    - Evidencia 2026-10-16: prueba focalizada 14/14 y suite frontend 374/374;
+      colores 17/17 sobre 17 hojas, boundaries 31/31 sobre 53 archivos, build y
+      E2E 60/60 verdes. Auditoría real en 320×568, 386×912, 768×1024,
+      1024×900 y 1440×900 sin scroll horizontal ni superposición; en 320 px se
+      midieron 5 px de separación superior y 27 px sobre el dock. La revisión
+      independiente rechazó el primer corte por teclado incompleto, herencia
+      global sobre la etiqueta y foco recortado; los tres hallazgos se corrigieron
+      y la segunda revisión quedó aprobada. Dos intentos de Antigravity no
+      produjeron cambios; Codex implementó y auditó el incremento.
+
+  - [x] UI-REB-04b Retirar reglas globales del detalle ya encapsuladas.
+    - Aceptación: cero reglas duplicadas de `pin-*`, sin alterar ScheduleDisplay
+      ni el render aprobado de UI-REB-04a.
+    - Verificación: búsqueda de consumidores, prueba focalizada, suite, build,
+      E2E y comparación visual en los cinco viewports.
+    - Evidencia 2026-10-16: se retiraron 548 líneas globales duplicadas y se
+      conservó el estilo de `ScheduleDisplay` dentro del host del detalle. Prueba
+      focalizada 14/14, suite frontend 375/375, colores 17/17, boundaries 31/31,
+      build y E2E 60/60 verdes. La inspección real en 320, 386, 768, 1024 y
+      1440 px confirmó cero desbordamiento o solapamiento; revisión independiente
+      aprobada sin hallazgos P0–P3.
+
+  ### Checkpoint UI-REB-04
+
+  - [x] Contratos públicos, acciones y gesto de expansión preservados.
+  - [x] Validaciones automáticas, navegador real y revisión independiente verdes.
+  - [x] Limpieza global UI-REB-04b integrada antes de cerrar el módulo.
+
+  #### UI-REB-05 — `route-result-card`
+
+  Spec: `tasks/specs/UI-REB-05-route-result-card.md`.
+
+  - [x] UI-REB-05a Compactar y recalibrar la tarjeta de ruta.
+    - Aceptación: resumen con empresa, recorrido y ETA; el detalle difiere
+      selector, alerta y acciones sin cambiar eventos ni cálculo.
+    - Verificación: TDD focalizado, suite, contratos, build, E2E, cinco
+      viewports y revisión independiente.
+
+  ### Checkpoint UI-REB-05
+
+  - [x] Contratos y eventos públicos preservados.
+  - [x] Tarjeta sin saturación, desbordamiento ni superposición.
+  - [x] Validaciones y revisión independiente verdes.
+    - Evidencia: TDD focalizado 9/9, suite frontend 377/377, color 17/17,
+      fronteras 31/31 sobre 53 archivos, build productivo y E2E 60/60.
+    - Viewports: 320x568, 386x912, 768, 1024x900 y 1440 px; el detalle expandido
+      mantiene scroll interno, acciones visibles y separación del footer.
+    - Revisión independiente: aprobada sin hallazgos P0-P3; contraste de la
+      etiqueta de detalle 5.96:1. Antigravity no produjo cambios y Codex realizó
+      y auditó la implementación completa.
+
+  #### UI-REB-06 — gate final de la interfaz pública
+
+  Spec: `tasks/specs/UI-REB-06-public-ui-final-gate.md`.
+
+  - [x] El hero dinámico usa un `img` decorativo y fallback CSS con tokens;
+    no conserva estilo ni color inline.
+  - [x] El shell oculta el slot mediante especificidad normal y conserva Inicio
+    montado, sin `!important`.
+  - [x] MapLibre sirve el worker y su módulo compartido desde el mismo origen;
+    el error reproducible de carga desapareció en los cuatro proyectos E2E.
+  - [x] Regreso, avance, recarga y enlace directo quedan cubiertos en navegador.
+  - [x] El smoke público falla ante consola, `pageerror` o solicitudes fallidas;
+    las teselas externas se sustituyen por una respuesta PNG determinista y se
+    verifica que el mapa efectivamente las solicite.
+
+  ### Checkpoint UI-REB-06
+
+  - [x] Pruebas focalizadas: 35/35 de detalle/shell y 49/49 del adaptador de mapa.
+  - [x] Suite frontend 377/377, color 17/17, fronteras 31/31 y build verdes.
+  - [x] E2E 68/68 en 386, 768, 1024 y 1440 px; 320x568 cubierto dentro del flujo.
+  - [x] Navegador real: ficha y mapa visibles, consola sin errores.
+  - [x] Revisión independiente final sin hallazgos P0-P3.
+
+  #### UI-REB-07 — estados públicos de búsqueda
+
+  Spec: `tasks/specs/UI-REB-07-public-search-states.md`.
+
+  - [x] UI-REB-07a Extraer el componente presentacional de estado.
+    - Aceptación: soporta `loading`, `error`, `empty` e `initial`; usa solamente
+      tokens `--si-*`; carga y error exponen semántica viva; la animación se
+      desactiva con movimiento reducido; la acción opcional mide al menos 44 px.
+    - Archivos máximos: componente, CSS y prueba focalizada.
+  - [x] UI-REB-07b Integrar los estados en el panel público.
+    - Aceptación: Home deja de usar el spinner y las tarjetas vacías globales,
+      elimina el color SVG inline, evita repetir el mensaje técnico de error y
+      reutiliza `openLocationSelector('destino')` para recuperarse.
+    - Archivos máximos: Home TS, HTML y prueba; sin tocar servicios o navegación.
+  - [x] UI-REB-07c Retirar estilos globales huérfanos y certificar.
+    - Aceptación: cero consumidores del spinner/empty state antiguo; tests,
+      colores, fronteras, build, E2E y matriz responsive verdes.
+    - Archivos máximos: estilos globales, CSS de Home y documentación.
+    - Evidencia: cero consumidores heredados; 386/386 pruebas frontend,
+      17/17 controles de color sobre 18 CSS, 31/31 controles de fronteras sobre
+      54 archivos productivos, build y 72/72 recorridos E2E verdes. El estado
+      inicial se verifica explícitamente en 320, 386, 768, 1024 y 1440 px,
+      incluyendo scroll, acción de 44 px y convivencia con la navegación.
+      Navegador real sin errores en 386x912 y 1440x900.
+
+  #### UI-REB-08 — puntos guardados locales
+
+  Spec: `tasks/specs/UI-REB-08-saved-points-local.md`.
+  Plan: `tasks/plan.md`, Fase 4, subplan UI-REB-08.
+
+  - [x] UI-REB-08a Implementar persistencia local versionada y segura.
+    - Aceptación: alta idempotente, baja, orden por fecha, límite de 50,
+      recuperación ante contenido corrupto y sincronización entre pestañas.
+    - Archivos máximos: modelo, servicio y prueba focalizada.
+    - Validación: prueba del servicio con almacenamiento válido, corrupto,
+      versión desconocida, límite y evento `storage`.
+  - [x] UI-REB-08b Sustituir Perfil por Guardados en navegación y shell.
+    - Aceptación: `tab=guardados` abre la pantalla; `tab=perfil` conserva
+      compatibilidad; dock con `aria-current`; estado vacío vuelve a Inicio.
+    - Archivos máximos: shell TS/HTML, bottom-nav TS y Guardados TS/HTML.
+    - Validación: pruebas focalizadas de resolución de tab y navegación.
+
+  ### Checkpoint UI-REB-08 — persistencia y navegación
+
+  - [x] Servicio local y navegación focalizada verdes antes de diseñar acciones.
+  - [x] Confirmar por diff que no existen cambios en backend, ETA, SQL o Partner.
+
+  - [x] UI-REB-08c Completar lista, vacío y acciones de Guardados.
+    - Aceptación: aviso de alcance local; compartir reutiliza
+      `PointShareService`; Ver punto, mapa y quitar funcionan; foco visible y
+      objetivos táctiles de 44 px.
+    - Archivos máximos: CSS/spec de Guardados y adaptador/prueba si es necesario.
+    - Validación: estados vacío/lista, orden, compartir, mapa y retiro.
+  - [x] UI-REB-08d Integrar Guardar/Guardado en tarjetas destacadas.
+    - Aceptación: `aria-pressed`, estado reactivo y sin aumentar la densidad de
+      acciones principales de la tarjeta.
+    - Archivos máximos: componente de descubrimiento, plantilla/estilos y prueba.
+  - [x] UI-REB-08e Integrar Guardar/Guardado en tarjetas de resultado.
+    - Aceptación: la acción conserva el flujo de imagen, detalle y compartir; el
+      estado se actualiza sin recargar.
+    - Archivos máximos: componente de resultado, plantilla/estilos y prueba.
+  - [x] UI-REB-08f Integrar Guardar/Guardado en la ficha del mapa.
+    - Aceptación: funciona en estados contraído/expandido, no interfiere con el
+      gesto del sheet y se sincroniza con las demás superficies.
+    - Archivos máximos: ficha de mapa TS/HTML/CSS y prueba focalizada.
+
+  ### Checkpoint UI-REB-08 — flujo funcional
+
+  - [x] Guardar, recargar, compartir, abrir y quitar funcionan sin login.
+  - [x] Sincronización entre pestañas y entre superficies verificada.
+  - [x] 386x912, 768, 1024 y 1440 px sin overflow ni contenido bajo el dock.
+
+  - [x] UI-REB-08g Limpiar Perfil huérfano y certificar el módulo.
+    - Aceptación: cero consumidores de Perfil; sin dependencia, endpoint o dato
+      de servidor nuevo; rollback documentado y diff auditado.
+    - Validación: pruebas focalizadas y suite aplicable, `check:css-colors`,
+      build productivo, smoke público y revisión independiente sin P0-P2.
+    - Evidencia: 412/412 unitarias, 76/76 E2E, 17/17 controles de color
+      sobre 19 CSS y 31/31 controles de fronteras sobre 57 archivos; build
+      exitoso. La confirmación `Punto guardado` y el pop de 520 ms se verificaron
+      en navegador real, con alternativa sin movimiento.
+
+  #### UI-REB-09 — resultados de puntos a página completa
+
+  Spec: `tasks/specs/UI-REB-09-full-page-point-results.md`.
+  Plan: `tasks/plan.md`, Fase 4, subplan UI-REB-09.
+
+  - [x] UI-REB-09a Crear proyección pura de disponibilidad y horario.
+    - Aceptación: orden de catálogo estable; `Cierra pronto` usa estado y
+      timestamps estructurados; las franjas usan horarios publicados.
+    - Archivos máximos: helper/spec y fachada de catálogo/spec.
+    - Validación: pruebas de límites 0, 1, 120 y 121 minutos, mañana, tarde,
+      jornada extendida y datos incompletos.
+
+  ### Checkpoint UI-REB-09 — lógica de filtros
+
+  - [x] Proyección pura verde y orden predeterminado sin regresión.
+  - [x] Diff confirma cero cambios en backend, ETA, SQL y contratos HTTP.
+
+  - [x] UI-REB-09b Conectar filtros tipados en Home.
+    - Aceptación: `Más cerca` y `Con foto` no aparecen; disponibilidad y horario
+      se combinan sin permisos nuevos ni cambios de negocio.
+    - Archivos máximos: Home TS/spec y shell TS/HTML/spec.
+  - [x] UI-REB-09c Convertir resultados municipales en página completa.
+    - Aceptación: sin tarjeta exterior ni comportamiento de sheet; tarjetas por
+      punto, filtros, contador `N de M` y vacío con `Limpiar filtros`.
+    - Archivos máximos: Home HTML/CSS/spec.
+
+  ### Checkpoint UI-REB-09 — interacción y presentación
+
+  - [x] Verificar teclado, foco, objetivos de 44 px y `prefers-reduced-motion`.
+  - [x] Verificar 386x912, 768, 1024 y 1440 px sin overflow ni solapamiento.
+
+  - [x] UI-REB-09d Persistir filtros tipados en URL y navegación.
+    - Aceptación: recarga, Atrás y Adelante restauran; valores inválidos usan
+      defaults; una interacción produce una sola transición de historial.
+    - Archivos máximos: Home/shell TS y specs, HTML y E2E público.
+  - [x] UI-REB-09e Certificar y documentar evidencia final.
+    - Validación: pruebas focalizadas, `npm run test:ci`,
+      `npm run check:boundaries`, `npm run check:css-colors`, `npm run build` y
+      `npm run e2e`; inspección real en móvil y escritorio.
+    - Evidencia final 2026-10-22: 500/500 unitarias, 31/31 fronteras sobre 59
+      archivos productivos, 17/17 contratos de color sobre 19 CSS, build
+      productivo y 100/100 E2E seriales verdes en 386, 768, 1024 y 1440 px.
+      La API fixture aislada evitó depender del catálogo local activo.
+
+  #### UI-REB-10 — destinos por lugar de referencia
+
+  Spec: `tasks/specs/UI-REB-10-place-destination-fallback.md`.
+  Plan: `tasks/plan.md`, Fase 4, subplan UI-REB-10.
+
+  - [x] UI-REB-10a Crear el contrato puro de coincidencia y distancia.
+    - Descripción: implementar normalización, clasificación de coincidencia
+      local, validación de coordenadas, distancia Haversine y orden estable sin
+      acoplarse a componentes ni servicios.
+    - Aceptación: exacto/prefijo/palabras son deterministas; tildes y
+      mayúsculas no alteran el resultado; coordenadas fuera de rango se
+      rechazan; puntos no medibles quedan al final; no se muta la entrada.
+    - Verificación: prueba RED→GREEN focal del helper y `npm run test:ci`.
+    - Dependencias: ninguna.
+    - Archivos: `core/maps/place-destination-fallback.ts` y `.spec.ts`.
+    - Alcance: pequeño, 2 archivos. Ejecutor: subagente Codex; no delegable a
+      Antigravity por ser lógica de producto.
+    - Evidencia: RED por módulo ausente y GREEN focal con 10/10 pruebas; Codex
+      principal repitió la prueba focal con 10/10 verdes.
+
+  - [x] UI-REB-10b Integrar el fallback automático de Places en Discovery.
+    - Descripción: coordinar catálogo y Places con estado tipado, prioridad
+      local, debounce de 350 ms, token efímero, cancelación y degradación segura.
+    - Aceptación: el catálogo sugiere desde el primer carácter; Places exige
+      3–128 caracteres y solo se activa sin coincidencia local fuerte; una
+      respuesta obsoleta nunca reemplaza la consulta vigente; el usuario debe
+      elegir explícitamente una sugerencia; limpiar/destruir cancela trabajo.
+    - Verificación: prueba focal de Discovery, `npm run test:ci`,
+      `npm run check:boundaries` y `npm run build`.
+    - Dependencias: UI-REB-10a.
+    - Archivos: `discovery-home.component.ts`, `.spec.ts` y, solo si el contrato
+      lo exige, helper 10a.
+    - Alcance: mediano, máximo 3 archivos. Ejecutor: subagente Codex; no
+      delegable a Antigravity por RxJS, servicio y estado.
+    - Evidencia: RED por estado/contrato ausente y GREEN focal con 27/27 pruebas;
+      Codex principal repitió la prueba focal con 27/27 verdes. Gates globales
+      reservados para UI-REB-10f2.
+
+  ### Checkpoint UI-REB-10 — búsqueda y concurrencia
+
+  - [x] Coincidencia fuerte, debounce, cancelación y degradación aprobados.
+  - [x] Places no configurado/error conserva resultados locales utilizables.
+  - [x] Diff confirma cero cambios en backend, ETA, SQL, dependencias y claves.
+
+  - [x] UI-REB-10c1 Emitir el lugar validado y escribir el contexto en URL.
+    - Descripción: resolver lugar, validar municipio/departamento contra
+      catálogo y navegar con `municipio`, `departamento`, `referencia`,
+      `refLat` y `refLng` mediante Router.
+    - Aceptación: texto máximo 128; coordenadas finitas y en rango; selección
+      siempre explícita; parámetros codificados; municipio/departamento siguen
+      siendo autoridad de cobertura; lugar ambiguo no navega.
+    - Verificación: pruebas focales de Discovery Home/Page y navegación.
+    - Dependencias: UI-REB-10b.
+    - Archivos: Discovery Home TS/spec y Discovery Page TS/spec.
+    - Alcance: mediano, 4 archivos. Ejecutor: subagente Codex; navegación y
+      contrato de estado no son delegables a Antigravity.
+    - Evidencia: RED por contrato ausente y GREEN con 35/35 pruebas focales de
+      Discovery Home/Page; país, geografía, homónimos y respuesta tardía cubiertos.
+
+  - [x] UI-REB-10c2 Leer y validar el contexto geográfico en Home.
+    - Descripción: interpretar el intent que el shell ya transmite de forma
+      genérica y construir un contexto inmutable o ignorarlo por completo.
+    - Aceptación: los tres parámetros se aceptan solo como conjunto válido;
+      contexto incompleto/manipulado conserva el orden tradicional; recarga,
+      Atrás y Adelante restauran sin duplicar historial; no se usa `innerHTML`.
+    - Verificación: prueba focal de Home con entradas válidas, límites, `NaN`,
+      infinito, fuera de rango y texto excesivo.
+    - Dependencias: UI-REB-10c1.
+    - Archivos: `home.component.ts` y `.spec.ts`.
+    - Alcance: pequeño, 2 archivos. Ejecutor: subagente Codex; estado de negocio.
+    - Evidencia: RED por parser ausente y GREEN focal; conjunto completo,
+      vacíos, `NaN`, infinito, notación exponencial, rangos y longitud cubiertos.
+
+  - [x] UI-REB-10d Proyectar todos los puntos municipales por cercanía real.
+    - Descripción: reunir todas las páginas del municipio cuando exista una
+      referencia válida, ordenar globalmente por distancia y después aplicar
+      los filtros UI-REB-09.
+    - Aceptación: ninguna página se presenta como ranking parcial; distancia
+      ascendente y empates estables; puntos sin coordenadas al final y sin km;
+      solo mismo municipio/departamento; cero resultados usa exactamente
+      `No existe cobertura cercana o similar`.
+    - Verificación: pruebas focales Home/helper con 2+ páginas, duplicados,
+      error de página intermedia, filtros combinados y contexto inválido;
+      `npm run test:ci`, fronteras y build.
+    - Dependencias: UI-REB-10c2.
+    - Archivos: Home TS/spec y helper/spec 10a.
+    - Alcance: mediano, 4 archivos. Ejecutor: subagente Codex; lógica de
+      paginación, estado y producto.
+    - Evidencia: RED con tres fallos de ranking/paginación y GREEN con 39/39
+      pruebas focales; 2+ páginas, duplicados, fallo intermedio, coordenadas
+      ausentes y copia de no cobertura cubiertos.
+
+  ### Checkpoint UI-REB-10 — navegación y ranking
+
+  - [x] URL, recarga, Atrás/Adelante y parámetros manipulados verificados.
+  - [x] Ranking global usa todas las páginas y preserva filtros existentes.
+  - [x] Municipio sin puntos no propone cobertura externa inventada.
+
+  - [x] UI-REB-10e1 Diseñar sugerencias y confirmación de lugares en Discovery.
+    - Descripción: presentar `Lugares en El Salvador`, carga, error,
+      confirmación y salida sin cobertura con jerarquía clara.
+    - Aceptación: resultados locales aparecen antes; teclado sigue orden
+      local→externo; Escape/limpiar, `aria-live` moderado, foco visible, 44 px,
+      tokens vigentes y `prefers-reduced-motion`.
+    - Verificación: prueba estructural y revisión 386x912, 768x1024, 1024x768 y
+      1440x900; `check:css-colors` y build.
+    - Dependencias: UI-REB-10c1.
+    - Archivos: Discovery HTML/CSS/spec.
+    - Alcance: mediano, 3 archivos. Ejecutor: Antigravity; TS, servicios,
+      eventos y navegación quedan expresamente prohibidos.
+    - Evidencia: diff delegado limitado a HTML/CSS/spec; Codex revisó el orden
+      local→externo, estados, aviso de privacidad y prueba estructural. Colores,
+      build y matriz responsive pública verificados.
+
+  - [x] UI-REB-10e2 Diseñar el contexto de proximidad en resultados.
+    - Descripción: mostrar `Opciones cerca de {lugar}`, distancia lineal
+      orientativa y estados sin distancia/sin cobertura sin aumentar saturación.
+    - Aceptación: no promete tiempo de viaje; no muestra km falsos; filtros y
+      tarjetas conservan acciones; dock no cubre el final; foco, 44 px, tokens y
+      movimiento reducido.
+    - Verificación: prueba estructural y los cuatro viewports; colores y build.
+    - Dependencias: UI-REB-10d.
+    - Archivos: Home HTML/CSS/spec.
+    - Alcance: mediano, 3 archivos. Ejecutor: Antigravity; TS, estado,
+      paginación y navegación quedan expresamente prohibidos.
+    - Evidencia: contexto y disclaimer estructurales verdes; Codex completó la
+      etiqueta por tarjeta (`m`, `km` o `Distancia no disponible`) con pruebas
+      focales para impedir cercanía falsa.
+
+  ### Checkpoint UI-REB-10 — presentación paralela
+
+  - [x] 10e1 y 10e2 revisadas por Codex y sus diffs limitados a archivos autorizados.
+  - [x] Cuatro viewports sin overflow, solapamiento ni contenido bajo el dock.
+  - [x] Teclado, foco, lector de pantalla y movimiento reducido verificados.
+
+  - [x] UI-REB-10f1 Añadir recorridos E2E focalizados del nuevo flujo.
+    - Descripción: caracterizar punto exacto, lugar con cobertura, municipio sin
+      cobertura, proveedor no configurado/error y respuesta externa obsoleta.
+    - Aceptación: red determinista sin consumir Google real; ausencia de claves
+      o detalles internos; catálogo sigue disponible durante fallos; URL y
+      ranking se conservan en recarga e historial.
+    - Verificación: `npm run e2e -- public-shipment-flow.pw.spec.ts
+      public-accessibility.pw.spec.ts`.
+    - Dependencias: UI-REB-10e1 y UI-REB-10e2.
+    - Archivos: dos specs E2E públicos existentes.
+    - Alcance: pequeño, 2 archivos. Ejecutor: subagente Codex de pruebas.
+    - Evidencia: 5 escenarios nuevos × 4 viewports = 20 recorridos verdes;
+      la matriz pública completa terminó 76/76 contra el fixture aislado.
+
+  - [x] UI-REB-10f2 Certificar y documentar evidencia final.
+    - Aceptación: revisión de corrección, arquitectura, seguridad, rendimiento y
+      accesibilidad sin hallazgos bloqueantes; ninguna consulta duplicada; ningún
+      secreto o dato persistido nuevo; rollback comprobable.
+    - Verificación: focales, `npm run test:ci`, `npm run build`,
+      `npm run check:boundaries`, `npm run check:css-colors`, E2E público y
+      navegador real con Places disponible/no configurado/error en los cuatro
+      viewports.
+    - Dependencias: UI-REB-10f1.
+    - Archivos: documentación de plan/tareas/evidencia; sin cambios productivos.
+    - Alcance: pequeño. Ejecutor: Codex principal, que repite todas las
+      validaciones y revisa los diffs de subagentes.
+    - Evidencia final 2026-10-22: revisión cerró carreras, URL durable,
+      confirmación explícita, límites de consulta, horarios nocturnos, sesión
+      Places y sincronización de Guardados; 500/500 unitarias, 586/586 backend,
+      100/100 E2E seriales, build, fronteras y colores verdes. Auditorías npm de
+      frontend y backend: 0 vulnerabilidades tras actualizar únicamente
+      dependencias de desarrollo dentro de sus líneas compatibles.
+
+  ### Checkpoint UI-REB-10 — completo
+
+  - [x] Todos los criterios de la spec y Definition of Done están cubiertos.
+  - [x] Sin cambios en backend, ETA, SQL, secretos ni permisos; solo parches de
+    seguridad compatibles en dependencias de desarrollo del frontend.
+  - [x] Aprobación humana recibida para commit, push e integración. La promoción
+    a producción continúa sujeta a los gates globales, incluido T00.
+
+  #### UI-REB-11 — búsqueda externa con ubicación activa
+
+  Spec propuesta: `tasks/specs/UI-REB-11-location-biased-place-search.md`.
+
+  - [ ] Aprobar contrato, privacidad y comportamiento sin GPS antes de editar.
+  - [ ] Preparar slice backend con validación, rate limit y rollback.
+  - [ ] Implementar sesgo solo con ubicación precisa ya concedida.
+  - [ ] Certificar búsqueda nacional sin GPS y copia sin falsa cercanía.
+
+- Evidencia de MVP01-MVP06: UI-REB-01 a UI-REB-06, suite, contratos, build,
+  68 recorridos E2E y auditoría visual cubren el flujo y sus criterios. MVP05
+  añade restauración exacta del estado en unitarias y navegación durable en E2E.
+
+- [ ] MVP07 Gate de salida del flujo público.
+  - Aceptación: flujo completo, build, auditorías y smoke verdes; aprobación humana
+    antes de desplegar.
+  - Estado: gate técnico de interfaz verde y aprobación para integrar recibida;
+    falta el smoke integrado con backend/PostgreSQL local y una autorización de
+    lanzamiento a producción. Partner no participa.
+
+### Datos Pedidos Express — activo para MVP
+
+- [x] DATA01 Capturar snapshot reproducible del contrato público actual.
+  - Aceptación: manifiesto con 1 empresa, 185 puntos, 530 intervalos y 292 reglas;
+    sin secretos, con checksum y validación de esquema.
+  - Verificación: reimportación determinista y comparación de conteos/IDs.
+- [x] DATA02 Levantar PostgreSQL local aislado y aplicar migraciones 0001–0006.
+  - Aceptación: puerto no conflictivo, volumen persistente, healthcheck y ninguna
+    credencial real o de producción.
+  - Verificación: ledger/checksums verdes y segunda ejecución sin cambios.
+- [x] DATA03 Crear importación idempotente del catálogo legacy vigente.
+  - Aceptación: conserva `id_destino`, empresa, ubicación, horarios y reglas; una
+    segunda importación actualiza sin duplicar ni dejar huérfanos.
+  - Verificación: integridad referencial, unicidad, rangos y conteos auditados.
+- [x] DATA04 Conectar backend y frontend locales al dataset reproducible.
+  - Aceptación: SiVoy API usa un puerto distinto de `3000`; Inicio y búsqueda leen
+    los 185 puntos sin depender de la base de producción.
+  - Verificación: health, `/api/locations` y smoke Inicio→resultados en navegador real.
+- [x] DATA05 Clasificar brechas de contenido sin bloquear el MVP.
+  - Aceptación: imágenes y enlaces de mapa faltantes se registran como contenido;
+    la UI ofrece fallback y no los confunde con errores estructurales.
+  - Verificación: 181 faltantes reportados y tarjetas funcionales sin esos campos.
+
+Evidencia del corte local (2026-10-06): PostgreSQL 16 saludable en
+`127.0.0.1:5433`; migraciones 0001–0006 e importación ejecutadas dos veces sin
+duplicados; 1 empresa, 185 puntos, 530 intervalos y 292 reglas. API saludable en
+`127.0.0.1:3001` e Inicio→resultados verificado en navegador real desde
+`127.0.0.1:4303`, incluyendo expansión/colapso de horarios agrupados y un punto
+sin imagen ni enlace externo.
+
+### En espera post-MVP
+
+- [ ] POST01 Retomar `T43c2c`, `T43c2d2` y `T43c2e` solo con necesidad operativa.
+- [x] POST02/T14b Completar optimización y re-medición dentro de SCALE04 una vez
+  aprobado el contrato canónico de identidad y búsqueda. PERF04 conserva la
+  publicación operativa y los budgets de staging como trabajo independiente.
+- [ ] POST03 Completar staging/rollback de `T35`/`T36` antes de una operación que lo requiera.
+- [ ] POST04 Evaluar microservicios/eventos únicamente ante límites medidos del monolito modular.
+
+## Seguridad, escalabilidad, caché y rendimiento del MVP — corte revisado 2026-10-06
+
+Plan y evidencia: [docs/SECURITY_PERFORMANCE_AUDIT_PLAN.md](../docs/SECURITY_PERFORMANCE_AUDIT_PLAN.md).
+Partner queda fuera de alcance; este corte no introduce login ni microservicios.
+La caché se diseña como puerto e invalidación por empresa, pero su infraestructura
+se activa después de corregir y medir consultas. No autoriza por sí solo un despliegue.
+
+- T00 continúa como bloqueo crítico: rotar/revocar la credencial histórica y
+  sanear el historial Git; no se duplica aquí como una segunda tarea.
+- [ ] SEC01 Verificar backup mediante una restauración aislada.
+- [x] SEC02 Endurecer headers, CSP progresiva, CORS y errores JSON.
+  - Evidencia: CSP Report-Only compatible con mapas, anti-clickjacking/nosniff,
+    HSTS solo en producción, CORS allowlist que falla cerrado y errores API JSON
+    genéricos. Prueba HTTP real y suite backend 551/551 verdes.
+- [x] SEC03 Reducir cuerpos y fijar timeouts de Node, PostgreSQL y APIs externas.
+  - [x] SEC03a Limitar JSON/urlencoded y tiempos/cabeceras del servidor Node con
+    configuración acotada; preservar hasta 5 MB solo en el arranque local para
+    el flujo administrativo base64 fuera de producción.
+  - [x] SEC03b Añadir `query_timeout` cliente (6 s), defaults persistentes de rol
+    para `statement_timeout` (5 s) e `idle_in_transaction_session_timeout`
+    (10 s), `SET LOCAL` transaccional y URL directa para migraciones. Verificado
+    con cancelación real `57014`, recuperación de conexión y Neon pooled sin
+    fuga de estado; aplicación productiva pertenece al gate T35/T36.
+  - [x] SEC03c Limitar uploads y cerrar timeouts de Cloudinary/Maps/Places.
+    - [x] SEC03c-A Acotar logos multipart a 2 MB, un archivo y tipos raster
+      JPEG/PNG/WebP; traducir rechazos a envelopes genéricos 400/413/415.
+    - [x] SEC03c-B1 Acotar Data URI a 3 MiB y JPEG/PNG/WebP, configurar timeout
+      Cloudinary 8 s y traducir validación/upstream a errores 400/502/504.
+    - [x] SEC03c-B2 Acotar entradas de Places (query 3–128, place ID 1–256 y
+      token de sesión 64 caracteres), respuestas a 256 KiB y timeout a 8 s;
+      conservar SSRF/DNS pinning y acotar el resolvedor Maps a 16 KiB/8 s.
+      Controladores exponen únicamente errores tipados bajo allowlist y una
+      respuesta fragmentada excesiva se cancela. Pruebas focalizadas, suite
+      completa, auditoría de dependencias y revisión Antigravity verdes.
+- [ ] SEC04 Aplicar rate limits por riesgo, primero en observación.
+  - [x] SEC04a Implementar límites independientes para catálogo (120/min),
+    cálculo/búsqueda (60/min) y Maps/Places (20/min). El modo `observe` por
+    defecto no bloquea ni expone `Retry-After`; registra una sola vez al cruzar
+    el umbral. `enforce` responde 429 seguro con `Retry-After` antes de parsers.
+    Render usa `CF-Connecting-IP` únicamente en producción y agrupa IPv6 /56;
+    local ignora cabeceras reenviadas. Memoria por instancia con fail-open y
+    puerto de configuración para un almacén compartido posterior.
+    Evidencia local: 7/7 pruebas focalizadas, 580/580 pruebas backend,
+    `npm audit --omit=dev` sin vulnerabilidades y `git diff --check` verde.
+    Antigravity emitió APPROVE; su advertencia sobre `CF-Connecting-IP` se cerró
+    contra la garantía oficial de Render de que Cloudflare sobrescribe el valor
+    en servicios web públicos.
+  - [ ] SEC04b Observar 48–72 horas en producción, ajustar umbrales con evidencia
+    y activar `RATE_LIMIT_MODE=enforce`; usar edge/Key Value antes de múltiples
+    instancias. No forma parte de este despliegue de código.
+- [x] SEC05 Probar escrituras 403 y retirar de producción endpoints auxiliares de Partner/prueba.
+  - Evidencia: escrituras operativas responden 403 antes de parsers en producción;
+    `/api/test-location` eliminado (404); `GET/HEAD /api/empresas/excel-template`
+    oculto en producción con 404 y `no-store`. Partner permanece fuera de alcance.
+    Pruebas HTTP en `backend/test/operational-write-guard.test.js`.
+
+- [x] SCALE01 Aprobar identidad y contrato canónico de catálogo.
+  - Spec: [SCALE01-catalog-query-contract.md](specs/SCALE01-catalog-query-contract.md).
+  - Aceptación: `companyId`, `pointId`, cursor, filtros, DTO resumen/detalle,
+    facetas y error quedan especificados; nombres dejan de ser identidad.
+  - Verificación: contrato versionado, fixtures y revisión de compatibilidad legacy.
+  - Dependencias: SEC02; bloquea SCALE02–SCALE05.
+- [x] SCALE02 Implementar repositorios paginados y filtrados.
+  - Aceptación: ninguna lista pública lee tablas completas; horarios/reglas se
+    obtienen por IDs visibles o bajo demanda; límite máximo obligatorio.
+  - Verificación: integración PostgreSQL con conteo constante de consultas y
+    planes sin full scan no justificado en 10k/100k puntos.
+  - [x] Repositorio canónico acotado: 2 consultas por página y 1 por facetas.
+  - [x] Prueba PostgreSQL reproducible en 10k/100k sin caché.
+  - [x] Migrar `/enviar`: la suite E2E confirma que el flujo público no solicita
+    `/api/locations` en móvil, tablet ni escritorio.
+  - [x] Retirar de producción el endpoint HTTP legacy `/api/locations`: responde
+    `410` y `no-store` antes de PostgreSQL; la compatibilidad queda limitada a
+    desarrollo para Admin/Partner fuera de alcance.
+  - Dependencias: SCALE01.
+- [x] SCALE03 Migrar ETA y búsqueda a IDs y resolución batch.
+  - Aceptación: compatibilidad se compara por `empresa_id`; no existen consultas
+    N×M ni resolución de relaciones por nombre.
+  - Verificación: paridad ETA legacy/nueva, casos multiempresa y contador SQL.
+  - [x] Resolución batch de identificadores.
+  - [x] Comparación por `empresa_id`.
+  - [x] Repositorio PostgreSQL con conteo constante de 3 consultas para puntos/horarios/reglas.
+  - [x] Frontend enviando IDs estables.
+  - [x] Prueba PostgreSQL de escala en 10k/100k: 3 consultas, 0.155 ms en
+    100k para IDs estables y sin `Seq Scan` de `agencias`.
+  - [x] Retirar la compatibilidad legacy por nombre.
+  - Evidencia final: el puerto de rutas exige resolución batch; puntos se
+    resuelven exclusivamente por `id_destino`, la compatibilidad usa solo
+    `empresa_id` para entradas escalares y colecciones, y las búsquedas por
+    nombre/ID interno y la lectura global quedaron retiradas. Auditoría Codex
+    corrigió una entrega parcial de Antigravity que fallaba siete pruebas y una
+    mezcla escalar multiempresa. Resultado: 23/23 focalizadas y 583/583 backend.
+    Smoke PostgreSQL local: `AG_APOPA_01` → `AG_ACAJUTLA_01` devuelve ruta
+    válida; los nombres visibles equivalentes devuelven `success:false`.
+  - Dependencias: SCALE01–SCALE02.
+- [x] SCALE04 Añadir normalización e índices guiados por consultas.
+  - Aceptación: municipio/departamento normalizados e índices siguen filtros/orden
+    canónicos; todo cambio es aditivo y reversible.
+  - Verificación: `EXPLAIN (ANALYZE, BUFFERS)` antes/después en 10k y 100k puntos.
+  - [x] Índices aditivos del catálogo y medición posterior en 10k/100k.
+  - [x] Comparación antes/después completada para filtro geográfico, orden y
+    búsqueda parcial. En 100k puntos: ubicación 91.270→3.552 ms, orden
+    217.541→0.127 ms y contains 178.139→11.080 ms; los planes prueban por nombre
+    `agencias_scale_location_idx`, `agencias_scale_name_idx` y
+    `agencias_scale_name_trgm_idx`. No se añade columna normalizada persistida:
+    los índices de expresión satisfacen las tres consultas y evitan duplicar
+    estado o aumentar escrituras. Migraciones aditivas 0009/0010 verificadas
+    desde cero, ledger idempotente y 586/586 pruebas backend verdes. El runner
+    impide registrar una migración no transaccional si deja un índice inválido.
+  - Dependencias: SCALE01–SCALE03; incorpora T14b.
+- [x] SCALE05 Migrar el frontend a catálogo incremental.
+  - Aceptación: Inicio busca remotamente con debounce/cancelación, usa páginas y
+    facetas y carga detalle al expandir; no descarga todo el catálogo al arrancar.
+  - Verificación: unitarias, E2E del flujo público, red sin request global y
+    revisión móvil/escritorio.
+  - [x] Inicio y `/enviar` arrancan con catálogo acotado, sin `/api/locations`.
+  - [x] Municipio usa facetas remotas, páginas por cursor y detalle bajo demanda.
+  - [x] Deep-links de punto resuelven el detalle por identidad canónica.
+  - [x] Migrar la resolución de rutas/orígenes a IDs batch; el E2E comprueba los
+    IDs `POINT_AGENCIA_NORTE` → `POINT_AGENCIA_CENTRO` en el request real.
+  - [x] Añadir E2E de búsqueda, detalle bajo demanda, compartir, fallback de mapa
+    y paginación 20→25 sin duplicados en 386, 768, 1024 y 1440 px.
+  - Evidencia (2026-10-13): fixture canónico 17/17, frontend 358/358, build,
+    boundaries y colores verdes; Playwright 16/16 y cero requests a
+    `/api/locations` durante el flujo público.
+  - Dependencias: SCALE01–SCALE03.
+
+- [ ] PERF01 Instrumentar pool, consultas, payload y RED por ruta.
+  - Aceptación: métricas de baja cardinalidad permiten detectar saturación y N+1.
+  - Verificación: prueba de métricas/redacción y dashboard de staging.
+- [ ] PERF02 Medir smoke, crecimiento, escala, pico y soak con k6.
+  - Aceptación: escenarios actual/10k/100k tienen umbrales p95/error/payload.
+  - Verificación: artefacto comparable y fallo de CI/staging al superar el budget.
+- [ ] PERF03 Fijar presupuestos Lighthouse/Web Vitals del flujo público.
+  - Aceptación: LCP, INP, CLS, bundle y peticiones tienen umbral aprobado.
+  - Verificación: Lighthouse CI y RUM sin texto de búsqueda ni datos sensibles.
+- [ ] PERF04 Publicar comparación sin caché y cerrar T14b.
+  - Aceptación: SQL/contratos cumplen budgets antes de introducir cache hits.
+  - Verificación: reporte actual/10k/100k y revisión de planes/índices.
+
+- [x] CACHE01 Definir puerto, claves e invalidación de caché por empresa.
+  - Aceptación: claves incluyen versión/revisión/filtros/cursor y no pueden mezclar
+    empresas; el sistema funciona con implementación Noop.
+  - Verificación: pruebas de colisión, cambio de revisión y caída de caché.
+  - Evidencia: claves versionadas aíslan empresa/filtros/cursor/revisión; la
+    disponibilidad se recalcula por petición y una caída de caché degrada hacia
+    PostgreSQL. Producción continúa con la implementación `Noop`.
+- [ ] CACHE02 Activar caché de borde sobre GET paginados.
+  - Aceptación: assets, catálogo, detalle, ETA y observabilidad tienen políticas
+    explícitas; ETA/Places permanecen `no-store` inicialmente.
+  - Verificación: `CF-Cache-Status`, caché fría/caliente, stale e invalidación.
+- [ ] CACHE03 Evaluar Key Value/Redis y escala horizontal con evidencia.
+  - Aceptación: solo se aprovisiona ante múltiples instancias o hotspot demostrado;
+    pool global permanece bajo el presupuesto de conexiones.
+  - Verificación: carga comparativa sin/con caché y degradación del almacén.
+- [ ] CACHE04 Dimensionar conexiones para escala horizontal.
+  - Aceptación: pool por instancia respeta el límite global; PgBouncer/réplica se
+    incorpora únicamente ante saturación o lecturas medidas.
+  - Verificación: prueba con número objetivo de instancias, pool saturado y failover.
+
+- [ ] OPS01 Automatizar CodeQL, secretos, ZAP y SBOM/Trivy en CI.
+- [ ] OPS02 Declarar readiness/health y runtime reproducible en Render.
+- [ ] OPS03 Configurar monitor externo, alertas accionables, retención y runbooks.
+- [ ] OPS04 Ensayar DB/Google/pool/caché degradados y rollback antes de producción.
+
+## Fase 0 — Línea base
+
+- [ ] T00 Rotar y revocar las credenciales PostgreSQL expuestas.
+  - Aceptación: credencial antigua inválida y scripts sin secretos embebidos.
+  - Verificación: secret scan del árbol e historial; conexión solo mediante entorno.
+  - Dependencias: ninguna; bloquea cualquier migración.
+  - Avance: secreto eliminado del árbol actual; rotación y limpieza histórica pendientes.
+- [x] T01 Documentar comandos y Definition of Done.
+  - Aceptación: comandos ejecutables y matriz de auditoría versionados.
+  - Verificación: ejecutar cada comando documentado.
+  - Dependencias: ninguna.
+- [x] T02 Crear fixtures del dominio ETA.
+  - Aceptación: cubren horarios, cortes, días hábiles y ausencia de ruta.
+  - Verificación: fixtures cargan sin red ni base de datos.
+  - Dependencias: T01.
+- [x] T03 Caracterizar `calcularIngresoOficial`.
+  - Aceptación: casos antes, durante y después del cierre protegidos.
+  - Verificación: suite unitaria verde.
+  - Dependencias: T02.
+- [x] T04 Caracterizar proyección y endpoints de rutas.
+  - Aceptación: punto-punto y municipio-municipio preservan respuestas.
+  - Verificación: unitarias y contrato HTTP verdes.
+  - Dependencias: T02.
+- [x] T05 Capturar smoke E2E y baseline visual.
+  - Aceptación: recorrido destino→origen→ruta→compartir reproducible.
+  - Verificación: E2E y capturas en cuatro viewports.
+  - Dependencias: T01.
+  - [x] T05a: caracterización Angular con datos falsos del DOM destino→compartir→origen→ruta, sin red ni mapa; 254/254 pruebas frontend y build verdes. No sustituye E2E ni captura visual.
+  - [x] T05b: navegador real y capturas 386×912, 768, 1024 y 1440 con catálogo disponible.
+    - [x] T05b1: fixture sintético reproducible en loopback `localhost:3000`; 16/16 pruebas, catálogo destino→origen→ruta y acción de mapa auditados en navegador real. No altera producción ni simula reglas empresariales reales.
+    - [x] T05b2: recorrido Playwright destino→compartir→origen→ruta verde en cuatro viewports y cuatro capturas Win32 versionadas; CI ejecuta el smoke funcional. La comparación visual Linux queda pendiente para Checkpoint C porque Playwright requiere generar baseline en el mismo entorno.
+
+### Checkpoint A
+
+- [x] Build frontend y pruebas backend verdes (271 frontend, 322 backend y build de producción auditados).
+- [x] Flujo actual preservado (smoke real en cuatro viewports y navegación atrás/adelante verificada).
+- [x] Revisión humana antes de arquitectura interna (aprobado por el usuario para ejecución incremental y reversible; Codex audita cada corte).
+
+## Fases 1–3 — Dominio y backend
+
+- [x] T06 Definir modelos y DTOs de ubicaciones.
+  - Spec ejecutado: `tasks/specs/T06-location-models.md`.
+  - [x] T06a: Contratos TypeScript wire-compatible.
+    - Resultado auditado: modelo `DeliveryPoint` inmutable y DTO legacy sin `any`; identidad exige `id` o `id_destino`; TypeScript y diff verdes.
+  - [x] T06b: Mapper de frontera.
+    - Resultado auditado: 10 pruebas focalizadas y 249 pruebas frontend; payloads hostiles descartados sin mutar la entrada, build y auditoría sin vulnerabilidades.
+  - [x] T06c: Integración del servicio público.
+    - Resultado auditado: 250/250 pruebas frontend, build y auditoría sin vulnerabilidades; conserva URL y errores HTTP, valida datos en la frontera; Partner intacto.
+- [x] T07 Definir contratos de búsqueda de rutas.
+  - Spec ejecutado: `tasks/specs/T07-route-contracts.md`.
+  - [x] T07a: Matriz y fixtures legacy.
+    - Resultado auditado: tres endpoints caracterizados, ejemplos ficticios JSON válidos, diferencias UTC/local y respuestas vacías documentadas; commit remoto `5d4d6f7` verificado.
+  - [x] T07b: Pruebas de contrato HTTP.
+    - Resultado auditado: 18/18 casos HTTP contra Express local, 224/224 pruebas backend y auditoría de producción con 0 vulnerabilidades; commit remoto `e49ea87` verificado.
+  - [x] T07c: Tipos de consumo frontend.
+    - Resultado auditado: variantes legacy diferenciadas en el contrato canónico; 11 pruebas focalizadas, 253/253 pruebas frontend, TypeScript, build y auditoría con 0 vulnerabilidades; Partner intacto.
+- [x] T08 Añadir validación de entrada y errores consistentes.
+  - Límites aprobados por el usuario (160 caracteres, 100 elementos, años 1900–2100) conservando defaults legacy; spec: `tasks/specs/T08-input-validation.md`.
+  - [x] T08a: Validadores puros de rutas.
+    - Resultado auditado: límites, calendario UTC, copias y entradas hostiles; 265/265 backend y auditoría 0 vulnerabilidades; commit remoto `f07c569` verificado.
+  - [x] T08b: Integración fail-fast en casos de uso.
+    - Resultado auditado: repositorio y ETA no se invocan con payload inválido; 267/267 backend y auditoría 0 vulnerabilidades; commit remoto `d4bec6f` verificado.
+  - [x] T08c: Traducción consistente en la frontera HTTP.
+    - Validaciones tipadas producen 400, origen ausente conserva 404 y errores internos 500; prueba HTTP real sin I/O. Con aprobación expresa del usuario, el 500 municipal oculta el detalle interno bajo `{ "error": "Database error" }`.
+- [x] T09 Extraer fechas y horarios al núcleo ETA puro.
+  - [x] T09a: Caracterización y contratos del núcleo temporal.
+    - Resultado auditado: 23 pruebas focalizadas en UTC, America/Los_Angeles y America/El_Salvador; 145/145 pruebas backend, sintaxis y diff verdes; ningún consumidor modificado.
+  - [x] T09b: Implementación de pureza en adapter logístico.
+    - Resultado auditado: 12 pruebas enfocadas en cada uno de UTC, America/Los_Angeles y America/El_Salvador; 150/150 pruebas de backend; contratos legados, comparación instantánea, comportamiento de fecha inválida y fechas fuera del rango principal preservadas.
+  - [x] T09c: Extracción de cálculo de ingreso oficial.
+    - Resultado auditado: 28 pruebas enfocadas por TZ (UTC, America/Los_Angeles, America/El_Salvador), 166/166 backend, DTO profundo inmutable/separado, salidas de adaptador legacy preservadas.
+  - [x] T09d: Extracción de reglas de proyección de rutas.
+    - [x] T09d1: Núcleo puro de reglas de proyección.
+      - Resultado auditado: 16 pruebas puras, incluidas en 36/36 enfocadas por TZ y 184/184 auditoría backend; salidas desconectadas profundamente congeladas; sin dependencia logística.
+    - [x] T09d2: Integración del adaptador legacy.
+      - Resultado auditado: 23/23 pruebas de adaptador y rutas por zona horaria, 187/187 backend, auditoría con 0 vulnerabilidades; contratos, pins, cortes, intervalos y límites legados preservados.
+  - [x] T09e: Cutover y aislamiento final.
+    - Resultado auditado: política de cutover aislada sin retirar fallbacks dependientes de T08; 23/23 pruebas de adaptador y rutas en UTC, America/Los_Angeles y America/El_Salvador, 187/187 backend, sintaxis y auditoría NPM de producción verdes.
+- [x] T10 Extraer casos de uso de rutas y adaptador legacy.
+  - Spec en ejecución: `tasks/specs/T10-route-use-cases.md`; cutover requiere T08 completado.
+  - [x] T10a: Soporte determinista de casos de uso.
+    - Resultado auditado: 4 pruebas focalizadas y 228/228 backend, equivalencia temporal legacy en tres zonas horarias, sintaxis y auditoría con 0 vulnerabilidades; aún sin consumidor productivo.
+  - [x] T10b: Fábrica de casos de uso.
+    - Resultado auditado: dependencias y reloj inyectados sin DB/red/Express; preserva respuestas legacy y diferencias escalar/array, calendario de siete candidatos y errores de dependencias. Pruebas de Antigravity corregidas en auditoría; 277/277 backend, sintaxis y auditoría de producción sin vulnerabilidades. La fábrica sigue sin conectarse al adaptador público hasta T10c.
+  - [x] T10c: Adaptador legacy y cutover.
+    - Resultado auditado: `rutas.service.js` reducido de 279 a 33 líneas de composición y validación; tests de servicio sin `require.cache`, reloj y puertos inyectados, 34 contratos focalizados y 278/278 backend, sintaxis y auditoría sin vulnerabilidades. Controller y SQL intactos.
+- [x] T11 Completar el puerto de persistencia de ubicaciones.
+  - Spec ejecutado: `tasks/specs/T11-location-repository-port.md`. T10 cubre lectura de rutas por puertos; la escritura de puntos pasa un objeto de cambios permitido al repositorio, único dueño del SQL parametrizado. Sin cambios de endpoint, esquema ni interfaz Partner.
+  - Resultado auditado: pruebas RED→GREEN para firma y whitelist, 281/281 backend, sintaxis y auditoría 0 vulnerabilidades. La integración PostgreSQL real permanece como checkpoint B, pendiente de baseline/entorno reproducible.
+- [x] T12 Transaccionar actualización de punto y horarios.
+- [x] T13 Resolver y migrar contrato `id`/`id_destino`.
+  - Identidad pública canónica `pointId = id_destino`; el ID interno y el nombre
+    visible dejaron de resolver rutas. SCALE01–SCALE03 contienen contrato,
+    cutover frontend/backend y regresiones multiempresa.
+- [x] T14 Optimizar búsquedas después de medir consultas.
+  - [x] T14a Línea base reproducible de consultas críticas en PostgreSQL 16 efímero.
+    - Evidencia remota (commit `76b58f3aa00e66310dd8a2cc11809e7f302e6e00`, run [36930582242](https://github.com/Pablojvr/sivoy-app/actions/runs/36930582242)): workflow completo success, Backend CI success y Frontend CI success en GitHub Actions. Anotación pública `T14 PostgreSQL baseline` emitida en CI. Medición determinista sobre esquema aislado con dataset representativo (10,000 agencias, 70,000 horarios, 20,000 reglas; cinco muestras por consulta, `shared_read` = 0 en caliente). Mediana de ejecución: `agency_lookup_by_name_or_id` 2.243 ms (Seq Scan, plan_rows 100, actual_rows 1, shared_hit 182; cuello de botella confirmado por escaneo secuencial y estimación 100:1); `all_agencies_ordered` 2.158 ms (Sort + Seq Scan, 10,000 filas, shared_hit 182); `all_schedules` 2.359 ms (Seq Scan, 70,000 filas, shared_hit 584); `all_delivery_rules` 0.635 ms (Seq Scan, 20,000 filas, shared_hit 109); `schedules_by_agency` 0.047 ms (Bitmap Heap/Index Scan, 7 filas, shared_hit 9); `delivery_rules_by_agency` 0.027 ms (Index Scan, 2 filas, shared_hit 3). Spec: `tasks/specs/T14-query-performance-baseline.md`.
+  - [x] T14b Optimización focalizada y re-medición comparativa sin caché.
+    - La consulta legacy por nombre/ID fue retirada tras T13/SCALE03. Las formas
+      canónicas de catálogo se midieron sin índices y con índices en 10k/100k;
+      cada plan debe usar el índice esperado por nombre. En 100k: ubicación
+      91.270→3.552 ms, orden 217.541→0.127 ms y contains 178.139→11.080 ms.
+      `pg_trgm` y el GIN parcial se entregan en migraciones 0009/0010.
+- [x] T38 Versionar baseline y ledger de migraciones reproducibles.
+- [x] T39 Añadir constraints e índices de FK con validación previa (pendiente ventana de aplicación).
+- [x] T40 Crear calendarios con múltiples intervalos y excepciones (modelo aditivo; pendiente backfill/cutover).
+- [x] T41 Crear políticas de promesa, alcances y reglas de precedencia (modelo aditivo; pendiente backfill/cutover).
+- [ ] T42 Implementar escritura dual y backfill idempotente.
+- [ ] T43 Ejecutar ETA antiguo/nuevo en paralelo y comparar resultados.
+  - Spec: `tasks/specs/T43-eta-parity.md`. T43 sigue abierto.
+  - [x] T43a: Comparador estructural puro inmutable y pruebas de caracterización RED.
+    - Resultado auditado: módulo `eta-parity-comparator.js` puro e inmutable con `Object.freeze` recursivo, sanitización de entrada ante payloads inválidos, orden determinista por ruta lexicográfica; 32/32 pruebas focalizadas y 394/394 pruebas backend verdes.
+  - [x] T43b: Referencia legacy de test y matriz offline ("golden dataset") de 26 escenarios.
+    - Resultado auditado: transcripción histórica fijada en commit `87684cbbca2f...`, adaptador a snapshot canónico, matriz de 26 escenarios representativos en `America/El_Salvador` con 100% de paridad estricta; 58/58 pruebas focalizadas y 420/420 backend verdes.
+  - [x] T43c1: Referencia legacy de runtime independiente y matriz de procedencia/paridad offline.
+    - Evidencia remota y auditoría: commit `2731f05856eb0669831e421b8576deebeeeea624`, CI GitHub Actions [run 37070686298](https://github.com/Pablojvr/sivoy-app/actions/runs/37070686298) completo success (Backend CI success y Frontend CI success); pruebas focalizadas 59/59, backend suite 421/421 verdes; revisión adversarial Antigravity APPROVE (0 Critical, 0 Required); `legacy-shadow-reference.js` aislado sin importar `backend/test/*` ni módulos actuales, sin integración en flujos de producción. T43 sigue abierto.
+  - [x] T43c2a: Adaptador runtime puro del motor actual hacia CanonicalEtaSnapshot + matriz offline de 26 escenarios contra el adaptador de test.
+    - Alcance: traduce salidas de las funciones del core actual (`calculateOfficialEntry`, `validateDesiredDate`, `projectRoutes`) a snapshot canónico profundamente inmutable (`Object.freeze`) y desacoplado, sin importar `backend/test/*`, sin rutas, cola ni observabilidad; archivos exactos: `backend/src/core/eta/current-runtime-adapter.js`, `backend/test/eta-parity-matrix.test.js`, `tasks/specs/T43-eta-parity.md`; máximo 3 archivos y rollback atómico. Depende de T43c1.
+  - [x] T43c2b: Runner y cola FIFO acotada en background.
+    - Alcance: runner con dependencias inyectadas, disabled by default con flag exacto `process.env.ETA_SHADOW_PARITY === 'true'`, ejecución diferida en background con cola FIFO acotada y descarte drop-on-full ante saturación (reconociendo que `setImmediate` no elimina contención de CPU en Node.js de hilo único), aislamiento total de excepciones y pruebas unitarias sin integración HTTP; archivos exactos: `backend/src/application/rutas/eta-shadow-runner.js`, `backend/test/eta-shadow-runner.test.js`, `tasks/specs/T43-eta-parity.md`; máximo 3 archivos y rollback operativo cambiando/removiendo la variable con reinicio/redeploy controlado de la plataforma sin requerir revertir código. Depende de T43c2a.
+  - [x] T43c2d1: Telemetría pura del shadow-run con contadores y cardinalidad fija.
+    - Alcance: módulo de telemetría puro con factory, singleton runtime `defaultEtaShadowTelemetry`, `resetMetrics`, allowlist cerrada de labels y métricas agregadas; snapshot de métricas retornado profundamente inmutable (`Object.freeze`) y desconectado del estado interno; pruebas que serializan salida confirman ausencia total de `expected`/`actual`, payloads de entrada, IDs de puntos, nombres, fechas, horarios, reglas, timestamps, stack y errores raw; match no emite logs ni métricas de divergencia; archivos exactos: `backend/src/core/eta/eta-shadow-telemetry.js`, `backend/test/eta-shadow-telemetry.test.js`, `tasks/specs/T43-eta-parity.md`; máximo 3 archivos y rollback atómico. Depende de T43c2b y precede obligatoriamente a T43c2c.
+  - [ ] T43c2c: Integración del puerto shadow en casos de uso / composition root.
+    - Alcance: invocación desacoplada sin await pasando copias defensivas aisladas (nunca referencias mutables del request ni entidades de dominio), con runner y telemetría inyectables para pruebas y singleton runtime `defaultEtaShadowTelemetry`, preservando 100% status/body/headers HTTP; archivos exactos: `backend/src/application/rutas/route-use-cases.js`, `backend/src/domains/rutas/rutas.service.js`, `backend/test/route-use-cases.test.js`; validación ejecuta también `node --test test/rutas-contract.test.js` sin modificar ese cuarto archivo; máximo 3 archivos y rollback atómico. Depende de T43c2b y T43c2d1.
+  - [ ] T43c2d2: Composición y exposición de métricas shadow en observabilidad.
+    - Alcance: compositor genérico en `observability-routes.js` y cableado en `server.js`; conserva todas las claves HTTP actuales en la raíz de `/api/metrics` y agrega únicamente la clave reservada `etaShadowParity` cuando el flag estricto está activo, con contadores cero antes del primer job; la clave se omite con el flag apagado o si falla el snapshot shadow, se rechazan colisiones determinísticamente y nunca se exponen datos sensibles ni errores raw; mantiene token Bearer, 404 del router aislado, `no-store` y los endpoints existentes. Archivos exactos: `backend/src/core/observability/observability-routes.js`, `backend/server.js`, `backend/test/observability-routes.test.js`; máximo 3 archivos y rollback atómico. Depende de T43c2c.
+  - [ ] T43c2e: Verificación en staging real y activación controlada.
+    - Alcance: validar en `America/El_Salvador`, CPU, profundidad/descartes de cola, latencia p95/p99 y paridad estricta (0% divergencia); procedimiento de rollback operativo cambiando o removiendo `ETA_SHADOW_PARITY` con reinicio/redeploy controlado de la plataforma sin requerir revertir código. Solo tras auditoría satisfactoria considerar activación productiva; archivos exactos: `docs/STAGING_ETA_PARITY.md`, `tasks/plan.md`, `tasks/specs/T43-eta-parity.md`; máximo 3 archivos y rollback probado. Depende de T43c2a a T43c2d2.
+- [ ] T44 Uniformar envelopes, errores, IDs y timestamps del API.
+  - [x] T44a: inventario fuente/prueba/consumidor en `docs/contracts/public-http-current.md`, sin modificar respuestas. Se detectó que `/api/metrics` sin token devuelve HTML 200 por el catch-all en el servidor completo, pese al 404 del router aislado.
+  - [x] T44b: propuesta documental de contrato v2 en `docs/contracts/public-http-v2-proposal.md`; Antigravity redactó el borrador y Codex corrigió fechas civiles, ausencia de ruta e identidad tras auditoría. Pendiente aprobación de diseño y línea base E2E/DB antes de cambiar el wire format.
+  - [ ] T44c–d: pruebas/adaptadores y migración de consumidores; cambios observables sujetos a aprobación y a la línea base E2E/DB.
+- [ ] T45 Endurecer resolución de URLs y respuestas externas.
+  - Spec en ejecución: `tasks/specs/T45-maps-link-security.md`. T45a política pura auditada y publicada. T45b resolvedor modular con DNS/IP pública fijada, conexión aislada, redirecciones y límites: pruebas RED→GREEN; revisión externa de Antigravity no disponible, auditado por Codex. T45c error HTTP genérico pendiente de decisión expresa para Maps.
+- [x] T46 Separar superficie pública y operativa; endurecer HTTP y pool.
+  - Spec ejecutado: `tasks/specs/T46-http-pool-boundary.md`.
+  - Resultado auditado por Codex: T46a, T46b1, T46b2a/b y T46c cumplen el spec. 55/55 pruebas focalizadas, 322/322 pruebas backend, sintaxis válida en 60 archivos JS, `npm audit --omit=dev` con 0 vulnerabilidades y git diff limpio.
+  - Guardia en producción bloquea exactamente `POST /api/empresas`, `PUT /api/empresas/:id`, `POST /api/agencias` y `PUT /api/locations/:id` con 403 antes de parsers/Multer/routers; desarrollo y rutas públicas preservados.
+  - Pool y shutdown auditados requisito por requisito (adquisición con timeout acotado, cierre idempotente del pool, eventos seguros y terminación ordenada esperando HTTP antes de DB).
+  - Partner no fue modificado y permanece fuera de alcance.
+  - El canal privado es trabajo futuro necesario antes de reactivar escrituras; no es parte del alcance actual aprobado, no se agregó login y los formularios reciben 403 en producción.
+- [x] T47 Actualizar MapLibre a v6 segura y validar el adaptador compartido.
+  - Resultado auditado: `maplibre-gl@6.8.0`, 0 vulnerabilidades en `npm audit --omit=dev`, 17 pruebas frontend y build de producción verdes.
+  - Validación local: fallback MapLibre cargado sin errores de consola o worker; pin restaurado a la misma posición tras zoom in/out.
+  - Spec ejecutado: `tasks/specs/T47-maplibre-v6-security-upgrade.md`.
+
+Cada tarea debe incluir al abrirse: máximo cinco archivos, hasta tres criterios de
+aceptación y comandos exactos de prueba. T13 requiere aprobación explícita.
+
+### Checkpoint B
+
+- [ ] Paridad completa del ETA.
+- [x] Pruebas de integración PostgreSQL verdes.
+  - Evidencia remota (commit `40e6b960ef399071fb5b2bc0c814a90bcc1cb2e9`, run [36927539440](https://github.com/Pablojvr/sivoy-app/actions/runs/36927539440)): Backend CI en GitHub Actions completó con success en evento push sobre `codex/antigravity-orchestration`; contenedor PostgreSQL inicializado (`Initialize containers`: success) y step `Run ephemeral PostgreSQL migration validation` exitoso, aplicando migraciones 0001–0006 con ledger/checksums idénticos y segunda ejecución no-op (cero migraciones).
+- [ ] Ningún endpoint público cambió sin versión o adaptador.
+
+## Fase 4 — Sistema visual
+
+- [x] T15 Extraer tokens, tipografía y movimiento.
+- [x] T16 Crear primitivas Button/IconButton/Input/Chip.
+- [x] T17 Crear primitivas Card/Sheet/Modal.
+- [x] T18 Migrar tarjetas de resultados.
+- [x] T19 Migrar detalle de punto y horarios.
+- [x] T20 Migrar navegación y overlays.
+- [x] T21 Reducir estilos inline y `!important` con métricas comparativas.
+  - Resultado auditado: `style="` 139 -> 0; `!important` 73 -> 67; hex CSS 496 -> 496.
+  - Se conservan únicamente bindings `[style.*]` calculados para contenido dinámico.
+
+T15–T21 pueden delegarse parcialmente a Antigravity en encargos de máximo tres
+archivos. Codex debe revisar cada diff y ejecutar build y auditoría visual.
+
+### Checkpoint C
+
+- [x] Visual regression y accesibilidad aprobadas para el flujo público crítico (Partner continúa fuera de alcance).
+  - [x] Toast global: regiones atómicas por severidad (`status/polite` y `alert/assertive`), iconos decorativos ocultos y cierre nombrado; seis pruebas RED→GREEN incluidas en 277/277 frontend.
+  - [x] Buscador de destino: diálogo nombrado, foco inicial, ciclo de `Tab`/`Shift+Tab`, cierre con `Escape`, retorno al disparador y controles visibles con nombre accesible; 12/12 repeticiones focalizadas y 16/16 E2E en cuatro viewports, 279/279 frontend y build verdes.
+- [x] CSS global reducido sin cambiar comportamiento.
+  - [x] Primer corte: 234 reglas exclusivas de Home movidas sin alteración desde `app.css` hacia `home.component.css`; fuente global 107084 → 101858 bytes, build y comparación visual en cuatro viewports verdes.
+  - [x] Segundo corte: 373 líneas de tarjeta de ruta encapsuladas en `route-result-card.component.css`; `app.css` 101858 → 94718 bytes y presupuesto compilado 75.84 → 70.33 kB, con 7/7 pruebas focalizadas, 277/277 frontend, build y 8/8 E2E visuales verdes.
+  - [x] Tercer corte: 556 líneas de origen y búsqueda movidas literalmente a `home.component.css`; `app.css` 94718 → 83685 bytes y desaparece la advertencia de presupuesto CSS, con 277/277 frontend, build y 8/8 E2E visuales verdes.
+- [x] No aparecen nuevos colores o tokens paralelos.
+  - Contrato versionado de 355 literales, 3 keywords y 33 tokens `:root`; guard sin dependencias en CI; 14/14 guard tests, 277/277 frontend, build y 12/12 E2E.
+
+## Fases 5–8 — Frontend modular
+
+- [x] T22 Crear `ShipmentSearchFacade` y pruebas de estados.
+  - Resultado auditado: infraestructura Vitest Angular 21 activa; 15 pruebas de fachada y 17 pruebas frontend verdes.
+  - La fachada es aditiva y aún no tiene consumidores de producción; la integración se realiza en T23-T25.
+- [x] T23 Extraer búsqueda de destino.
+  - Resultado auditado: componente presentacional tipado, puente aditivo a `ShipmentSearchFacade`, 20 pruebas frontend y build verdes.
+  - Recorrido local aprobado: abrir, limpiar, filtrar, seleccionar municipio, cargar resultados, cerrar y volver a Inicio sin errores.
+  - Spec ejecutado: `tasks/specs/T23-destination-search-component.md`.
+- [x] T24 Extraer selección de origen.
+  - Resultado auditado: selector presentacional tipado para municipio, punto, ubicación actual y ayuda de lugares; 35 pruebas frontend y build verdes.
+  - Recorrido local aprobado: destino específico → municipio origen → ruta → cambiar origen → reabrir municipio/Google Places, sin errores.
+  - Spec ejecutado: `tasks/specs/T24-origin-search-component.md`.
+- [x] T25 Extraer resultados, horarios y compartir.
+  - Ejecución incremental: `tasks/specs/T25-results-schedules-sharing.md` (T25a1–T25c).
+  - [x] T25a1: agrupación y formato de horarios extraídos a dominio puro; 46 pruebas frontend y build verdes.
+  - [x] T25a2: presentación reutilizable de horarios; 50 pruebas y DOM/CSS de pin y tarjeta auditados en local.
+  - [x] T25b: tarjeta presentacional de punto; 59 pruebas, build y DOM/ARIA colapsable auditados en local.
+  - [x] T25c: rutas, detalle y compartir.
+    - [x] T25c1: Web Share, PNG y portapapeles extraídos tras auditoría; 73 pruebas y build verdes.
+    - [x] T25c2: tarjetas de rutas y detalle de pin.
+      - [x] T25c2a: tarjeta de ruta presentacional; 80 pruebas y flujo real de expansión/cambio de día auditados.
+      - [x] T25c2b: detalle de pin; 92 pruebas, build y estados móvil/ARIA auditados.
+- [x] T26 Centralizar data-access y errores del flujo.
+  - [x] T26a: tipar contratos HTTP de rutas por endpoint; 100 pruebas y build auditados.
+  - [x] T26b: orquestar búsquedas cancelables preservando el modelo completo de UI; 113 pruebas, build y runtime auditados.
+  - [x] T26c: integrar el orquestador en Home y unificar estados/copy de error.
+    - [x] T26c1: aislar filtro temporal y mutaciones de presentación; 126 pruebas y build auditados.
+    - [x] T26c2: conectar Home y retirar suscripciones HTTP directas; 133 pruebas, build y flujo real auditados.
+- [x] T27 Crear puerto y adaptador del mapa.
+    - Incluir detección de WebGL2 y continuidad list-first con mensaje recuperable cuando el mapa no esté disponible.
+    - [x] T27a: detector WebGL2 cacheado y seguro para SSR; 140 pruebas y build auditados.
+    - [x] T27b: definir puerto estable y adaptador MapLibre; 178 pruebas y build auditados.
+    - [x] T27c: integrar fallback list-first en el shell público; 178 pruebas, build y flujo normal en navegador auditados.
+    - [x] T27d: migrar comandos del shell al puerto sin asumir el ciclo de vida de marcadores.
+      - [x] T27d1: aislar cálculo geográfico del runtime del mapa.
+      - [x] T27d2: encapsular el render diferido de rutas en el adaptador.
+      - [x] T27d3: shell público migrado al puerto; 201 pruebas, build y runtime list-first/mapa auditados.
+- [x] T28 Encapsular ciclo de vida de marcadores y listeners.
+    - [x] T28a: manager neutral y teardown resiliente; 211 pruebas y build auditados.
+    - [x] T28b: marcadores primarios, metadata y clicks migrados; 211 pruebas y build auditados.
+    - [x] T28c: marcadores auxiliares y listeners de arrastre migrados; 211 pruebas y build auditados.
+    - [x] T28d: eventos, disposer temporal y teardown final migrados; 211 pruebas, build y runtime auditados.
+- [x] T29 Separar operaciones de empresas en ruta propia.
+  - [x] T29a: `/admin` establece un límite de navegación propio y conserva temporalmente el shell/mapa existente; el enlace Panel ya no depende de `?tab=puntos`. Codex redujo el spec delegado a tres casos de precedencia, auditó 311/311 pruebas, fronteras y colores sin excepciones, build y 16/16 E2E; el recorrido real Panel → `/admin` → Inicio quedó verde. La extracción de `AdminComponent` y su estado fuera de `MobileAppComponent` permanece pendiente.
+  - [x] T29b: `AdminPageComponent` aislado creado detrás del cutover, con carga/recarga cancelable de ubicaciones, montaje del panel tras la primera respuesta, overlay accesible y navegación persistente. RED→GREEN auditado por Codex: 7/7 focalizadas, 318/318 frontend, fronteras y colores sin excepciones y build verde; `/admin` aún conserva el shell anterior hasta completar el mapa en T29c.
+  - [x] T29c: mapa administrativo list-first integrado detrás del cutover con estado tipado, inicialización WebGL bajo demanda, marcador arrastrable, fallback accesible y ownership único de teardown. La revisión Codex→Antigravity corrigió host sin dimensiones, coordenadas vacías y fugas de inicialización parcial; quedaron verdes 24/24 pruebas focalizadas, 335/335 frontend, fronteras 31/31 sin excepciones, colores 14/14, build y 16/16 E2E. `/admin` conserva el shell anterior hasta T29d.
+  - [x] T29c1: fundamento visual de `AdminComponent` aislado de `app.css` antes del cutover, sin rediseño ni dependencia global. Antigravity corrigió un primer intento rechazado por Codex; la auditoría final obtuvo 2.19% de diferencia raster sin cambios perceptibles, 335/335 pruebas frontend, fronteras y colores sin excepciones, build y 16/16 E2E verdes.
+  - [x] T29d: `/admin` migrado a `AdminPageComponent` lazy y el acceso legado `/enviar?tab=puntos` redirige mediante `RedirectCommand` con `replaceUrl`, sin bucle de historial. Codex rechazó el primer resultado por perder el padding del shell y auditó la corrección final: 6/6 pruebas del guard, 341/341 frontend, fronteras y colores sin excepciones, build, 36/36 E2E y revisión visual en 386×912 verdes.
+  - [x] T29e: ownership administrativo retirado por completo de `MobileAppComponent`; el shell público conserva únicamente Inicio y Perfil, normaliza intenciones foráneas y ya no carga `AdminComponent` ni su mapa auxiliar. TDD delegado y auditado por Codex: 342/342 pruebas frontend, fronteras y colores sin excepciones, build y 36/36 E2E verdes.
+  - [x] T29f: auditoría técnica y cierre integral de la extracción a ruta `/admin`. Red real con Playwright headless confirma aislamiento: `/#/` (empresas 0, locations 1), `/#/enviar` (empresas 0, locations 1) y `/#/admin` (empresas 1, locations 1); fronteras 31/31 en 47 archivos productivos (0 violaciones, 0 excepciones); contrato de colores 14/14 en 11 archivos CSS (0 violaciones); suite unitaria completa con 342/342 pruebas en 32 archivos (AdminPage focal 24/24, legacy guard focal 6/6, MobileApp focal 14/14 corregido de 15); compilación de producción verde con chunks lazy (admin-page 96.15 kB, mobile-app 242.31 kB; único warning preexistente CommonJS en mapbox-gl); suite E2E completa con 36/36 casos verdes en viewports 386×912, 768×1024, 1024×768 y 1440×900; revisión visual de `/admin` en 386×912 verde (padding 20px y barra inferior fija sin superposición); teardown determinista cubierto (AdminPage cancela la suscripción/carga observable activa, desconecta ResizeObserver y destruye MapPort una única vez; MobileApp cancela carga e intervalo statusesIntervalId, y E2E confirma retorno del intervalo a cero); búsqueda de consumidores confirma que MobileApp no contiene AdminComponent, adminRef, isMapForcedVisible, previewMap, app-admin ni rama puntos. Partner permanece estrictamente fuera de alcance sin auditoría funcional ni visual.
+- [x] T30 Reducir `MobileAppComponent` al shell público (wiring empresarial temporalmente excluido).
+    - [x] T30a: caracterización del shell público; 214 pruebas y build auditados.
+    - [x] T30b: lectura tipada delegada a UbicacionesService; 217 pruebas y build auditados.
+    - [x] T30c: geolocalización y reverse geocoding extraídos; 225 pruebas, build y runtime auditados.
+    - [x] T30d1: consumidores clasificados por alcanzabilidad; baseline de 2326 líneas auditado.
+    - [x] T30d2a: proyección neutral emitida por Home; 232 pruebas y build auditados.
+    - [x] T30d2b: Consumo de Proyección en el Shell; 232 pruebas, build y runtime auditados.
+    - [x] T30d3: Purga de Búsqueda Legada (Limpieza Final)
+        - [x] T30d3a: handlers hoja sin consumidores eliminados; shell en 2128 líneas, 232 pruebas, build y runtime auditados.
+        - [x] T30d3b1: selector/modal público duplicado retirado; shell en 1831 líneas, 231 pruebas, build y runtime auditados.
+        - [x] T30d3b2: motor/estado público legado retirado; shell en 1313 líneas y flujo de navegación auditado.
+    - [x] T30e: eliminado del shell el CRUD administrativo duplicado y la petición global a `/api/empresas`; `AdminComponent` conserva su carga propia y todo el wiring vivo de mapa. Antigravity produjo el corte bajo corrección de Codex; 311/311 pruebas, fronteras y colores sin excepciones, build, 16/16 E2E y recorrido de red (Inicio 0 solicitudes, `/admin` 1 solicitud) quedaron verdes.
+
+- [x] T31 Eliminar duplicación y legado con búsqueda de consumidores.
+    - [x] T31a: estado visual fantasma retirado; 231 pruebas y build auditados.
+    - [x] T31b: cerrar el intervalo de disponibilidad al destruir el shell.
+    - [x] T31c: caracterizar límites horarios y proyección de rutas.
+    - [x] T31d: cancelar place-search debounce on destroy; 239 pruebas y diff-check verdes.
+    - [x] T31e: fronteras `core`/`shared`/`features` automatizadas y baseline reducido a cero; 31 pruebas del guard, 279 unitarias, build y 16/16 recorridos E2E auditados.
+    - [x] T31f: Discovery consume `UbicacionesService` sin HTTP directo y conserva `DeliveryPoint` hasta la vista; 29 pruebas focalizadas, 308 unitarias, build, baseline cero y 16/16 recorridos E2E auditados.
+
+### Checkpoint D
+
+- [x] Búsqueda funciona sin mapa.
+  - [x] T48a: las tres acciones de mapa preservan lista/selección cuando el mapa no está disponible; seis regresiones unitarias y un recorrido Playwright con WebGL2 deshabilitado prueban buscar, conservar resultados y compartir en 386×912, 768, 1024 y 1440 px. La prueba RED detectó que el panel bloqueaba el cierre del aviso; su capa se corrigió y quedaron verdes 271/271 pruebas frontend, build y 8/8 recorridos E2E.
+- [x] Navegación atrás/adelante preserva el estado esperado.
+  - [x] T48b: el facade conserva la selección semántica y Home rehidrata punto/municipio, filtros y ruta dentro de la misma sesión; 265/265 pruebas, build y recorrido real Inicio→Atrás→Adelante→Atrás verdes. La recarga en frío conserva únicamente la intención de URL.
+- [x] Panel empresarial no comparte estado con búsqueda pública.
+- [x] No existen listeners o timers huérfanos en los recorridos E2E.
+  - [x] T48c: shell, Home y Toast cancelan carga inicial, búsquedas de lugares, resolución y timers de intención/scroll/remoción al destruirse; el cierre temprano también cancela el auto-remove de Toast. Las pruebas unitarias cubren la liberación de listeners del mapa y 277/277 pruebas frontend permanecen verdes. Un recorrido Playwright instrumentado confirma que el intervalo de 60 segundos se crea al entrar a `/enviar` y vuelve a cero al regresar a Inicio en 386×912, 768, 1024 y 1440 px; la matriz E2E queda en 12/12.
+
+## Fases 9–10 — Operación y evolución
+
+- [x] T32 Definir eventos internos versionados.
+  - Resultado auditado: accepted by Codex, 14 focused / 30 full backend tests, diff-check clean; sin bus/producers/outbox.
+- [x] T33 Mover únicamente trabajos secundarios a eventos.
+  - Resultado auditado: resuelto como "no-op" intencional (ver `tasks/specs/T33-secondary-jobs.md` y ADR `0001`). No existen consumidores asíncronos genuinos; flujos actuales (compartir, ETA) requieren ejecución síncrona. No se introduce bus ni listeners para evitar sobreingeniería y falsa sensación de desacoplamiento.
+- [x] T34 Añadir métricas y logs estructurados (alcance público/no-Partner).
+  - [x] T34a: accepted by Codex and evidence 12 focused subtests / 43 full backend tests, real Express route test, server check/diff check.
+  - [x] T34b: structured controller errors and safe health/metrics exposure.
+    - [x] T34b1: accepted by Codex and evidence 10 observability-route subtests / 54 full backend, server/diff checks.
+    - [x] T34b2a: accepted by Codex and evidence independent 64-test audit.
+    - [x] T34b2b: accepted by Codex and evidence 17 subtests for mapas/ubicaciones / 83 full backend tests, node/diff checks passed.
+    - [x] T34b2c: excluido formalmente del alcance actual por instrucción del usuario; Partner no fue modificado.
+  - [x] T34c: Process Logger
+    - [x] T34c1: accepted by Codex with 23 focused subtests / 107 full backend tests, syntax and diff checks passed.
+    - [x] T34c2: accepted by Codex with 17 focused tests / 122 full backend tests, clean structured test output, syntax and diff checks passed.
+    - [x] T34c3: process logger adopted in non-Partner location service runtime paths.
+      - Resultado auditado: 43/43 pruebas focalizadas, 206/206 backend, sintaxis y diff verdes, 0 vulnerabilidades de producción; sin `console.*`, DB, red ni cambios de contrato.
+- [ ] T35 Implementar pipeline completo y staging.
+  - [x] T35a: multer 2.3.0 accepted by Codex; 122 backend tests, zero production audit findings, registry signatures verified.
+  - [x] T35b: CI quality gates accepted by Codex; 122 backend and 239 frontend tests, audits/signatures, production build.
+  - [x] T35c: validate migrations against ephemeral PostgreSQL in CI.
+    - Evidencia remota en commit `40e6b960ef399071fb5b2bc0c814a90bcc1cb2e9` (run [36927539440](https://github.com/Pablojvr/sivoy-app/actions/runs/36927539440)): Backend CI completó con success en GitHub Actions (push en `codex/antigravity-orchestration`); step `Initialize containers` (success) y step `Run ephemeral PostgreSQL migration validation` (success), aplicando 0001–0006, comparando ledger/checksums y reejecutando con cero migraciones y ledger idéntico. T35 sigue abierto por staging y despliegue/rollback (T36).
+- [ ] T36 Probar despliegue, smoke test y rollback.
+  - [x] T36a: arnés local desacoplado de release/rollback y workflow estructural; 17/17 pruebas del arnés, 322/322 backend, dry-run honesto y ensayo real auditado sobre candidato y revisión previa (dos `npm ci`, dos builds de producción, seis sondas HTTP y limpieza total). No usa PostgreSQL real, no autoriza producción y no cierra T36.
+- [x] T37 ADR accepted by Codex: keep ETA inside the modular monolith until measurable extraction triggers are met.
+- [x] T49 Auditoría de seguridad de dependencias y endurecimiento de supply chain.
+  - Resultado auditado: remediadas vulnerabilidades (multer 2.4.0, Angular 21.2.25/21.2.24 y override de piscina 5.3.2); lockfile regenerado limpiamente sin flags de peers; 0 vulnerabilidades en backend (231 firmas, 15 attestations) y frontend (493 firmas, 158 attestations); guard 5/5 y allowlist de scripts de instalación fijada; pipeline CI endurecido (corepack npm 11.11.0, ignore-scripts, rebuild explícito, audit signatures, Playwright local); validación aislada completa (sqlite3 carga, 322/322 backend, 342/342 frontend, 31/31 boundaries, 14/14 colors, build producción y 36/36 E2E; servidor local 4303 HTTP 200). Informe completo en [docs/SECURITY_DEPENDENCY_AUDIT.md](../docs/SECURITY_DEPENDENCY_AUDIT.md).
+
+### Checkpoint final
+
+- [ ] Todos los builds, pruebas y contratos están verdes.
+- [ ] Auditoría de seguridad y dependencias sin hallazgos bloqueantes.
+- [ ] Métricas comparadas contra la línea base.
+  - Reporte comparativo en [docs/ARCHITECTURE_METRICS.md](../docs/ARCHITECTURE_METRICS.md): la evidencia estructural fue recapturada en HEAD ad0f145 (-64.53% shell, -23.95% CSS global, inline styles 0; 342 unitarias, 36 E2E, boundaries/colores verdes, 322 backend); T49 está completo localmente con 0 vulnerabilidades, T35c/T14a tienen evidencia remota y T14b quedó completada localmente; el checkpoint sigue abierto por PERF01–PERF04, T43, T36, T00, T45c y aprobación humana.
+- [ ] Documentación y rollback verificados.
+- [ ] Aprobación humana antes de producción.

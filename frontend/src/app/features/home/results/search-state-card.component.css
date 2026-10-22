@@ -1,0 +1,110 @@
+:host {
+  display: grid;
+  width: 100%;
+  place-items: center;
+  padding: var(--si-space-3);
+}
+
+.search-state-surface {
+  display: grid;
+  width: min(100%, 30rem);
+  justify-items: center;
+  gap: var(--si-space-4);
+  padding: var(--si-space-5) var(--si-space-4);
+  border: 1px solid var(--si-color-border);
+  border-radius: var(--si-radius-card);
+  background: var(--si-color-surface);
+  box-shadow: var(--si-shadow-level-1);
+  color: var(--si-color-ink);
+  text-align: center;
+}
+
+.search-state-icon {
+  display: grid;
+  width: 3rem;
+  height: 3rem;
+  place-items: center;
+  border-radius: var(--si-radius-round);
+  background: var(--si-color-brand-soft);
+  color: var(--si-color-brand-strong);
+}
+
+.search-state-icon svg {
+  width: 1.75rem;
+  height: 1.75rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.search-state-surface[data-state='loading'] .search-state-icon {
+  background: var(--si-color-info-soft);
+  color: var(--si-color-info-ink);
+}
+
+.search-state-surface[data-state='empty'] .search-state-icon {
+  background: var(--si-color-warning-soft);
+  color: var(--si-color-warning-ink);
+}
+
+.search-state-surface[data-state='error'] .search-state-icon {
+  background: var(--si-color-danger-soft);
+  color: var(--si-color-danger-ink);
+}
+
+.search-state-spinner {
+  animation: search-state-spin 900ms linear infinite;
+}
+
+.search-state-spinner circle {
+  opacity: 0.35;
+}
+
+.search-state-copy {
+  display: grid;
+  justify-items: center;
+  gap: var(--si-space-2);
+}
+
+.search-state-copy h3,
+.search-state-copy p {
+  margin: 0;
+}
+
+.search-state-copy h3 {
+  font: var(--si-type-section);
+}
+
+.search-state-copy p {
+  max-width: 34ch;
+  color: var(--si-color-ink-muted);
+  font: var(--si-type-body);
+}
+
+.search-state-action {
+  min-width: min(100%, 16rem);
+}
+
+@media (min-width: 386px) {
+  :host {
+    padding: var(--si-space-4);
+  }
+
+  .search-state-surface {
+    padding: var(--si-space-6);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .search-state-spinner {
+    animation: none;
+  }
+}
+
+@keyframes search-state-spin {
+  to {
+    transform: rotate(1turn);
+  }
+}

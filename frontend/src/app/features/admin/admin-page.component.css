@@ -1,0 +1,200 @@
+:host {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  background-color: var(--bg-color);
+}
+
+.admin-page-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.admin-map-host {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.admin-map-host.is-active {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.admin-map-overlay-actions {
+  position: absolute;
+  top: max(16px, env(safe-area-inset-top, 16px));
+  left: 16px;
+  z-index: 20;
+}
+
+.admin-map-back-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 10px 18px;
+  background-color: var(--white);
+  color: var(--text-main);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: var(--shadow-md);
+  cursor: pointer;
+  transition: transform var(--motion-fast) ease, box-shadow var(--motion-fast) ease;
+}
+
+.admin-map-back-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-lg);
+}
+
+.admin-map-back-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.admin-map-fallback-banner {
+  position: absolute;
+  top: max(16px, env(safe-area-inset-top, 16px));
+  left: 16px;
+  right: 16px;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  background-color: var(--white);
+  color: var(--text-main);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  font-size: 14px;
+}
+
+.admin-map-fallback-text {
+  flex: 1;
+}
+
+.admin-map-fallback-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-full);
+  color: var(--text-muted);
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.admin-map-fallback-close:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.admin-tab-content {
+  position: relative;
+  flex: 1;
+  box-sizing: border-box;
+  padding: 20px 20px 80px 20px;
+  height: 100%;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  z-index: 10;
+}
+
+.admin-tab-content[hidden] {
+  display: none;
+}
+
+.admin-page-loading {
+  display: grid;
+  min-height: 100%;
+  place-items: center;
+  padding: 24px;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.image-preview-overlay {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  background: color-mix(in srgb, var(--text-main) 85%, transparent);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+  box-sizing: border-box;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.image-preview-close {
+  position: absolute;
+  top: max(20px, env(safe-area-inset-top, 20px));
+  right: max(20px, env(safe-area-inset-right, 20px));
+  background: color-mix(in srgb, var(--white) 20%, transparent);
+  border: 1px solid var(--border);
+  color: var(--white);
+  min-width: 44px;
+  min-height: 44px;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-full);
+  font-size: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10000;
+  transition: background var(--motion-fast) ease, box-shadow var(--motion-fast) ease;
+}
+
+.image-preview-close:hover {
+  background: color-mix(in srgb, var(--white) 30%, transparent);
+}
+
+.image-preview-close:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.image-preview-content {
+  max-width: 90%;
+  max-height: 90%;
+  border-radius: var(--radius-md);
+  object-fit: contain;
+  box-shadow: var(--shadow-lg);
+  cursor: default;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-map-back-btn,
+  .image-preview-close {
+    transition: none;
+  }
+}

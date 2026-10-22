@@ -1,0 +1,7543 @@
+{
+  "schemaVersion": 1,
+  "sourceBaseUrl": "https://sivoy-backend.onrender.com",
+  "companies": [
+    {
+      "legacyId": 2,
+      "name": "Pedidos Express",
+      "logoUrl": null,
+      "pointCount": 185
+    }
+  ],
+  "locations": [
+    {
+      "legacyId": 1,
+      "stableId": "AG_ACAJUTLA_01",
+      "name": "AGENCIA ACAJUTLA",
+      "type": "Agencia",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Sonsonate",
+        "municipality": "Acajutla",
+        "address": "COL. ACXUAL NUMERO 2 CALLE ENTRE CALLE C.Y. AV. SENSUNAPAN. Puntos de referencia: A la par de Lotería La Chica, Tienda Julita, Deposito El Indio.",
+        "latitude": 13.589797,
+        "longitude": -89.82976
+      },
+      "imageUrl": "https://res.cloudinary.com/oy0nwlkt/image/upload/v1788876121/sivoy_agencias/cimw9nguzj4dov2kqhin.jpg",
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Martes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Miércoles",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Sábado",
+          "opensAt": "09:00",
+          "closesAt": "12:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Diario",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 3,
+      "stableId": "AG_AGUILARES_01",
+      "name": "AGENCIA AGUILARES",
+      "type": "Agencia",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "San Salvador",
+        "municipality": "Aguilares",
+        "address": "SOBRE 8° CALLE OTE Y CARR. TRONCAL DEL NORTE. A 500 MTS DE GAS TEXACO Y POLLO CAMPERO. LOCAL #11 EN 2° NIVEL",
+        "latitude": 13.958361,
+        "longitude": -89.18711
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Martes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Miércoles",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Sábado",
+          "opensAt": "09:00",
+          "closesAt": "12:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Martes",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Viernes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 4,
+      "stableId": "AG_AHUACHAPAN_01",
+      "name": "AGENCIA AHUACHAPAN",
+      "type": "Agencia",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Ahuachapán",
+        "municipality": "Ahuachapán",
+        "address": "SOBRE 2° CALLE PONIENTE ENTRE 2° Y 4° AV NORTE, AHUACHAPAN. A POCOS METROS DEL PARQUEO DE LA UPAN Y EL PORTÓN DE LA SALIDA DE COLEGIO LOURDES",
+        "latitude": 13.923419,
+        "longitude": -89.84629
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Martes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Miércoles",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Sábado",
+          "opensAt": "09:00",
+          "closesAt": "13:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Diario",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 6,
+      "stableId": "AG_ALTAVISTA_01",
+      "name": "AGENCIA ALTAVISTA",
+      "type": "Agencia",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "San Salvador",
+        "municipality": "Ilopango",
+        "address": "SOBRE AV. PRINCIPAL SUR FRENTE A UNICENTRO, A LA PAR DE PANADERIA EL ROSARIO, EX CLINICA DENTAL.",
+        "latitude": 13.716,
+        "longitude": -89.09759
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Martes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Miércoles",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Sábado",
+          "opensAt": "09:00",
+          "closesAt": "12:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Diario",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 11,
+      "stableId": "AG_APOPA_01",
+      "name": "AGENCIA APOPA",
+      "type": "Agencia",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "San Salvador",
+        "municipality": "Apopa",
+        "address": "PERICENTRO APOPA LOCAL 28B, A UN COSTADO DE COMERCIAL PORTILLO, UN LOCAL POSTERIOR A COOPERARIVA ACACYPAC.",
+        "latitude": 13.792057,
+        "longitude": -89.1751
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Martes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Miércoles",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Sábado",
+          "opensAt": "09:00",
+          "closesAt": "13:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Diario",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 13,
+      "stableId": "AG_ARMENIA_01",
+      "name": "AGENCIA ARMENIA",
+      "type": "Agencia",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Sonsonate",
+        "municipality": "Armenia",
+        "address": "1° AV SUR / C. ARTURO ARAUJO Y 2° C. PONIENTE LOCAL #2 SEGUNDO NIVEL. A MEDIA CUADRA DEL MERCADO / A 1 CUADRA DEL PARQUE CENTRAL DE ARMENIA.",
+        "latitude": 13.746311,
+        "longitude": -89.50605
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Martes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Miércoles",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Sábado",
+          "opensAt": "09:00",
+          "closesAt": "12:00"
+        },
+        {
+          "weekday": "Domingo",
+          "opensAt": "08:00",
+          "closesAt": "09:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Diario",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 16,
+      "stableId": "AG_ATIQUIZAYA_01",
+      "name": "AGENCIA ATIQUIZAYA",
+      "type": "Agencia",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Ahuachapán",
+        "municipality": "Atiquizaya",
+        "address": "AV. CENTRAL MARCELINO URRUTIA NTE / 4° Y 6° CALLE OTE. - CENTRAL PLAZA LOCAL #4 (INGRESAR AL PASILLO)",
+        "latitude": 13.965709,
+        "longitude": -89.75649
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Martes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Miércoles",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Sábado",
+          "opensAt": "09:00",
+          "closesAt": "12:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Diario",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 17,
+      "stableId": "AG_BERLIN_01",
+      "name": "AGENCIA BERLÍN",
+      "type": "Agencia",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Usulután",
+        "municipality": "Berlín",
+        "address": "SOBRE 4 CALLE OTE ENTRE AV SIMON BOLIVAR Y 2° AV SUR. A LA PAR DE PANADERIA DINA",
+        "latitude": 13.502066,
+        "longitude": -88.53356
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Martes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Miércoles",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Sábado",
+          "opensAt": "09:00",
+          "closesAt": "12:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Diario",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 19,
+      "stableId": "AG_CACAOPERA_01",
+      "name": "CACAOPERA",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Morazán",
+        "municipality": "Cacaopera",
+        "address": null,
+        "latitude": 13.771619,
+        "longitude": -88.07774
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "08:00",
+          "closesAt": "08:30"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "08:00",
+          "closesAt": "08:30"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Jueves",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Lunes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 20,
+      "stableId": "AG_CANDELARIA_DE_LA_FRONTERA_01",
+      "name": "CANDELARIA DE LA FRONTERA AGENCIA",
+      "type": "Agencia",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Santa Ana",
+        "municipality": "Candelaria de la Frontera",
+        "address": null,
+        "latitude": 14.117952,
+        "longitude": -89.653046
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Martes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Miércoles",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Sábado",
+          "opensAt": "09:00",
+          "closesAt": "12:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Diario",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 21,
+      "stableId": "AG_CARA_SUCIA_01",
+      "name": "CARA SUCIA AGENCIA",
+      "type": "Agencia",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Ahuachapán",
+        "municipality": "San Francisco Menéndez",
+        "address": null,
+        "latitude": 13.777294,
+        "longitude": -90.03242
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Martes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Miércoles",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Sábado",
+          "opensAt": "09:00",
+          "closesAt": "12:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Diario",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 22,
+      "stableId": "AG_CHALATENANGO_01",
+      "name": "CHALATENANGO AGENCIA",
+      "type": "Agencia",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Chalatenango",
+        "municipality": "Chalatenango",
+        "address": null,
+        "latitude": 14.041387,
+        "longitude": -88.93941
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Martes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Miércoles",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Sábado",
+          "opensAt": "09:00",
+          "closesAt": "12:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Diario",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 23,
+      "stableId": "AG_CHALCHUAPA_01",
+      "name": "CHALCHUAPA AGENCIA",
+      "type": "Agencia",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Santa Ana",
+        "municipality": "Chalchuapa",
+        "address": null,
+        "latitude": 14.033256,
+        "longitude": -89.72845
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Martes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Miércoles",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Sábado",
+          "opensAt": "09:00",
+          "closesAt": "12:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Diario",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 24,
+      "stableId": "AG_CHAPELTIQUE_01",
+      "name": "CHAPELTIQUE",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "San Miguel",
+        "municipality": "Chapeltique",
+        "address": null,
+        "latitude": 13.647084,
+        "longitude": -88.258934
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Martes",
+          "opensAt": "09:45",
+          "closesAt": "10:30"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "09:45",
+          "closesAt": "10:30"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Martes",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Viernes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 25,
+      "stableId": "AG_CHILANGA_01",
+      "name": "CHILANGA",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Morazán",
+        "municipality": "Chilanga",
+        "address": null,
+        "latitude": 13.723041,
+        "longitude": -88.11912
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Jueves",
+          "opensAt": "10:00",
+          "closesAt": "10:30"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Jueves",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 26,
+      "stableId": "AG_CHINAMECA_01",
+      "name": "CHINAMECA",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "San Miguel",
+        "municipality": "Chinameca",
+        "address": null,
+        "latitude": 13.476747,
+        "longitude": -88.3184
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Martes",
+          "opensAt": "13:45",
+          "closesAt": "14:30"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "13:45",
+          "closesAt": "14:30"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Martes",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Viernes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 27,
+      "stableId": "AG_CHIRILAGUA_01",
+      "name": "CHIRILAGUA",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "San Miguel",
+        "municipality": "Chirilagua",
+        "address": null,
+        "latitude": 13.219599,
+        "longitude": -88.13813
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "08:00",
+          "closesAt": "08:45"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "08:00",
+          "closesAt": "08:45"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Jueves",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Lunes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 28,
+      "stableId": "AG_CIUDAD_ARCE_01",
+      "name": "CIUDAD ARCE AGENCIA",
+      "type": "Agencia",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "La Libertad",
+        "municipality": "Ciudad Arce",
+        "address": null,
+        "latitude": 13.840799,
+        "longitude": -89.44079
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Martes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Miércoles",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Sábado",
+          "opensAt": "09:00",
+          "closesAt": "12:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Diario",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 29,
+      "stableId": "AG_CIUDAD_BARRIOS_01",
+      "name": "CIUDAD BARRIOS",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "San Miguel",
+        "municipality": "Ciudad Barrios",
+        "address": null,
+        "latitude": 13.765932,
+        "longitude": -88.27129
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Martes",
+          "opensAt": "08:00",
+          "closesAt": "09:00"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "08:00",
+          "closesAt": "09:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Martes",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Viernes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 30,
+      "stableId": "AG_CIUDAD_DELGADO_01",
+      "name": "CIUDAD DELGADO",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "San Salvador",
+        "municipality": "Ciudad Delgado",
+        "address": null,
+        "latitude": 13.7503805,
+        "longitude": -89.18881
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Martes",
+          "opensAt": "14:00",
+          "closesAt": "15:00"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "14:00",
+          "closesAt": "15:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Martes",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Viernes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 31,
+      "stableId": "AG_CIUDAD_EL_TRIUNFO_01",
+      "name": "CIUDAD EL TRIUNFO",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Usulután",
+        "municipality": "Ciudad El Triunfo",
+        "address": null,
+        "latitude": -12.145274,
+        "longitude": -76.97181
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Martes",
+          "opensAt": "11:15",
+          "closesAt": "12:00"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "11:15",
+          "closesAt": "12:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Martes",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Viernes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 32,
+      "stableId": "AG_CIUDAD_MARSELLA_01",
+      "name": "CIUDAD MARSELLA",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "La Libertad",
+        "municipality": "San Juan Opico",
+        "address": null,
+        "latitude": 13.790154,
+        "longitude": -89.34298
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "10:20",
+          "closesAt": "11:00"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "10:20",
+          "closesAt": "11:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Jueves",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Lunes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 33,
+      "stableId": "AG_CIUDAD_REAL_01",
+      "name": "CIUDAD REAL",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Santa Ana",
+        "municipality": "San Sebastián Salitrillo",
+        "address": null,
+        "latitude": 13.992904,
+        "longitude": -89.641525
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Martes",
+          "opensAt": "09:00",
+          "closesAt": "10:00"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "09:00",
+          "closesAt": "10:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Martes",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Viernes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 34,
+      "stableId": "AG_CIUDAD_VERSALLES_01",
+      "name": "CIUDAD VERSALLES",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "La Libertad",
+        "municipality": "San Juan Opico",
+        "address": null,
+        "latitude": 13.79599,
+        "longitude": -89.3583
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "11:20",
+          "closesAt": "12:00"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "11:20",
+          "closesAt": "12:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Jueves",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Lunes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 35,
+      "stableId": "AG_COATEPEQUE_01",
+      "name": "COATEPEQUE",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Santa Ana",
+        "municipality": "Coatepeque",
+        "address": null,
+        "latitude": 13.856874,
+        "longitude": -89.47691
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "08:00",
+          "closesAt": "09:00"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "08:00",
+          "closesAt": "09:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Jueves",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Lunes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 36,
+      "stableId": "AG_COJUTEPEQUE_01",
+      "name": "COJUTEPEQUE AGENCIA",
+      "type": "Agencia",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Cuscatlán",
+        "municipality": "Cojutepeque",
+        "address": null,
+        "latitude": 13.71664,
+        "longitude": -88.92964
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Martes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Miércoles",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Sábado",
+          "opensAt": "09:00",
+          "closesAt": "12:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Diario",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 37,
+      "stableId": "AG_COMACARAN_01",
+      "name": "COMACARAN",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "San Miguel",
+        "municipality": "Comacarán",
+        "address": null,
+        "latitude": 13.529452,
+        "longitude": -88.06624
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "14:00",
+          "closesAt": "14:30"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Lunes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 38,
+      "stableId": "AG_CONCEPCION_BATRES_01",
+      "name": "CONCEPCION BATRES",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Usulután",
+        "municipality": "Concepción Batres",
+        "address": null,
+        "latitude": 13.341942,
+        "longitude": -88.37233
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "12:00",
+          "closesAt": "12:15"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "12:00",
+          "closesAt": "12:15"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Jueves",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Lunes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 39,
+      "stableId": "AG_CONCEPCION_DE_ORIENTE_01",
+      "name": "CONCEPCION DE ORIENTE",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "La Unión",
+        "municipality": "Concepción de Oriente",
+        "address": null,
+        "latitude": 13.791544,
+        "longitude": -87.71284
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "09:00",
+          "closesAt": "09:30"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Lunes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 40,
+      "stableId": "AG_CONCHAGUA_01",
+      "name": "CONCHAGUA",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "La Unión",
+        "municipality": "Conchagua",
+        "address": null,
+        "latitude": 13.306803,
+        "longitude": -87.8629
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "11:20",
+          "closesAt": "11:50"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "11:20",
+          "closesAt": "11:50"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Jueves",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Lunes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 41,
+      "stableId": "AG_CORINTO_01",
+      "name": "CORINTO",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Morazán",
+        "municipality": "Corinto",
+        "address": null,
+        "latitude": 13.808394,
+        "longitude": -87.96966
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Miércoles",
+          "opensAt": "11:45",
+          "closesAt": "12:15"
+        },
+        {
+          "weekday": "Domingo",
+          "opensAt": "11:45",
+          "closesAt": "12:15"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Domingo",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Miércoles",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 42,
+      "stableId": "AG_DELICIAS_DE_CONCEPCION_01",
+      "name": "DELICIAS DE CONCEPCIÓN",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Morazán",
+        "municipality": "Delicias de Concepción",
+        "address": "FRENTE A IGLESIA",
+        "latitude": 13.788422,
+        "longitude": -88.13805
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Jueves",
+          "opensAt": "08:30",
+          "closesAt": "09:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Jueves",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 43,
+      "stableId": "AG_DESVIO_DE_OPICO_01",
+      "name": "DESVÍO DE OPICO",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "La Libertad",
+        "municipality": "San Juan Opico",
+        "address": "GAS UNO / PARADA DE BUS",
+        "latitude": 13.876403,
+        "longitude": -89.35845
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "12:15",
+          "closesAt": "13:00"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "12:15",
+          "closesAt": "13:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Jueves",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Lunes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 44,
+      "stableId": "AG_DOLORES_01",
+      "name": "DOLORES",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Cabañas",
+        "municipality": "Dolores",
+        "address": "PARQUE CENTRAL",
+        "latitude": 13.775462,
+        "longitude": -88.56323
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "13:20",
+          "closesAt": "13:45"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "13:20",
+          "closesAt": "13:45"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Jueves",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Lunes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 46,
+      "stableId": "AG_EL_CARMEN_01",
+      "name": "EL CARMEN",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "La Unión",
+        "municipality": "El Carmen",
+        "address": "PARQUE EL CARMEN",
+        "latitude": 13.72325,
+        "longitude": -88.89933
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "12:30",
+          "closesAt": "13:00"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "12:30",
+          "closesAt": "13:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Jueves",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Lunes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 47,
+      "stableId": "AG_EL_CONGO_01",
+      "name": "EL CONGO",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Santa Ana",
+        "municipality": "El Congo",
+        "address": "AV. TENIENTE RICARDO MANCIA PLAZA SALOMÉ - LOCAL KIVA CHIC SEGUNDO NIVEL.",
+        "latitude": 13.884076,
+        "longitude": -89.49518
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "09:30",
+          "closesAt": "12:00"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "09:30",
+          "closesAt": "12:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Jueves",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Lunes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 48,
+      "stableId": "AG_EL_DIVISADERO_01",
+      "name": "EL DIVISADERO",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Morazán",
+        "municipality": "El Divisadero",
+        "address": "PARQUE RECREATIVO EL DIVISADERO",
+        "latitude": 13.601427,
+        "longitude": -88.048004
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Martes",
+          "opensAt": "08:00",
+          "closesAt": "08:30"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "08:00",
+          "closesAt": "08:30"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Martes",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Viernes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 49,
+      "stableId": "AG_EL_PARAISO_01",
+      "name": "EL PARAÍSO",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Chalatenango",
+        "municipality": "El Paraíso",
+        "address": "FRENTE A NEVERÍA Y FARMACIA LA SALUD",
+        "latitude": 14.106089,
+        "longitude": -89.06883
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Martes",
+          "opensAt": "10:20",
+          "closesAt": "10:40"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "10:20",
+          "closesAt": "10:40"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Martes",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Viernes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 50,
+      "stableId": "AG_EL_REFUGIO_01",
+      "name": "EL REFUGIO",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Ahuachapán",
+        "municipality": "El Refugio",
+        "address": "PARQUE CENTRAL",
+        "latitude": 13.976795,
+        "longitude": -89.69841
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Martes",
+          "opensAt": "10:30",
+          "closesAt": "11:00"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "10:30",
+          "closesAt": "11:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Martes",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Viernes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 51,
+      "stableId": "AG_EL_ROSARIO_LA_PAZ_01",
+      "name": "EL ROSARIO, LA PAZ",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "La Paz",
+        "municipality": "El Rosario",
+        "address": "ENTRADA DEL PARQUE",
+        "latitude": 13.461753,
+        "longitude": -89.02092
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Martes",
+          "opensAt": "13:15",
+          "closesAt": "13:45"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "13:15",
+          "closesAt": "13:45"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Martes",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Viernes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 52,
+      "stableId": "AG_EL_SAUCE_01",
+      "name": "EL SAUCE",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "La Unión",
+        "municipality": "El Sauce",
+        "address": "FTE A IGLESIA",
+        "latitude": 13.641121,
+        "longitude": -87.777306
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "10:15",
+          "closesAt": "10:40"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Lunes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 53,
+      "stableId": "AG_EL_TRANSITO_01",
+      "name": "EL TRANSITO",
+      "type": "Agencia",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "San Miguel",
+        "municipality": "El Tránsito",
+        "address": "PLAZA SAN ANTONIO, LOCAL # 9 PRIMER LOCAL A MANO DERECHA",
+        "latitude": 13.389155,
+        "longitude": -88.34944
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Martes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Miércoles",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Sábado",
+          "opensAt": "09:00",
+          "closesAt": "12:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Diario",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 54,
+      "stableId": "AG_EREGUAYQUIN_01",
+      "name": "EREGUAYQUIN",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Usulután",
+        "municipality": "Ereguayquín",
+        "address": "PARQUE CENTRAL",
+        "latitude": 13.364875,
+        "longitude": -88.39153
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Miércoles",
+          "opensAt": "11:30",
+          "closesAt": "11:50"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Miércoles",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 55,
+      "stableId": "AG_ESTANZUELAS_01",
+      "name": "ESTANZUELAS",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Usulután",
+        "municipality": "Estanzuelas",
+        "address": "PARQUE CENTRAL",
+        "latitude": 13.895741,
+        "longitude": -88.03757
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Martes",
+          "opensAt": "10:10",
+          "closesAt": "10:45"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "10:10",
+          "closesAt": "10:45"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Martes",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Viernes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 45,
+      "stableId": "AG_FRONTERA_EL_AMATILLO_01",
+      "name": "FRONTERA EL AMATILLO",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "La Unión",
+        "municipality": "Pasaquina",
+        "address": "CERCA DE DISTRIBUIDORA ROSITA",
+        "latitude": 13.584139,
+        "longitude": -87.83771
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Martes",
+          "opensAt": "13:00",
+          "closesAt": "13:30"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "13:00",
+          "closesAt": "13:30"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Martes",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Viernes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 56,
+      "stableId": "AG_GOTERA_01",
+      "name": "AGENCIA SAN FRANCISCO GOTERA",
+      "type": "Agencia",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Morazán",
+        "municipality": "San Francisco Gotera",
+        "address": "Sobre 1° Av sur entre 4°y 6° Calle poniente. 2 cuadra de plaza civica > a 1 cuadra de pollo campero > a 1 cuadra de Little Caesars.",
+        "latitude": 13.695215,
+        "longitude": -88.10607
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Martes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Miércoles",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Sábado",
+          "opensAt": "09:00",
+          "closesAt": "12:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Diario",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 65,
+      "stableId": "AG_IZALCO_01",
+      "name": "AGENCIA IZALCO",
+      "type": "Agencia",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Sonsonate",
+        "municipality": "Izalco",
+        "address": "SOBRE 10° CALLE OTE / AV MORAZAN Y 2° AV SUR. PLAZA EL MILAGRO.",
+        "latitude": 13.813931,
+        "longitude": -89.6325
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Martes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Miércoles",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Sábado",
+          "opensAt": "09:00",
+          "closesAt": "12:00"
+        },
+        {
+          "weekday": "Domingo",
+          "opensAt": "10:30",
+          "closesAt": "11:30"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Diario",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 66,
+      "stableId": "AG_JIQUILISCO_01",
+      "name": "AGENCIA JIQUILISCO",
+      "type": "Agencia",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Usulután",
+        "municipality": "Jiquilisco",
+        "address": "FTE A PARQUE CENTRAL, SOBRE 1º AV SUR Y 2º CALLE PONIENTE, INFRESAR AL PASILLO A LA PAR DE NEVERIA.",
+        "latitude": 13.326665,
+        "longitude": -88.570206
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Martes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Miércoles",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Sábado",
+          "opensAt": "09:00",
+          "closesAt": "12:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Diario",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 75,
+      "stableId": "AG_LA_UNION_01",
+      "name": "AGENCIA LA UNIÓN",
+      "type": "Agencia",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "La Unión",
+        "municipality": "La Unión",
+        "address": "SOBRE 9º AV NORTE / 1º CALLE OTE Y CALLE GRAL MENENDEZ",
+        "latitude": 13.218549,
+        "longitude": -87.960365
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "09:00",
+          "closesAt": "15:30"
+        },
+        {
+          "weekday": "Martes",
+          "opensAt": "09:00",
+          "closesAt": "15:30"
+        },
+        {
+          "weekday": "Miércoles",
+          "opensAt": "09:00",
+          "closesAt": "15:30"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "09:00",
+          "closesAt": "15:30"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "09:00",
+          "closesAt": "15:30"
+        },
+        {
+          "weekday": "Sábado",
+          "opensAt": "09:00",
+          "closesAt": "12:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Diario",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 80,
+      "stableId": "AG_LOURDES_01",
+      "name": "METROCENTRO -> LOURDES",
+      "type": "Agencia",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "La Libertad",
+        "municipality": "Colón",
+        "address": "COL. PAOLA PASAJE 1 LOCAL #7 (SEGUNDO NIVEL), REFERENCIAS: ATRAS DE METROCENTRO, FTE A PARADA DE BUSES LAS MORAS",
+        "latitude": 13.728116,
+        "longitude": -89.359955
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Martes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Miércoles",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Sábado",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Diario",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 83,
+      "stableId": "AG_METALIO_01",
+      "name": "AGENCIA METALIO",
+      "type": "Agencia",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Sonsonate",
+        "municipality": "Acajutla",
+        "address": "SOBRE CARRETERA DEL LITORAL. A LA PAR DE UNIPLAZA Y REY POLLO, EX NEVERIA",
+        "latitude": 13.644959,
+        "longitude": -89.88131
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Martes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Miércoles",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Sábado",
+          "opensAt": "09:00",
+          "closesAt": "12:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Diario",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 84,
+      "stableId": "AG_METAPAN_01",
+      "name": "AGENCIA METAPAN",
+      "type": "Agencia",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Santa Ana",
+        "municipality": "Metapán",
+        "address": "AV. BEJAMIN ESTRADA VALIENTE Y 2° CALLE PONIENTE. - A 2 CUADRAS DEL PARQUE CENTRAL",
+        "latitude": 14.332178,
+        "longitude": -89.448105
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Martes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Miércoles",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Sábado",
+          "opensAt": "09:00",
+          "closesAt": "12:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Diario",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 86,
+      "stableId": "AG_NAHUIZALCO_01",
+      "name": "NAHUIZALCO",
+      "type": "Agencia",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Sonsonate",
+        "municipality": "Nahuizalco",
+        "address": "CIBER GAMER -> SOBRE 1° AV. SUR, ENTRE SON08 Y 3 CALLE PONIENTE",
+        "latitude": 13.780407,
+        "longitude": -89.74146
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "11:00",
+          "closesAt": "17:00"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "11:00",
+          "closesAt": "17:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Jueves",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Lunes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 87,
+      "stableId": "AG_NEJAPA_01",
+      "name": "AGENCIA NEJAPA",
+      "type": "Agencia",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "San Salvador",
+        "municipality": "Nejapa",
+        "address": "AV NORBERTO MORAN ENTRE 1° Y 2° CALLE ORIENTE. A MEDIA CUADRA DEL PARQUE CENTRAL.",
+        "latitude": 13.820138,
+        "longitude": -89.212395
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Martes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Miércoles",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Sábado",
+          "opensAt": "09:00",
+          "closesAt": "12:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Diario",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 88,
+      "stableId": "AG_NUEVA_CONCEPCION_01",
+      "name": "AGENCIA NUEVA CONCEPCIÓN",
+      "type": "Agencia",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Chalatenango",
+        "municipality": "Nueva Concepción",
+        "address": "SOBRE 3° AV (AV RIO LEMPA) CASA 308 LOCAL #2 -> A LA PAR DE EXTENSION / ANEXO DE ALCALDIA MUNICIPAL.",
+        "latitude": 14.12578,
+        "longitude": -89.2932
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Martes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Miércoles",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Sábado",
+          "opensAt": "09:00",
+          "closesAt": "12:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Diario",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 185,
+      "stableId": "AG_PERQUIN_01",
+      "name": "PERQUIN",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Morazán",
+        "municipality": "Perquín",
+        "address": "PARQUE CENTRAL",
+        "latitude": 13.960746,
+        "longitude": -88.16091
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Martes",
+          "opensAt": "09:00",
+          "closesAt": "09:30"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Martes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 111,
+      "stableId": "AG_QUEZALTEPEQUE_01",
+      "name": "QUEZALTEPEQUE",
+      "type": "Agencia",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "La Libertad",
+        "municipality": "Quezaltepeque",
+        "address": "SOBRE 7° CALLE PONIENTE ENTRE 4° Y AV 3 DE MAYO, A MEDIA CUADRA DE PLAZA CENTENARIO, LOCAL #7 -> NIVEL 2°",
+        "latitude": 13.826737,
+        "longitude": -89.27251
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Martes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Miércoles",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Sábado",
+          "opensAt": "09:00",
+          "closesAt": "12:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Diario",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 124,
+      "stableId": "AG_SANJACINTO_01",
+      "name": "SAN JACINTO",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "San Salvador",
+        "municipality": "San Salvador",
+        "address": "PLAZA SAN JACINTO -> (SALIDA DEL CENTRO COMERCIAL)",
+        "latitude": 13.680305,
+        "longitude": -89.17416
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Martes",
+          "opensAt": "13:00",
+          "closesAt": "13:30"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "13:00",
+          "closesAt": "13:30"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Martes",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Viernes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 125,
+      "stableId": "AG_SANJORGE_01",
+      "name": "SAN JORGE",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "San Miguel",
+        "municipality": "San Jorge",
+        "address": "ALCALDIA MUNICIPAL",
+        "latitude": 13.389155,
+        "longitude": -88.34944
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "14:30",
+          "closesAt": "15:00"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "14:30",
+          "closesAt": "15:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Jueves",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Lunes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 126,
+      "stableId": "AG_SANJUANNONUALCO_01",
+      "name": "SAN JUAN NONUALCO",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "La Paz",
+        "municipality": "San Juan Nonualco",
+        "address": "(PARQUE CENTRAL)",
+        "latitude": 13.502981,
+        "longitude": -88.904
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "10:30",
+          "closesAt": "11:00"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "10:30",
+          "closesAt": "11:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Jueves",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Lunes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 127,
+      "stableId": "AG_SANJUANTALPA_01",
+      "name": "SAN JUAN TALPA",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "La Paz",
+        "municipality": "San Juan Talpa",
+        "address": "FRENTE A ALCALDÍA",
+        "latitude": 13.500153,
+        "longitude": -89.08291
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Martes",
+          "opensAt": "11:15",
+          "closesAt": "11:40"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "11:15",
+          "closesAt": "11:40"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Martes",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Viernes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 128,
+      "stableId": "AG_SANJULIAN_01",
+      "name": "SAN JULIAN",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Sonsonate",
+        "municipality": "San Julian",
+        "address": "(POR LA FUENTE EN LA PLAZA EL BALZAMO - FTE ALCALDIA)",
+        "latitude": 13.704238,
+        "longitude": -89.56511
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Jueves",
+          "opensAt": "09:30",
+          "closesAt": "10:00"
+        },
+        {
+          "weekday": "Domingo",
+          "opensAt": "09:30",
+          "closesAt": "10:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Domingo",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Jueves",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 129,
+      "stableId": "AG_SANLUISDELAREINA_01",
+      "name": "SAN LUIS DE LA REINA",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "San Miguel",
+        "municipality": "San Luis de la Reina",
+        "address": "PARQUE CENTRAL",
+        "latitude": 13.817711,
+        "longitude": -88.35116
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "11:00",
+          "closesAt": "11:30"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "11:00",
+          "closesAt": "11:30"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Jueves",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Lunes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 130,
+      "stableId": "AG_SANLUISTALPA_01",
+      "name": "SAN LUIS TALPA",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "La Paz",
+        "municipality": "San Luis Talpa",
+        "address": "FTE A ALCALDÍA",
+        "latitude": 13.451445,
+        "longitude": -89.05227
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Martes",
+          "opensAt": "12:00",
+          "closesAt": "13:00"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "12:00",
+          "closesAt": "13:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Martes",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Viernes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 131,
+      "stableId": "AG_SANMARCOSLEMPA_01",
+      "name": "SAN MARCOLES LEMPA",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Usulutan",
+        "municipality": "Jiquilisco",
+        "address": "POR PASARELA Y NEVERIA",
+        "latitude": 13.326665,
+        "longitude": -88.570206
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "08:00",
+          "closesAt": "08:20"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "08:00",
+          "closesAt": "08:20"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Jueves",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Lunes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 132,
+      "stableId": "AG_SANMARCOS_01",
+      "name": "AGENCIA SAN MARCOS",
+      "type": "Agencia",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "San Salvador",
+        "municipality": "San Marcos",
+        "address": "CALLE HACIA SAN MARCOS. FRENTE A MAXI DESPENSA, PLAZA ENTRE GALVANIZA Y SUPER REPUESTO. LOCAL #12 SEGUNDO NIVEL",
+        "latitude": 11.916353,
+        "longitude": -86.22006
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Martes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Miércoles",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Sábado",
+          "opensAt": "09:00",
+          "closesAt": "12:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Diario",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 133,
+      "stableId": "AG_SANMARTIN_01",
+      "name": "AGENCIA SAN MARTIN",
+      "type": "Agencia",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "San Salvador",
+        "municipality": "San Martin",
+        "address": "1° AV SUR ENTRE 4° Y 6° CALLE OTE. FRENTE A PLAZA LA CEIBA / PARADA DE BUS",
+        "latitude": 13.715942,
+        "longitude": -89.04731
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Martes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Miércoles",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Sábado",
+          "opensAt": "09:00",
+          "closesAt": "12:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Diario",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 134,
+      "stableId": "AG_SANMATIAS_01",
+      "name": "SAN MATÍAS",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "La Libertad",
+        "municipality": "San Matias",
+        "address": "PARQUE CENTRAL FTE A ALCALDÍA",
+        "latitude": 13.885303,
+        "longitude": -89.317276
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "11:15",
+          "closesAt": "11:45"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "11:15",
+          "closesAt": "11:45"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Jueves",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Lunes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 136,
+      "stableId": "AG_SANMIGUELBODEGA_01",
+      "name": "BODEGA SAN MIGUEL",
+      "type": "Agencia",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "San Miguel",
+        "municipality": "San Miguel",
+        "address": "CARR. PANAMERICANA ENTRE KM 35 Y 36 A UNA CUADRA DE MAXI DESPENSA VIDRI Y SUPER REPUESTOS.",
+        "latitude": 13.505482,
+        "longitude": -88.22826
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Martes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Miércoles",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Sábado",
+          "opensAt": "09:00",
+          "closesAt": "12:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Diario",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 137,
+      "stableId": "AG_SANMIGUELHATONUEVO_01",
+      "name": "SAN MIGUEL REDONDEL HATO NUEVO",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "San Miguel",
+        "municipality": "San Miguel",
+        "address": "FRENTE A GASOLINERA UNO",
+        "latitude": 13.48039,
+        "longitude": -88.17722
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Jueves",
+          "opensAt": "13:00",
+          "closesAt": "13:20"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Jueves",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 135,
+      "stableId": "AG_SANMIGUEL_01",
+      "name": "AGENCIA SAN MIGUEL",
+      "type": "Agencia",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "San Miguel",
+        "municipality": "San Miguel",
+        "address": "PLAZA MINERVA LOCAL #7 SEGUNDO NIVEL SOBRE 4° CALLE PTE Y 5 AV NORTE FTE A PASTELERÍA KENDY.",
+        "latitude": 13.48039,
+        "longitude": -88.17722
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Martes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Miércoles",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Sábado",
+          "opensAt": "09:00",
+          "closesAt": "12:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Diario",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 138,
+      "stableId": "AG_SANPEDROPERULAPAN_01",
+      "name": "SAN PEDRO PERULAPAN",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Cuscatlan",
+        "municipality": "San Pedro Perulapan",
+        "address": "FTE A ALCALDIA",
+        "latitude": 13.761974,
+        "longitude": -89.031075
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "12:00",
+          "closesAt": "12:30"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "12:00",
+          "closesAt": "12:30"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Jueves",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Lunes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 139,
+      "stableId": "AG_SANRAFAELCEDROS_01",
+      "name": "SAN RAFAEL CEDROS",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Cuscatlan",
+        "municipality": "San Rafael Cedros",
+        "address": "AFUERA DE HELADOS BOSTON",
+        "latitude": 13.815485,
+        "longitude": -88.861694
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Martes",
+          "opensAt": "12:00",
+          "closesAt": "12:30"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "12:00",
+          "closesAt": "12:30"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Martes",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Viernes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 140,
+      "stableId": "AG_SANRAFAELOBRAJUELO_01",
+      "name": "SAN RAFAEL OBRAJUELOS",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "La Paz",
+        "municipality": "San Rafael Obrajuelo",
+        "address": "(FTE A IGLESIA CATOLICA)",
+        "latitude": 13.501525,
+        "longitude": -88.923225
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "09:45",
+          "closesAt": "10:15"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "09:45",
+          "closesAt": "10:15"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Jueves",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Lunes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 141,
+      "stableId": "AG_SANRAFAELORIENTE_01",
+      "name": "SAN RAFAEL ORIENTE",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "San Miguel",
+        "municipality": "San Rafael Oriente",
+        "address": "(EN EL PARQUE MUNICIPAL)",
+        "latitude": 13.377589,
+        "longitude": -88.354996
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "13:45",
+          "closesAt": "14:15"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "13:45",
+          "closesAt": "14:15"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Jueves",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Lunes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 143,
+      "stableId": "AG_SANSALVADORBODEGA_01",
+      "name": "BODEGA SAN SALVADOR",
+      "type": "Agencia",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "San Salvador",
+        "municipality": "San Salvador",
+        "address": "SOBRE CALLE LOS SISIMILES ENTRE AV BERNAL Y AV MAYARI. A 150 METROS DE CLAVO Y CANELA. FRENTE A PLAZA SISIMILES FRENTE A CAPITAL DEL TACO.",
+        "latitude": 13.716688,
+        "longitude": -89.20294
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "13:00",
+          "closesAt": "18:00"
+        },
+        {
+          "weekday": "Martes",
+          "opensAt": "13:00",
+          "closesAt": "18:00"
+        },
+        {
+          "weekday": "Miércoles",
+          "opensAt": "13:00",
+          "closesAt": "18:00"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "13:00",
+          "closesAt": "18:00"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "13:00",
+          "closesAt": "18:00"
+        },
+        {
+          "weekday": "Sábado",
+          "opensAt": "13:00",
+          "closesAt": "18:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Diario",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 142,
+      "stableId": "AG_SANSALVADORCENTRO_01",
+      "name": "AGENCIA SAN SALVADOR CENTRO HISTORICO",
+      "type": "Agencia",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "San Salvador",
+        "municipality": "San Salvador",
+        "address": "CALLE ARCE ENTRE 9° Y 11° AV SUR A 2 CUADRAS DE SUPER SELECTOS.",
+        "latitude": 13.699363,
+        "longitude": -89.1955
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Martes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Miércoles",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Sábado",
+          "opensAt": "09:00",
+          "closesAt": "12:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Diario",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 145,
+      "stableId": "AG_SANSALVADORJEREZ_01",
+      "name": "PLAZA JEREZ SAN SALVADOR",
+      "type": "Agencia",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "San Salvador",
+        "municipality": "San Salvador",
+        "address": "CALLE LOS SISIMILES, PLAZA JEREZ LOCAL #4 PRIMER NIVEL. UNA CUADRA ANTES DE LLEGAR A BURGER KING CONSTITUCIÓN.",
+        "latitude": 13.697629,
+        "longitude": -89.191154
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Martes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Miércoles",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Sábado",
+          "opensAt": "09:00",
+          "closesAt": "12:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Diario",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 144,
+      "stableId": "AG_SANSALVADORMETRO_01",
+      "name": "SAN SALVADOR METROGALERÍAS LOCAL 3-18 (TERCER NIVEL)",
+      "type": "Agencia",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "San Salvador",
+        "municipality": "San Salvador",
+        "address": "METROGALERÍAS",
+        "latitude": 13.697629,
+        "longitude": -89.191154
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Martes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Miércoles",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Sábado",
+          "opensAt": "09:00",
+          "closesAt": "13:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Diario",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 146,
+      "stableId": "AG_SANSEBASTIAN_01",
+      "name": "SAN SEBASTIÁN",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "San Vicente",
+        "municipality": "San Sebastian",
+        "address": "FRENTE A CAJA DE CRÉDITO Y DON POLLO",
+        "latitude": 13.725364,
+        "longitude": -88.82217
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Martes",
+          "opensAt": "11:00",
+          "closesAt": "11:30"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "11:00",
+          "closesAt": "11:30"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Martes",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Viernes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 147,
+      "stableId": "AG_SANSIMON_01",
+      "name": "SAN SIMÓN",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Morazan",
+        "municipality": "San Simon",
+        "address": "FTE A IGLESIA",
+        "latitude": 13.831333,
+        "longitude": -88.22691
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Martes",
+          "opensAt": "13:45",
+          "closesAt": "14:15"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Martes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 150,
+      "stableId": "AG_SANTAANACENTRO_01",
+      "name": "SANTA ANA CENTRO",
+      "type": "Agencia",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Santa Ana",
+        "municipality": "Santa Ana",
+        "address": "SOBRE 8 CALLE PONIENTE ENTRE AV. INDEPEND Y 2DA AV NORTE -> A LA PAR DE PANADERIA XIMENA",
+        "latitude": 13.972109,
+        "longitude": -89.56053
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Martes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Miércoles",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Sábado",
+          "opensAt": "09:00",
+          "closesAt": "12:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Diario",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 151,
+      "stableId": "AG_SANTAANAPLAZA33_01",
+      "name": "SANTA ANA PLAZA 33",
+      "type": "Agencia",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Santa Ana",
+        "municipality": "Santa Ana",
+        "address": "SOBRE 33 CALLE OTE Y AV. INDEPENDENCIA SUR, LOCAL #1 (PRIMER NIVEL) -UNA CUADRA ABAJO DE MAXI DESPENSA. -50 METROS AL ORIENTE DE GASOLINERA UNO. -A LA PAR DE CAR WASH WILLY'S.",
+        "latitude": 13.972109,
+        "longitude": -89.56053
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Martes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Miércoles",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Sábado",
+          "opensAt": "09:00",
+          "closesAt": "13:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Diario",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 149,
+      "stableId": "AG_SANTAANA_01",
+      "name": "SANTA ANA",
+      "type": "Agencia",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Santa Ana",
+        "municipality": "Santa Ana",
+        "address": "AGENCIA SANTA ANA CENTRO: SOBRE 8 CALLE PONIENTE ENTRE AV. INDEPEND Y 2DA AV NORTE -> A LA PAR DE PANADERIA XIMENA | AGENCIA SANTA ANA PLAZA 33: SOBRE 33 CALLE OTE Y AV. INDEPENDENCIA SUR, LOCAL #1 (PRIMER NIVEL)",
+        "latitude": 13.972109,
+        "longitude": -89.56053
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Martes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Miércoles",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Sábado",
+          "opensAt": "09:00",
+          "closesAt": "13:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Diario",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 152,
+      "stableId": "AG_SANTAELENA_01",
+      "name": "SANTA ELENA",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Usulutan",
+        "municipality": "Santa Elena",
+        "address": "FRENTE A IGLESIA",
+        "latitude": 13.985824,
+        "longitude": -88.15506
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "11:15",
+          "closesAt": "11:45"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "11:15",
+          "closesAt": "11:45"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Jueves",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Lunes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 153,
+      "stableId": "AG_SANTAMARIA_01",
+      "name": "SANTA MARIA",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Usulutan",
+        "municipality": "Santa Maria",
+        "address": "PARQUE CENTRAL",
+        "latitude": 43.722076,
+        "longitude": 10.395921
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Miércoles",
+          "opensAt": "11:00",
+          "closesAt": "11:20"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Miércoles",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 154,
+      "stableId": "AG_SANTAROSADELIMA_01",
+      "name": "SANTA ROSA DE LIMA",
+      "type": "Agencia",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "La Union",
+        "municipality": "Santa Rosa de Lima",
+        "address": "SOBRE CALLE GRAL. GIRON PTE, ENTRE 3 Y 5 AV NORTE. ESQUINA OPUESTA A FARMACIA SANTA MARIA, FRENTE A FARMACIA EL REY, LOCAL ROJO 2DO NIVEL.",
+        "latitude": -24.24272,
+        "longitude": -64.875244
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Martes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Miércoles",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Sábado",
+          "opensAt": "09:00",
+          "closesAt": "12:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Diario",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 155,
+      "stableId": "AG_SANTATECLA_01",
+      "name": "SANTA TECLA",
+      "type": "Agencia",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "La Libertad",
+        "municipality": "Santa Tecla",
+        "address": "SOBRE PASEO EL CARMEN ENTRE 3 Y 5 AVENIDA NORTE. A 500 MTS DEL BANCO IZALQUEÑO DE LOS TRABAJADORES",
+        "latitude": 13.687816,
+        "longitude": -89.29297
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Martes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Miércoles",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Sábado",
+          "opensAt": "09:00",
+          "closesAt": "15:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Diario",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 156,
+      "stableId": "AG_SANTIAGODELAFRONTERA_01",
+      "name": "SANTIAGO DE LA FRONTERA",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Santa Ana",
+        "municipality": "Santiago de la Frontera",
+        "address": "PARQUE FRENTE A CLINICA",
+        "latitude": 14.183403,
+        "longitude": -89.60802
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Martes",
+          "opensAt": "10:00",
+          "closesAt": "10:45"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "10:00",
+          "closesAt": "10:45"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Martes",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Viernes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 157,
+      "stableId": "AG_SANTIAGODEMARIA_01",
+      "name": "SANTIAGO DE MARIA",
+      "type": "Agencia",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Usulutan",
+        "municipality": "Santiago de Maria",
+        "address": "RN14 ENTRE 3° Y 5° CALLE PTE. A LA PAR DE SHERWIN-WILLIAMS. EX NEVERIA.",
+        "latitude": 13.477935,
+        "longitude": -88.474556
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Martes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Miércoles",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Sábado",
+          "opensAt": "09:00",
+          "closesAt": "12:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Diario",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 158,
+      "stableId": "AG_SANTIAGONONUALCO_01",
+      "name": "SANTIAGO NONUALCO",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "La Paz",
+        "municipality": "Santiago Nonualco",
+        "address": "PARQUEO SANTIAGUEÑO FRENTE A LICEO CRISTIANO JUAN BUENO",
+        "latitude": 13.513546,
+        "longitude": -88.94001
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "08:30",
+          "closesAt": "09:30"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "08:30",
+          "closesAt": "09:30"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Jueves",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Lunes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 159,
+      "stableId": "AG_SANTIAGOTEXACUANGO_01",
+      "name": "SANTIAGO TEXACUANGO",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "San Salvador",
+        "municipality": "Santiago Texacuangos",
+        "address": "FRENTE A ALCALDÍA",
+        "latitude": 13.643055,
+        "longitude": -89.11712
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Martes",
+          "opensAt": "09:45",
+          "closesAt": "10:10"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "09:45",
+          "closesAt": "10:10"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Martes",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Viernes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 160,
+      "stableId": "AG_SANTO_DOMINGO_01",
+      "name": "SANTO DOMINGO",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "San Vicente",
+        "municipality": "Santo Domingo",
+        "address": "FRENTE A ALCALDÍA",
+        "latitude": -0.2526518,
+        "longitude": -79.18465
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Martes",
+          "opensAt": "10:20",
+          "closesAt": "10:45"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "10:20",
+          "closesAt": "10:45"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Martes",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Viernes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 148,
+      "stableId": "AG_SANVICENTE_01",
+      "name": "AGENCIA SAN VICENTE",
+      "type": "Agencia",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "San Vicente",
+        "municipality": "San Vicente",
+        "address": "SOBRE 7 CALLE ORIENTE / AV. JOSÉ MARÍA CORNEJO Y 2 AV. NORTE. (ATRAS DE CAJA DE CREDITO A MEDIA CUADRA DE GASOLINERA TEXACO).",
+        "latitude": 13.643317,
+        "longitude": -88.78364
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Martes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Miércoles",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Sábado",
+          "opensAt": "09:00",
+          "closesAt": "12:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Diario",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 119,
+      "stableId": "AG_SAN_FRANCISCO_GOTERA_01",
+      "name": "SAN FRANCISCO GOTERA",
+      "type": "Agencia",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Morazán",
+        "municipality": "San Francisco Gotera",
+        "address": "Sobre 1° Av sur entre 4°y 6° Calle poniente.",
+        "latitude": 13.695215,
+        "longitude": -88.10607
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Martes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Miércoles",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Sábado",
+          "opensAt": "09:00",
+          "closesAt": "12:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Diario",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 161,
+      "stableId": "AG_SENSEMBRA_01",
+      "name": "SENSEMBRA",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Morazán",
+        "municipality": "Sensembra",
+        "address": "PARQUE CENTRAL",
+        "latitude": 13.677614,
+        "longitude": -88.17151
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Miércoles",
+          "opensAt": "13:45",
+          "closesAt": "14:15"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Miércoles",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 162,
+      "stableId": "AG_SENSUNTEPEQUE_01",
+      "name": "SENSUNTEPEQUE",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Cabañas",
+        "municipality": "Sensuntepeque",
+        "address": "SOBRE 4° AVENIDA NORTE. FERRETERIA DIVINA PROVIDENCIA. ESQUINA OPUESTA A ACOMATIC FTE A FARMACIA EL ANGEL. INGRESAR A LA FERRETERIA POR FAVOR.",
+        "latitude": 13.876184,
+        "longitude": -88.628494
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "09:00",
+          "closesAt": "11:00"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "09:00",
+          "closesAt": "11:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Jueves",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Lunes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 163,
+      "stableId": "AG_SOCIEDAD_01",
+      "name": "SOCIEDAD",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Morazán",
+        "municipality": "Sociedad",
+        "address": "PARQUE CENTRAL",
+        "latitude": 13.694039,
+        "longitude": -88.009796
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Martes",
+          "opensAt": "10:00",
+          "closesAt": "10:45"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "10:00",
+          "closesAt": "10:45"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Martes",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Viernes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 164,
+      "stableId": "AG_SONSONATE_01",
+      "name": "AGENCIA SONSONATE",
+      "type": "Agencia",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Sonsonate",
+        "municipality": "Sonsonate",
+        "address": "PLAZA MASAHUA LOCAL #4 PRIMER NIVEL. FRENTE A METROCENTRO SONSONATE POR PASARELA.",
+        "latitude": 13.63507,
+        "longitude": -89.752556
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Martes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Miércoles",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Sábado",
+          "opensAt": "09:00",
+          "closesAt": "12:00"
+        },
+        {
+          "weekday": "Domingo",
+          "opensAt": "12:40",
+          "closesAt": "13:40"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Diario",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 165,
+      "stableId": "AG_SONZACATE_01",
+      "name": "AGENCIA SONZACATE",
+      "type": "Agencia",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Sonsonate",
+        "municipality": "Sonzacate",
+        "address": "BULEVAR LAS PALMERAS. LOCAL FRENTE A GASOLINERA UNO. EX GIMNASIO.",
+        "latitude": 13.737033,
+        "longitude": -89.71511
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Martes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Miércoles",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Sábado",
+          "opensAt": "09:00",
+          "closesAt": "12:00"
+        },
+        {
+          "weekday": "Domingo",
+          "opensAt": "11:50",
+          "closesAt": "12:20"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Diario",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 166,
+      "stableId": "AG_SOYAPANGO_01",
+      "name": "AGENCIA SOYAPANGO",
+      "type": "Agencia",
+      "companyName": "Pedidos Express",
+      "mapsUrl": "https://maps.app.goo.gl/coKzgWV3FtQzDCru9",
+      "place": {
+        "department": "San Salvador",
+        "municipality": "Soyapango",
+        "address": "SOBRE 4° AV NORTE -> EDIFICIO LA JOYA LOCAL 1-B. PUNTOS DE REFERENCIA: Fte al mercado de soyapango > cerca del triangulo > parada de bus ruta 49.",
+        "latitude": 13.70412,
+        "longitude": -89.148445
+      },
+      "imageUrl": "/uploads/1786642608306-2cf660e1afa8ad22.png",
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Martes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Miércoles",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Sábado",
+          "opensAt": "09:00",
+          "closesAt": "12:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Diario",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 167,
+      "stableId": "AG_SOYAPANGO_PLAZA_MUNDO_01",
+      "name": "PLAZA MUNDO SOYAPANGO",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "San Salvador",
+        "municipality": "Soyapango",
+        "address": "GAS TEXACO SALIDA DE PLAZA MUNDO",
+        "latitude": 13.698183,
+        "longitude": -89.15034
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "08:30",
+          "closesAt": "09:30"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "08:30",
+          "closesAt": "09:30"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Jueves",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Lunes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 168,
+      "stableId": "AG_SOYAPANGO_UNICENTRO_01",
+      "name": "AGENCIA UNICENTRO SOYAPANGO",
+      "type": "Agencia",
+      "companyName": "Pedidos Express",
+      "mapsUrl": "https://maps.app.goo.gl/2daCJPj5rSYsmwYZ7",
+      "place": {
+        "department": "San Salvador",
+        "municipality": "Soyapango",
+        "address": "SOBRE CALLE ANTIGUA A TONACA.. FRENTE A UNICENTRO SOYAPANGO, A UN COSTADO DE GAS UNO, A LA PAR DE DON POLLO Y PIZZA SICILIANA.",
+        "latitude": 13.714345,
+        "longitude": -89.14178
+      },
+      "imageUrl": "https://res.cloudinary.com/oy0nwlkt/image/upload/v1786686424/sivoy_agencias/vr2bnvsp3brsbilgw3er.png",
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "09:00",
+          "closesAt": "18:00"
+        },
+        {
+          "weekday": "Martes",
+          "opensAt": "09:00",
+          "closesAt": "18:00"
+        },
+        {
+          "weekday": "Miércoles",
+          "opensAt": "09:00",
+          "closesAt": "18:00"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "09:00",
+          "closesAt": "18:00"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "09:00",
+          "closesAt": "18:00"
+        },
+        {
+          "weekday": "Sábado",
+          "opensAt": "09:00",
+          "closesAt": "13:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Diario",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 169,
+      "stableId": "AG_SUCHITOTO_01",
+      "name": "SUCHITOTO",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Cuscatlán",
+        "municipality": "Suchitoto",
+        "address": "PARQUE CENTRAL",
+        "latitude": 13.932079,
+        "longitude": -89.03179
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Martes",
+          "opensAt": "08:00",
+          "closesAt": "09:00"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "08:00",
+          "closesAt": "09:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Martes",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Viernes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 170,
+      "stableId": "AG_TACACHICO_01",
+      "name": "TACACHICO",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "La Libertad",
+        "municipality": "San Pablo Tacachico",
+        "address": "PARQUE CENTRAL FTE A ALCALDÍA",
+        "latitude": 13.976625,
+        "longitude": -89.34269
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "08:00",
+          "closesAt": "09:00"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "08:00",
+          "closesAt": "09:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Jueves",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Lunes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 171,
+      "stableId": "AG_TECAPAN_01",
+      "name": "TECAPAN",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Usulután",
+        "municipality": "Tecapán",
+        "address": "PARQUE CENTRAL",
+        "latitude": 13.451008,
+        "longitude": -88.48902
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Miércoles",
+          "opensAt": "08:00",
+          "closesAt": "08:20"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Miércoles",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 172,
+      "stableId": "AG_TECOLUCA_01",
+      "name": "TECOLUCA",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "San Vicente",
+        "municipality": "Tecoluca",
+        "address": "PARQUE CENTRAL",
+        "latitude": 13.533991,
+        "longitude": -88.804665
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "11:30",
+          "closesAt": "12:00"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "11:30",
+          "closesAt": "12:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Jueves",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Lunes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 173,
+      "stableId": "AG_TEJUTEPEQUE_01",
+      "name": "TEJUTEPEQUE (CABAÑAS)",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Cabañas",
+        "municipality": "Tejutepeque",
+        "address": "PARQUE CENTRAL",
+        "latitude": 13.852806,
+        "longitude": -88.90362
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "13:00",
+          "closesAt": "13:30"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "13:00",
+          "closesAt": "13:30"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Jueves",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Lunes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 174,
+      "stableId": "AG_TEXISTEPEQUE_01",
+      "name": "TEXISTEPEQUE",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Santa Ana",
+        "municipality": "Texistepeque",
+        "address": "COSTADO DEL PARQUE CENTRAL AFUERA DE VENTA DE TROPIGAS TONY (CALLE LIBERTAD)",
+        "latitude": 14.119217,
+        "longitude": -89.488335
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Martes",
+          "opensAt": "09:30",
+          "closesAt": "10:00"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "09:30",
+          "closesAt": "10:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Martes",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Viernes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 175,
+      "stableId": "AG_TIERRA_BLANCA_01",
+      "name": "TIERRA BLANCA",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Usulután",
+        "municipality": "Jiquilisco",
+        "address": "POR CANCHA DE FUTBOL",
+        "latitude": 13.387616,
+        "longitude": -88.6554
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "08:30",
+          "closesAt": "08:50"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "08:30",
+          "closesAt": "08:50"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Jueves",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Lunes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 176,
+      "stableId": "AG_TONACATEPEQUE_01",
+      "name": "TONACATEPEQUE",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "San Salvador",
+        "municipality": "Tonacatepeque",
+        "address": "PARQUE CENTRAL",
+        "latitude": 13.800436,
+        "longitude": -89.13902
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Martes",
+          "opensAt": "14:00",
+          "closesAt": "14:30"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "14:00",
+          "closesAt": "14:30"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Martes",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Viernes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 177,
+      "stableId": "AG_TURIN_01",
+      "name": "TURIN",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Ahuachapán",
+        "municipality": "Turín",
+        "address": "PARQUE CENTRAL FTE A ALCALDÍA",
+        "latitude": 13.959368,
+        "longitude": -89.76642
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Martes",
+          "opensAt": "11:15",
+          "closesAt": "12:00"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "11:15",
+          "closesAt": "12:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Martes",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Viernes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 178,
+      "stableId": "AG_ULUAZAPA_01",
+      "name": "ULUAZAPA",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "San Miguel",
+        "municipality": "Uluazapa",
+        "address": "PARQUE CENTRAL",
+        "latitude": 13.502693,
+        "longitude": -88.071495
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "02:45",
+          "closesAt": "15:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Lunes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 179,
+      "stableId": "AG_USULUTAN_01",
+      "name": "USULUTÁN",
+      "type": "Agencia",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Usulután",
+        "municipality": "Usulután",
+        "address": "EDIFICIO ANDALUCIA LOCAL #6 PRIMER NIVEL. COLINDANTE CON DOMINO'S PIZZA Y BAC",
+        "latitude": 13.343821,
+        "longitude": -88.438225
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Martes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Miércoles",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Sábado",
+          "opensAt": "09:00",
+          "closesAt": "12:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Diario",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 180,
+      "stableId": "AG_YAMABAL_01",
+      "name": "YAMABAL",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Morazán",
+        "municipality": "Yamabal",
+        "address": "FTE A ALCALDIA",
+        "latitude": 13.677614,
+        "longitude": -88.17151
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Miércoles",
+          "opensAt": "13:00",
+          "closesAt": "13:30"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Miércoles",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 181,
+      "stableId": "AG_YOLOAIQUIN_01",
+      "name": "YOLOAIQUIN",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Morazán",
+        "municipality": "Yoloaiquín",
+        "address": "PARQUE CENTRAL",
+        "latitude": 13.724024,
+        "longitude": -88.11553
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Jueves",
+          "opensAt": "09:15",
+          "closesAt": "09:40"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Jueves",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 182,
+      "stableId": "AG_YUCUAIQUIN_01",
+      "name": "YUCUAIQUIN",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "La Unión",
+        "municipality": "Yucuaiquín",
+        "address": "PARQUE CENTRAL",
+        "latitude": 13.550752,
+        "longitude": -88.00626
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "01:00",
+          "closesAt": "13:30"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Lunes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 183,
+      "stableId": "AG_ZACATECOLUCA_01",
+      "name": "AGENCIA ZACATECOLUCA",
+      "type": "Agencia",
+      "companyName": "Pedidos Express",
+      "mapsUrl": "https://maps.app.goo.gl/tPqsvqgSCU9P7VxJA",
+      "place": {
+        "department": "La Paz",
+        "municipality": "Zacatecoluca",
+        "address": "SOBRE 3° AV SUR / RN4E Y 7° CALLE OTE. A 200 MTS DE COLEGIO MODELO ADVENTISTA. A LA PAR DE SALA DE BELLEZA.",
+        "latitude": 13.506708,
+        "longitude": -88.87045
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Martes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Miércoles",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "09:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Sábado",
+          "opensAt": "09:00",
+          "closesAt": "12:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Diario",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 184,
+      "stableId": "AG_ZARAGOZA_01",
+      "name": "ZARAGOZA",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "La Libertad",
+        "municipality": "Zaragoza",
+        "address": "FTE A CASA DE LA CULTURA / VENTA DE DULCES TIPICOS",
+        "latitude": 42.12596,
+        "longitude": -1.1436177
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Miércoles",
+          "opensAt": "14:15",
+          "closesAt": "15:00"
+        },
+        {
+          "weekday": "Sábado",
+          "opensAt": "14:15",
+          "closesAt": "15:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Miércoles",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Sábado",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 2,
+      "stableId": "PF_AGUACALIENTE_01",
+      "name": "AGUA CALIENTE",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Chalatenango",
+        "municipality": "Agua Caliente",
+        "address": "FRENTE A IGLESIA CATÓLICA",
+        "latitude": 14.156114,
+        "longitude": -89.225716
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Martes",
+          "opensAt": "09:10",
+          "closesAt": "09:30"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "09:10",
+          "closesAt": "09:30"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Martes",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Viernes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 5,
+      "stableId": "PF_ALEGRIA_01",
+      "name": "ALEGRÍA",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Usulután",
+        "municipality": "Alegría",
+        "address": "PARQUE CENTRAL",
+        "latitude": 13.507995,
+        "longitude": -88.48943
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Martes",
+          "opensAt": "08:00",
+          "closesAt": "08:30"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "08:00",
+          "closesAt": "08:30"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Martes",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Viernes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 7,
+      "stableId": "PF_ANAMOROS_01",
+      "name": "ANAMOROS",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "La Unión",
+        "municipality": "Anamorós",
+        "address": "PARQUE CENTRAL",
+        "latitude": 13.747788,
+        "longitude": -87.874596
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Miércoles",
+          "opensAt": "09:50",
+          "closesAt": "10:20"
+        },
+        {
+          "weekday": "Domingo",
+          "opensAt": "09:50",
+          "closesAt": "10:20"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Domingo",
+          "cutoff": "Viernes"
+        },
+        {
+          "deliveryDay": "Miércoles",
+          "cutoff": "Martes"
+        }
+      ]
+    },
+    {
+      "legacyId": 8,
+      "stableId": "PF_ANTIGUOCUSCATLAN_01",
+      "name": "ANTIGUO CUSCATLAN",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "La Libertad",
+        "municipality": "Antiguo Cuscatlán",
+        "address": "ESQUINA DE DON POLLO",
+        "latitude": 13.673328,
+        "longitude": -89.24161
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Miércoles",
+          "opensAt": "13:00",
+          "closesAt": "13:40"
+        },
+        {
+          "weekday": "Sábado",
+          "opensAt": "13:00",
+          "closesAt": "13:40"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Miércoles",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Sábado",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 9,
+      "stableId": "PF_APANECA_01",
+      "name": "APANECA",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Ahuachapán",
+        "municipality": "Apaneca",
+        "address": "PARQUE FRENTE A PLAZA TURÍSTICA",
+        "latitude": 13.858854,
+        "longitude": -89.80398
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "12:45",
+          "closesAt": "13:15"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "12:45",
+          "closesAt": "13:15"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Jueves",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Lunes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 10,
+      "stableId": "PF_APASTEPEQUE_01",
+      "name": "APASTEPEQUE",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "San Vicente",
+        "municipality": "Apastepeque",
+        "address": "FRENTE A IGLESIA Y PARQUE JOSÉ CANALES",
+        "latitude": 13.692624,
+        "longitude": -88.74546
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Martes",
+          "opensAt": "09:30",
+          "closesAt": "10:00"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "09:30",
+          "closesAt": "10:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Martes",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Viernes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 12,
+      "stableId": "PF_ARAMBALA_01",
+      "name": "ARAMBALA",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Morazán",
+        "municipality": "Arambala",
+        "address": "PARQUE CENTRAL",
+        "latitude": 13.920298,
+        "longitude": -88.133766
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Martes",
+          "opensAt": "10:00",
+          "closesAt": "10:30"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Martes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 14,
+      "stableId": "PF_ATACO_01",
+      "name": "ATACO",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Ahuachapán",
+        "municipality": "Concepción de Ataco",
+        "address": "PARQUE CENTRAL FRENTE A KIOSKO",
+        "latitude": 13.866255,
+        "longitude": -89.85011
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "13:40",
+          "closesAt": "14:00"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "13:40",
+          "closesAt": "14:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Jueves",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Lunes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 15,
+      "stableId": "PF_ATEOS_01",
+      "name": "ATEOS",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "La Libertad",
+        "municipality": "Sacacoyo",
+        "address": "GASOLINERA PUMA",
+        "latitude": 13.740562,
+        "longitude": -89.42877
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "12:30",
+          "closesAt": "13:00"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "12:30",
+          "closesAt": "13:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Jueves",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Lunes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 18,
+      "stableId": "PF_BOLIVAR_01",
+      "name": "BOLIVAR",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "La Unión",
+        "municipality": "Bolívar",
+        "address": "PARQUE CENTRAL",
+        "latitude": 13.574647,
+        "longitude": -87.95297
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "11:30",
+          "closesAt": "12:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Lunes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 57,
+      "stableId": "PF_GUALOCOCTI_01",
+      "name": "GUALOCOCTI",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Morazán",
+        "municipality": "Gualococti",
+        "address": "FTE A ALCALDIA",
+        "latitude": 13.819171,
+        "longitude": -88.21064
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Martes",
+          "opensAt": "13:00",
+          "closesAt": "13:30"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Martes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 58,
+      "stableId": "PF_GUATAJIAGUA_01",
+      "name": "GUATAJIAGUA",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Morazán",
+        "municipality": "Guatajiagua",
+        "address": "FTE A IGLESIA",
+        "latitude": 13.665633,
+        "longitude": -88.21146
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Miércoles",
+          "opensAt": "12:20",
+          "closesAt": "12:45"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Miércoles",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 59,
+      "stableId": "PF_GUAYMANGO_01",
+      "name": "GUAYMANGO",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Ahuachapán",
+        "municipality": "Guaymango",
+        "address": "PARQUE CENTRAL",
+        "latitude": 13.7454,
+        "longitude": -89.8432
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Martes",
+          "opensAt": "15:15",
+          "closesAt": "15:45"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "15:15",
+          "closesAt": "15:45"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Martes",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Viernes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 60,
+      "stableId": "PF_GUAZAPA_01",
+      "name": "GUAZAPA",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "San Salvador",
+        "municipality": "Guazapa",
+        "address": "PARQUE CENTRAL",
+        "latitude": 13.875124,
+        "longitude": -89.174835
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Martes",
+          "opensAt": "12:20",
+          "closesAt": "13:00"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "12:20",
+          "closesAt": "13:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Martes",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Viernes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 61,
+      "stableId": "PF_HATO_NUEVO_01",
+      "name": "REDONDEL HATO NUEVO SAN MIGUEL",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "San Miguel",
+        "municipality": "San Miguel",
+        "address": "FRENTE A GASOLINERA UNO",
+        "latitude": 13.48039,
+        "longitude": -88.17722
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Jueves",
+          "opensAt": "13:00",
+          "closesAt": "13:20"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Jueves",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 62,
+      "stableId": "PF_ILOBASCO_01",
+      "name": "ILOBASCO",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Cabañas",
+        "municipality": "Ilobasco",
+        "address": "SOBRE C. BERNARDO PERDOMO, ENTRE 2° Y 4° AV. SUR. FRENTE A FERRETERÍA EL ANGEL, ATRÁS DEL EX-CINE PRINCIPAL",
+        "latitude": 13.848919,
+        "longitude": -88.85392
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "09:00",
+          "closesAt": "13:00"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "09:00",
+          "closesAt": "13:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Jueves",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Lunes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 63,
+      "stableId": "PF_ILOPANGO_01",
+      "name": "ILOPANGO",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "San Salvador",
+        "municipality": "Ilopango",
+        "address": "FTE A ESCUELA FABIO CASTILLO",
+        "latitude": 13.670876,
+        "longitude": -89.044846
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "10:00",
+          "closesAt": "10:30"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "10:00",
+          "closesAt": "10:30"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Jueves",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Lunes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 64,
+      "stableId": "PF_INTIPUCA_01",
+      "name": "INTIPUCA",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "La Unión",
+        "municipality": "Intipucá",
+        "address": "(PARQUE CENTRAL)",
+        "latitude": 13.194116,
+        "longitude": -88.056145
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "10:00",
+          "closesAt": "10:30"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "10:00",
+          "closesAt": "10:30"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Jueves",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Lunes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 67,
+      "stableId": "PF_JOCOAITIQUE_01",
+      "name": "JOCOAITIQUE",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Morazán",
+        "municipality": "Jocoaitique",
+        "address": "PARQUE CENTRAL",
+        "latitude": 13.904929,
+        "longitude": -88.15875
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Martes",
+          "opensAt": "11:00",
+          "closesAt": "11:30"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Martes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 68,
+      "stableId": "PF_JOCORO_01",
+      "name": "JOCORO",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Morazán",
+        "municipality": "Jocoro",
+        "address": "AFUERA DE IGLESIA SAN FELIPE",
+        "latitude": 13.613431,
+        "longitude": -88.02412
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Martes",
+          "opensAt": "08:45",
+          "closesAt": "09:30"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "08:45",
+          "closesAt": "09:30"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Martes",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Viernes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 69,
+      "stableId": "PF_JUAYUA_01",
+      "name": "JUAYUA",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Sonsonate",
+        "municipality": "Juayúa",
+        "address": "(LOCAL QUE BONITA) ESQUINA OPUESTA A BANCO DE FOMENTO, A 100 MTS DE PLAZITA JUAYUA, POR ESCUELA DE MANEJO.",
+        "latitude": 13.858839,
+        "longitude": -89.73835
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "11:30",
+          "closesAt": "17:00"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "11:30",
+          "closesAt": "17:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Jueves",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Lunes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 70,
+      "stableId": "PF_JUCUAPA_01",
+      "name": "JUCUAPA",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Usulután",
+        "municipality": "Jucuapa",
+        "address": "PARQUE CENTRAL",
+        "latitude": 13.513729,
+        "longitude": -88.38389
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Martes",
+          "opensAt": "12:30",
+          "closesAt": "13:30"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "12:30",
+          "closesAt": "13:30"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Martes",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Viernes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 71,
+      "stableId": "PF_JUCUARAN_01",
+      "name": "JUCUARAN",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Usulután",
+        "municipality": "Jucuarán",
+        "address": "FRENTE A IGLESIA",
+        "latitude": 13.251905,
+        "longitude": -88.24922
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Miércoles",
+          "opensAt": "13:00",
+          "closesAt": "13:30"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Miércoles",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 72,
+      "stableId": "PF_JUJUTLA_01",
+      "name": "JUJUTLA",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Ahuachapán",
+        "municipality": "Jujutla",
+        "address": "PARQUE CENTRAL",
+        "latitude": 13.777116,
+        "longitude": -89.85818
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Martes",
+          "opensAt": "14:30",
+          "closesAt": "15:00"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "14:30",
+          "closesAt": "15:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Martes",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Viernes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 73,
+      "stableId": "PF_LA_GRAN_VIA_01",
+      "name": "LA GRAN VIA",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "La Libertad",
+        "municipality": "Antiguo Cuscatlán",
+        "address": "(FRENTE A SIMÁN)",
+        "latitude": 13.677744,
+        "longitude": -89.253876
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Martes",
+          "opensAt": "09:45",
+          "closesAt": "10:15"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "09:45",
+          "closesAt": "10:15"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Martes",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Viernes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 74,
+      "stableId": "PF_LA_PALMA_01",
+      "name": "LA PALMA",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Chalatenango",
+        "municipality": "La Palma",
+        "address": "PARQUE FRENTE A FERRETERÍA CENTRAL",
+        "latitude": 14.316939,
+        "longitude": -89.17812
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Martes",
+          "opensAt": "14:00",
+          "closesAt": "14:30"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "14:00",
+          "closesAt": "14:30"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Martes",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Viernes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 76,
+      "stableId": "PF_LISLIQUE_01",
+      "name": "LISLIQUE",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "La Unión",
+        "municipality": "Lislique",
+        "address": "PARQUE CENTRAL",
+        "latitude": 13.782886,
+        "longitude": -87.88188
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Miércoles",
+          "opensAt": "10:45",
+          "closesAt": "11:15"
+        },
+        {
+          "weekday": "Domingo",
+          "opensAt": "10:45",
+          "closesAt": "11:15"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Domingo",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Miércoles",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 77,
+      "stableId": "PF_LOLOTIQUE_01",
+      "name": "LOLOTIQUE",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "San Miguel",
+        "municipality": "Lolotique",
+        "address": "(PARQUE CENTRAL)",
+        "latitude": 13.554338,
+        "longitude": -88.35643
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Martes",
+          "opensAt": "13:30",
+          "closesAt": "14:00"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "13:30",
+          "closesAt": "14:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Martes",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Viernes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 78,
+      "stableId": "PF_LOLOTIQUILLO_01",
+      "name": "LOLOTIQUILLO",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Morazán",
+        "municipality": "Lolotiquillo",
+        "address": "PARQUE CENTRAL",
+        "latitude": 13.728809,
+        "longitude": -88.09318
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Jueves",
+          "opensAt": "11:00",
+          "closesAt": "11:30"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Jueves",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 79,
+      "stableId": "PF_LOS_NARANJOS_01",
+      "name": "LOS NARANJOS",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Sonsonate",
+        "municipality": "Juayúa",
+        "address": "AFUERA DE IGLESIA DE MORMONES FRENTE A PUESTO PNC Y GAS UNO",
+        "latitude": 13.875867,
+        "longitude": -89.67311
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "08:30",
+          "closesAt": "09:00"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "08:30",
+          "closesAt": "09:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Jueves",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Lunes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 81,
+      "stableId": "PF_MERCEDES_UMANA_01",
+      "name": "MERCEDES UMAÑA",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Usulután",
+        "municipality": "Mercedes Umaña",
+        "address": "PARQUE CENTRAL",
+        "latitude": 13.565902,
+        "longitude": -88.4956
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Martes",
+          "opensAt": "09:15",
+          "closesAt": "09:45"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "09:15",
+          "closesAt": "09:45"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Martes",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Viernes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 82,
+      "stableId": "PF_MERLIOT_01",
+      "name": "PLAZA MERLIOT",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "La Libertad",
+        "municipality": "Santa Tecla",
+        "address": "(GASOLINERA SHELL FTE A PARQUEO DE WENDY'S)",
+        "latitude": 13.678857,
+        "longitude": -89.27671
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Martes",
+          "opensAt": "09:00",
+          "closesAt": "09:30"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "09:00",
+          "closesAt": "09:30"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Martes",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Viernes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 85,
+      "stableId": "PF_MONCAGUA_01",
+      "name": "MONCAGUA",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "San Miguel",
+        "municipality": "Moncagua",
+        "address": "(PARQUE CENTRAL)",
+        "latitude": 13.513353,
+        "longitude": -88.25452
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Martes",
+          "opensAt": "12:30",
+          "closesAt": "13:00"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "12:30",
+          "closesAt": "13:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Martes",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Viernes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 89,
+      "stableId": "PF_NUEVA_ESPARTA_01",
+      "name": "NUEVA ESPARTA",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "La Unión",
+        "municipality": "Nueva Esparta",
+        "address": "PARQUE CENTRAL",
+        "latitude": 13.748265,
+        "longitude": -87.825005
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Miércoles",
+          "opensAt": "09:15",
+          "closesAt": "09:30"
+        },
+        {
+          "weekday": "Domingo",
+          "opensAt": "09:15",
+          "closesAt": "09:30"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Domingo",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Miércoles",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 90,
+      "stableId": "PF_NUEVA_GRANADA_01",
+      "name": "NUEVA GRANADA",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Usulután",
+        "municipality": "Nueva Granada",
+        "address": "PARQUE CENTRAL",
+        "latitude": 13.595249,
+        "longitude": -88.450035
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Miércoles",
+          "opensAt": "09:00",
+          "closesAt": "09:30"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Miércoles",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 91,
+      "stableId": "PF_NUEVA_GUADALUPE_01",
+      "name": "NUEVA GUADALUPE",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "San Miguel",
+        "municipality": "Nueva Guadalupe",
+        "address": "PARQUE CENTRAL",
+        "latitude": 13.523181,
+        "longitude": -88.34975
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Martes",
+          "opensAt": "14:15",
+          "closesAt": "14:45"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "14:15",
+          "closesAt": "14:45"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Martes",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Viernes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 92,
+      "stableId": "PF_NUEVO_EDEN_01",
+      "name": "NUEVO EDÉN DE SAN JUAN",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "San Miguel",
+        "municipality": "Nuevo Edén de San Juan",
+        "address": "PARQUE CENTRAL",
+        "latitude": 13.825107,
+        "longitude": -88.48655
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "12:40",
+          "closesAt": "13:00"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "12:40",
+          "closesAt": "13:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Jueves",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Lunes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 93,
+      "stableId": "PF_OLOCUILTA_01",
+      "name": "OLOCUILTA",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "La Paz",
+        "municipality": "Olocuilta",
+        "address": "PARQUEO DE MERCADO DE ARTESANÍAS",
+        "latitude": 13.568809,
+        "longitude": -89.11214
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Martes",
+          "opensAt": "10:30",
+          "closesAt": "11:00"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "10:30",
+          "closesAt": "11:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Martes",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Viernes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 94,
+      "stableId": "PF_OPICO_CENTRO_01",
+      "name": "OPICO CENTRO",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "La Libertad",
+        "municipality": "San Juan Opico",
+        "address": "AMERICAN KIDS DOS CUADRAS ABAJO DEL PARQUE CENTRAL A LA PAR DE FERRETERIA LAS PAMPAS",
+        "latitude": 13.787299,
+        "longitude": -89.36179
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "10:00",
+          "closesAt": "16:00"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "10:00",
+          "closesAt": "16:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Jueves",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Lunes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 95,
+      "stableId": "PF_OSICALA_01",
+      "name": "OSICALA",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Morazán",
+        "municipality": "Osicala",
+        "address": "PARQUE CENTRAL",
+        "latitude": 13.817472,
+        "longitude": -88.14674
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "09:00",
+          "closesAt": "10:00"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "09:00",
+          "closesAt": "10:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Jueves",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Lunes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 96,
+      "stableId": "PF_OZATLAN_01",
+      "name": "OZATLAN",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Usulután",
+        "municipality": "Ozatlán",
+        "address": "PARQUE CENTRAL",
+        "latitude": 13.384175,
+        "longitude": -88.50521
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Miércoles",
+          "opensAt": "08:45",
+          "closesAt": "09:15"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Miércoles",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 97,
+      "stableId": "PF_PARAJE_GALAN_01",
+      "name": "PARAJE GALÁN",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Santa Ana",
+        "municipality": "Candelaria de la Frontera",
+        "address": "DESV. HACIA SANTIAGO DE LA FRONTERA",
+        "latitude": 14.133334,
+        "longitude": -89.63684
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Martes",
+          "opensAt": "12:15",
+          "closesAt": "12:45"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "12:15",
+          "closesAt": "12:45"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Martes",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Viernes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 98,
+      "stableId": "PF_PASAQUINA_01",
+      "name": "PASAQUINA",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "La Unión",
+        "municipality": "Pasaquina",
+        "address": "AFUERA DE IGLESIA CATOLICA",
+        "latitude": 13.585031,
+        "longitude": -87.86103
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Martes",
+          "opensAt": "12:00",
+          "closesAt": "12:30"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "12:00",
+          "closesAt": "12:30"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Martes",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Viernes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 99,
+      "stableId": "PF_PASEO_VENECIA_01",
+      "name": "PASEO VENECIA",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "San Salvador",
+        "municipality": "Soyapango",
+        "address": "SOBRE CARRETERA DE ORO ENTRADA AL PARQUEO FRENTE A PUERTO MARISCOS",
+        "latitude": 13.716473,
+        "longitude": -89.1444
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Martes",
+          "opensAt": "13:20",
+          "closesAt": "13:45"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "13:20",
+          "closesAt": "13:45"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Martes",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Viernes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 109,
+      "stableId": "PF_PERQUIN_01",
+      "name": "PERQUIN",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Morazán",
+        "municipality": "Perquín",
+        "address": "PARQUE CENTRAL",
+        "latitude": 13.960746,
+        "longitude": -88.16091
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Martes",
+          "opensAt": "09:00",
+          "closesAt": "09:30"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Martes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 100,
+      "stableId": "PF_PLANES_RENDEROS_01",
+      "name": "PLANES DE RENDEROS",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "San Salvador",
+        "municipality": "Panchimalco",
+        "address": "MIRADOR - FTE A DON POLLO",
+        "latitude": 13.644073,
+        "longitude": -89.184395
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Martes",
+          "opensAt": "11:00",
+          "closesAt": "11:30"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "11:00",
+          "closesAt": "11:30"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Martes",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Viernes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 101,
+      "stableId": "PF_PLAYA_CUCO_01",
+      "name": "PLAYA EL CUCO",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "San Miguel",
+        "municipality": "Chirilagua",
+        "address": "PARQUE EL CUCO",
+        "latitude": 13.172387,
+        "longitude": -88.100685
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "09:10",
+          "closesAt": "09:40"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "09:10",
+          "closesAt": "09:40"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Jueves",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Lunes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 102,
+      "stableId": "PF_PLAYA_ESPINO_01",
+      "name": "PLAYA EL ESPINO",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Usulután",
+        "municipality": "Jucuarán",
+        "address": "COMPLEJO EDUCATIVO",
+        "latitude": 13.170994,
+        "longitude": -88.29413
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Miércoles",
+          "opensAt": "14:00",
+          "closesAt": "14:30"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Miércoles",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 103,
+      "stableId": "PF_PLAZA_DON_YON_01",
+      "name": "PLAZA DON YON",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": "https://maps.app.goo.gl/bfoXKxCkjeZRooz79",
+      "place": {
+        "department": "Chalatenango",
+        "municipality": "Tejutla",
+        "address": "PARADA DE BUSES",
+        "latitude": 14.078748,
+        "longitude": -89.141304
+      },
+      "imageUrl": "https://res.cloudinary.com/oy0nwlkt/image/upload/v1786688197/sivoy_agencias/pfvjnixsnkrp6a7vntcf.png",
+      "schedules": [
+        {
+          "weekday": "Martes",
+          "opensAt": "10:20",
+          "closesAt": "10:50"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "10:20",
+          "closesAt": "10:50"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Martes",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Viernes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 104,
+      "stableId": "PF_PLAZA_SANTO_TOMAS_01",
+      "name": "CC PLAZA SANTO TOMÁS",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "San Salvador",
+        "municipality": "Santo Tomás",
+        "address": "AFUERA DE CURACAO",
+        "latitude": 13.642991,
+        "longitude": -89.13357
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Martes",
+          "opensAt": "09:00",
+          "closesAt": "09:30"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "09:00",
+          "closesAt": "09:30"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Martes",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Viernes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 105,
+      "stableId": "PF_POLOROS_01",
+      "name": "POLOROS",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "La Unión",
+        "municipality": "Polorós",
+        "address": "PARQUE CENTRAL",
+        "latitude": 13.795873,
+        "longitude": -87.808945
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Miércoles",
+          "opensAt": "08:30",
+          "closesAt": "09:00"
+        },
+        {
+          "weekday": "Domingo",
+          "opensAt": "08:30",
+          "closesAt": "09:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Domingo",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Miércoles",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 106,
+      "stableId": "PF_PUERTO_LIBERTAD_01",
+      "name": "PUERTO DE LA LIBERTAD",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "La Libertad",
+        "municipality": "La Libertad",
+        "address": "A UNA CUADRA DE COOPERATIVA DE PESCADORES",
+        "latitude": 13.488835,
+        "longitude": -89.31914
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Miércoles",
+          "opensAt": "15:30",
+          "closesAt": "16:30"
+        },
+        {
+          "weekday": "Sábado",
+          "opensAt": "15:30",
+          "closesAt": "16:30"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Miércoles",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Sábado",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 108,
+      "stableId": "PF_PUERTO_PARADA_01",
+      "name": "PUERTO PARADA",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Usulután",
+        "municipality": "Usulután",
+        "address": "FTE AL MUELLE",
+        "latitude": 13.252171,
+        "longitude": -88.43908
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Miércoles",
+          "opensAt": "10:00",
+          "closesAt": "10:30"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Miércoles",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 107,
+      "stableId": "PF_PUERTO_TRIUNFO_01",
+      "name": "PUERTO EL TRIUNFO",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Usulután",
+        "municipality": "Puerto El Triunfo",
+        "address": "ESQUINA DE ALCALDIA",
+        "latitude": 13.270312,
+        "longitude": -88.55432
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "09:30",
+          "closesAt": "10:15"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "09:30",
+          "closesAt": "10:15"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Jueves",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Lunes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 110,
+      "stableId": "PF_QUELEPA_01",
+      "name": "QUELEPA",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "San Miguel",
+        "municipality": "Quelepa",
+        "address": "PARQUE CENTRAL",
+        "latitude": 13.519774,
+        "longitude": -88.23816
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Miércoles",
+          "opensAt": "11:10",
+          "closesAt": "11:40"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Miércoles",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 112,
+      "stableId": "PF_SAN_ALEJO_01",
+      "name": "SAN ALEJO",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "La Unión",
+        "municipality": "San Alejo",
+        "address": "(PARQUE CENTRAL FTE. A IGLESIA CATOLICA)",
+        "latitude": 13.43836,
+        "longitude": -87.95889
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "13:30",
+          "closesAt": "14:00"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "13:30",
+          "closesAt": "14:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Jueves",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Lunes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 113,
+      "stableId": "PF_SAN_ANTONIO_PAJONAL_01",
+      "name": "SAN ANTONIO PAJONAL",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Santa Ana",
+        "municipality": "San Antonio Pajonal",
+        "address": "AFUERA DE ALCALDÍA",
+        "latitude": 14.196597,
+        "longitude": -89.58095
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Martes",
+          "opensAt": "11:00",
+          "closesAt": "11:45"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "11:00",
+          "closesAt": "11:45"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Martes",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Viernes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 115,
+      "stableId": "PF_SAN_BARTOLOME_PERULAPIA_01",
+      "name": "SAN BARTOLOME PERULAPIA",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Cuscatlán",
+        "municipality": "San Bartolomé Perulapía",
+        "address": "FTE A ALCALDIA MUNICIPAL",
+        "latitude": 13.764688,
+        "longitude": -89.04886
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "13:00",
+          "closesAt": "13:30"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "13:00",
+          "closesAt": "13:30"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Jueves",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Lunes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 114,
+      "stableId": "PF_SAN_BARTOLO_01",
+      "name": "SAN BARTOLO",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "San Salvador",
+        "municipality": "Ilopango",
+        "address": "FTE A GASOLINERA UNO",
+        "latitude": 13.708098,
+        "longitude": -89.10479
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "11:00",
+          "closesAt": "11:30"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "11:00",
+          "closesAt": "11:30"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Jueves",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Lunes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 116,
+      "stableId": "PF_SAN_BUENAVENTURA_01",
+      "name": "SAN BUENAVENTURA",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Usulután",
+        "municipality": "San Buenaventura",
+        "address": "PARQUE CENTRAL",
+        "latitude": 13.53725,
+        "longitude": -88.380135
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Miércoles",
+          "opensAt": "10:00",
+          "closesAt": "10:30"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Miércoles",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 117,
+      "stableId": "PF_SAN_CARLOS_01",
+      "name": "SAN CARLOS",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Morazán",
+        "municipality": "San Carlos",
+        "address": "PARQUE CENTRAL",
+        "latitude": -17.023378,
+        "longitude": -64.91178
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Jueves",
+          "opensAt": "12:00",
+          "closesAt": "12:30"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Jueves",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 118,
+      "stableId": "PF_SAN_ESTEBAN_CATARINA_01",
+      "name": "SAN ESTEBAN CATARINA",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "San Vicente",
+        "municipality": "San Esteban Catarina",
+        "address": "(FTE A IGLESIA CATOLICA)",
+        "latitude": 13.687542,
+        "longitude": -88.784386
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "12:45",
+          "closesAt": "13:15"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "12:45",
+          "closesAt": "13:15"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Jueves",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Lunes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 120,
+      "stableId": "PF_SAN_GERARDO_01",
+      "name": "SAN GERARDO",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "San Miguel",
+        "municipality": "San Gerardo",
+        "address": "PARQUE CENTRAL",
+        "latitude": 13.811455,
+        "longitude": -88.413246
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "11:50",
+          "closesAt": "12:20"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "11:50",
+          "closesAt": "12:20"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Jueves",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Lunes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 122,
+      "stableId": "PF_SAN_IGNACIO_01",
+      "name": "SAN IGNACIO",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Chalatenango",
+        "municipality": "San Ignacio",
+        "address": "ENTRADA DEL PARQUE FRENTE A ALCALDÍA",
+        "latitude": 14.340398,
+        "longitude": -89.16929
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Martes",
+          "opensAt": "14:45",
+          "closesAt": "15:00"
+        },
+        {
+          "weekday": "Viernes",
+          "opensAt": "14:45",
+          "closesAt": "15:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Martes",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Viernes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 121,
+      "stableId": "PF_SAN_ILDEFONSO_01",
+      "name": "SAN ILDEFONSO",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "San Vicente",
+        "municipality": "San Ildefonso",
+        "address": "PARQUE CENTRAL",
+        "latitude": 13.711631,
+        "longitude": -88.55664
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "14:10",
+          "closesAt": "14:30"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "14:10",
+          "closesAt": "14:30"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Jueves",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Lunes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    },
+    {
+      "legacyId": 123,
+      "stableId": "PF_SAN_ISIDRO_01",
+      "name": "SAN ISIDRO (CABAÑAS)",
+      "type": "Punto Fijo",
+      "companyName": "Pedidos Express",
+      "mapsUrl": null,
+      "place": {
+        "department": "Cabañas",
+        "municipality": "San Isidro",
+        "address": "(CANCHA DE BASQUETBOL, CERCA DE CASA DE LA CULTURA)",
+        "latitude": 13.834059,
+        "longitude": -88.6791
+      },
+      "imageUrl": null,
+      "schedules": [
+        {
+          "weekday": "Lunes",
+          "opensAt": "11:30",
+          "closesAt": "12:00"
+        },
+        {
+          "weekday": "Jueves",
+          "opensAt": "11:30",
+          "closesAt": "12:00"
+        }
+      ],
+      "deliveryRules": [
+        {
+          "deliveryDay": "Jueves",
+          "cutoff": "Día anterior"
+        },
+        {
+          "deliveryDay": "Lunes",
+          "cutoff": "Día anterior"
+        }
+      ]
+    }
+  ],
+  "manifest": {
+    "counts": {
+      "companies": 1,
+      "locations": 185,
+      "schedules": 530,
+      "deliveryRules": 292,
+      "missingMapsUrl": 181,
+      "missingImage": 181
+    },
+    "sha256": "8069fd19e4e94322371b83b596a1e0e26ff4eb4347bbed5fc33cf6377b69a3ea"
+  }
+}

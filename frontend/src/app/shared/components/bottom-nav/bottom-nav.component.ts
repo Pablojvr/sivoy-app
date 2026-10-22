@@ -24,16 +24,16 @@ import { RouterLink } from '@angular/router';
           <span>Inicio</span>
         </a>
 
-        <a class="nav-item" [class.active]="activeTab === 'perfil'" routerLink="/enviar" [queryParams]="{ tab: 'perfil' }" [attr.aria-current]="activeTab === 'perfil' ? 'page' : null">
+        <a class="nav-item" [class.active]="activeTab === 'guardados'" routerLink="/enviar" [queryParams]="{ tab: 'guardados' }" [attr.aria-current]="activeTab === 'guardados' ? 'page' : null">
           <span class="nav-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 4.8A1.8 1.8 0 0 1 7.8 3h8.4A1.8 1.8 0 0 1 18 4.8V21l-6-3.8L6 21V4.8Z"></path></svg>
           </span>
-          <span>Perfil</span>
+          <span>Guardados</span>
         </a>
       </div>
     </nav>
   `
 })
 export class BottomNavComponent {
-  @Input() activeTab: 'inicio' | 'puntos' | 'perfil' | 'registro' = 'inicio';
+  @Input() activeTab: 'inicio' | 'puntos' | 'guardados' | 'registro' = 'inicio';
 }

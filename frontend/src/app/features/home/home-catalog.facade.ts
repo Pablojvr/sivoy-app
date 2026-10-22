@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
 
 import { CatalogLocationView, catalogPointToLocation } from '../../core/models/catalog-location.adapter';
+import { CatalogPointAvailability } from '../../core/models/catalog.models';
 import { CatalogService } from '../../core/services/catalog.service';
 
 export interface HomeMunicipalityOption {
@@ -14,6 +15,7 @@ export interface HomeMunicipalityOption {
 export interface HomeCatalogPoint extends CatalogLocationView {
   readonly destino_nombre: string;
   readonly distance: number;
+  readonly catalogAvailability: CatalogPointAvailability;
   readonly catalogDetailLoaded?: boolean;
 }
 
@@ -52,7 +54,7 @@ export class HomeCatalogFacade {
       limit: 20,
       ...(query.cursor ? { cursor: query.cursor } : {})
     }).pipe(map(page => ({
-      points: page.data.map(point => this.toHomePoint(catalogPointToLocation(point))),
+      points: page.data.map(point => this.toHomePoint(catalogPointToLocation(point), point.availability)),
       hasMore: page.page.hasMore,
       nextCursor: page.page.nextCursor
     })));
@@ -60,16 +62,20 @@ export class HomeCatalogFacade {
 
   getPoint(pointId: string): Observable<HomeCatalogPoint> {
     return this.catalog.getPointDetails(pointId).pipe(map(point => ({
-      ...this.toHomePoint(catalogPointToLocation(point)),
+      ...this.toHomePoint(catalogPointToLocation(point), point.availability),
       catalogDetailLoaded: true
     })));
   }
 
-  private toHomePoint(point: CatalogLocationView): HomeCatalogPoint {
+  private toHomePoint(
+    point: CatalogLocationView,
+    catalogAvailability: CatalogPointAvailability
+  ): HomeCatalogPoint {
     return {
       ...point,
       destino_nombre: point.nombre_destino,
-      distance: 9999
+      distance: Number.POSITIVE_INFINITY,
+      catalogAvailability
     };
   }
 }

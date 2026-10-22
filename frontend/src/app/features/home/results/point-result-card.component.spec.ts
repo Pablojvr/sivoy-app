@@ -2,6 +2,20 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { PointResultCardComponent, PointResultViewModel } from './point-result-card.component';
 import { By } from '@angular/platform-browser';
 import { Component } from '@angular/core';
+import { SavedPointSnapshot } from '../../../core/saved-points/saved-points.models';
+import { SavedPointsService } from '../../../core/saved-points/saved-points.service';
+import { ToastService } from '../../../core/services/toast.service';
+
+class SavedPointsStub {
+  readonly ids = new Set<string>();
+  saveOutcome: 'saved' | 'already-saved' | 'limit-reached' | 'invalid-point' | 'storage-unavailable' = 'saved';
+  readonly save = vi.fn((snapshot: SavedPointSnapshot) => {
+    if (this.saveOutcome === 'saved') this.ids.add(snapshot.pointId);
+    return this.saveOutcome;
+  });
+  readonly remove = vi.fn((pointId: string) => this.ids.delete(pointId));
+  isSaved(pointId: string): boolean { return this.ids.has(pointId); }
+}
 
 @Component({
   standalone: true,
@@ -20,6 +34,7 @@ import { Component } from '@angular/core';
       (share)="onShare($event)"
       (map)="onMap($event)"
       (copyImage)="onCopy($event)"
+      (previewImage)="onPreview($event)"
       (imageUnavailable)="onImgError($event)">
     </article>
   `
@@ -49,16 +64,25 @@ class TestHostComponent {
   onShare(p: PointResultViewModel) {}
   onMap(p: PointResultViewModel) {}
   onCopy(p: PointResultViewModel) {}
+  onPreview(url: string) {}
   onImgError(p: PointResultViewModel) {}
 }
 
 describe('PointResultCardComponent', () => {
   let host: TestHostComponent;
   let fixture: ComponentFixture<TestHostComponent>;
+  let savedPoints: SavedPointsStub;
+  let toast: { showSuccess: ReturnType<typeof vi.fn>; showError: ReturnType<typeof vi.fn> };
 
   beforeEach(async () => {
+    savedPoints = new SavedPointsStub();
+    toast = { showSuccess: vi.fn(), showError: vi.fn() };
     await TestBed.configureTestingModule({
-      imports: [TestHostComponent]
+      imports: [TestHostComponent],
+      providers: [
+        { provide: SavedPointsService, useValue: savedPoints },
+        { provide: ToastService, useValue: toast }
+      ]
     }).compileComponents();
 
     fixture = TestBed.createComponent(TestHostComponent);
@@ -72,7 +96,7 @@ describe('PointResultCardComponent', () => {
     expect(cardDebug.nativeElement.classList.contains('point-result-card')).toBe(true);
   });
 
-  it('renders provider name, distance, and destination name', () => {
+  it('renders provider and destination names without origin-distance language', () => {
     fixture.detectChanges();
     const cardDebug = fixture.debugElement.query(By.directive(PointResultCardComponent));
     const providerHeader = cardDebug.query(By.css('.point-result-provider strong'));
@@ -81,8 +105,23 @@ describe('PointResultCardComponent', () => {
     const mainBtn = cardDebug.query(By.css('.point-result-main strong'));
     expect(mainBtn.nativeElement.textContent.trim()).toBe('Central Test');
 
-    const distanceSpan = cardDebug.query(By.css('.point-distance'));
-    expect(distanceSpan.nativeElement.textContent.trim()).toBe('1.5 km');
+    expect(cardDebug.query(By.css('.point-distance'))).toBeNull();
+  });
+
+  it('shows the measured straight-line distance only for a reference-place result', () => {
+    host.mockPoint = { ...host.mockPoint, referenceDistanceKm: 0.84 };
+    fixture.detectChanges();
+
+    const distance = fixture.debugElement.query(By.css('.point-reference-distance'));
+    expect(distance.nativeElement.textContent.trim()).toBe('A 840 m en línea recta');
+  });
+
+  it('does not imply proximity when a reference-place result has no valid coordinates', () => {
+    host.mockPoint = { ...host.mockPoint, referenceDistanceKm: null };
+    fixture.detectChanges();
+
+    const distance = fixture.debugElement.query(By.css('.point-reference-distance'));
+    expect(distance.nativeElement.textContent.trim()).toBe('Distancia no disponible');
   });
 
   it('binds aria-expanded to false and checks aria-controls when collapsed', () => {
@@ -148,7 +187,7 @@ describe('PointResultCardComponent', () => {
   it('uses an explicit primary action label for destination discovery', () => {
     fixture.detectChanges();
     const cardDebug = fixture.debugElement.query(By.directive(PointResultCardComponent));
-    expect(cardDebug.query(By.css('.point-use-action')).nativeElement.textContent.trim()).toBe('Elegir origen');
+    expect(cardDebug.query(By.css('.point-use-action')).nativeElement.textContent.trim()).toBe('Elegir desde dónde enviar');
   });
 
   it('uses an explicit primary action label for origin discovery', () => {
@@ -182,7 +221,75 @@ describe('PointResultCardComponent', () => {
     expect(img.nativeElement.src).toContain('img.jpg');
   });
 
-  it('emits all 6 outputs exactly once with the exact payload', () => {
+  it('toggles one accessible saved state without adding a third primary action', () => {
+    fixture.detectChanges();
+    const cardDebug = fixture.debugElement.query(By.directive(PointResultCardComponent));
+    const saveButton = cardDebug.query(By.css('.point-result-save'));
+
+    expect(saveButton.nativeElement.getAttribute('aria-pressed')).toBe('false');
+    expect(saveButton.nativeElement.getAttribute('aria-label')).toContain('Guardar');
+    saveButton.nativeElement.click();
+    fixture.detectChanges();
+
+    expect(savedPoints.save).toHaveBeenCalledWith(expect.objectContaining({
+      pointId: 'dest-456',
+      name: 'Central Test'
+    }));
+    expect(saveButton.nativeElement.getAttribute('aria-pressed')).toBe('true');
+    expect(saveButton.nativeElement.classList).toContain('is-save-confirmed');
+    expect(toast.showSuccess).toHaveBeenCalledWith(
+      'Central Test ya está disponible en Guardados.',
+      'Punto guardado'
+    );
+    expect(cardDebug.queryAll(By.css('.point-result-actions button'))).toHaveLength(2);
+
+    saveButton.nativeElement.click();
+    fixture.detectChanges();
+    expect(savedPoints.remove).toHaveBeenCalledWith('dest-456');
+    expect(saveButton.nativeElement.getAttribute('aria-pressed')).toBe('false');
+    expect(saveButton.nativeElement.classList).not.toContain('is-save-confirmed');
+    expect(toast.showSuccess).toHaveBeenCalledTimes(1);
+  });
+
+  it('explains when the local saved-point limit is reached', () => {
+    savedPoints.saveOutcome = 'limit-reached';
+    fixture.detectChanges();
+
+    fixture.debugElement.query(By.css('.point-result-save')).nativeElement.click();
+
+    expect(toast.showError).toHaveBeenCalledWith(
+      'Puedes guardar hasta 50 puntos en este dispositivo.',
+      'Límite alcanzado'
+    );
+  });
+
+  it('announces the photo from the collapsed disclosure when an image is available', () => {
+    host.hasImg = true;
+    fixture.detectChanges();
+
+    const cardDebug = fixture.debugElement.query(By.directive(PointResultCardComponent));
+    const disclosure = cardDebug.query(By.css('.point-result-disclosure-label'));
+
+    expect(disclosure.nativeElement.textContent.trim()).toBe('Ver foto');
+  });
+
+  it('opens the available reference image from a dedicated one-click preview', () => {
+    let previewUrl: string | null = null;
+    host.onPreview = (url) => { previewUrl = url; };
+    host.expanded = true;
+    host.hasImg = true;
+    fixture.detectChanges();
+
+    const cardDebug = fixture.debugElement.query(By.directive(PointResultCardComponent));
+    const previewButton = cardDebug.query(By.css('.point-reference-preview'));
+
+    expect(previewButton).toBeTruthy();
+    expect(previewButton.nativeElement.getAttribute('aria-label')).toContain('Central Test');
+    previewButton.triggerEventHandler('click', null);
+    expect(previewUrl).toBe(host.imgUrl);
+  });
+
+  it('emits all point actions exactly once with the exact payload', () => {
     let togglePayload: PointResultViewModel | null = null;
     let toggleCount = 0;
     host.onToggle = (p) => { togglePayload = p; toggleCount++; };
@@ -207,6 +314,10 @@ describe('PointResultCardComponent', () => {
     let imgErrorCount = 0;
     host.onImgError = (p) => { imgErrorPayload = p; imgErrorCount++; };
 
+    let previewUrl: string | null = null;
+    let previewCount = 0;
+    host.onPreview = (url) => { previewUrl = url; previewCount++; };
+
     host.expanded = true;
     host.hasImg = true;
     fixture.detectChanges();
@@ -217,8 +328,9 @@ describe('PointResultCardComponent', () => {
     cardDebug.query(By.css('.point-use-action')).triggerEventHandler('click', null);
     cardDebug.query(By.css('.point-share-action')).triggerEventHandler('click', null);
     cardDebug.query(By.css('.point-map-action')).triggerEventHandler('click', null);
+    cardDebug.query(By.css('.point-reference-preview')).triggerEventHandler('click', null);
     
-    const copyBtn = cardDebug.query(By.css('figure button'));
+    const copyBtn = cardDebug.query(By.css('.point-copy-image-action'));
     copyBtn.triggerEventHandler('click', { stopPropagation: () => {} });
     
     const img = cardDebug.query(By.css('figure img'));
@@ -241,5 +353,8 @@ describe('PointResultCardComponent', () => {
     
     expect(imgErrorCount).toBe(1);
     expect(imgErrorPayload).toBe(host.mockPoint);
+
+    expect(previewCount).toBe(1);
+    expect(previewUrl).toBe(host.imgUrl);
   });
 });

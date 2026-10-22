@@ -108,16 +108,39 @@ test.describe('Admin Route Boundary & Legacy Redirection', () => {
     await expect(page.getByRole('button', { name: 'Buscar municipio de destino' })).toBeVisible();
   });
 
-  test('/enviar?tab=perfil carga MobileAppComponent con pestaña de perfil activa', async ({ page }) => {
+  test('/enviar?tab=perfil conserva compatibilidad y abre Guardados', async ({ page }) => {
     await page.goto('/#/enviar?tab=perfil');
 
     await expect(page).toHaveURL(/.*\/#\/enviar\?tab=perfil$/);
     await expect(page.locator('.app-container.mobile-first-layout')).toBeVisible();
     await expect(page.locator('.admin-page-container')).not.toBeAttached();
-    await expect(page.locator('app-perfil')).toBeAttached();
+    await expect(page.locator('app-saved-points')).toBeAttached();
 
-    const perfilTab = page.getByRole('link', { name: 'Perfil' });
-    await expect(perfilTab).toHaveClass(/active/);
+    const savedTab = page.getByRole('link', { name: 'Guardados' });
+    await expect(savedTab).toHaveClass(/active/);
+    await expect(page.getByText('Guardados en este dispositivo.')).toBeVisible();
+  });
+
+  test('guarda un punto sin login, persiste al recargar y permite quitarlo', async ({ page }) => {
+    await page.goto('/#/');
+    const saveButton = page.locator('.point-save-action').first();
+    await expect(saveButton).toHaveAttribute('aria-pressed', 'false');
+    await saveButton.click();
+    await expect(saveButton).toHaveAttribute('aria-pressed', 'true');
+    await expect(saveButton).toHaveClass(/is-save-confirmed/);
+    await expect(page.getByRole('status').filter({ hasText: 'Punto guardado' })).toContainText(
+      'ya está disponible en Guardados.'
+    );
+
+    await page.getByRole('link', { name: 'Guardados' }).click();
+    await expect(page).toHaveURL(/.*\/enviar\?tab=guardados$/);
+    await expect(page.getByRole('heading', { name: 'Guardados' })).toBeVisible();
+    await expect(page.locator('.saved-point-card')).toHaveCount(1);
+
+    await page.reload();
+    await expect(page.locator('.saved-point-card')).toHaveCount(1);
+    await page.locator('.saved-point-remove').click();
+    await expect(page.getByRole('heading', { name: 'Aún no guardaste puntos' })).toBeVisible();
   });
 
   test('/enviar?buscar=destino carga MobileAppComponent y abre el selector de destino sin redirigir a /admin', async ({ page }) => {

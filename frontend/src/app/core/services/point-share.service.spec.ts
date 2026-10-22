@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { PointShareService, BROWSER_PORT, BrowserPort, ShareablePoint } from './point-share.service';
-import { ToastService } from '../../../core/services/toast.service';
+import { ToastService } from './toast.service';
 import { vi, Mock } from 'vitest';
 
 describe('PointShareService', () => {

@@ -463,6 +463,269 @@ observación P2 sobre cobertura responsive.
 Rollback: revertir los commits de UI-REB-07. No hay dependencia, backend,
 contrato HTTP, dato, ETA ni despliegue asociado.
 
+### Subplan UI-REB-08 — puntos guardados locales
+
+Estado: completado y certificado a partir de la especificación
+`tasks/specs/UI-REB-08-saved-points-local.md`, aprobada el 2026-10-18.
+
+Objetivo: reemplazar la pestaña pública sin función `Perfil` por un flujo de
+`Guardados` local al dispositivo, útil para recuperar y compartir puntos sin
+login, sin contratos HTTP nuevos y sin persistencia de servidor.
+
+1. **Contrato local seguro (UI-REB-08a).** Crear el modelo versionado y el
+   servicio canónico sobre `localStorage`, con validación de entrada no
+   confiable, identidad por `pointId`, orden descendente, límite de 50,
+   idempotencia, eliminación y sincronización mediante `storage`.
+   - Archivos máximos: modelo, servicio y prueba focalizada del servicio.
+   - Gate: datos corruptos, versiones desconocidas o cupo completo no rompen la
+     app; ninguna ubicación del usuario ni dato privado se persiste.
+2. **Navegación y pantalla base (UI-REB-08b).** Sustituir `Perfil` por
+   `Guardados` en el dock y el shell, resolver `tab=guardados` y conservar
+   `tab=perfil` como alias compatible. Construir el estado vacío y la lista
+   reactiva con el aviso `Guardados en este dispositivo`.
+   - Archivos máximos: shell TS/HTML, bottom-nav TS y componente Guardados
+     TS/HTML. Los estilos y pruebas se completan en el incremento siguiente
+     para mantener el límite por tarea.
+   - Gate: enlace directo, recarga y retroceso mantienen el tab; el dock expone
+     `aria-current` y el estado vacío permite volver a Inicio.
+3. **Presentación y acciones de Guardados (UI-REB-08c).** Completar estilos y
+   pruebas de la pantalla; reutilizar `PointShareService` para compartir y los
+   flujos existentes para abrir punto, mapa y quitar.
+   - Archivos máximos: CSS y spec de Guardados, adaptador presentacional y su
+     prueba si resulta necesario.
+   - Gate: acciones de 44 px, foco visible, lista ordenada, retiro inmediato y
+     diseño estable en 386x912, 768, 1024 y 1440 px sin quedar bajo el dock.
+4. **Acción Guardar en superficies públicas (UI-REB-08d–f).** Integrar una
+   única acción `Guardar`/`Guardado`, con `aria-pressed`, en tres incrementos
+   independientes: tarjeta destacada, tarjeta de resultado y ficha de mapa.
+   - Cada incremento modifica como máximo el componente, plantilla/estilos y
+     su prueba; no cambia navegación, servicios de catálogo ni densidad de las
+     acciones principales.
+   - Gate: el estado cambia sin recarga y se refleja entre superficies abiertas;
+     cada alta exitosa muestra una notificación accesible y un pop de 520 ms que
+     se desactiva con `prefers-reduced-motion`.
+5. **Certificación y limpieza (UI-REB-08g).** Verificar cero consumidores de
+   `Perfil`, retirar únicamente el placeholder ya huérfano y ejecutar pruebas
+   focalizadas, suite aplicable, contratos CSS, build y smoke público.
+   - Gate visual: 386x912 primero; después 768, 1024 y 1440 px, incluido estado
+     vacío, lista larga, límite alcanzado y convivencia con el dock.
+   - Revisión: inspección del diff y auditoría independiente antes de integrar.
+
+Secuencia obligatoria: 08a → 08b → checkpoint de navegación → 08c → 08d–f →
+checkpoint funcional → 08g. Cada incremento debe quedar reversible y probado
+antes de iniciar el siguiente.
+
+Rollback: revertir los incrementos en orden inverso restaura `Perfil`; la clave
+`sivoy.saved-points.v1` puede quedar ignorada sin efectos. No hay migración,
+dependencia, backend, SQL, contrato HTTP, ETA ni despliegue asociado.
+
+Evidencia final: 412/412 pruebas unitarias y 76/76 recorridos E2E verdes en
+386, 768, 1024 y 1440 px; contratos de color 17/17 sobre 19 CSS y fronteras
+31/31 sobre 57 archivos productivos sin violaciones; build productivo exitoso.
+La inspección real confirmó el aviso `Punto guardado` y la animación de 520 ms.
+
+### Subplan UI-REB-09 — resultados de puntos a página completa
+
+Estado: implementado y certificado según
+`tasks/specs/UI-REB-09-full-page-point-results.md` el 2026-10-22.
+
+Objetivo: sustituir el contenedor tipo tarjeta/sheet de los resultados por
+municipio por una vista de página completa, conservando tarjetas únicamente para
+cada punto y añadiendo filtros útiles sin alterar rutas, ETA, backend ni datos.
+
+1. **Proyección pura de disponibilidad y horario (UI-REB-09a).** Preservar en
+   la proyección del catálogo el estado horario canónico y crear funciones puras
+   para `Todos`, `Abierto ahora`, `Cierra pronto`, `Mañana`, `Tarde` y
+   `Jornada extendida`.
+   - Archivos máximos: helper y prueba, fachada de catálogo y su prueba.
+   - Gate: orden del catálogo estable, franjas desde horarios publicados y ventana
+     de cierre de 1–120 minutos calculada desde datos estructurados, nunca desde copy.
+2. **Estado tipado de filtros (UI-REB-09b).** Integrar en Home disponibilidad y
+   horario sin usar cercanía del remitente para comparar destinos.
+   - Archivos máximos: Home TS/spec y shell TS/HTML/spec.
+   - Gate: no aparecen `Más cerca` ni `Con foto`; no solicita permisos nuevos ni
+     reordena el catálogo.
+3. **Página y tarjetas de resultados (UI-REB-09c).** Convertir solo la lista de
+   puntos por municipio en superficie completa, con cabecera, contador `N de M`,
+   barra de filtros y estado vacío recuperable.
+   - Archivos máximos: plantilla, CSS y prueba de Home.
+   - Gate: sin handle ni gesto de sheet; las rutas, selector de origen, mapa y
+     Guardados conservan su presentación; acciones táctiles de al menos 44 px.
+4. **URL y navegación durable (UI-REB-09d).** Sincronizar `disponibilidad` y
+   `horario` como query params tipados, con valores inválidos degradando a
+   defaults y una sola entrada de historial por interacción.
+   - Archivos máximos: Home TS/spec, shell TS/HTML/spec y E2E público.
+   - Gate: recarga, Atrás y Adelante restauran los filtros sin bucles ni spam de
+     historial.
+5. **Certificación responsive (UI-REB-09e).** Auditar 386x912 primero y luego
+   768, 1024 y 1440 px; ejecutar pruebas focalizadas, suite frontend, fronteras,
+   colores, build y E2E público.
+   - Gate: una columna móvil, máximo dos columnas amplias, cero overflow, dock
+     despejado, foco visible y alternativa `prefers-reduced-motion`.
+
+Secuencia obligatoria: 09a → checkpoint lógico → 09b → 09c → checkpoint visual
+→ 09d → 09e. Cada corte conserva el comportamiento predeterminado y es
+reversible de manera independiente.
+
+Rollback: revertir UI-REB-09d a 09a en orden inverso restaura la lista anterior.
+No hay migración, dependencia, backend, SQL, contrato HTTP, ETA ni despliegue.
+
+Evidencia final: 500/500 pruebas frontend, fronteras 31/31 sobre 59 archivos,
+colores 17/17 sobre 19 CSS y build productivo verdes. La matriz E2E serial pasa
+100/100 en 386x912, 768x1024, 1024x768 y 1440x900 contra su fixture aislado;
+confirma cero overflow, una/dos columnas, filtros combinables, URL durable,
+Atrás/Adelante, aviso sin GPS y consola limpia.
+
+### Subplan UI-REB-10 — destinos por lugar de referencia
+
+Estado: especificación, implementación y certificación completadas el
+2026-10-22. La integración puede avanzar a `develop`; producción conserva los
+gates globales de lanzamiento.
+
+> Extensión posterior propuesta: `tasks/specs/UI-REB-11-location-biased-place-search.md`
+> documenta el sesgo opcional por una ubicación precisa ya concedida. No forma
+> parte de UI-REB-10 ni de este lanzamiento porque requiere aprobar un cambio de
+> contrato frontend–backend y sus condiciones de privacidad.
+
+Objetivo: ampliar el buscador de Discovery para aceptar lugares públicos de El
+Salvador sin convertirlos en puntos de entrega. El catálogo conserva prioridad;
+cuando no hay coincidencia local fuerte, Places se consulta automáticamente, el
+usuario confirma una sugerencia, se valida municipio/departamento y los puntos
+registrados de ese municipio se ordenan por distancia al lugar.
+
+#### Decisiones de arquitectura
+
+- El catálogo y Google Places son fuentes distintas: una coincidencia externa
+  solo aporta contexto geográfico; nunca crea ni sustituye un punto registrado.
+- `MapasService.searchPlaces()` y `resolvePlace()` se reutilizan sin cambiar el
+  backend, sus contratos, claves o límites.
+- La activación externa ocurre solo tras la respuesta local, con entrada de
+  3–128 caracteres, debounce de 350 ms, cancelación de trabajo obsoleto y token
+  efímero por sesión.
+- Las sugerencias del catálogo empiezan desde el primer carácter; el mínimo de
+  tres caracteres se aplica únicamente a Places.
+- La decisión de “coincidencia local fuerte” y la distancia geodésica viven en
+  funciones puras tipadas, no en bindings de plantilla.
+- La selección del lugar continúa por el flujo municipal existente. Para que el
+  contexto sobreviva a recarga, Atrás y compartir URL, se propone transportar
+  `referencia`, `refLat` y `refLng` como query params validados. Un valor
+  ausente o inválido se ignora y conserva el orden normal del catálogo.
+- La distancia es lineal y orientativa. Solo los puntos con coordenadas válidas
+  reciben distancia; los demás quedan al final sin kilómetros inventados.
+- El municipio sin puntos termina en `No existe cobertura cercana o similar` y
+  no consulta ni propone municipios vecinos.
+
+#### Grafo de dependencias
+
+```text
+10a contrato puro de coincidencia/distancia
+   ├── 10b búsqueda externa automática en Discovery
+   │      └── 10c selección y contexto durable en URL
+   │              └── 10d proyección de resultados por cercanía
+   └───────────────────────────────┘
+                                  └── 10e presentación y accesibilidad
+                                          └── 10f certificación integral
+```
+
+#### Incrementos previstos
+
+1. **Contrato puro de búsqueda y distancia (UI-REB-10a).** Definir tipos y
+   funciones puras para normalización, fuerza de coincidencia, coordenadas
+   válidas, Haversine y orden estable por distancia.
+   - Alcance máximo: helper nuevo y su prueba.
+   - Gate: exacto/prefijo/palabras, tildes, rangos geográficos, empates, puntos
+     sin coordenadas y cero mutación de entrada.
+   - Ejecutor: Codex; es lógica de producto y no es delegable a Antigravity.
+2. **Fallback automático en Discovery (UI-REB-10b).** Coordinar catálogo y
+   Places con estados tipados, debounce, token de sesión, cancelación y errores
+   degradables; conservar prioridad local y exigir selección explícita.
+   - Alcance máximo: Discovery TS/spec y helper 10a.
+   - Gate: una coincidencia fuerte evita Places; una búsqueda débil lo activa
+     automáticamente; una respuesta tardía jamás reemplaza la consulta vigente.
+   - Ejecutor: Codex; toca RxJS, servicios y estado de negocio.
+3. **Contexto geográfico durable (UI-REB-10c).** Extender el evento de selección
+   y la navegación para transportar nombre y coordenadas públicas del lugar en
+   parámetros validados, manteniendo municipio/departamento como autoridad de
+   cobertura.
+   - Slice 10c1, máximo cuatro archivos: Discovery Home TS/spec y Discovery Page
+     TS/spec.
+   - Slice 10c2, máximo dos archivos: lectura/validación del contexto en Home y
+     su prueba. El shell ya transmite los query params como `initialIntent` y no
+     requiere cambios.
+   - Gate: recarga, Atrás y Adelante preservan el contexto; parámetros inválidos
+     se descartan sin error ni XSS; una búsqueda municipal normal no cambia.
+   - Ejecutor: Codex; modifica navegación y estado.
+4. **Resultados cercanos dentro del municipio (UI-REB-10d).** Aplicar la
+   proyección pura únicamente cuando existe contexto válido; conservar todos los
+   puntos del municipio y colocar al final los no medibles.
+   - Alcance máximo: Home TS/spec y helper/spec 10a.
+   - Gate: distancia ascendente, empates estables, copy honesto y filtros de
+     UI-REB-09 aplicados después de la proyección base sin mutar el catálogo.
+     Cuando el catálogo esté paginado, reunir todas las páginas del municipio
+     antes de ordenar para garantizar cercanía global correcta.
+   - Ejecutor: Codex; es lógica de producto.
+5. **Presentación accesible de lugares (UI-REB-10e).** Añadir la sección
+   `Lugares en El Salvador`, estados carga/error/confirmación, contexto de
+   referencia y mensaje sin cobertura usando los tokens actuales.
+   - Alcance máximo delegado: Discovery HTML/CSS/spec, una vez estabilizados los
+     contratos de 10b–10d.
+   - Gate: orden de teclado local → externo, 44 px, foco visible, `aria-live`
+     moderado, Escape/limpiar y `prefers-reduced-motion`.
+   - Ejecutor: Antigravity puede recibir solo este corte presentacional, con
+     archivos autorizados y sin cambiar TS, servicios, eventos o navegación.
+6. **Certificación y endurecimiento (UI-REB-10f).** Revisar diff, suite focal,
+   suite completa, build, fronteras, colores, E2E público y comportamiento real
+   con Places disponible/no configurado/error.
+   - Matriz: 386x912, 768x1024, 1024x768 y 1440x900.
+   - Gate: catálogo utilizable durante fallos externos, consola limpia, cero
+     overflow, sin claves/detalles internos y sin consultas duplicadas.
+   - Ejecutor: Codex vuelve a ejecutar todas las validaciones; el resumen de un
+     agente delegado no es evidencia suficiente.
+
+#### Checkpoints
+
+- **Checkpoint lógico, después de 10a–10b:** aprobar definición de coincidencia
+  fuerte, concurrencia y degradación antes de tocar navegación.
+- **Checkpoint de navegación, después de 10c–10d:** probar URL, recarga,
+  Atrás/Adelante, orden geográfico y compatibilidad con filtros existentes.
+- **Checkpoint visual, después de 10e:** revisar los cuatro viewports, teclado,
+  foco, estados y copia antes de la certificación completa.
+- **Checkpoint final, después de 10f:** revisión humana del diff y resultado en
+  navegador antes de commit, push o integración.
+
+#### Riesgos y mitigaciones
+
+| Riesgo | Impacto | Mitigación |
+|---|---|---|
+| Consultas externas excesivas | Alto | Prioridad local, debounce, cancelación, token efímero y rate limit existente. |
+| Municipio incorrecto por componentes variables | Alto | Validar municipio + departamento contra facetas y rechazar ambigüedad. |
+| Respuestas fuera de orden | Alto | Invalidar por consulta/token y destruir suscripciones/timers. |
+| Proximidad engañosa | Alto | Distancia solo con coordenadas válidas y copy de línea recta. |
+| URL manipulada o XSS | Alto | Parseo tipado, rangos numéricos, longitud máxima y rendering Angular. |
+| Ocultar puntos sin coordenadas | Medio | Mantenerlos al final, sin etiqueta de distancia. |
+| Orden falso por paginación | Alto | Reunir todas las páginas antes de proyectar distancia; no ordenar por página. |
+| Places no configurado o sin cuota | Medio | Mantener resultados locales y error seguro, nunca bloquear Discovery. |
+| Conflicto con worktree activo | Medio | Slices pequeños, revisión de diff por archivo y sin reformateos transversales. |
+
+#### Delegación y rollback
+
+Las fases 10a–10d no pueden delegarse según `AGENTS.md`: contienen lógica de
+producto, RxJS, servicios, estado y navegación. La preferencia vigente de que
+Codex actúe solo como planificador requiere una autorización puntual antes de
+que Codex implemente esos cortes. Antigravity puede ejecutar únicamente 10e y
+pruebas presentacionales acotadas.
+
+Rollback: revertir 10e → 10b en orden inverso y retirar el helper 10a restaura
+la búsqueda de catálogo vigente. Los query params nuevos son opcionales e
+ignorables; no hay migración, dato persistido, dependencia, SQL, backend ni ETA
+que revertir.
+
+#### Contrato URL aprobado
+
+- `referencia`, `refLat` y `refLng` conservan el lugar público seleccionado
+  durante recarga, historial y enlaces compartidos. Home valida longitud,
+  finitud y rangos; si el contexto es inválido conserva el orden tradicional.
+
 ## Fase 5 — Flujo de búsqueda como feature independiente
 
 Objetivo: encapsular destino → origen → rutas → compartir.

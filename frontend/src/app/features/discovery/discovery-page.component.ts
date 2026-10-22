@@ -3,7 +3,11 @@ import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { CatalogPoint } from '../../core/models/catalog.models';
 import { BottomNavComponent } from '../../shared/components/bottom-nav/bottom-nav.component';
-import { DiscoveryHomeComponent, MunicipalitySummary } from './discovery-home.component';
+import {
+  DiscoveryHomeComponent,
+  MunicipalitySummary,
+  PlaceDestinationContext
+} from './discovery-home.component';
 
 @Component({
   selector: 'app-discovery-page',
@@ -16,7 +20,8 @@ import { DiscoveryHomeComponent, MunicipalitySummary } from './discovery-home.co
       (municipalitySelected)="openMunicipality($event)"
       (pointSelected)="openPoint($event, 'select')"
       (pointPreview)="openPoint($event, 'preview')"
-      (pointMap)="openPoint($event, 'map')">
+      (pointMap)="openPoint($event, 'map')"
+      (placeDestinationSelected)="openPlaceDestination($event)">
     </app-discovery-home>
     <app-bottom-nav activeTab="inicio"></app-bottom-nav>
   `,
@@ -56,6 +61,18 @@ export class DiscoveryPageComponent {
         punto: point.pointId,
         accion: action,
         vista: action === 'map' ? 'mapa' : null
+      }
+    });
+  }
+
+  openPlaceDestination(context: PlaceDestinationContext) {
+    this.router.navigate(['/enviar'], {
+      queryParams: {
+        municipio: context.municipio,
+        departamento: context.departamento,
+        referencia: context.reference,
+        refLat: context.lat.toFixed(6),
+        refLng: context.lng.toFixed(6)
       }
     });
   }

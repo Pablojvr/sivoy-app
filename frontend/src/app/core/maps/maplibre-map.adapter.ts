@@ -14,6 +14,15 @@ import {
 const MAP_NOT_INITIALIZED = 'MAP_NOT_INITIALIZED';
 const MAPLIBRE_WORKER_URL = '/vendor/maplibre/maplibre-gl-worker.mjs';
 
+function markerScaleForZoom(zoom: number): number {
+  if (!Number.isFinite(zoom)) return 1;
+  const clampedZoom = Math.min(18, Math.max(8, zoom));
+  const scale = clampedZoom <= 14
+    ? 0.72 + ((clampedZoom - 8) / 6) * 0.28
+    : 1 + ((clampedZoom - 14) / 4) * 0.18;
+  return Math.round(scale * 1000) / 1000;
+}
+
 setWorkerUrl(MAPLIBRE_WORKER_URL);
 
 const SIVOY_MAPLIBRE_STYLE: StyleSpecification = {
@@ -143,6 +152,12 @@ export class MapLibreMapAdapter implements MapPort {
       map.remove();
       throw error;
     }
+
+    const syncMarkerScale = () => {
+      container.style.setProperty('--sivoy-map-marker-scale', String(markerScaleForZoom(map.getZoom())));
+    };
+    syncMarkerScale();
+    map.on('zoom', syncMarkerScale);
     this.map = map;
   }
 

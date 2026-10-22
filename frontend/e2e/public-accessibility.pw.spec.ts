@@ -66,7 +66,7 @@ test('el buscador modal conserva foco, teclado y nombres accesibles', async ({ p
 
 test('el mapa de fondo sale del foco en lista y se reactiva al abrirlo', async ({ page }) => {
   await page.goto('/#/enviar?municipio=San%20Salvador&departamento=San%20Salvador');
-  await expect(page.getByRole('heading', { name: '1 Resultado en San Salvador' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /1 de 1 resultado en San Salvador/i })).toBeVisible();
 
   const mapWrapper = page.locator('.map-wrapper');
   await expect(mapWrapper).toHaveAttribute('aria-hidden', 'true');
@@ -88,7 +88,7 @@ test('el mapa de fondo sale del foco en lista y se reactiva al abrirlo', async (
 
 test('las primitivas eliminan transiciones con movimiento reducido', async ({ page }) => {
   await page.goto('/#/enviar?municipio=San%20Salvador&departamento=San%20Salvador');
-  await expect(page.getByRole('heading', { name: '1 Resultado en San Salvador' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /1 de 1 resultado en San Salvador/i })).toBeVisible();
 
   expect(await page.evaluate(() => matchMedia('(prefers-reduced-motion: reduce)').matches)).toBe(true);
   const transitionDurations = await page.locator('.si-button:visible').first().evaluate(element =>
@@ -119,5 +119,5 @@ test('el contenido refluye sin desbordarse al equivalente de zoom 200%', async (
     expect(dimensions.bodyWidth).toBeLessThanOrEqual(dimensions.viewportWidth);
   }
 
-  await expect(page.getByRole('heading', { name: '1 Resultado en San Salvador' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /1 de 1 resultado en San Salvador/i })).toBeVisible();
 });

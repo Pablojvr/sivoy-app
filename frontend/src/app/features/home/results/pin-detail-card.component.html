@@ -1,7 +1,4 @@
-    <header
-      class="pin-card-hero"
-      (touchstart)="onTouchStart($event)"
-      (touchend)="onTouchEnd($event)">
+    <header class="pin-card-hero">
       <img *ngIf="heroImageUrl" class="pin-card-hero-image" [src]="heroImageUrl" alt="" aria-hidden="true">
       <button *ngIf="pin.imagen_referencia" type="button" class="pin-image-preview" (click)="onPreview()" aria-label="Ver imagen completa"></button>
       <button
@@ -9,15 +6,29 @@
         siIconButton
         variant="ghost"
         class="pin-card-sheet-toggle"
+        (pointerdown)="onSheetPointerDown($event)"
+        (pointermove)="onSheetPointerMove($event)"
+        (pointerup)="onSheetPointerEnd($event)"
+        (pointercancel)="onSheetPointerCancel($event)"
         (click)="onToggle($event)"
         [attr.aria-expanded]="expanded"
         aria-controls="pin-card-expanded-content"
-        [aria-label]="expanded ? 'Contraer información del punto' : 'Expandir información del punto'">
+        [aria-label]="expanded ? 'Minimizar ficha del punto' : 'Expandir ficha del punto'">
         <span class="pin-card-sheet-handle" aria-hidden="true"></span>
-        <span class="pin-card-toggle-label">{{ expanded ? 'Ocultar detalles' : 'Ver detalles' }}</span>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="m6 15 6-6 6 6"></path></svg>
       </button>
       <div class="pin-card-hero-actions">
+        <button
+          siIconButton
+          variant="secondary"
+          type="button"
+          class="pin-save-action"
+          [class.is-saved]="savedPoints.isSaved(savedPointId)"
+          [class.is-save-confirmed]="justSaved()"
+          [attr.aria-pressed]="savedPoints.isSaved(savedPointId)"
+          [aria-label]="(savedPoints.isSaved(savedPointId) ? 'Quitar ' : 'Guardar ') + (pin.nombre_destino || pin.destino_nombre) + (savedPoints.isSaved(savedPointId) ? ' de guardados' : ' en guardados')"
+          (click)="toggleSaved($event)">
+          <svg viewBox="0 0 24 24" [attr.fill]="savedPoints.isSaved(savedPointId) ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 4.8A1.8 1.8 0 0 1 7.8 3h8.4A1.8 1.8 0 0 1 18 4.8V21l-6-3.8L6 21V4.8Z"></path></svg>
+        </button>
         <button siIconButton variant="secondary" type="button" (click)="onShare($event)" aria-label="Compartir información del punto">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"></path></svg>
         </button>
@@ -32,7 +43,12 @@
       </div>
     </header>
 
-    <div id="pin-card-expanded-content" class="pin-card-expanded-content point-card-expandable" *ngIf="expanded">
+    <div
+      id="pin-card-expanded-content"
+      class="pin-card-expanded-content point-card-expandable"
+      [class.is-hidden]="!expanded"
+      [attr.aria-hidden]="!expanded"
+      [attr.inert]="expanded ? null : ''">
       <div class="pin-card-quick-actions" [class.single-action]="routeSelectionBlocked">
       <button
         *ngIf="!routeSelectionBlocked && pin.markerType === 'destination'"
@@ -58,11 +74,12 @@
 
       <button type="button" siButton class="pin-map-action" (click)="onOpenMap()" aria-label="Abrir punto en Google Maps">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 5.5-8 11-8 11S4 15.5 4 10a8 8 0 1 1 16 0Z"></path><circle cx="12" cy="10" r="2.5"></circle></svg>
-        <span>Ver mapa</span>
+        <span>Ver en Google Maps</span>
       </button>
       </div>
 
       <nav class="pin-card-tabs" role="tablist" aria-label="Información del punto">
+        <span class="pin-card-tab-indicator" [class.is-hours]="activeTab === 'horarios'" aria-hidden="true"></span>
         <button
           id="pin-info-tab"
           type="button"

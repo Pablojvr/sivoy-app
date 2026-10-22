@@ -1,13 +1,13 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { MobileAppComponent, resolveMainTab } from './mobile-app.component';
+import { MobileAppComponent, resolveMainTab, sanitizeNavigationIntent } from './mobile-app.component';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
-import { ActivatedRoute, Params } from '@angular/router';
+import { ActivatedRoute, Params, Router } from '@angular/router';
 import { ToastService } from './core/services/toast.service';
 import { MapCapabilityService } from './core/maps/map-capability.service';
 import { HomeComponent } from './features/home/home.component';
 import { BottomNavComponent } from './shared/components/bottom-nav/bottom-nav.component';
-import { PerfilComponent } from './features/perfil/perfil.component';
+import { SavedPointsComponent } from './features/saved-points/saved-points.component';
 import { MapPort } from './core/maps/map.port';
 import { MapLifecycleManager } from './core/maps/map-lifecycle.manager';
 import { Subject, BehaviorSubject } from 'rxjs';
@@ -44,7 +44,7 @@ describe('MobileAppComponent (T30a Characterization)', () => {
     })
     .overrideComponent(HomeComponent, { set: { template: '' } })
     .overrideComponent(BottomNavComponent, { set: { template: '' } })
-    .overrideComponent(PerfilComponent, { set: { template: '' } })
+    .overrideComponent(SavedPointsComponent, { set: { template: '' } })
     .compileComponents();
   });
 
@@ -111,6 +111,7 @@ describe('MobileAppComponent (T30a Characterization)', () => {
     // Ensure the shell updated its state meant for handoff to HomeComponent
     expect(component.locations.length).toBe(1);
     expect(component.locations[0].empresa).toBe('SiVoyExpress');
+    expect(component.locations[0].catalogAvailability.status).toBe('CLOSED');
     expect(component.filteredLocations.length).toBe(1);
   });
 
@@ -130,6 +131,7 @@ describe('MobileAppComponent (T30a Characterization)', () => {
 
       // Assert: The shell should map the coordinates and trigger Nominatim
       expect(component.userLocation).toEqual({ lat: 13.48, lng: -88.17 });
+      expect(component.hasPreciseUserLocation).toBe(true);
 
       const reqNom = httpMock.expectOne(req => req.url.includes('nominatim.openstreetmap.org') && req.urlWithParams.includes('lat=13.48'));
       reqNom.flush({ address: { municipality: 'Usulutan' } });
@@ -137,6 +139,47 @@ describe('MobileAppComponent (T30a Characterization)', () => {
       // Verify shell updated the user context
       expect(component.userMunicipalityName).toBe('Usulutan');
     }
+  });
+
+  it('keeps the map fallback separate from a precise user location', () => {
+    fixture.detectChanges();
+    flushInitRequests();
+
+    expect(component.userLocation).toEqual({ lat: 13.69, lng: -89.21 });
+    expect(component.hasPreciseUserLocation).toBe(false);
+  });
+
+  it('writes one typed filter transition to the current URL', async () => {
+    const router = TestBed.inject(Router);
+    const navigate = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+
+    component.onPointFiltersChange({ disponibilidad: 'cierra-pronto', horario: 'extendido' });
+
+    expect(navigate).toHaveBeenCalledTimes(1);
+    expect(navigate).toHaveBeenCalledWith([], expect.objectContaining({
+      queryParams: { orden: null, disponibilidad: 'cierra-pronto', horario: 'extendido' },
+      queryParamsHandling: 'merge'
+    }));
+  });
+
+  it('writes a changed destination municipality to the durable URL and clears stale place intent', () => {
+    const router = TestBed.inject(Router);
+    const navigate = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+
+    component.onDestinationMunicipalityChange({ municipio: 'Santa Tecla', departamento: 'La Libertad' });
+
+    expect(navigate).toHaveBeenCalledWith([], expect.objectContaining({
+      queryParams: expect.objectContaining({
+        municipio: 'Santa Tecla',
+        departamento: 'La Libertad',
+        referencia: null,
+        refLat: null,
+        refLng: null,
+        punto: null,
+        accion: null
+      }),
+      queryParamsHandling: 'merge'
+    }));
   });
 
   it('should not start the legacy status interval for server-evaluated catalog availability', () => {
@@ -192,7 +235,7 @@ describe('MobileAppComponent.calculateAgencyStatus (T31c)', () => {
     })
     .overrideComponent(HomeComponent, { set: { template: '' } })
     .overrideComponent(BottomNavComponent, { set: { template: '' } })
-    .overrideComponent(PerfilComponent, { set: { template: '' } });
+    .overrideComponent(SavedPointsComponent, { set: { template: '' } });
 
     fixture = TestBed.createComponent(MobileAppComponent);
     component = fixture.componentInstance;
@@ -269,7 +312,7 @@ describe('MobileAppComponent.onMapHighlightRoute (T31c Characterization)', () =>
     })
     .overrideComponent(HomeComponent, { set: { template: '' } })
     .overrideComponent(BottomNavComponent, { set: { template: '' } })
-    .overrideComponent(PerfilComponent, { set: { template: '' } });
+    .overrideComponent(SavedPointsComponent, { set: { template: '' } });
 
     fixture = TestBed.createComponent(MobileAppComponent);
     component = fixture.componentInstance;
@@ -355,8 +398,9 @@ describe('MobileAppComponent.onMapHighlightRoute (T31c Characterization)', () =>
 });
 
 describe('resolveMainTab (T29e)', () => {
-  it('resolves perfil when explicitly requested', () => {
-    expect(resolveMainTab('perfil')).toBe('perfil');
+  it('resolves guardados and keeps perfil as a compatible alias', () => {
+    expect(resolveMainTab('guardados')).toBe('guardados');
+    expect(resolveMainTab('perfil')).toBe('guardados');
   });
 
   it('resolves inicio when explicitly requested', () => {
@@ -371,6 +415,29 @@ describe('resolveMainTab (T29e)', () => {
     expect(resolveMainTab('unknown')).toBe('inicio');
   });
 
+});
+
+describe('sanitizeNavigationIntent (UI-REB-10 security boundary)', () => {
+  it('keeps only bounded scalar parameters consumed by the public flow', () => {
+    expect(sanitizeNavigationIntent({
+      municipio: 'Santa Tecla',
+      departamento: 'La Libertad',
+      referencia: 'Parque San Martín',
+      refLat: '13.676912',
+      refLng: '-89.279712',
+      accion: 'preview',
+      desconocido: '<script>alert(1)</script>',
+      punto: ['AG_01', 'AG_02'],
+      empresa: 'x'.repeat(257)
+    })).toEqual({
+      municipio: 'Santa Tecla',
+      departamento: 'La Libertad',
+      referencia: 'Parque San Martín',
+      refLat: '13.676912',
+      refLng: '-89.279712',
+      accion: 'preview'
+    });
+  });
 });
 
 describe('MobileAppComponent public shell isolation (T29e)', () => {
@@ -402,7 +469,7 @@ describe('MobileAppComponent public shell isolation (T29e)', () => {
     })
     .overrideComponent(HomeComponent, { set: { template: '' } })
     .overrideComponent(BottomNavComponent, { set: { template: '' } })
-    .overrideComponent(PerfilComponent, { set: { template: '' } })
+    .overrideComponent(SavedPointsComponent, { set: { template: '' } })
     .compileComponents();
 
     fixture = TestBed.createComponent(MobileAppComponent);
@@ -458,7 +525,7 @@ describe('MobileAppComponent native shell (UI-REB-02b)', () => {
     })
       .overrideComponent(HomeComponent, { set: { template: '' } })
       .overrideComponent(BottomNavComponent, { set: { template: '' } })
-      .overrideComponent(PerfilComponent, { set: { template: '' } })
+      .overrideComponent(SavedPointsComponent, { set: { template: '' } })
       .compileComponents();
 
     fixture = TestBed.createComponent(MobileAppComponent);
@@ -484,7 +551,7 @@ describe('MobileAppComponent native shell (UI-REB-02b)', () => {
     httpMock.verify();
   });
 
-  it('mantiene montado el slot Inicio al alternar a Perfil', () => {
+  it('mantiene montado el slot Inicio al alternar a Guardados', () => {
     initialize();
     const host = fixture.nativeElement as HTMLElement;
     const initialSlot = host.querySelector<HTMLElement>('.si-shell-slot--inicio');
@@ -492,13 +559,13 @@ describe('MobileAppComponent native shell (UI-REB-02b)', () => {
     expect(initialSlot).not.toBeNull();
     expect(initialSlot?.hidden).toBe(false);
 
-    queryParams$.next({ tab: 'perfil' });
+    queryParams$.next({ tab: 'guardados' });
     fixture.detectChanges(false);
 
     const hiddenSlot = host.querySelector<HTMLElement>('.si-shell-slot--inicio');
     expect(hiddenSlot).toBe(initialSlot);
     expect(hiddenSlot?.hidden).toBe(true);
-    expect(host.querySelector('.si-shell-slot--perfil app-perfil')).not.toBeNull();
+    expect(host.querySelector('.si-shell-slot--guardados app-saved-points')).not.toBeNull();
   });
 
   it('presenta y cierra el aviso de mapa con nombre accesible', () => {

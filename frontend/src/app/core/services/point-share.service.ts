@@ -1,5 +1,5 @@
 import { Injectable, InjectionToken, Inject } from '@angular/core';
-import { ToastService } from '../../../core/services/toast.service';
+import { ToastService } from './toast.service';
 
 export interface ShareablePoint {
   nombre_destino?: string;

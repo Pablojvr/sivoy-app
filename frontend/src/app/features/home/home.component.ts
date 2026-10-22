@@ -10,7 +10,7 @@ import { OriginSearchComponent } from './origin-search/origin-search.component';
 import { ShipmentSearchFacade } from './shipment-search.facade';
 import { formatScheduleTime, groupConsecutiveSchedules, GroupedSchedule } from './results/schedule-utils';
 import { PointResultCardComponent } from './results/point-result-card.component';
-import { PointShareService } from './results/point-share.service';
+import { PointShareService } from '../../core/services/point-share.service';
 import { RouteResultCardComponent, RouteResultViewModel, RouteDeliveryDayChange, formatLocationName as rtFormatLoc, formatFriendlyDate as rtFormatDate } from './results/route-result-card.component';
 import { PinDetailCardComponent } from './results/pin-detail-card.component';
 import { SearchStateCardComponent } from './results/search-state-card.component';
@@ -18,9 +18,22 @@ import { applyClosedDropoffFilter } from './shipment-route.filters';
 import { presentSearchRoute, pointRefFromLocation } from './results/route-result.presenter';
 import { PointRef, SEARCH_ERROR_MESSAGES, LocationSelection, ShipmentSearchState } from './shipment-search.models';
 import { PublicMapViewState, projectPublicMapViewState } from './public-map-view-state';
-import { HomeCatalogFacade } from './home-catalog.facade';
-import { Subject, Subscription, catchError, distinctUntilChanged, of, switchMap, timer } from 'rxjs';
+import { HomeCatalogFacade, HomeCatalogPoint, HomeCatalogPointPage } from './home-catalog.facade';
+import { MapCoordinate } from '../../core/maps/map.port';
+import {
+  PointResultAvailabilityFilter,
+  PointResultFilterState,
+  PointResultScheduleFilter,
+  projectPointResults
+} from './point-results.filters';
+import { Observable, Subject, Subscription, catchError, distinctUntilChanged, of, switchMap, throwError, timer } from 'rxjs';
+import { projectByDistance } from '../../core/maps/place-destination-fallback';
 
+interface PlaceDestinationContext extends MapCoordinate {
+  readonly reference: string;
+  readonly municipio: string;
+  readonly departamento: string;
+}
 
 @Component({
   selector: 'app-home',
@@ -33,10 +46,12 @@ import { Subject, Subscription, catchError, distinctUntilChanged, of, switchMap,
 export class HomeComponent implements OnInit, OnChanges, OnDestroy {
   apiUrl = environment.apiUrl;
   @Input() locations: any[] = [];
-  @Input() userLocation: any = null;
+  @Input() userLocation: MapCoordinate | null = null;
+  @Input() userLocationAvailable = false;
   @Input() mapAvailable = true;
   @Input() catalogMode = false;
   @Input() initialIntent: Record<string, string> = {};
+  placeDestinationContext: Readonly<PlaceDestinationContext> | null = null;
 
 
 
@@ -48,8 +63,6 @@ export class HomeComponent implements OnInit, OnChanges, OnDestroy {
   private _selectedPin: any = null;
   activePinTab: 'info' | 'horarios' = 'info';
   isPinCardExpanded = true;
-  private pinCardTouchStartY = 0;
-  private suppressPinImagePreview = false;
   private pinCardStateLocked = false;
   private selectedPinScrollTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -137,6 +150,14 @@ export class HomeComponent implements OnInit, OnChanges, OnDestroy {
   @Output() showNearbyPointsEvent = new EventEmitter<void>();
   @Output() previewImageEvent = new EventEmitter<string>();
   @Output() mapResourceModeChange = new EventEmitter<boolean>();
+  @Output() pointFiltersChange = new EventEmitter<{
+    disponibilidad: 'todos' | 'abierto' | 'cierra-pronto';
+    horario: 'todos' | 'manana' | 'tarde' | 'extendido';
+  }>();
+  @Output() destinationMunicipalityChange = new EventEmitter<{
+    municipio: string;
+    departamento: string;
+  }>();
 
   origen: string = '';
   destino: string = '';
@@ -170,6 +191,7 @@ export class HomeComponent implements OnInit, OnChanges, OnDestroy {
   private placeResolveSubscription?: Subscription;
   private readonly catalogMunicipalityQueries = new Subject<string>();
   private readonly catalogSubscriptions = new Subscription();
+  private municipalityLoadSubscription: Subscription | null = null;
   private placeSearchSessionToken: string = '';
   bottomSheetState: 'hidden' | 'collapsed' | 'half' | 'expanded' = 'collapsed';
   isSheetScrolled: boolean = false;
@@ -194,6 +216,7 @@ export class HomeComponent implements OnInit, OnChanges, OnDestroy {
   municipalityResults: any[] = [];
 
   displayedResults: any[] = [];
+  pointResultFilters: PointResultFilterState = { availability: 'all', schedule: 'all' };
   expandedResultCard: any = null;
   activeDetailedCard: any = null;
   private unavailablePointImages = new Set<string>();
@@ -290,6 +313,16 @@ export class HomeComponent implements OnInit, OnChanges, OnDestroy {
       Boolean(this.destino) || this.municipalityResults.length > 0 || this.flightResults.length > 0;
   }
 
+  get isPointResultsPage(): boolean {
+    return !this.mapResourceMode && !this.isOriginChoiceMode &&
+      !this.loading && this.flightResults.length === 0 && this.municipalityResults.length > 0 &&
+      (Boolean(this.destino) || this.isDiscoveryMode || this.isOriginDiscoveryMode);
+  }
+
+  get hasActivePointFilters(): boolean {
+    return this.pointResultFilters.availability !== 'all' || this.pointResultFilters.schedule !== 'all';
+  }
+
   exitMapResource() {
     if (this.hasListContent) {
       if (this.selectedPin) this.closePinDetails();
@@ -340,6 +373,7 @@ export class HomeComponent implements OnInit, OnChanges, OnDestroy {
     this.clearSearchFocusTimers();
     this.placeSearchSubscription?.unsubscribe();
     this.placeResolveSubscription?.unsubscribe();
+    this.municipalityLoadSubscription?.unsubscribe();
     this.catalogMunicipalityQueries.complete();
     this.catalogSubscriptions.unsubscribe();
   }
@@ -489,6 +523,9 @@ export class HomeComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   ngOnChanges(changes: SimpleChanges) {
+    if (changes['initialIntent']) {
+      this.syncPointFiltersFromIntent();
+    }
     if ((changes['locations'] || changes['initialIntent']) && this.locations.length > 0) {
       if (this.restoreActiveRouteState()) {
         return;
@@ -504,6 +541,71 @@ export class HomeComponent implements OnInit, OnChanges, OnDestroy {
       }
       this.applyInitialIntent();
     }
+  }
+
+  setPointAvailabilityFilter(availability: PointResultAvailabilityFilter): void {
+    if (this.pointResultFilters.availability === availability) return;
+    this.pointResultFilters = { ...this.pointResultFilters, availability };
+    this.applyPointResultFilters();
+    this.emitPointFilterUrlState();
+  }
+
+  setPointScheduleFilter(schedule: PointResultScheduleFilter): void {
+    if (this.pointResultFilters.schedule === schedule) return;
+    this.pointResultFilters = { ...this.pointResultFilters, schedule };
+    this.applyPointResultFilters();
+    this.emitPointFilterUrlState();
+  }
+
+  clearPointResultFilters(): void {
+    this.pointResultFilters = { availability: 'all', schedule: 'all' };
+    this.applyPointResultFilters();
+    this.emitPointFilterUrlState();
+  }
+
+  private applyPointResultFilters(): void {
+    if (this.municipalityResults.length === 0) return;
+    const companyPoints = this.activeEmpresa
+      ? this.municipalityResults.filter(point => point.empresa === this.activeEmpresa)
+      : this.municipalityResults;
+    this.displayedResults = projectPointResults(companyPoints, this.pointResultFilters);
+    this.emitMapProjection();
+  }
+
+  private syncPointFiltersFromIntent(): void {
+    const availabilityValue = this.initialIntent?.['disponibilidad'];
+    const availability: PointResultAvailabilityFilter = availabilityValue === 'abierto'
+      ? 'open'
+      : availabilityValue === 'cierra-pronto'
+        ? 'closing-soon'
+        : 'all';
+    const scheduleValue = this.initialIntent?.['horario'];
+    const schedule: PointResultScheduleFilter = scheduleValue === 'manana'
+      ? 'morning'
+      : scheduleValue === 'tarde'
+        ? 'afternoon'
+        : scheduleValue === 'extendido'
+          ? 'extended'
+          : 'all';
+    this.pointResultFilters = { availability, schedule };
+    this.applyPointResultFilters();
+  }
+
+  private emitPointFilterUrlState(): void {
+    this.pointFiltersChange.emit({
+      disponibilidad: this.pointResultFilters.availability === 'open'
+        ? 'abierto'
+        : this.pointResultFilters.availability === 'closing-soon'
+          ? 'cierra-pronto'
+          : 'todos',
+      horario: this.pointResultFilters.schedule === 'morning'
+        ? 'manana'
+        : this.pointResultFilters.schedule === 'afternoon'
+          ? 'tarde'
+          : this.pointResultFilters.schedule === 'extended'
+            ? 'extendido'
+            : 'todos'
+    });
   }
 
   private findLocationByPointId(pointId: string | null | undefined): any | null {
@@ -595,15 +697,16 @@ export class HomeComponent implements OnInit, OnChanges, OnDestroy {
       }
     }
 
-    this.appliedIntentKey = JSON.stringify(this.initialIntent);
+    this.appliedIntentKey = this.getActionIntentKey(this.initialIntent);
     this.cdr.markForCheck();
     return true;
   }
 
   private applyInitialIntent() {
     if (this.restoreActiveRouteState()) return;
+    this.placeDestinationContext = parsePlaceDestinationContext(this.initialIntent);
     if (Object.keys(this.initialIntent || {}).length === 0) return;
-    const intentKey = JSON.stringify(this.initialIntent);
+    const intentKey = this.getActionIntentKey(this.initialIntent);
     if (intentKey === this.appliedIntentKey) return;
     this.appliedIntentKey = intentKey;
     const intent = this.initialIntent;
@@ -669,7 +772,10 @@ export class HomeComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   selectMunicipalityFromDiscovery(municipality: any) {
-    this.selectMunicipality(municipality, 'destino');
+    this.selectMunicipality(municipality, 'destino', {
+      preservePlaceContext: Boolean(this.placeDestinationContext),
+      suppressNavigation: true
+    });
   }
 
   exploreCompanyFromDiscovery(empresa: string) {
@@ -703,13 +809,13 @@ export class HomeComponent implements OnInit, OnChanges, OnDestroy {
     this.isOriginChoiceMode = false;
     this.activeEmpresa = point.empresa || '';
     this.municipalityResults = [{ ...point, destino_nombre: point.nombre_destino }];
-    this.displayedResults = [...this.municipalityResults];
     this.expandedResultCard = this.municipalityResults[0];
     this.destinoMunicipio = point.ubicacion?.municipio || '';
     this.destinoDepartamento = point.ubicacion?.departamento || '';
     this.destino = this.destinoMunicipio || this.getLocationName(point);
     this.destinoInputValue = this.getLocationName(point);
     this.bottomSheetState = 'half';
+    this.applyPointResultFilters();
   }
 
   onSearchLocation(query: string) {
@@ -783,7 +889,11 @@ export class HomeComponent implements OnInit, OnChanges, OnDestroy {
     }
   }
 
-  selectMunicipality(mun: any, type: 'origen' | 'destino') {
+  selectMunicipality(
+    mun: any,
+    type: 'origen' | 'destino',
+    options: { preservePlaceContext?: boolean; suppressNavigation?: boolean } = {}
+  ) {
     if (type === 'origen') {
       this.selectedOriginPoint = null;
       this.origenInputValue = mun.municipio;
@@ -796,6 +906,22 @@ export class HomeComponent implements OnInit, OnChanges, OnDestroy {
       this.destino = mun.municipio;
       this.destinoMunicipio = mun.municipio;
       this.destinoDepartamento = mun.departamento || '';
+      if (!options.preservePlaceContext) this.placeDestinationContext = null;
+      if (!options.suppressNavigation) {
+        const nextIntent: Record<string, string> = {
+          ...this.initialIntent,
+          municipio: String(mun.municipio),
+          departamento: String(mun.departamento || '')
+        };
+        for (const key of ['punto', 'accion', 'vista', 'referencia', 'refLat', 'refLng', 'buscar', 'empresa']) {
+          delete nextIntent[key];
+        }
+        this.appliedIntentKey = this.getActionIntentKey(nextIntent);
+        this.destinationMunicipalityChange.emit({
+          municipio: mun.municipio,
+          departamento: mun.departamento || ''
+        });
+      }
     }
     this.handleSelectionHandoff(type);
     if (type === 'destino') {
@@ -1316,6 +1442,8 @@ export class HomeComponent implements OnInit, OnChanges, OnDestroy {
     cursor?: string,
     append = false
   ) {
+    this.municipalityLoadSubscription?.unsubscribe();
+    this.municipalityLoadSubscription = null;
     if (append) {
       this.catalogPointsLoadingMore = true;
     } else {
@@ -1335,7 +1463,58 @@ export class HomeComponent implements OnInit, OnChanges, OnDestroy {
       this.catalogPointsHasMore = false;
     }
 
-    this.catalogSubscriptions.add(this.catalog.listMunicipalityPoints({
+    const referenceContext = !origin && !append
+      ? this.referenceContextForMunicipality(municipio, departamento)
+      : null;
+    if (referenceContext) {
+      this.municipalityLoadSubscription = this.loadAllCatalogMunicipalityPages(
+        municipio,
+        departamento
+      ).subscribe({
+        next: points => {
+          const sameMunicipalityPoints = points.filter(point =>
+            this.normalizeSearchText(point.ubicacion?.municipio || '') === this.normalizeSearchText(municipio)
+            && this.normalizeSearchText(point.ubicacion?.departamento || '') === this.normalizeSearchText(departamento)
+          );
+          const projected = projectByDistance(
+            sameMunicipalityPoints,
+            referenceContext,
+            point => ({ lat: point.ubicacion?.lat, lng: point.ubicacion?.lng })
+          ).map(entry => ({
+            ...entry.item,
+            distance: entry.distanceKm ?? Number.POSITIVE_INFINITY,
+            referenceDistanceKm: entry.distanceKm
+          }));
+          this.mergeCatalogLocations(projected);
+          this.municipalityResults = projected;
+          this.catalogPointsNextCursor = null;
+          this.catalogPointsHasMore = false;
+          this.loading = false;
+          this.catalogPointsLoadingMore = false;
+          if (projected.length === 0) {
+            this.displayedResults = [];
+            this.errorMsg = 'No existe cobertura cercana o similar';
+          } else {
+            this.applyPointResultFilters();
+          }
+          this.emitMapProjection();
+          this.cdr.detectChanges();
+        },
+        error: () => {
+          this.municipalityResults = [];
+          this.displayedResults = [];
+          this.loading = false;
+          this.catalogPointsLoadingMore = false;
+          this.catalogPointsNextCursor = null;
+          this.catalogPointsHasMore = false;
+          this.errorMsg = 'No pudimos cargar todos los puntos de este municipio.';
+          this.cdr.detectChanges();
+        }
+      });
+      return;
+    }
+
+    this.municipalityLoadSubscription = this.catalog.listMunicipalityPoints({
       municipality: municipio,
       ...(departamento ? { department: departamento } : {}),
       ...(cursor ? { cursor } : {})
@@ -1346,9 +1525,7 @@ export class HomeComponent implements OnInit, OnChanges, OnDestroy {
         this.municipalityResults = append
           ? [...this.municipalityResults, ...points]
           : points;
-        this.displayedResults = this.activeEmpresa
-          ? this.municipalityResults.filter(point => point.empresa === this.activeEmpresa)
-          : [...this.municipalityResults];
+        this.applyPointResultFilters();
         this.catalogPointsNextCursor = page.nextCursor;
         this.catalogPointsHasMore = page.hasMore;
         this.loading = false;
@@ -1366,6 +1543,57 @@ export class HomeComponent implements OnInit, OnChanges, OnDestroy {
         }
         this.cdr.detectChanges();
       }
+    });
+  }
+
+  private referenceContextForMunicipality(
+    municipio: string,
+    departamento: string
+  ): Readonly<PlaceDestinationContext> | null {
+    const context = this.placeDestinationContext;
+    if (!context) return null;
+    return this.normalizeSearchText(context.municipio) === this.normalizeSearchText(municipio)
+      && this.normalizeSearchText(context.departamento) === this.normalizeSearchText(departamento)
+      ? context
+      : null;
+  }
+
+  private loadAllCatalogMunicipalityPages(
+    municipio: string,
+    departamento: string,
+    cursor?: string,
+    accumulated: readonly HomeCatalogPoint[] = [],
+    seenCursors: ReadonlySet<string> = new Set(),
+    depth = 0
+  ): Observable<HomeCatalogPoint[]> {
+    if (depth >= 50 || (cursor && seenCursors.has(cursor))) {
+      return throwError(() => new Error('Invalid catalog pagination sequence'));
+    }
+    const nextSeenCursors = new Set(seenCursors);
+    if (cursor) nextSeenCursors.add(cursor);
+
+    return this.catalog.listMunicipalityPoints({
+      municipality: municipio,
+      ...(departamento ? { department: departamento } : {}),
+      ...(cursor ? { cursor } : {})
+    }).pipe(switchMap((page: HomeCatalogPointPage) => {
+      const byId = new Map<string, HomeCatalogPoint>();
+      for (const point of [...accumulated, ...page.points]) {
+        byId.set(this.getLocationIdentity(point), point);
+      }
+      const merged = [...byId.values()];
+      if (!page.hasMore) return of(merged);
+      if (!page.nextCursor) {
+        return throwError(() => new Error('Missing catalog pagination cursor'));
+      }
+      return this.loadAllCatalogMunicipalityPages(
+        municipio,
+        departamento,
+        page.nextCursor,
+        merged,
+        nextSeenCursors,
+        depth + 1
+      );
     }));
   }
 
@@ -1541,36 +1769,25 @@ export class HomeComponent implements OnInit, OnChanges, OnDestroy {
     this.showNearbyPointsEvent.emit();
   }
 
-  onPinCardTouchStart(event: TouchEvent) {
-    this.pinCardTouchStartY = event.touches[0]?.clientY || 0;
-    this.suppressPinImagePreview = false;
-  }
-
-  onPinCardTouchEnd(event: TouchEvent) {
-    const offset = (event.changedTouches[0]?.clientY || this.pinCardTouchStartY) - this.pinCardTouchStartY;
-    if (Math.abs(offset) >= 34) {
-      this.isPinCardExpanded = offset < 0;
-      this.pinCardStateLocked = true;
-      this.suppressPinImagePreview = true;
-      event.preventDefault();
-    }
-  }
-
   togglePinCard() {
     this.isPinCardExpanded = !this.isPinCardExpanded;
     this.pinCardStateLocked = true;
   }
 
+  private getActionIntentKey(intent: Record<string, string> | null | undefined): string {
+    const actionIntent = { ...(intent || {}) };
+    delete actionIntent['disponibilidad'];
+    delete actionIntent['horario'];
+    delete actionIntent['orden'];
+    return JSON.stringify(actionIntent);
+  }
+
   openPinImagePreview(url: string) {
-    if (this.suppressPinImagePreview) {
-      this.suppressPinImagePreview = false;
-      return;
-    }
     this.previewImage(url);
   }
 
   onSheetPointerDown(event: PointerEvent) {
-    if (this.bottomSheetState === 'hidden' || (event.pointerType === 'mouse' && event.button !== 0)) return;
+    if (this.isPointResultsPage || this.bottomSheetState === 'hidden' || (event.pointerType === 'mouse' && event.button !== 0)) return;
 
     this.activeSheetPointerId = event.pointerId;
     this.sheetDragStartY = event.clientY;
@@ -1621,7 +1838,7 @@ export class HomeComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   onSheetHeaderClick() {
-    if (!this.didSheetDrag) this.expandSheetIfNeeded();
+    if (!this.isPointResultsPage && !this.didSheetDrag) this.expandSheetIfNeeded();
   }
 
   onSheetHandleClick(event: MouseEvent) {
@@ -1668,11 +1885,7 @@ export class HomeComponent implements OnInit, OnChanges, OnDestroy {
 
   setEmpresaFilter(empresa: string) {
     this.activeEmpresa = empresa;
-    if (!empresa) {
-      this.displayedResults = [...this.municipalityResults];
-    } else {
-      this.displayedResults = this.municipalityResults.filter(r => r.empresa === empresa);
-    }
+    this.applyPointResultFilters();
   }
 
   setPinAsDestinationAndPromptOrigin() {
@@ -1982,4 +2195,33 @@ export class HomeComponent implements OnInit, OnChanges, OnDestroy {
     this.activeDetailedCard = null;
     this.resetMapMarkersEvent.emit();
   }
+}
+
+function parsePlaceDestinationContext(
+  intent: Record<string, string> | null | undefined
+): Readonly<PlaceDestinationContext> | null {
+  if (!intent) return null;
+  const reference = boundedIntentText(intent['referencia'], 128);
+  const municipio = boundedIntentText(intent['municipio'], 128);
+  const departamento = boundedIntentText(intent['departamento'], 128);
+  const lat = strictCoordinate(intent['refLat'], -90, 90);
+  const lng = strictCoordinate(intent['refLng'], -180, 180);
+  if (!reference || !municipio || !departamento || lat === null || lng === null) return null;
+  return Object.freeze({ reference, municipio, departamento, lat, lng });
+}
+
+function boundedIntentText(value: unknown, maxLength: number): string {
+  if (typeof value !== 'string') return '';
+  const text = value.trim();
+  return text.length >= 1 && text.length <= maxLength ? text : '';
+}
+
+function strictCoordinate(value: unknown, min: number, max: number): number | null {
+  if (typeof value !== 'string') return null;
+  const text = value.trim();
+  if (!/^-?\d{1,3}(?:\.\d{1,8})?$/.test(text)) return null;
+  const coordinate = Number(text);
+  return Number.isFinite(coordinate) && coordinate >= min && coordinate <= max
+    ? coordinate
+    : null;
 }

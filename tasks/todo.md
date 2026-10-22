@@ -362,6 +362,292 @@ a producto y experiencia pública; Partner continúa fuera de alcance.
       incluyendo scroll, acción de 44 px y convivencia con la navegación.
       Navegador real sin errores en 386x912 y 1440x900.
 
+  #### UI-REB-08 — puntos guardados locales
+
+  Spec: `tasks/specs/UI-REB-08-saved-points-local.md`.
+  Plan: `tasks/plan.md`, Fase 4, subplan UI-REB-08.
+
+  - [x] UI-REB-08a Implementar persistencia local versionada y segura.
+    - Aceptación: alta idempotente, baja, orden por fecha, límite de 50,
+      recuperación ante contenido corrupto y sincronización entre pestañas.
+    - Archivos máximos: modelo, servicio y prueba focalizada.
+    - Validación: prueba del servicio con almacenamiento válido, corrupto,
+      versión desconocida, límite y evento `storage`.
+  - [x] UI-REB-08b Sustituir Perfil por Guardados en navegación y shell.
+    - Aceptación: `tab=guardados` abre la pantalla; `tab=perfil` conserva
+      compatibilidad; dock con `aria-current`; estado vacío vuelve a Inicio.
+    - Archivos máximos: shell TS/HTML, bottom-nav TS y Guardados TS/HTML.
+    - Validación: pruebas focalizadas de resolución de tab y navegación.
+
+  ### Checkpoint UI-REB-08 — persistencia y navegación
+
+  - [x] Servicio local y navegación focalizada verdes antes de diseñar acciones.
+  - [x] Confirmar por diff que no existen cambios en backend, ETA, SQL o Partner.
+
+  - [x] UI-REB-08c Completar lista, vacío y acciones de Guardados.
+    - Aceptación: aviso de alcance local; compartir reutiliza
+      `PointShareService`; Ver punto, mapa y quitar funcionan; foco visible y
+      objetivos táctiles de 44 px.
+    - Archivos máximos: CSS/spec de Guardados y adaptador/prueba si es necesario.
+    - Validación: estados vacío/lista, orden, compartir, mapa y retiro.
+  - [x] UI-REB-08d Integrar Guardar/Guardado en tarjetas destacadas.
+    - Aceptación: `aria-pressed`, estado reactivo y sin aumentar la densidad de
+      acciones principales de la tarjeta.
+    - Archivos máximos: componente de descubrimiento, plantilla/estilos y prueba.
+  - [x] UI-REB-08e Integrar Guardar/Guardado en tarjetas de resultado.
+    - Aceptación: la acción conserva el flujo de imagen, detalle y compartir; el
+      estado se actualiza sin recargar.
+    - Archivos máximos: componente de resultado, plantilla/estilos y prueba.
+  - [x] UI-REB-08f Integrar Guardar/Guardado en la ficha del mapa.
+    - Aceptación: funciona en estados contraído/expandido, no interfiere con el
+      gesto del sheet y se sincroniza con las demás superficies.
+    - Archivos máximos: ficha de mapa TS/HTML/CSS y prueba focalizada.
+
+  ### Checkpoint UI-REB-08 — flujo funcional
+
+  - [x] Guardar, recargar, compartir, abrir y quitar funcionan sin login.
+  - [x] Sincronización entre pestañas y entre superficies verificada.
+  - [x] 386x912, 768, 1024 y 1440 px sin overflow ni contenido bajo el dock.
+
+  - [x] UI-REB-08g Limpiar Perfil huérfano y certificar el módulo.
+    - Aceptación: cero consumidores de Perfil; sin dependencia, endpoint o dato
+      de servidor nuevo; rollback documentado y diff auditado.
+    - Validación: pruebas focalizadas y suite aplicable, `check:css-colors`,
+      build productivo, smoke público y revisión independiente sin P0-P2.
+    - Evidencia: 412/412 unitarias, 76/76 E2E, 17/17 controles de color
+      sobre 19 CSS y 31/31 controles de fronteras sobre 57 archivos; build
+      exitoso. La confirmación `Punto guardado` y el pop de 520 ms se verificaron
+      en navegador real, con alternativa sin movimiento.
+
+  #### UI-REB-09 — resultados de puntos a página completa
+
+  Spec: `tasks/specs/UI-REB-09-full-page-point-results.md`.
+  Plan: `tasks/plan.md`, Fase 4, subplan UI-REB-09.
+
+  - [x] UI-REB-09a Crear proyección pura de disponibilidad y horario.
+    - Aceptación: orden de catálogo estable; `Cierra pronto` usa estado y
+      timestamps estructurados; las franjas usan horarios publicados.
+    - Archivos máximos: helper/spec y fachada de catálogo/spec.
+    - Validación: pruebas de límites 0, 1, 120 y 121 minutos, mañana, tarde,
+      jornada extendida y datos incompletos.
+
+  ### Checkpoint UI-REB-09 — lógica de filtros
+
+  - [x] Proyección pura verde y orden predeterminado sin regresión.
+  - [x] Diff confirma cero cambios en backend, ETA, SQL y contratos HTTP.
+
+  - [x] UI-REB-09b Conectar filtros tipados en Home.
+    - Aceptación: `Más cerca` y `Con foto` no aparecen; disponibilidad y horario
+      se combinan sin permisos nuevos ni cambios de negocio.
+    - Archivos máximos: Home TS/spec y shell TS/HTML/spec.
+  - [x] UI-REB-09c Convertir resultados municipales en página completa.
+    - Aceptación: sin tarjeta exterior ni comportamiento de sheet; tarjetas por
+      punto, filtros, contador `N de M` y vacío con `Limpiar filtros`.
+    - Archivos máximos: Home HTML/CSS/spec.
+
+  ### Checkpoint UI-REB-09 — interacción y presentación
+
+  - [x] Verificar teclado, foco, objetivos de 44 px y `prefers-reduced-motion`.
+  - [x] Verificar 386x912, 768, 1024 y 1440 px sin overflow ni solapamiento.
+
+  - [x] UI-REB-09d Persistir filtros tipados en URL y navegación.
+    - Aceptación: recarga, Atrás y Adelante restauran; valores inválidos usan
+      defaults; una interacción produce una sola transición de historial.
+    - Archivos máximos: Home/shell TS y specs, HTML y E2E público.
+  - [x] UI-REB-09e Certificar y documentar evidencia final.
+    - Validación: pruebas focalizadas, `npm run test:ci`,
+      `npm run check:boundaries`, `npm run check:css-colors`, `npm run build` y
+      `npm run e2e`; inspección real en móvil y escritorio.
+    - Evidencia final 2026-10-22: 500/500 unitarias, 31/31 fronteras sobre 59
+      archivos productivos, 17/17 contratos de color sobre 19 CSS, build
+      productivo y 100/100 E2E seriales verdes en 386, 768, 1024 y 1440 px.
+      La API fixture aislada evitó depender del catálogo local activo.
+
+  #### UI-REB-10 — destinos por lugar de referencia
+
+  Spec: `tasks/specs/UI-REB-10-place-destination-fallback.md`.
+  Plan: `tasks/plan.md`, Fase 4, subplan UI-REB-10.
+
+  - [x] UI-REB-10a Crear el contrato puro de coincidencia y distancia.
+    - Descripción: implementar normalización, clasificación de coincidencia
+      local, validación de coordenadas, distancia Haversine y orden estable sin
+      acoplarse a componentes ni servicios.
+    - Aceptación: exacto/prefijo/palabras son deterministas; tildes y
+      mayúsculas no alteran el resultado; coordenadas fuera de rango se
+      rechazan; puntos no medibles quedan al final; no se muta la entrada.
+    - Verificación: prueba RED→GREEN focal del helper y `npm run test:ci`.
+    - Dependencias: ninguna.
+    - Archivos: `core/maps/place-destination-fallback.ts` y `.spec.ts`.
+    - Alcance: pequeño, 2 archivos. Ejecutor: subagente Codex; no delegable a
+      Antigravity por ser lógica de producto.
+    - Evidencia: RED por módulo ausente y GREEN focal con 10/10 pruebas; Codex
+      principal repitió la prueba focal con 10/10 verdes.
+
+  - [x] UI-REB-10b Integrar el fallback automático de Places en Discovery.
+    - Descripción: coordinar catálogo y Places con estado tipado, prioridad
+      local, debounce de 350 ms, token efímero, cancelación y degradación segura.
+    - Aceptación: el catálogo sugiere desde el primer carácter; Places exige
+      3–128 caracteres y solo se activa sin coincidencia local fuerte; una
+      respuesta obsoleta nunca reemplaza la consulta vigente; el usuario debe
+      elegir explícitamente una sugerencia; limpiar/destruir cancela trabajo.
+    - Verificación: prueba focal de Discovery, `npm run test:ci`,
+      `npm run check:boundaries` y `npm run build`.
+    - Dependencias: UI-REB-10a.
+    - Archivos: `discovery-home.component.ts`, `.spec.ts` y, solo si el contrato
+      lo exige, helper 10a.
+    - Alcance: mediano, máximo 3 archivos. Ejecutor: subagente Codex; no
+      delegable a Antigravity por RxJS, servicio y estado.
+    - Evidencia: RED por estado/contrato ausente y GREEN focal con 27/27 pruebas;
+      Codex principal repitió la prueba focal con 27/27 verdes. Gates globales
+      reservados para UI-REB-10f2.
+
+  ### Checkpoint UI-REB-10 — búsqueda y concurrencia
+
+  - [x] Coincidencia fuerte, debounce, cancelación y degradación aprobados.
+  - [x] Places no configurado/error conserva resultados locales utilizables.
+  - [x] Diff confirma cero cambios en backend, ETA, SQL, dependencias y claves.
+
+  - [x] UI-REB-10c1 Emitir el lugar validado y escribir el contexto en URL.
+    - Descripción: resolver lugar, validar municipio/departamento contra
+      catálogo y navegar con `municipio`, `departamento`, `referencia`,
+      `refLat` y `refLng` mediante Router.
+    - Aceptación: texto máximo 128; coordenadas finitas y en rango; selección
+      siempre explícita; parámetros codificados; municipio/departamento siguen
+      siendo autoridad de cobertura; lugar ambiguo no navega.
+    - Verificación: pruebas focales de Discovery Home/Page y navegación.
+    - Dependencias: UI-REB-10b.
+    - Archivos: Discovery Home TS/spec y Discovery Page TS/spec.
+    - Alcance: mediano, 4 archivos. Ejecutor: subagente Codex; navegación y
+      contrato de estado no son delegables a Antigravity.
+    - Evidencia: RED por contrato ausente y GREEN con 35/35 pruebas focales de
+      Discovery Home/Page; país, geografía, homónimos y respuesta tardía cubiertos.
+
+  - [x] UI-REB-10c2 Leer y validar el contexto geográfico en Home.
+    - Descripción: interpretar el intent que el shell ya transmite de forma
+      genérica y construir un contexto inmutable o ignorarlo por completo.
+    - Aceptación: los tres parámetros se aceptan solo como conjunto válido;
+      contexto incompleto/manipulado conserva el orden tradicional; recarga,
+      Atrás y Adelante restauran sin duplicar historial; no se usa `innerHTML`.
+    - Verificación: prueba focal de Home con entradas válidas, límites, `NaN`,
+      infinito, fuera de rango y texto excesivo.
+    - Dependencias: UI-REB-10c1.
+    - Archivos: `home.component.ts` y `.spec.ts`.
+    - Alcance: pequeño, 2 archivos. Ejecutor: subagente Codex; estado de negocio.
+    - Evidencia: RED por parser ausente y GREEN focal; conjunto completo,
+      vacíos, `NaN`, infinito, notación exponencial, rangos y longitud cubiertos.
+
+  - [x] UI-REB-10d Proyectar todos los puntos municipales por cercanía real.
+    - Descripción: reunir todas las páginas del municipio cuando exista una
+      referencia válida, ordenar globalmente por distancia y después aplicar
+      los filtros UI-REB-09.
+    - Aceptación: ninguna página se presenta como ranking parcial; distancia
+      ascendente y empates estables; puntos sin coordenadas al final y sin km;
+      solo mismo municipio/departamento; cero resultados usa exactamente
+      `No existe cobertura cercana o similar`.
+    - Verificación: pruebas focales Home/helper con 2+ páginas, duplicados,
+      error de página intermedia, filtros combinados y contexto inválido;
+      `npm run test:ci`, fronteras y build.
+    - Dependencias: UI-REB-10c2.
+    - Archivos: Home TS/spec y helper/spec 10a.
+    - Alcance: mediano, 4 archivos. Ejecutor: subagente Codex; lógica de
+      paginación, estado y producto.
+    - Evidencia: RED con tres fallos de ranking/paginación y GREEN con 39/39
+      pruebas focales; 2+ páginas, duplicados, fallo intermedio, coordenadas
+      ausentes y copia de no cobertura cubiertos.
+
+  ### Checkpoint UI-REB-10 — navegación y ranking
+
+  - [x] URL, recarga, Atrás/Adelante y parámetros manipulados verificados.
+  - [x] Ranking global usa todas las páginas y preserva filtros existentes.
+  - [x] Municipio sin puntos no propone cobertura externa inventada.
+
+  - [x] UI-REB-10e1 Diseñar sugerencias y confirmación de lugares en Discovery.
+    - Descripción: presentar `Lugares en El Salvador`, carga, error,
+      confirmación y salida sin cobertura con jerarquía clara.
+    - Aceptación: resultados locales aparecen antes; teclado sigue orden
+      local→externo; Escape/limpiar, `aria-live` moderado, foco visible, 44 px,
+      tokens vigentes y `prefers-reduced-motion`.
+    - Verificación: prueba estructural y revisión 386x912, 768x1024, 1024x768 y
+      1440x900; `check:css-colors` y build.
+    - Dependencias: UI-REB-10c1.
+    - Archivos: Discovery HTML/CSS/spec.
+    - Alcance: mediano, 3 archivos. Ejecutor: Antigravity; TS, servicios,
+      eventos y navegación quedan expresamente prohibidos.
+    - Evidencia: diff delegado limitado a HTML/CSS/spec; Codex revisó el orden
+      local→externo, estados, aviso de privacidad y prueba estructural. Colores,
+      build y matriz responsive pública verificados.
+
+  - [x] UI-REB-10e2 Diseñar el contexto de proximidad en resultados.
+    - Descripción: mostrar `Opciones cerca de {lugar}`, distancia lineal
+      orientativa y estados sin distancia/sin cobertura sin aumentar saturación.
+    - Aceptación: no promete tiempo de viaje; no muestra km falsos; filtros y
+      tarjetas conservan acciones; dock no cubre el final; foco, 44 px, tokens y
+      movimiento reducido.
+    - Verificación: prueba estructural y los cuatro viewports; colores y build.
+    - Dependencias: UI-REB-10d.
+    - Archivos: Home HTML/CSS/spec.
+    - Alcance: mediano, 3 archivos. Ejecutor: Antigravity; TS, estado,
+      paginación y navegación quedan expresamente prohibidos.
+    - Evidencia: contexto y disclaimer estructurales verdes; Codex completó la
+      etiqueta por tarjeta (`m`, `km` o `Distancia no disponible`) con pruebas
+      focales para impedir cercanía falsa.
+
+  ### Checkpoint UI-REB-10 — presentación paralela
+
+  - [x] 10e1 y 10e2 revisadas por Codex y sus diffs limitados a archivos autorizados.
+  - [x] Cuatro viewports sin overflow, solapamiento ni contenido bajo el dock.
+  - [x] Teclado, foco, lector de pantalla y movimiento reducido verificados.
+
+  - [x] UI-REB-10f1 Añadir recorridos E2E focalizados del nuevo flujo.
+    - Descripción: caracterizar punto exacto, lugar con cobertura, municipio sin
+      cobertura, proveedor no configurado/error y respuesta externa obsoleta.
+    - Aceptación: red determinista sin consumir Google real; ausencia de claves
+      o detalles internos; catálogo sigue disponible durante fallos; URL y
+      ranking se conservan en recarga e historial.
+    - Verificación: `npm run e2e -- public-shipment-flow.pw.spec.ts
+      public-accessibility.pw.spec.ts`.
+    - Dependencias: UI-REB-10e1 y UI-REB-10e2.
+    - Archivos: dos specs E2E públicos existentes.
+    - Alcance: pequeño, 2 archivos. Ejecutor: subagente Codex de pruebas.
+    - Evidencia: 5 escenarios nuevos × 4 viewports = 20 recorridos verdes;
+      la matriz pública completa terminó 76/76 contra el fixture aislado.
+
+  - [x] UI-REB-10f2 Certificar y documentar evidencia final.
+    - Aceptación: revisión de corrección, arquitectura, seguridad, rendimiento y
+      accesibilidad sin hallazgos bloqueantes; ninguna consulta duplicada; ningún
+      secreto o dato persistido nuevo; rollback comprobable.
+    - Verificación: focales, `npm run test:ci`, `npm run build`,
+      `npm run check:boundaries`, `npm run check:css-colors`, E2E público y
+      navegador real con Places disponible/no configurado/error en los cuatro
+      viewports.
+    - Dependencias: UI-REB-10f1.
+    - Archivos: documentación de plan/tareas/evidencia; sin cambios productivos.
+    - Alcance: pequeño. Ejecutor: Codex principal, que repite todas las
+      validaciones y revisa los diffs de subagentes.
+    - Evidencia final 2026-10-22: revisión cerró carreras, URL durable,
+      confirmación explícita, límites de consulta, horarios nocturnos, sesión
+      Places y sincronización de Guardados; 500/500 unitarias, 586/586 backend,
+      100/100 E2E seriales, build, fronteras y colores verdes. Auditorías npm de
+      frontend y backend: 0 vulnerabilidades tras actualizar únicamente
+      dependencias de desarrollo dentro de sus líneas compatibles.
+
+  ### Checkpoint UI-REB-10 — completo
+
+  - [x] Todos los criterios de la spec y Definition of Done están cubiertos.
+  - [x] Sin cambios en backend, ETA, SQL, secretos ni permisos; solo parches de
+    seguridad compatibles en dependencias de desarrollo del frontend.
+  - [x] Aprobación humana recibida para commit, push e integración. La promoción
+    a producción continúa sujeta a los gates globales, incluido T00.
+
+  #### UI-REB-11 — búsqueda externa con ubicación activa
+
+  Spec propuesta: `tasks/specs/UI-REB-11-location-biased-place-search.md`.
+
+  - [ ] Aprobar contrato, privacidad y comportamiento sin GPS antes de editar.
+  - [ ] Preparar slice backend con validación, rate limit y rollback.
+  - [ ] Implementar sesgo solo con ubicación precisa ya concedida.
+  - [ ] Certificar búsqueda nacional sin GPS y copia sin falsa cercanía.
+
 - Evidencia de MVP01-MVP06: UI-REB-01 a UI-REB-06, suite, contratos, build,
   68 recorridos E2E y auditoría visual cubren el flujo y sus criterios. MVP05
   añade restauración exacta del estado en unitarias y navegación durable en E2E.

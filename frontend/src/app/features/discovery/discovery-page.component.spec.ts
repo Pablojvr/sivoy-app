@@ -65,4 +65,24 @@ describe('DiscoveryPageComponent navigation', () => {
     component.openMap();
     expect(navigate).toHaveBeenCalledWith(['/enviar'], { queryParams: { vista: 'mapa' } });
   });
+
+  it('opens a validated place context with bounded coordinate precision', () => {
+    component.openPlaceDestination({
+      reference: 'Parque San Martín',
+      municipio: 'Santa Tecla',
+      departamento: 'La Libertad',
+      lat: 13.676912345,
+      lng: -89.279712345
+    });
+
+    expect(navigate).toHaveBeenCalledWith(['/enviar'], {
+      queryParams: {
+        municipio: 'Santa Tecla',
+        departamento: 'La Libertad',
+        referencia: 'Parque San Martín',
+        refLat: '13.676912',
+        refLng: '-89.279712'
+      }
+    });
+  });
 });

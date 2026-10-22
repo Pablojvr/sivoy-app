@@ -3,6 +3,31 @@ import { Component } from '@angular/core';
 import { By } from '@angular/platform-browser';
 import { vi } from 'vitest';
 import { PinDetailCardComponent, PinDetailViewModel } from './pin-detail-card.component';
+import { SavedPointSnapshot } from '../../../core/saved-points/saved-points.models';
+import { SavedPointsService } from '../../../core/saved-points/saved-points.service';
+import { ToastService } from '../../../core/services/toast.service';
+
+class SavedPointsStub {
+  readonly ids = new Set<string>();
+  saveOutcome: 'saved' | 'already-saved' | 'limit-reached' | 'invalid-point' | 'storage-unavailable' = 'saved';
+  readonly save = vi.fn((snapshot: SavedPointSnapshot) => {
+    if (this.saveOutcome === 'saved') this.ids.add(snapshot.pointId);
+    return this.saveOutcome;
+  });
+  readonly remove = vi.fn((pointId: string) => this.ids.delete(pointId));
+  isSaved(pointId: string): boolean { return this.ids.has(pointId); }
+}
+
+function pointerEvent(pointerId: number, clientY: number): PointerEvent {
+  return {
+    pointerId,
+    pointerType: 'touch',
+    clientY,
+    button: 0,
+    preventDefault: vi.fn(),
+    stopPropagation: vi.fn()
+  } as unknown as PointerEvent;
+}
 
 @Component({
   template: `
@@ -21,8 +46,6 @@ import { PinDetailCardComponent, PinDetailViewModel } from './pin-detail-card.co
       [hasOrigin]="hasOrigin"
       [hasDestination]="hasDestination"
       (toggle)="onToggle()"
-      (touchStart)="onTouchStart($event)"
-      (touchEnd)="onTouchEnd($event)"
       (preview)="onPreview($event)"
       (share)="onShare($event)"
       (close)="onClose()"
@@ -38,10 +61,12 @@ import { PinDetailCardComponent, PinDetailViewModel } from './pin-detail-card.co
 })
 class TestHostComponent {
   pin: PinDetailViewModel = {
+    id_destino: 'AG_SANTA_ANA',
     empresa: 'Test Agency',
     nombre_destino: 'Santa Ana Centro',
     markerType: 'destination',
-    imagen_referencia: 'test.jpg'
+    imagen_referencia: 'https://example.com/test.jpg',
+    ubicacion: { municipio: 'Santa Ana', departamento: 'Santa Ana' }
   };
   isExpanded = false;
   activeTab: 'info' | 'horarios' = 'info';
@@ -51,8 +76,6 @@ class TestHostComponent {
   hasDestination = false;
 
   onToggle() { this.isExpanded = !this.isExpanded; }
-  onTouchStart(e: TouchEvent) {}
-  onTouchEnd(e: TouchEvent) {}
   onPreview(img: string) {}
   onShare(p: PinDetailViewModel) {}
   onClose() {}
@@ -66,10 +89,18 @@ class TestHostComponent {
 describe('PinDetailCardComponent', () => {
   let fixture: ComponentFixture<TestHostComponent>;
   let host: TestHostComponent;
+  let savedPoints: SavedPointsStub;
+  let toast: { showSuccess: ReturnType<typeof vi.fn>; showError: ReturnType<typeof vi.fn> };
 
   beforeEach(async () => {
+    savedPoints = new SavedPointsStub();
+    toast = { showSuccess: vi.fn(), showError: vi.fn() };
     await TestBed.configureTestingModule({
-      imports: [TestHostComponent]
+      imports: [TestHostComponent],
+      providers: [
+        { provide: SavedPointsService, useValue: savedPoints },
+        { provide: ToastService, useValue: toast }
+      ]
     }).compileComponents();
     
     fixture = TestBed.createComponent(TestHostComponent);
@@ -100,13 +131,17 @@ describe('PinDetailCardComponent', () => {
     expect(fixture.debugElement.query(By.css('.pin-card-hero-image'))).toBeNull();
   });
 
-  it('communicates the collapsed state with a visible label', () => {
+  it('communicates the collapsed state with a conventional sheet handle', () => {
     fixture.detectChanges();
     const toggleBtn = fixture.debugElement.query(By.css('.pin-card-sheet-toggle')).nativeElement;
+    const content = fixture.debugElement.query(By.css('#pin-card-expanded-content')).nativeElement;
 
-    expect(toggleBtn.textContent).toContain('Ver detalles');
+    expect(toggleBtn.getAttribute('aria-label')).toBe('Expandir ficha del punto');
     expect(toggleBtn.getAttribute('aria-expanded')).toBe('false');
-    expect(fixture.debugElement.query(By.css('#pin-card-expanded-content'))).toBeFalsy();
+    expect(toggleBtn.querySelector('.pin-card-sheet-handle')).toBeTruthy();
+    expect(toggleBtn.querySelector('.pin-card-toggle-label')).toBeNull();
+    expect(content.getAttribute('aria-hidden')).toBe('true');
+    expect(content.hasAttribute('inert')).toBe(true);
   });
 
   it('should call stopPropagation and emit toggle exactly once but not mutate internally', () => {
@@ -122,22 +157,94 @@ describe('PinDetailCardComponent', () => {
     expect(host.isExpanded).toBe(true);
   });
 
-  it('should emit touch events with exact payload', () => {
+  it('follows a downward drag from the handle and collapses after the threshold', () => {
+    host.isExpanded = true;
     fixture.detectChanges();
-    const startSpy = vi.spyOn(host, 'onTouchStart');
-    const endSpy = vi.spyOn(host, 'onTouchEnd');
-    const header = fixture.debugElement.query(By.css('.pin-card-hero'));
-    
-    const touchStartEvent = { touches: [{ clientY: 10 }] } as unknown as TouchEvent;
-    const touchEndEvent = { changedTouches: [{ clientY: 20 }] } as unknown as TouchEvent;
-    
-    header.triggerEventHandler('touchstart', touchStartEvent);
-    header.triggerEventHandler('touchend', touchEndEvent);
-    
-    expect(startSpy).toHaveBeenCalledTimes(1);
-    expect(startSpy).toHaveBeenCalledWith(touchStartEvent);
-    expect(endSpy).toHaveBeenCalledTimes(1);
-    expect(endSpy).toHaveBeenCalledWith(touchEndEvent);
+    const card = fixture.debugElement.query(By.directive(PinDetailCardComponent));
+    const handle = fixture.debugElement.query(By.css('.pin-card-sheet-toggle'));
+
+    handle.triggerEventHandler('pointerdown', pointerEvent(7, 100));
+    handle.triggerEventHandler('pointermove', pointerEvent(7, 180));
+    fixture.detectChanges();
+
+    expect(card.nativeElement.classList.contains('is-dragging')).toBe(true);
+    expect(card.nativeElement.style.getPropertyValue('--pin-card-drag-y')).toBe('80px');
+
+    handle.triggerEventHandler('pointerup', pointerEvent(7, 180));
+    handle.triggerEventHandler('click', { stopPropagation: vi.fn(), preventDefault: vi.fn() });
+    fixture.detectChanges();
+
+    expect(host.isExpanded).toBe(false);
+    expect(card.nativeElement.classList.contains('is-dragging')).toBe(false);
+    expect(card.nativeElement.style.getPropertyValue('--pin-card-drag-y')).toBe('0px');
+  });
+
+  it('toggles the saved state from one accessible hero action', () => {
+    fixture.detectChanges();
+    const saveButton = fixture.debugElement.query(By.css('.pin-save-action'));
+
+    expect(saveButton.nativeElement.getAttribute('aria-pressed')).toBe('false');
+    expect(saveButton.nativeElement.getAttribute('aria-label')).toContain('Guardar');
+    saveButton.nativeElement.click();
+    fixture.detectChanges();
+
+    expect(savedPoints.save).toHaveBeenCalledWith(expect.objectContaining({
+      pointId: 'AG_SANTA_ANA',
+      name: 'Santa Ana Centro'
+    }));
+    expect(saveButton.nativeElement.getAttribute('aria-pressed')).toBe('true');
+    expect(saveButton.nativeElement.classList).toContain('is-save-confirmed');
+    expect(toast.showSuccess).toHaveBeenCalledWith(
+      'Santa Ana Centro ya está disponible en Guardados.',
+      'Punto guardado'
+    );
+
+    saveButton.nativeElement.click();
+    fixture.detectChanges();
+    expect(savedPoints.remove).toHaveBeenCalledWith('AG_SANTA_ANA');
+    expect(saveButton.nativeElement.getAttribute('aria-pressed')).toBe('false');
+    expect(saveButton.nativeElement.classList).not.toContain('is-save-confirmed');
+    expect(toast.showSuccess).toHaveBeenCalledTimes(1);
+  });
+
+  it('explains when the device cannot persist a point', () => {
+    savedPoints.saveOutcome = 'storage-unavailable';
+    fixture.detectChanges();
+
+    fixture.debugElement.query(By.css('.pin-save-action')).nativeElement.click();
+
+    expect(toast.showError).toHaveBeenCalledWith(
+      'El navegador no permitió guardar el punto en este dispositivo.',
+      'No se pudo guardar'
+    );
+  });
+
+  it('returns to the expanded position when a downward drag is too short', () => {
+    host.isExpanded = true;
+    fixture.detectChanges();
+    const card = fixture.debugElement.query(By.directive(PinDetailCardComponent));
+    const handle = fixture.debugElement.query(By.css('.pin-card-sheet-toggle'));
+
+    handle.triggerEventHandler('pointerdown', pointerEvent(9, 100));
+    handle.triggerEventHandler('pointermove', pointerEvent(9, 132));
+    handle.triggerEventHandler('pointerup', pointerEvent(9, 132));
+    fixture.detectChanges();
+
+    expect(host.isExpanded).toBe(true);
+    expect(card.nativeElement.classList.contains('is-dragging')).toBe(false);
+    expect(card.nativeElement.style.getPropertyValue('--pin-card-drag-y')).toBe('0px');
+  });
+
+  it('expands the compact sheet with an upward drag from the handle', () => {
+    fixture.detectChanges();
+    const handle = fixture.debugElement.query(By.css('.pin-card-sheet-toggle'));
+
+    handle.triggerEventHandler('pointerdown', pointerEvent(11, 180));
+    handle.triggerEventHandler('pointermove', pointerEvent(11, 110));
+    handle.triggerEventHandler('pointerup', pointerEvent(11, 110));
+    fixture.detectChanges();
+
+    expect(host.isExpanded).toBe(true);
   });
 
   describe('Expanded View (info)', () => {
@@ -166,8 +273,10 @@ describe('PinDetailCardComponent', () => {
       expect(address.textContent).toContain('Santa Ana, Santa Ana');
 
       const toggleBtn = fixture.debugElement.query(By.css('.pin-card-sheet-toggle')).nativeElement;
-      expect(toggleBtn.textContent).toContain('Ocultar detalles');
+      expect(toggleBtn.getAttribute('aria-label')).toBe('Minimizar ficha del punto');
       expect(toggleBtn.getAttribute('aria-expanded')).toBe('true');
+      expect(content.nativeElement.getAttribute('aria-hidden')).toBe('false');
+      expect(content.nativeElement.hasAttribute('inert')).toBe(false);
     });
 
     it('should emit actions (share, close, copy, openMap, preview) exactly once', () => {
@@ -180,7 +289,7 @@ describe('PinDetailCardComponent', () => {
       
       const mockEvent = { stopPropagation: vi.fn() } as unknown as Event;
       
-      fixture.debugElement.query(By.css('.pin-card-hero-actions button:first-child')).triggerEventHandler('click', mockEvent);
+      fixture.debugElement.query(By.css('.pin-card-hero-actions button[aria-label="Compartir información del punto"]')).triggerEventHandler('click', mockEvent);
       expect(mockEvent.stopPropagation).toHaveBeenCalledTimes(1);
       expect(shareSpy).toHaveBeenCalledTimes(1);
       expect(shareSpy).toHaveBeenCalledWith(host.pin);
@@ -194,10 +303,11 @@ describe('PinDetailCardComponent', () => {
       
       fixture.debugElement.query(By.css('.pin-map-action')).nativeElement.click();
       expect(mapSpy).toHaveBeenCalledTimes(1);
+      expect(fixture.debugElement.query(By.css('.pin-map-action')).nativeElement.textContent).toContain('Ver en Google Maps');
       
       fixture.debugElement.query(By.css('.pin-image-preview')).nativeElement.click();
       expect(previewSpy).toHaveBeenCalledTimes(1);
-      expect(previewSpy).toHaveBeenCalledWith('test.jpg');
+      expect(previewSpy).toHaveBeenCalledWith('https://example.com/test.jpg');
     });
 
     it('should emit selectOrigin once when marker is origin and test dynamic copy', () => {
@@ -277,8 +387,10 @@ describe('PinDetailCardComponent', () => {
       
       fixture.detectChanges();
       const activeBtn = fixture.debugElement.query(By.css('.pin-card-tabs button.active')).nativeElement;
+      const indicator = fixture.debugElement.query(By.css('.pin-card-tab-indicator')).nativeElement;
       expect(activeBtn.textContent).toBe('Horarios');
       expect(activeBtn.getAttribute('aria-selected')).toBe('true');
+      expect(indicator.classList.contains('is-hours')).toBe(true);
     });
 
     it('supports arrow, Home, and End keyboard navigation between tabs', () => {

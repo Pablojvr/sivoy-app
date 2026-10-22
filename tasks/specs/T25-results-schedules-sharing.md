@@ -81,8 +81,8 @@ Criterios:
 
 Archivos de implementación (máximo cuatro):
 
-1. `frontend/src/app/features/home/results/point-share.service.ts` (nuevo)
-2. `frontend/src/app/features/home/results/point-share.service.spec.ts` (nuevo)
+1. `frontend/src/app/core/services/point-share.service.ts` (canónico)
+2. `frontend/src/app/core/services/point-share.service.spec.ts`
 3. `frontend/src/app/features/home/home.component.ts`
 4. `frontend/src/app/features/home/results/point-result-card.component.ts` sólo si
    un contrato compartido estrictamente requiere reutilización.

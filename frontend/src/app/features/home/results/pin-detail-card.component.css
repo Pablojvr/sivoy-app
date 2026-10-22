@@ -23,10 +23,16 @@
   background: var(--si-color-surface);
   box-shadow: var(--si-shadow-sheet);
   color: var(--si-color-ink);
+  transform: translateY(var(--pin-card-drag-y, 0px));
   transition:
     max-height var(--si-motion-sheet) var(--si-ease-native),
     box-shadow var(--si-motion-standard) var(--si-ease-native),
     transform var(--si-motion-standard) var(--si-ease-native);
+}
+
+:host(.pin-details-card.pin-point-card.is-dragging) {
+  transition: none;
+  will-change: transform;
 }
 
 :host(.pin-details-card.pin-point-card.is-collapsed) {
@@ -82,54 +88,44 @@
 .pin-card-sheet-toggle {
   position: absolute;
   z-index: 4;
-  top: var(--si-space-3);
-  left: var(--si-space-3);
-  width: auto;
-  min-width: 118px;
+  top: var(--si-space-2);
+  left: 50%;
+  width: 88px;
+  min-width: 88px;
   min-height: 44px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 0 10px;
-  border: 1px solid color-mix(in srgb, var(--si-color-surface) 28%, transparent);
+  padding: 0;
+  border: 0;
   border-radius: var(--si-radius-round);
-  background: color-mix(in srgb, var(--si-color-ink) 68%, transparent);
+  background: color-mix(in srgb, var(--si-color-ink) 46%, transparent);
   color: var(--si-color-surface);
   backdrop-filter: blur(12px);
-  cursor: ns-resize;
-  touch-action: manipulation;
+  cursor: grab;
+  touch-action: none;
+  transform: translateX(-50%);
+  transition:
+    background-color var(--si-motion-standard) var(--si-ease-native),
+    transform var(--si-motion-standard) var(--si-ease-native);
 }
 
 .pin-card-sheet-handle {
-  width: 18px;
-  height: 3px;
-  flex: 0 0 18px;
+  width: 46px;
+  height: 5px;
+  flex: 0 0 46px;
   border-radius: var(--si-radius-round);
   background: currentColor;
-  opacity: 0.72;
+  opacity: 0.88;
 }
 
-.pin-card-sheet-toggle > .pin-card-toggle-label {
-  width: auto;
-  height: auto;
-  flex: 0 1 auto;
-  border-radius: 0;
-  background: transparent;
-  font: var(--si-type-meta);
-  font-weight: 700;
-  white-space: nowrap;
+.pin-card-sheet-toggle:hover {
+  background: color-mix(in srgb, var(--si-color-ink) 62%, transparent);
 }
 
-.pin-card-sheet-toggle svg {
-  width: 15px;
-  height: 15px;
-  flex: 0 0 15px;
-  transition: transform var(--si-motion-standard) var(--si-ease-native);
-}
-
-:host(.pin-details-card.pin-point-card:not(.is-collapsed)) .pin-card-sheet-toggle svg {
-  transform: rotate(180deg);
+.pin-card-sheet-toggle:active {
+  cursor: grabbing;
+  transform: translateX(-50%) scale(0.96);
 }
 
 .pin-card-hero-actions {
@@ -160,11 +156,27 @@
   height: 19px;
 }
 
+.pin-card-hero-actions .pin-save-action.is-saved {
+  border-color: color-mix(in srgb, var(--si-color-brand) 72%, var(--si-color-surface));
+  background: var(--si-color-brand);
+  color: var(--si-color-surface);
+}
+
+.pin-card-hero-actions .pin-save-action.is-save-confirmed {
+  animation: pin-save-pop 520ms var(--si-ease-native);
+}
+
+@keyframes pin-save-pop {
+  0%, 100% { transform: scale(1); }
+  42% { transform: scale(1.18) rotate(-7deg); }
+  68% { transform: scale(0.94) rotate(3deg); }
+}
+
 .pin-card-identity {
   position: relative;
   z-index: 2;
   min-width: 0;
-  padding-right: 92px;
+  padding-right: 142px;
 }
 
 .pin-provider-badge {
@@ -209,11 +221,29 @@
   grid-template-rows: auto auto minmax(0, 1fr);
   overflow: hidden;
   background: var(--si-color-surface);
+  opacity: 1;
+  transform: translateY(0);
+  transform-origin: top center;
+  transition:
+    opacity var(--si-motion-standard) var(--si-ease-native),
+    transform var(--si-motion-sheet) var(--si-ease-native),
+    visibility 0s linear 0s;
+}
+
+.pin-card-expanded-content.is-hidden {
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(14px);
+  transition:
+    opacity var(--si-motion-standard) var(--si-ease-native),
+    transform var(--si-motion-standard) var(--si-ease-native),
+    visibility 0s linear var(--si-motion-standard);
 }
 
 .pin-card-quick-actions {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(92px, 0.42fr);
+  grid-template-columns: minmax(0, 1fr) minmax(132px, 0.52fr);
   gap: var(--si-space-2);
   padding: var(--si-space-3) var(--si-space-3) var(--si-space-2);
 }
@@ -300,7 +330,13 @@
   color: var(--si-color-brand-strong);
 }
 
+.pin-map-action span {
+  line-height: 1.15;
+  text-align: center;
+}
+
 .pin-card-tabs {
+  position: relative;
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 4px;
@@ -311,7 +347,28 @@
   background: var(--si-color-canvas);
 }
 
+.pin-card-tab-indicator {
+  position: absolute;
+  z-index: 0;
+  top: 4px;
+  bottom: 4px;
+  left: 4px;
+  width: calc((100% - 12px) / 2);
+  border: 1px solid color-mix(in srgb, var(--si-color-ink) 5%, transparent);
+  border-radius: 12px;
+  background: var(--si-color-surface);
+  box-shadow: var(--si-shadow-level-1);
+  transform: translateX(0);
+  transition: transform var(--si-motion-standard) var(--si-ease-native);
+}
+
+.pin-card-tab-indicator.is-hours {
+  transform: translateX(calc(100% + 4px));
+}
+
 .pin-card-tabs button {
+  position: relative;
+  z-index: 1;
   min-height: 44px;
   padding: 0 10px;
   border: 0;
@@ -321,11 +378,12 @@
   font: var(--si-type-meta);
   font-weight: 700;
   cursor: pointer;
+  transition: color var(--si-motion-standard) var(--si-ease-native);
 }
 
 .pin-card-tabs button.active {
-  background: var(--si-color-surface);
-  box-shadow: var(--si-shadow-level-1);
+  background: transparent;
+  box-shadow: none;
   color: var(--si-color-ink);
 }
 
@@ -346,6 +404,27 @@
 .pin-hours-panel {
   display: grid;
   gap: var(--si-space-2);
+  animation-duration: var(--si-motion-standard);
+  animation-timing-function: var(--si-ease-native);
+  animation-fill-mode: both;
+}
+
+.pin-info-panel {
+  animation-name: pin-tab-enter-left;
+}
+
+.pin-hours-panel {
+  animation-name: pin-tab-enter-right;
+}
+
+@keyframes pin-tab-enter-left {
+  from { opacity: 0; transform: translateX(-10px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes pin-tab-enter-right {
+  from { opacity: 0; transform: translateX(10px); }
+  to { opacity: 1; transform: translateX(0); }
 }
 
 .pin-availability,
@@ -534,6 +613,17 @@
   box-shadow: inset 0 0 0 2px var(--si-color-surface);
 }
 
+@media (max-width: 460px) {
+  .pin-card-sheet-toggle {
+    left: var(--si-space-3);
+    transform: none;
+  }
+
+  .pin-card-sheet-toggle:active {
+    transform: scale(0.96);
+  }
+}
+
 @media (max-width: 380px) {
   :host(.pin-details-card.pin-point-card) {
     right: 9px;
@@ -541,8 +631,8 @@
   }
 
   .pin-card-sheet-toggle {
-    min-width: 110px;
-    padding-inline: 8px;
+    width: 80px;
+    min-width: 80px;
   }
 
   .pin-card-identity {
@@ -554,7 +644,7 @@
   }
 
   .pin-card-quick-actions {
-    grid-template-columns: minmax(0, 1fr) 88px;
+    grid-template-columns: minmax(0, 1fr) 132px;
   }
 
   .pin-route-action small {
@@ -585,7 +675,10 @@
 @media (prefers-reduced-motion: reduce) {
   :host(.pin-details-card.pin-point-card),
   .pin-card-sheet-toggle,
-  .pin-card-sheet-toggle svg,
+  .pin-card-expanded-content,
+  .pin-card-tab-indicator,
+  .pin-info-panel,
+  .pin-hours-panel,
   .pin-card-hero-actions button,
   .pin-route-action,
   .pin-map-action,

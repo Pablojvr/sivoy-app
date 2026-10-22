@@ -46,7 +46,8 @@ describe('HomeCatalogFacade', () => {
       expect(result.points[0]).toEqual(expect.objectContaining({
         id_destino: 'AG_01',
         destino_nombre: 'AGENCIA CENTRO',
-        companyId: '2'
+        companyId: '2',
+        catalogAvailability: catalogPoint().availability
       }));
     });
   });

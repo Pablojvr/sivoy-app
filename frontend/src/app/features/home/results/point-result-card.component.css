@@ -25,10 +25,54 @@
 
 .cards-list .point-result-card .point-result-provider {
   min-height: 44px;
-  grid-template-columns: 30px minmax(0, 1fr) auto;
+  grid-template-columns: 30px minmax(0, 1fr) auto auto;
   gap: 9px;
   padding: 7px 14px 5px;
   border-bottom: 0;
+}
+
+.cards-list .point-result-card .point-result-save {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: var(--si-radius-round);
+  background: transparent;
+  color: var(--si-color-ink-muted);
+  cursor: pointer;
+  transition:
+    background-color var(--si-motion-feedback) var(--si-ease-native),
+    color var(--si-motion-feedback) var(--si-ease-native);
+}
+
+.cards-list .point-result-card .point-result-save svg {
+  width: 20px;
+  height: 20px;
+}
+
+.cards-list .point-result-card .point-result-save.is-saved,
+.cards-list .point-result-card .point-result-save:hover {
+  background: var(--si-color-brand-soft);
+  color: var(--si-color-brand-strong);
+}
+
+.cards-list .point-result-card .point-result-save.is-save-confirmed {
+  animation: point-result-save-pop 520ms var(--si-ease-native);
+}
+
+@keyframes point-result-save-pop {
+  0%, 100% { transform: scale(1); }
+  42% { transform: scale(1.18) rotate(-7deg); }
+  68% { transform: scale(0.94) rotate(3deg); }
+}
+
+.cards-list .point-result-card .point-result-save:focus-visible {
+  outline: none;
+  box-shadow: var(--si-focus-ring);
 }
 
 .cards-list .point-result-card .point-provider-mark {
@@ -48,13 +92,6 @@
 .cards-list .point-result-card .point-result-provider strong {
   font-size: 13px;
   line-height: 1.25;
-}
-
-.cards-list .point-result-card .point-distance {
-  padding: 5px 8px;
-  border: 1px solid color-mix(in srgb, var(--si-color-brand) 18%, transparent);
-  background: var(--si-color-brand-soft);
-  font-size: 12px;
 }
 
 .cards-list .point-result-card .point-result-main {
@@ -107,6 +144,12 @@
   line-height: 1.3;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.cards-list .point-result-card .point-result-copy > .point-reference-distance {
+  color: var(--si-color-brand-strong);
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .cards-list .point-result-card .point-result-disclosure {
@@ -252,6 +295,55 @@
   height: 150px;
 }
 
+.cards-list .point-result-card .point-reference-preview {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding: 10px;
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  color: var(--si-color-surface);
+  cursor: zoom-in;
+}
+
+.cards-list .point-result-card .point-reference-preview > span {
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px;
+  border: 1px solid color-mix(in srgb, var(--si-color-surface) 32%, transparent);
+  border-radius: 11px;
+  background: color-mix(in srgb, var(--si-color-ink) 76%, transparent);
+  font-size: 12px;
+  font-weight: 800;
+  backdrop-filter: blur(10px);
+}
+
+.cards-list .point-result-card .point-reference-preview svg {
+  width: 17px;
+  height: 17px;
+}
+
+.cards-list .point-result-card .point-reference-preview:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--si-color-brand) 42%, transparent);
+  outline-offset: -4px;
+}
+
+.cards-list .point-result-card .point-reference-media figcaption {
+  z-index: 2;
+  pointer-events: none;
+}
+
+.cards-list .point-result-card .point-reference-media figcaption button {
+  pointer-events: auto;
+}
+
 .cards-list .point-result-card .point-reference-media figcaption small,
 .cards-list .point-result-card .point-reference-media figcaption strong,
 .cards-list .point-result-card .point-reference-media figcaption button {
@@ -302,6 +394,7 @@
   .cards-list .point-result-card,
   .cards-list .point-result-card .point-result-disclosure svg,
   .cards-list .point-result-card .point-card-expandable,
+  .cards-list .point-result-card .point-reference-preview,
   .cards-list .point-result-card button {
     animation: none;
     transition: none;

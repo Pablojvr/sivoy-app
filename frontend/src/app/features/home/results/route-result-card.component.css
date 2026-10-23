@@ -396,6 +396,17 @@
 }
 
 @media (max-width: 380px) {
+  .route-card-summary {
+    gap: var(--si-space-2);
+    padding: var(--si-space-3);
+  }
+
+  .route-provider-mark {
+    width: 32px;
+    height: 32px;
+    flex-basis: 32px;
+  }
+
   .route-card-path {
     grid-template-columns: minmax(0, 1fr) 44px minmax(0, 1fr);
     gap: 6px;
@@ -415,7 +426,9 @@
   }
 
   .route-card-eta {
+    min-height: 52px;
     gap: var(--si-space-2);
+    padding-block: 6px;
     padding-inline: 10px;
   }
 

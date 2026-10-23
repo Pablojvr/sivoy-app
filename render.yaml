@@ -1,11 +1,15 @@
 services:
   - type: web
     name: sivoy-backend
-    env: node
+    runtime: node
     plan: free
-    buildCommand: "cd frontend && NODE_ENV=development npm install && npm run build -- --configuration production && cd ../backend && npm install"
+    branch: main
+    buildCommand: "cd frontend && corepack npm ci && corepack npm run build -- --configuration production && cd ../backend && corepack npm ci --omit=dev"
     startCommand: "cd backend && npm start"
+    healthCheckPath: /api/health
     envVars:
+      - key: NODE_VERSION
+        value: "22.22.0"
       - key: PORT
         value: 10000
       - key: DATABASE_URL

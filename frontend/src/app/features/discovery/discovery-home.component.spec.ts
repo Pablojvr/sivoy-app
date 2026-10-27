@@ -773,6 +773,27 @@ describe('DiscoveryHomeComponent catalog flow', () => {
     expect(select).toHaveBeenCalledWith(expect.objectContaining({ placeId: 'place-1' }));
   });
 
+  it('renders municipality suggestions before delivery points', () => {
+    fixture.destroy();
+    fixture = TestBed.createComponent(DiscoveryHomeComponent);
+    component = fixture.componentInstance;
+    component.isDestinationSearchActive = true;
+    component.destinationSearchQuery = 'soya';
+    component.searching = false;
+    component.filteredMunicipalities = [
+      { municipio: 'Soyapango', departamento: 'San Salvador', pointCount: 4 }
+    ];
+    component.filteredPoints = [point('LOCAL', 'AGENCIA SOYAPANGO')];
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    const municipalities = host.querySelector('#municipality-suggestions-title')?.parentElement;
+    const points = host.querySelector('#point-suggestions-title')?.parentElement;
+    expect(municipalities).not.toBeNull();
+    expect(points).not.toBeNull();
+    expect(municipalities!.compareDocumentPosition(points!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
   it('renders a distinct confirmation action before navigating to covered points', () => {
     fixture.destroy();
     fixture = TestBed.createComponent(DiscoveryHomeComponent);

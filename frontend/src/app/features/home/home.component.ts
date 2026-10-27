@@ -217,6 +217,7 @@ export class HomeComponent implements OnInit, OnChanges, OnDestroy {
 
   displayedResults: any[] = [];
   pointResultFilters: PointResultFilterState = { availability: 'all', schedule: 'all' };
+  pointFiltersExpanded = false;
   expandedResultCard: any = null;
   activeDetailedCard: any = null;
   private unavailablePointImages = new Set<string>();
@@ -321,6 +322,10 @@ export class HomeComponent implements OnInit, OnChanges, OnDestroy {
 
   get hasActivePointFilters(): boolean {
     return this.pointResultFilters.availability !== 'all' || this.pointResultFilters.schedule !== 'all';
+  }
+
+  onPointFiltersToggle(event: Event): void {
+    this.pointFiltersExpanded = Boolean((event.currentTarget as HTMLDetailsElement | null)?.open);
   }
 
   exitMapResource() {

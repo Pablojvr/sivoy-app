@@ -54,23 +54,6 @@
           <ng-container *ngIf="!searching; else searchingDestinations">
             <ng-container *ngIf="hasDestinationSearchResults; else noDestinationMatches">
               <section class="destination-local-results" aria-label="Resultados registrados en SiVoy">
-                <div *ngIf="filteredPoints.length > 0" aria-labelledby="point-suggestions-title">
-                  <h2 id="point-suggestions-title">Puntos de entrega</h2>
-                  <button
-                    type="button"
-                    *ngFor="let point of filteredPoints; trackBy: trackPoint"
-                    (click)="selectPointSuggestion(point)">
-                    <span class="suggestion-icon point" aria-hidden="true">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 5.5-8 11-8 11S4 15.5 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>
-                    </span>
-                    <span class="suggestion-copy">
-                      <strong>{{ pointName(point) }}</strong>
-                      <small>{{ locationLabel(point) }}</small>
-                    </span>
-                    <svg class="suggestion-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
-                  </button>
-                </div>
-
                 <div *ngIf="filteredMunicipalities.length > 0" aria-labelledby="municipality-suggestions-title">
                   <h2 id="municipality-suggestions-title">Municipios</h2>
                   <button
@@ -85,6 +68,23 @@
                       <small>{{ municipality.departamento }}</small>
                     </span>
                     <span class="suggestion-meta">{{ municipality.pointCount }} {{ municipality.pointCount === 1 ? 'punto' : 'puntos' }}</span>
+                  </button>
+                </div>
+
+                <div *ngIf="filteredPoints.length > 0" aria-labelledby="point-suggestions-title">
+                  <h2 id="point-suggestions-title">Puntos de entrega</h2>
+                  <button
+                    type="button"
+                    *ngFor="let point of filteredPoints; trackBy: trackPoint"
+                    (click)="selectPointSuggestion(point)">
+                    <span class="suggestion-icon point" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 5.5-8 11-8 11S4 15.5 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>
+                    </span>
+                    <span class="suggestion-copy">
+                      <strong>{{ pointName(point) }}</strong>
+                      <small>{{ locationLabel(point) }}</small>
+                    </span>
+                    <svg class="suggestion-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
                   </button>
                 </div>
               </section>

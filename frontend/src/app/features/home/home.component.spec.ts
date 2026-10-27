@@ -241,7 +241,40 @@ describe('HomeComponent (T31d)', () => {
       const page = fixture.nativeElement.querySelector('.bottom-sheet.point-results-page');
       expect(page).toBeTruthy();
       expect(page.querySelector('.drag-handle')).toBeNull();
-      expect(page.textContent).toContain('Encuentra el punto ideal');
+      expect(page.querySelector('.point-results-summary')?.textContent).toContain('1 punto disponible');
+      expect(page.querySelector('.point-results-summary')?.textContent).not.toContain('Soyapango');
+      expect(page.querySelector('.point-filter-disclosure')).toBeInstanceOf(HTMLDetailsElement);
+      expect(page.querySelector('.point-filter-disclosure')?.hasAttribute('open')).toBe(false);
+      expect(page.querySelector('.point-filter-summary')?.textContent).toContain('Filtros');
+      expect(page.querySelector('.point-filter-summary')?.textContent).toContain('Disponibilidad y horario');
+    });
+
+    it('mantiene todos los filtros accesibles dentro del encabezado compacto', async () => {
+      await fixture.whenStable();
+      component.destino = 'Soyapango, San Salvador';
+      component.isDiscoveryMode = true;
+      component.municipalityResults = [result('AG_01', 'OPEN', 13.7)];
+      component.displayedResults = [...component.municipalityResults];
+      fixture.changeDetectorRef.markForCheck();
+      fixture.detectChanges();
+
+      const groups = fixture.nativeElement.querySelectorAll('.point-filter-group[role="group"]') as NodeListOf<HTMLElement>;
+      const buttons = fixture.nativeElement.querySelectorAll('.point-filter-group button') as NodeListOf<HTMLButtonElement>;
+      const disclosure = fixture.nativeElement.querySelector('.point-filter-disclosure') as HTMLDetailsElement;
+      expect(disclosure.open).toBe(false);
+      disclosure.open = true;
+      disclosure.dispatchEvent(new Event('toggle'));
+      expect(component.pointFiltersExpanded).toBe(true);
+      expect(groups).toHaveLength(2);
+      expect(Array.from(groups).map(group => group.getAttribute('aria-label'))).toEqual([
+        'Filtrar por disponibilidad',
+        'Filtrar por horario de atención'
+      ]);
+      expect(Array.from(buttons).map(button => button.textContent?.trim())).toEqual([
+        'Todos', 'Abierto ahora', 'Cierra pronto',
+        'Cualquier horario', 'Mañana', 'Tarde', 'Jornada extendida'
+      ]);
+      expect(Array.from(buttons).every(button => button.hasAttribute('aria-pressed'))).toBe(true);
     });
 
     it('usa la misma superficie completa al explorar puntos de origen', () => {

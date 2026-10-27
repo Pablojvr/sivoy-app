@@ -48,7 +48,7 @@ async function chooseMunicipality(
 
 async function chooseSanSalvadorDestination(page: Page): Promise<void> {
   await chooseMunicipality(page, 'san salvador', 'San Salvador San Salvador 1 punto');
-  await expect(page.getByRole('heading', { name: /1 de 1 resultado en San Salvador/i })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /1 punto disponible/i })).toBeVisible();
 }
 
 async function mockPlaceLookup(
@@ -330,7 +330,7 @@ test('un fallo del proveedor externo conserva utilizable la búsqueda del catál
 
   await search.fill('san salvador');
   await page.getByRole('button', { name: /San Salvador San Salvador \d+ puntos?/i }).click();
-  await expect(page.getByRole('heading', { name: /\d+ de \d+ resultados? en San Salvador/i })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /\d+ puntos? disponibles?/i })).toBeVisible();
 });
 
 test('una coincidencia local fuerte evita una consulta externa innecesaria', async ({ page }) => {
@@ -387,7 +387,7 @@ test('resultados municipales usan página completa, filtros y URL durable', asyn
   const cards = page.locator('article.point-result-card');
   await expect(resultsPage).toBeVisible();
   await expect(resultsPage.locator('.drag-handle')).toHaveCount(0);
-  await expect(page.getByRole('heading', { name: /\d+ de \d+ resultados? en San Salvador/i })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /\d+ puntos? disponibles?/i })).toBeVisible();
 
   const layout = await resultsPage.evaluate(element => {
     const rect = element.getBoundingClientRect();
@@ -410,6 +410,9 @@ test('resultados municipales usan página completa, filtros y URL durable', asyn
   const initialCount = await cards.count();
   await expect(page.getByRole('button', { name: 'Con foto' })).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Más cerca' })).toHaveCount(0);
+  const filterDisclosure = page.locator('.point-filter-disclosure');
+  await filterDisclosure.locator('summary').click();
+  await expect(filterDisclosure).toHaveAttribute('open', '');
   await page.getByRole('button', { name: 'Abierto ahora' }).click();
   await expect(page).toHaveURL(/disponibilidad=abierto.*horario=todos/);
   await expect(page.getByRole('button', { name: 'Abierto ahora' })).toHaveAttribute('aria-pressed', 'true');
@@ -426,6 +429,7 @@ test('resultados municipales usan página completa, filtros y URL durable', asyn
   await page.goForward();
   await expect(page.getByRole('button', { name: 'Tarde', exact: true })).toHaveAttribute('aria-pressed', 'true');
   await page.reload();
+  await page.locator('.point-filter-disclosure summary').click();
   await expect(page.getByRole('button', { name: 'Tarde', exact: true })).toHaveAttribute('aria-pressed', 'true');
 });
 
@@ -440,15 +444,15 @@ test('resultados públicos sobreviven atrás, adelante, recarga y enlace directo
 
   await page.goForward();
   await expect(page).toHaveURL(resultsUrl);
-  await expect(page.getByRole('heading', { name: /1 de 1 resultado en San Salvador/i })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /1 punto disponible/i })).toBeVisible();
 
   await page.reload();
   await expect(page).toHaveURL(resultsUrl);
-  await expect(page.getByRole('heading', { name: /1 de 1 resultado en San Salvador/i })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /1 punto disponible/i })).toBeVisible();
 
   await page.goto('/#/enviar?punto=POINT_AGENCIA_CENTRO&accion=preview');
   await expect(page).toHaveURL(/.*punto=POINT_AGENCIA_CENTRO&accion=preview$/);
-  await expect(page.getByRole('heading', { name: /1 de 1 resultado en San Salvador/i })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /1 punto disponible/i })).toBeVisible();
   const linkedPointSummary = page.locator('#card-POINT_AGENCIA_CENTRO button.point-result-summary');
   await expect(linkedPointSummary).toHaveAttribute('aria-expanded', 'true');
   await expect(page.locator('#point-details-POINT_AGENCIA_CENTRO')).toBeVisible();
@@ -517,7 +521,7 @@ test('buscar y compartir siguen disponibles sin WebGL2', async ({ page }) => {
   await page.goto('/#/');
   const mapFallback = page.getByRole('status').filter({ hasText: 'Mapa no disponible' });
   await chooseSanSalvadorDestination(page);
-  const resultsHeading = page.getByRole('heading', { name: /1 de 1 resultado en San Salvador/i });
+  const resultsHeading = page.getByRole('heading', { name: /1 punto disponible/i });
   await expect(mapFallback).toBeVisible();
   await page.getByRole('button', { name: 'Cerrar aviso de mapa', exact: true }).click();
   await expect(mapFallback).toBeHidden();

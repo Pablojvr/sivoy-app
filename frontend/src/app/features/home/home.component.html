@@ -269,8 +269,15 @@
         </div>
 
         <div *ngIf="(destino || isDiscoveryMode || isOriginDiscoveryMode) && municipalityResults.length > 0" class="sheet-summary" [class.point-results-summary]="isPointResultsPage">
-          <span *ngIf="isPointResultsPage" class="sheet-step-kicker">{{ isOriginDiscoveryMode ? 'Puntos de origen' : 'Puntos de entrega' }}</span>
-          <h3>{{ displayedResults.length }}<ng-container *ngIf="isPointResultsPage"> de {{ municipalityResults.length }}</ng-container> {{ displayedResults.length === 1 ? 'resultado' : 'resultados' }} en {{ isOriginDiscoveryMode ? origenMunicipio : (destino ? destino.split(',')[0] : (activeEmpresa || destinoMunicipio)) }}</h3>
+          <ng-container *ngIf="isPointResultsPage; else standardPointResultsSummary">
+            <h3>
+              {{ displayedResults.length }} {{ displayedResults.length === 1 ? 'punto disponible' : 'puntos disponibles' }}
+              <small *ngIf="displayedResults.length !== municipalityResults.length">de {{ municipalityResults.length }}</small>
+            </h3>
+          </ng-container>
+          <ng-template #standardPointResultsSummary>
+            <h3>{{ displayedResults.length }} {{ displayedResults.length === 1 ? 'resultado' : 'resultados' }} en {{ isOriginDiscoveryMode ? origenMunicipio : (destino ? destino.split(',')[0] : (activeEmpresa || destinoMunicipio)) }}</h3>
+          </ng-template>
           <div *ngIf="isPointResultsPage && placeDestinationContext && !isOriginDiscoveryMode" class="point-proximity-context">
             <span class="point-proximity-icon" aria-hidden="true">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 5.5-8 11-8 11S4 15.5 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>
@@ -497,32 +504,40 @@
 
       <div class="sheet-header-sticky" [class.is-scrolled]="isSheetScrolled" *ngIf="(destino || isDiscoveryMode || isOriginDiscoveryMode) && municipalityResults.length > 0 && flightResults.length === 0">
         <ng-container *ngIf="isPointResultsPage; else legacyResultsHeading">
-          <div class="point-filter-heading">
-            <div>
-              <span>Explorar resultados</span>
-              <h3>Encuentra el punto ideal</h3>
-            </div>
-            <button *ngIf="hasActivePointFilters" type="button" class="point-filter-clear" (click)="clearPointResultFilters()">Limpiar</button>
-          </div>
-          <div class="point-filter-groups" aria-label="Filtros de puntos">
-            <div class="point-filter-group" role="group" aria-label="Filtrar por disponibilidad">
-              <span class="point-filter-copy"><strong>Disponibilidad</strong><small>Estado actual del punto</small></span>
-              <span class="point-filter-options">
-                <button type="button" [class.is-active]="pointResultFilters.availability === 'all'" [attr.aria-pressed]="pointResultFilters.availability === 'all'" (click)="setPointAvailabilityFilter('all')">Todos</button>
-                <button type="button" [class.is-active]="pointResultFilters.availability === 'open'" [attr.aria-pressed]="pointResultFilters.availability === 'open'" (click)="setPointAvailabilityFilter('open')">Abierto ahora</button>
-                <button type="button" [class.is-active]="pointResultFilters.availability === 'closing-soon'" [attr.aria-pressed]="pointResultFilters.availability === 'closing-soon'" (click)="setPointAvailabilityFilter('closing-soon')">Cierra pronto</button>
+          <details class="point-filter-disclosure" [open]="pointFiltersExpanded" (toggle)="onPointFiltersToggle($event)">
+            <summary class="point-filter-summary">
+              <span class="point-filter-summary-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
               </span>
+              <strong>Filtros</strong>
+              <span class="point-filter-summary-copy">{{ hasActivePointFilters ? 'Filtros activos' : 'Disponibilidad y horario' }}</span>
+              <span class="point-filter-summary-action point-filter-summary-action--closed">{{ hasActivePointFilters ? 'Editar' : 'Mostrar' }}</span>
+              <span class="point-filter-summary-action point-filter-summary-action--open">Ocultar</span>
+              <svg class="point-filter-summary-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+            </summary>
+            <div class="point-filter-panel">
+              <button *ngIf="hasActivePointFilters" type="button" class="point-filter-clear" (click)="clearPointResultFilters()">Restablecer filtros</button>
+              <div class="point-filter-groups" aria-label="Filtros de puntos">
+                <div class="point-filter-group" role="group" aria-label="Filtrar por disponibilidad">
+                  <span class="point-filter-copy"><strong>Disponibilidad</strong><small>Estado actual del punto</small></span>
+                  <span class="point-filter-options">
+                    <button type="button" [class.is-active]="pointResultFilters.availability === 'all'" [attr.aria-pressed]="pointResultFilters.availability === 'all'" (click)="setPointAvailabilityFilter('all')">Todos</button>
+                    <button type="button" [class.is-active]="pointResultFilters.availability === 'open'" [attr.aria-pressed]="pointResultFilters.availability === 'open'" (click)="setPointAvailabilityFilter('open')">Abierto ahora</button>
+                    <button type="button" [class.is-active]="pointResultFilters.availability === 'closing-soon'" [attr.aria-pressed]="pointResultFilters.availability === 'closing-soon'" (click)="setPointAvailabilityFilter('closing-soon')">Cierra pronto</button>
+                  </span>
+                </div>
+                <div class="point-filter-group" role="group" aria-label="Filtrar por horario de atención">
+                  <span class="point-filter-copy"><strong>Horario</strong><small>Cuándo podrá ir quien recibe</small></span>
+                  <span class="point-filter-options">
+                    <button type="button" [class.is-active]="pointResultFilters.schedule === 'all'" [attr.aria-pressed]="pointResultFilters.schedule === 'all'" (click)="setPointScheduleFilter('all')">Cualquier horario</button>
+                    <button type="button" title="Atiende entre 6:00 AM y 12:00 PM" [class.is-active]="pointResultFilters.schedule === 'morning'" [attr.aria-pressed]="pointResultFilters.schedule === 'morning'" (click)="setPointScheduleFilter('morning')">Mañana</button>
+                    <button type="button" title="Atiende entre 12:00 PM y 6:00 PM" [class.is-active]="pointResultFilters.schedule === 'afternoon'" [attr.aria-pressed]="pointResultFilters.schedule === 'afternoon'" (click)="setPointScheduleFilter('afternoon')">Tarde</button>
+                    <button type="button" title="Cierra a las 6:00 PM o después" [class.is-active]="pointResultFilters.schedule === 'extended'" [attr.aria-pressed]="pointResultFilters.schedule === 'extended'" (click)="setPointScheduleFilter('extended')">Jornada extendida</button>
+                  </span>
+                </div>
+              </div>
             </div>
-            <div class="point-filter-group" role="group" aria-label="Filtrar por horario de atención">
-              <span class="point-filter-copy"><strong>Horario</strong><small>Cuándo podrá ir quien recibe</small></span>
-              <span class="point-filter-options">
-                <button type="button" [class.is-active]="pointResultFilters.schedule === 'all'" [attr.aria-pressed]="pointResultFilters.schedule === 'all'" (click)="setPointScheduleFilter('all')">Cualquier horario</button>
-                <button type="button" title="Atiende entre 6:00 AM y 12:00 PM" [class.is-active]="pointResultFilters.schedule === 'morning'" [attr.aria-pressed]="pointResultFilters.schedule === 'morning'" (click)="setPointScheduleFilter('morning')">Mañana</button>
-                <button type="button" title="Atiende entre 12:00 PM y 6:00 PM" [class.is-active]="pointResultFilters.schedule === 'afternoon'" [attr.aria-pressed]="pointResultFilters.schedule === 'afternoon'" (click)="setPointScheduleFilter('afternoon')">Tarde</button>
-                <button type="button" title="Cierra a las 6:00 PM o después" [class.is-active]="pointResultFilters.schedule === 'extended'" [attr.aria-pressed]="pointResultFilters.schedule === 'extended'" (click)="setPointScheduleFilter('extended')">Jornada extendida</button>
-              </span>
-            </div>
-          </div>
+          </details>
         </ng-container>
         <ng-template #legacyResultsHeading>
           <div class="sheet-handle"></div>

@@ -363,7 +363,11 @@ test('public company repository keeps counts, keyset pagination, literals, and s
   const {
     createCompanyCatalogRepository
   } = require('../src/infrastructure/postgres/company-catalog.repository');
+  const {
+    createCatalogRepository
+  } = require('../src/infrastructure/postgres/catalog.repository');
   assert.equal(typeof createCompanyCatalogRepository, 'function');
+  assert.equal(typeof createCatalogRepository, 'function');
 
   const pool = new Pool({
     connectionString: databaseUrl,
@@ -520,6 +524,33 @@ test('public company repository keeps counts, keyset pagination, literals, and s
         order: 2
       }
     ]);
+
+    const pointRepository = createCatalogRepository({
+      getDB: async () => tracedDatabase
+    });
+    const publicPointsPage = await pointRepository.listPoints({
+      companyId: String(fixtureIds.profile),
+      department: null,
+      municipality: null,
+      pointType: null,
+      q: null,
+      limit: 20,
+      position: null
+    });
+    assert.equal(publicPointsPage.hasMore, false);
+    assert.equal(
+      publicPointsPage.points.length,
+      profile.coverage.pointCount,
+      'company coverage must use the same public-point definition as the point catalog'
+    );
+    assert.deepEqual(
+      publicPointsPage.points.map((point) => point.pointId).sort(),
+      ['PCD03_PUBLIC_1', 'PCD03_PUBLIC_2', 'PCD03_PUBLIC_BLANK_LOCATION'],
+      'NULL and blank destination identifiers must remain outside the public catalog'
+    );
+    for (const point of publicPointsPage.points) {
+      assert.equal(point.company.companyId, String(fixtureIds.profile));
+    }
 
     const pagedTieIds = [];
     let position = null;

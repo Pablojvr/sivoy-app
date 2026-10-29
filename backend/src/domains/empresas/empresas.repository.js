@@ -9,7 +9,7 @@ async function createEmpresa(nombre, logoUrl) {
 async function getAllEmpresas() {
     const db = await getDB();
     const result = await db.query(`
-        SELECT e.*, COUNT(a.id_destino) as puntos_count
+        SELECT e.id, e.nombre, e.logo_url, COUNT(a.id_destino) as puntos_count
         FROM empresas e
         LEFT JOIN agencias a ON e.id = a.empresa_id
         GROUP BY e.id

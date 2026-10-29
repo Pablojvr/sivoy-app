@@ -19,6 +19,43 @@ documento no autoriza por sí solo cambios observables ni despliegues.
 | `async-capabilities` | Eventos internos, imports y recursos compartibles | `shipment-search` |
 | `delivery-platform` | CI/CD, observabilidad, seguridad y rollback | todos los anteriores |
 
+## Iniciativa: perfiles públicos de empresa
+
+Estado: mapa aprobado para especificación el 27 de octubre de 2026. Esta
+iniciativa construye una experiencia de consulta para usuarios; la edición y
+administración pertenecen a un panel externo y quedan fuera de este alcance.
+
+| Módulo | Responsabilidad | Depende de |
+|---|---|---|
+| `public-company-data` | Contrato público de solo lectura para directorio, perfil y presencia digital de empresas | `location-catalog`, `domain-contracts` |
+| `company-directory` | Directorio público buscable con acceso explícito al perfil | `public-company-data`, `design-system`, `app-shell` |
+| `company-point-browser` | Exploración buscable de puntos de una empresa en lista y mapa | `public-company-data`, `location-catalog`, `map-resource`, `design-system` |
+| `company-profile` | Perfil público que compone identidad, presencia digital, cobertura y explorador de puntos | `public-company-data`, `company-point-browser`, `design-system`, `app-shell` |
+
+Orden de construcción:
+
+`public-company-data` → (`company-directory`, `company-point-browser`) →
+`company-profile`.
+
+La adopción escalonada de skills de interfaz, accesibilidad, movimiento,
+seguridad y revisión se define en
+[`docs/UI_SKILLS_ADOPTION_PLAN.md`](docs/UI_SKILLS_ADOPTION_PLAN.md). Los skills
+no sustituyen los contratos ni la dirección visual vigente.
+
+Decisiones de frontera de la iniciativa:
+
+- Ningún módulo permite crear, editar o eliminar empresas, redes o puntos.
+- La identidad y las relaciones usan `companyId`; el nombre nunca funciona como
+  clave de navegación o filtrado.
+- Los endpoints legacy de administración no se amplían ni se exponen como
+  contratos públicos.
+- Los datos de presencia digital son opcionales y las superficies omiten las
+  secciones vacías.
+- El panel externo de administración tendrá contratos separados y no forma
+  parte de esta iniciativa.
+- Las vistas viven en rutas públicas fuera de `/admin`; `/admin` y `/partner`
+  no se amplían ni se convierten en proveedores de datos para esta iniciativa.
+
 Orden recomendado:
 
 `quality-foundation` → `domain-contracts` → `data-foundation` → (`eta-core`,

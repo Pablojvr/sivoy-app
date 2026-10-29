@@ -83,6 +83,13 @@ jobs:
           MIGRATION_TEST_SENTINEL: allow_ephemeral_migration_test
         run: corepack npm run test:migrations:pg
 
+      - name: Validate migrated company catalog schema
+        env:
+          DATABASE_URL: postgresql://sivoy_ci_user:sivoy_ephemeral_ci_password@127.0.0.1:5432/sivoy_migrations_ci
+          DATABASE_SSL: "false"
+          COMPANY_CATALOG_TEST_SENTINEL: allow_ephemeral_company_catalog_test
+        run: corepack npm run test:company-catalog:pg
+
       - name: Measure T14 query performance baseline
         env:
           DATABASE_URL: postgresql://sivoy_ci_user:sivoy_ephemeral_ci_password@127.0.0.1:5432/sivoy_migrations_ci

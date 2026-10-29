@@ -17,6 +17,7 @@
     "migrate:status": "node migration-runner.js --dry-run",
     "test": "node --test",
     "test:migrations:pg": "node --test integration/migrations.pg.spec.js",
+    "test:company-catalog:pg": "node --test integration/company-catalog.pg.spec.js",
     "test:catalog-scale:pg": "node --test integration/catalog-scale.pg.spec.js"
   },
   "keywords": [],

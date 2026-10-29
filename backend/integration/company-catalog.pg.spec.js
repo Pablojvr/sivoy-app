@@ -1,4 +1,5 @@
 const assert = require('node:assert/strict');
+const { performance } = require('node:perf_hooks');
 const test = require('node:test');
 const { Pool } = require('pg');
 
@@ -63,6 +64,34 @@ async function expectConstraintViolation(client, savepoint, query, expectedCode)
     await client.query(`ROLLBACK TO SAVEPOINT ${savepoint}`);
     await client.query(`RELEASE SAVEPOINT ${savepoint}`);
   }
+}
+
+async function assertSafeConnectedClient(client) {
+  const remoteAddress = client.connection?.stream?.remoteAddress;
+  assert.ok(
+    new Set(['127.0.0.1', '::1', '::ffff:127.0.0.1']).has(remoteAddress),
+    `Refusing execution: PostgreSQL socket must terminate on loopback, got: ${remoteAddress}`
+  );
+  const databaseResult = await client.query(`
+    SELECT current_database() AS current_db, current_user AS current_user_name
+  `);
+  assert.equal(
+    databaseResult.rows[0]?.current_db,
+    EXPECTED_DATABASE,
+    `Refusing execution: expected current_database() to be ${EXPECTED_DATABASE}, got: ${databaseResult.rows[0]?.current_db}`
+  );
+  assert.equal(
+    databaseResult.rows[0]?.current_user_name,
+    'sivoy_ci_user',
+    'Refusing execution: expected the ephemeral CI database role'
+  );
+}
+
+function collectPlanNodes(node, result = []) {
+  if (!node || typeof node !== 'object') return result;
+  result.push(node);
+  for (const child of node.Plans || []) collectPlanNodes(child, result);
+  return result;
 }
 
 test('company catalog schema 0011 enforces constraints and revision invalidation', async () => {
@@ -308,6 +337,281 @@ test('company catalog schema 0011 enforces constraints and revision invalidation
     );
     const revisionAfterRestoredMutation = await readCatalogRevision(client);
     assert.equal(revisionAfterRestoredMutation - revisionBeforeRestoredMutation, 1n);
+  } finally {
+    if (client && inTransaction) {
+      await client.query('ROLLBACK');
+    }
+    client?.release();
+    await pool.end();
+  }
+});
+
+test('public company repository keeps counts, keyset pagination, literals, and scale bounded', {
+  timeout: 45_000
+}, async (t) => {
+  assert.equal(
+    process.env.COMPANY_CATALOG_TEST_SENTINEL,
+    EXPECTED_SENTINEL,
+    `Refusing execution without explicit sentinel: COMPANY_CATALOG_TEST_SENTINEL=${EXPECTED_SENTINEL}`
+  );
+
+  const databaseUrl = process.env.DATABASE_URL;
+  assert.ok(databaseUrl, 'DATABASE_URL is required for the ephemeral company catalog test');
+  assertSafeDatabaseUrl(databaseUrl);
+
+  // Deliberately RED until PCD-03 provides the runtime repository.
+  const {
+    createCompanyCatalogRepository
+  } = require('../src/infrastructure/postgres/company-catalog.repository');
+  assert.equal(typeof createCompanyCatalogRepository, 'function');
+
+  const pool = new Pool({
+    connectionString: databaseUrl,
+    ssl: process.env.DATABASE_SSL === 'false' ? false : { rejectUnauthorized: false }
+  });
+  let client;
+  let inTransaction = false;
+
+  try {
+    client = await pool.connect();
+    await assertSafeConnectedClient(client);
+    await client.query('BEGIN');
+    inTransaction = true;
+
+    const fixture = await client.query(`
+      WITH inserted AS (
+        INSERT INTO empresas (nombre, logo_url, descripcion, website_url)
+        SELECT
+          'PCD03 Company ' || lpad(series_id::text, 5, '0'),
+          '/uploads/pcd03-' || lpad(series_id::text, 5, '0') || '.webp',
+          NULL,
+          NULL
+        FROM generate_series(1, 10000) AS fixture(series_id)
+        RETURNING id
+      )
+      SELECT
+        count(*)::integer AS fixture_count,
+        min(id)::integer AS min_id,
+        max(id)::integer AS max_id
+      FROM inserted
+    `);
+    assert.equal(fixture.rows[0].fixture_count, 10_000);
+    assert.equal(fixture.rows[0].max_id - fixture.rows[0].min_id + 1, 10_000);
+
+    const firstId = fixture.rows[0].min_id;
+    const fixtureIds = {
+      zeroPoints: firstId,
+      profile: firstId + 1,
+      tieUpper: firstId + 2,
+      tieTitle: firstId + 3,
+      tieLower: firstId + 4,
+      literal: firstId + 5,
+      legacyLong: firstId + 6
+    };
+    const literalCompanyName = 'PCD03 Literal %_\\ Marker';
+    const legacyLongName = `PCD03 Legacy ${'Á'.repeat(600)}`;
+
+    await client.query(`
+      UPDATE empresas
+      SET
+        nombre = CASE id
+          WHEN $1 THEN 'PCD03 Zero Points'
+          WHEN $2 THEN 'PCD03 Public Profile'
+          WHEN $3 THEN 'PCD03 PAGE TIE'
+          WHEN $4 THEN 'Pcd03 Page Tie'
+          WHEN $5 THEN 'pcd03 page tie'
+          WHEN $6 THEN $8
+          WHEN $7 THEN $9
+        END,
+        descripcion = CASE WHEN id = $2 THEN 'Perfil público de prueba' ELSE descripcion END,
+        website_url = CASE WHEN id = $2 THEN 'https://company.example.test' ELSE website_url END
+      WHERE id = ANY($10::integer[])
+    `, [
+      fixtureIds.zeroPoints,
+      fixtureIds.profile,
+      fixtureIds.tieUpper,
+      fixtureIds.tieTitle,
+      fixtureIds.tieLower,
+      fixtureIds.literal,
+      fixtureIds.legacyLong,
+      literalCompanyName,
+      legacyLongName,
+      Object.values(fixtureIds)
+    ]);
+
+    await client.query(`
+      INSERT INTO agencias (
+        empresa_id,
+        id_destino,
+        nombre_destino,
+        tipo,
+        departamento,
+        municipio
+      )
+      VALUES
+        ($1, 'PCD03_PUBLIC_1', 'PCD03 Public 1', 'AGENCIA', 'San Salvador', 'Soyapango'),
+        ($1, 'PCD03_PUBLIC_2', 'PCD03 Public 2', 'AGENCIA', ' san salvador ', ' soyapango '),
+        ($1, 'PCD03_PUBLIC_BLANK_LOCATION', 'PCD03 Public Blank', 'AGENCIA', '   ', 'Soyapango'),
+        ($1, '   ', 'PCD03 Private Blank', 'AGENCIA', 'San Salvador', 'Otra'),
+        ($1, NULL, 'PCD03 Private Null', 'AGENCIA', 'San Salvador', 'Otra')
+    `, [fixtureIds.profile]);
+
+    const rawVisibleUrl = 'https://unresolvable.invalid/raw-token?do-not-fetch=1';
+    await client.query(`
+      INSERT INTO empresa_redes_sociales (empresa_id, plataforma, url, visible, orden)
+      VALUES
+        ($1, 'FACEBOOK', $2, true, 2),
+        ($1, 'INSTAGRAM', 'https://instagram.com/pcd03-profile', true, 1),
+        ($1, 'TIKTOK', 'https://tiktok.com/@hidden-pcd03', false, 0)
+    `, [fixtureIds.profile, rawVisibleUrl]);
+
+    let repositoryCalls = [];
+    const tracedDatabase = {
+      async query(text, values = []) {
+        assert.equal(typeof text, 'string', 'repository queries must expose parameterized SQL text');
+        const result = await client.query(text, values);
+        repositoryCalls.push({ text, values, rowCount: result.rowCount });
+        return result;
+      }
+    };
+    const repository = createCompanyCatalogRepository({
+      getDB: async () => tracedDatabase
+    });
+
+    repositoryCalls = [];
+    const zeroPointPage = await repository.listCompanies({
+      q: 'pcd03 zero points',
+      limit: 20,
+      position: null
+    });
+    assert.equal(repositoryCalls.length, 1, 'the company list must use one database query');
+    assert.equal(zeroPointPage.companies.length, 1);
+    assert.equal(zeroPointPage.companies[0].companyId, String(fixtureIds.zeroPoints));
+    assert.equal(zeroPointPage.companies[0].pointCount, 0);
+    assert.equal(zeroPointPage.companies[0].municipalityCount, 0);
+
+    repositoryCalls = [];
+    const profileListPage = await repository.listCompanies({
+      q: 'pcd03 public profile',
+      limit: 20,
+      position: null
+    });
+    assert.equal(repositoryCalls.length, 1, 'company counts must be projected by the list query');
+    assert.equal(profileListPage.companies.length, 1);
+    assert.equal(profileListPage.companies[0].pointCount, 3);
+    assert.equal(profileListPage.companies[0].municipalityCount, 1);
+
+    const profile = await repository.getCompanyProfile(String(fixtureIds.profile));
+    assert.equal(profile.companyId, String(fixtureIds.profile));
+    assert.deepEqual(profile.coverage, {
+      pointCount: 3,
+      municipalityCount: 1,
+      departmentCount: 1
+    });
+    assert.deepEqual(profile.socialLinks, [
+      {
+        platform: 'INSTAGRAM',
+        url: 'https://instagram.com/pcd03-profile',
+        order: 1
+      },
+      {
+        platform: 'FACEBOOK',
+        url: rawVisibleUrl,
+        order: 2
+      }
+    ]);
+
+    const pagedTieIds = [];
+    let position = null;
+    for (let pageNumber = 0; pageNumber < 3; pageNumber += 1) {
+      const page = await repository.listCompanies({
+        q: 'pcd03 page tie',
+        limit: 1,
+        position
+      });
+      assert.equal(page.companies.length, 1);
+      const company = page.companies[0];
+      pagedTieIds.push(company.companyId);
+      assert.equal(page.hasMore, pageNumber < 2);
+      position = {
+        matchRank: company.matchRank,
+        normalizedName: company.normalizedName,
+        companyId: company.companyId
+      };
+    }
+    assert.deepEqual(
+      pagedTieIds,
+      [fixtureIds.tieUpper, fixtureIds.tieTitle, fixtureIds.tieLower]
+        .sort((left, right) => left - right)
+        .map(String),
+      'companyId must break normalized-name ties without omissions or duplicates'
+    );
+    assert.equal(new Set(pagedTieIds).size, 3);
+
+    for (const literalQuery of ['%', '_', '\\']) {
+      const literalPage = await repository.listCompanies({
+        q: literalQuery,
+        limit: 20,
+        position: null
+      });
+      assert.deepEqual(
+        literalPage.companies.map((company) => company.companyId),
+        [String(fixtureIds.literal)],
+        `the search token ${JSON.stringify(literalQuery)} must remain literal`
+      );
+    }
+
+    const legacyPage = await repository.listCompanies({
+      q: 'pcd03 legacy',
+      limit: 20,
+      position: null
+    });
+    assert.equal(legacyPage.companies.length, 1);
+    assert.equal(legacyPage.companies[0].companyId, String(fixtureIds.legacyLong));
+    assert.ok([...legacyPage.companies[0].normalizedName].length <= 250);
+    assert.ok(Buffer.byteLength(legacyPage.companies[0].normalizedName, 'utf8') <= 1024);
+
+    repositoryCalls = [];
+    const startedAt = performance.now();
+    const scalePage = await repository.listCompanies({
+      q: null,
+      limit: 20,
+      position: null
+    });
+    const elapsedMs = performance.now() - startedAt;
+    assert.equal(repositoryCalls.length, 1, 'the 10,000-company page must use one query');
+    assert.ok(repositoryCalls[0].rowCount <= 21, 'limit 20 may read at most one look-ahead row');
+    assert.ok(scalePage.companies.length <= 20);
+    assert.equal(scalePage.hasMore, true);
+    const payloadBytes = Buffer.byteLength(JSON.stringify(scalePage), 'utf8');
+    assert.ok(payloadBytes <= 32 * 1024, `company page payload must stay bounded, got ${payloadBytes} bytes`);
+    assert.ok(elapsedMs <= 1_500, `company list exceeded 1500 ms: ${elapsedMs.toFixed(2)} ms`);
+
+    const explain = await client.query(
+      `EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON) ${repositoryCalls[0].text}`,
+      repositoryCalls[0].values
+    );
+    const planDocument = explain.rows[0]?.['QUERY PLAN']?.[0];
+    assert.ok(planDocument?.Plan, 'EXPLAIN must return a JSON execution plan');
+    const planNodes = collectPlanNodes(planDocument.Plan);
+    assert.ok(planNodes.length > 0);
+    assert.ok(
+      planNodes.some((node) => Object.keys(node).some((key) => key.endsWith('Blocks'))),
+      'BUFFERS evidence must be present in the execution plan'
+    );
+    assert.ok(planDocument.Plan['Actual Rows'] <= 21, 'the plan must emit at most the look-ahead page');
+    assert.ok(
+      planDocument['Execution Time'] <= 1_500,
+      `EXPLAIN execution exceeded 1500 ms: ${planDocument['Execution Time']} ms`
+    );
+    t.diagnostic(JSON.stringify({
+      fixtureCompanies: fixture.rows[0].fixture_count,
+      queryElapsedMs: Number(elapsedMs.toFixed(2)),
+      explainExecutionMs: planDocument['Execution Time'],
+      rows: repositoryCalls[0].rowCount,
+      payloadBytes,
+      planNodes: planNodes.map((node) => node['Node Type'])
+    }));
   } finally {
     if (client && inTransaction) {
       await client.query('ROLLBACK');

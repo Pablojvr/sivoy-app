@@ -1,11 +1,13 @@
 -- Baseline DDL mínimo de compatibilidad estructural.
 -- AVISO: Este archivo NO replica la base de datos de producción ni contiene datos ni secretos.
--- Su único propósito es permitir la validación en CI efímero de las migraciones diferenciales 0001–0010.
+-- Su único propósito es permitir la validación en CI efímero de las migraciones diferenciales 0001–0011.
 -- No utiliza IF EXISTS ni DROP TABLE para garantizar que la base de datos objetivo esté completamente limpia.
--- Contiene única y exclusivamente las tablas, columnas, claves y relaciones requeridas por 0001–0010.
+-- Contiene única y exclusivamente las tablas, columnas, claves y relaciones requeridas por 0001–0011.
 
 CREATE TABLE empresas (
-  id integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY
+  id integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  nombre text NOT NULL UNIQUE,
+  logo_url text
 );
 
 CREATE TABLE agencias (

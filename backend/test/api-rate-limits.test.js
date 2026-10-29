@@ -184,6 +184,8 @@ test('registro aplica cada nivel solo a sus rutas y permite apagarlo', async () 
   try {
     await get(url, '/api/catalog/points');
     await get(url, '/api/catalog/facets');
+    await get(url, '/api/catalog/companies');
+    await get(url, '/api/catalog/companies/42');
     await post(url, '/api/get-upcoming-routes');
     await post(url, '/api/search-routes-by-municipality');
     await post(url, '/api/search-flights');
@@ -192,7 +194,7 @@ test('registro aplica cada nivel solo a sus rutas y permite apagarlo', async () 
     await post(url, '/api/places/resolve');
     await get(url, '/api/health');
     assert.deepEqual(calls, [
-      'catalog', 'catalog',
+      'catalog', 'catalog', 'catalog', 'catalog',
       'search', 'search', 'search',
       'maps', 'maps', 'maps'
     ]);
